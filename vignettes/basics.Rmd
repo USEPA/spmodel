@@ -85,11 +85,20 @@ moss
 ```
 
 We can visualize the distribution of log zinc concentration (`log_Zb`) by running
-```{r}
+```{r, eval = FALSE}
 ggplot(moss, aes(color = log_Zn)) + 
   geom_sf(size = 2) +
   scale_color_viridis_c()
 ```
+
+```{r, echo = FALSE}
+# polygon edge not found bug in MacOS
+ggplot(moss, aes(color = log_Zn)) + 
+  geom_sf(size = 2) +
+  scale_color_viridis_c() +
+theme(axis.text = element_blank())
+```
+
 
 Log zinc concentration appears highest in the middle of the spatial domain, which has a road running through it. We fit a spatial linear model of log zinc concentration on the log distance to the road using an exponential spatial covariance function by running
 ```{r}
@@ -171,11 +180,20 @@ By default, `augment()` only returns the variables in the data used by the model
 Commonly a goal of a data analysis is to make predictions at unobserved locations. In spatial contexts, prediction is often called Kriging. Next we use the `sulfate` data to build a spatial linear model of sulfate measurements in the conterminous United States with the goal of making sulfate predictions (Kriging) for the unobserved locations in `sulfate_preds`.
 
 We visualize the distribution of `sulfate` by running
-```{r}
+```{r, eval = FALSE}
 ggplot(sulfate, aes(color = sulfate)) + 
   geom_sf(size = 2) +
   scale_color_viridis_c(limits = c(0, 45))
 ```
+
+```{r}
+# polygon edge not found bug in MacOS
+ggplot(sulfate, aes(color = sulfate)) + 
+  geom_sf(size = 2) +
+  scale_color_viridis_c(limits = c(0, 45)) + 
+  theme(axis.text = element_blank())
+```
+
 
 Sulfate appears spatially dependent, as measurements are highest in the northeast and lowest in the midwest and west.
 
@@ -190,10 +208,18 @@ sulfate_preds$model_preds <- predict(sulfmod, newdata = sulfate_preds)
 ```
 
 We visualize these predictions by running
-```{r}
+```{r, eval = FALSE}
 ggplot(sulfate_preds, aes(color = model_preds)) +
   geom_sf(size = 2) +
   scale_color_viridis_c(limits = c(0, 45))
+```
+
+```{r, echo = FALSE}
+# polygon edge not found bug in MacOS
+ggplot(sulfate_preds, aes(color = model_preds)) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c(limits = c(0, 45)) +
+  theme(axis.text = element_blank())
 ```
 
 These predictions have similar sulfate patterns as in the observed data (predicted values are highest in the northeast and lowest in the midwest and west). Next we remove the model predictions from `sulfate_preds` before showing how `augment()` can be used to obtain the same predictions:

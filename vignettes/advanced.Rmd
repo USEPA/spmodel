@@ -393,11 +393,20 @@ seal
 ```
 
 We visualize the distribution of log abundance by running
-```{r}
+```{r, eval = FALSE}
 ggplot(seal, aes(fill = log_abund)) + 
   geom_sf() +
   scale_fill_viridis_c()
 ```
+
+```{r, echo = FALSE}
+# polygon edge not found bug in MacOS
+ggplot(seal, aes(fill = log_abund)) + 
+  geom_sf() +
+  scale_fill_viridis_c() +
+  theme(axis.text = element_blank())
+```
+
 
 The grey polygons indicate that a response was not collected. Of the 62 polygons in the data, 28 are missing a response. Unlike for models fit using `splm()`, models fit using `spautor()` must incorporate these missing-data polygons while modeling spatial dependence if prediction for these polygons is desired.
 
@@ -440,12 +449,22 @@ augment(sealmod, newdata = sealmod$newdata)
 ```
 
 We visualize these predictions alongside the observed data by running
-```{r}
+```{r, eval = FALSE}
 seal_preds <- augment(sealmod, newdata = sealmod$newdata)
 ggplot() +
   geom_sf(data = seal, aes(fill = log_abund)) + 
   geom_sf(data = seal_preds, aes(fill = .fitted)) +
   scale_fill_viridis_c()
+```
+
+```{r, echo = FALSE}
+# polygon edge not found bug in MacOS
+seal_preds <- augment(sealmod, newdata = sealmod$newdata)
+ggplot() +
+  geom_sf(data = seal, aes(fill = log_abund)) + 
+  geom_sf(data = seal_preds, aes(fill = .fitted)) +
+  scale_fill_viridis_c() +
+  theme(axis.text = element_blank())
 ```
 
 While the fitted model in this example only uses an intercept, the same code is used for prediction with fitted models having predictor variables.

@@ -1,0 +1,35 @@
+#' Compute leverage (hat) values
+#'
+#' @description Compute the leverage (hat) value for each observation from a fitted
+#'   model object.
+#'
+#' @param model A fitted model object from [splm()] or [spautor()].
+#' @param ... Other arguments. Not used (needed for generic consistency).
+#'
+#' @details Leverage values measure how far an observation's predictor variables
+#'   are relative to the average. In other words, observations with high
+#'   leverage are typically considered to have an extreme or unusual combination of predictor
+#'   variables. Leverage values are the diagonal of the hat (projection) matrix.
+#'   One suggested cutoff used to identify high leverage
+#'   observations is \eqn{3p / n}, where \eqn{p} is the
+#'   number of fixed effects and \code{n} is the sample size.
+#'   Observations with leverage values larger than the specified
+#'   cutoff are considered high leverage observations.
+#'
+#' @return A vector of leverage (hat) values for each observation from the
+#'   fitted model object.
+#'
+#' @method hatvalues spmod
+#' @export
+#'
+#' @seealso [cooks.distance()] [influence.spmod()] [residuals.spmod()]
+#'
+#' @examples
+#' spmod <- splm(z ~ water + tarp,
+#'   data = caribou,
+#'   spcov_type = "exponential", xcoord = x, ycoord = y
+#' )
+#' hatvalues(spmod)
+hatvalues.spmod <- function(model, ...) {
+  model$hatvalues # 2p / n or 3p / n
+}

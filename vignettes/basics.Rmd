@@ -28,17 +28,17 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-The spmodel package is used to fit and summarize spatial models and make predictions at unobserved locations (Kriging). This vignette covers the basics of how to fit spatial linear models in spmodel. We load spmodel by running
+The `spmodel` package is used to fit and summarize spatial models and make predictions at unobserved locations (Kriging). This vignette covers the basics of how to fit spatial linear models in `spmodel`. We load `spmodel` by running
 ```{r}
 library(spmodel)
 ```
 
-If you use spmodel in a formal publication or report, please cite it. Citing spmodel lets us devote more resources to it in the future. We view the spmodel citation by running
+If you use `spmodel` in a formal publication or report, please cite it. Citing `spmodel` lets us devote more resources to it in the future. We view the `spmodel` citation by running
 ```{r}
 citation(package = "spmodel")
 ```
 
-There are three additional spmodel vignettes:
+There are three additional `spmodel` vignettes:
 
 * An overview of advanced features: `vignette("advanced", "spmodel")`
 * A detailed guide with relevant methodological background: `vignette("guide", "spmodel")`
@@ -46,7 +46,7 @@ There are three additional spmodel vignettes:
 
 # The Data
 
-Many of the data sets we use in this vignette are `sf` objects. `sf` objects are data frames (or tibbles) with a special structure that store spatial information. They are built using the [sf](https://cran.r-project.org/package=sf) package, which is installed alongside spmodel. We will use four data sets throughout this vignette:
+Many of the data sets we use in this vignette are `sf` objects. `sf` objects are data frames (or tibbles) with a special structure that store spatial information. They are built using the [sf](https://cran.r-project.org/package=sf) package, which is installed alongside `spmodel`. We will use four data sets throughout this vignette:
 
 * `moss`: An `sf` object with heavy metal concentrations in Alaska.
 * `sulfate`: An `sf` object with sulfate measurements in the conterminous United States.
@@ -58,7 +58,7 @@ Throughout this vignette, we will create visualizations using [ggplot2](https://
 library(ggplot2)
 ```
 
-ggplot2 is only installed alongside spmodel when `dependencies = TRUE` in `install.packages()`.
+ggplot2 is only installed alongside `spmodel` when `dependencies = TRUE` in `install.packages()`.
 
 # Spatial Linear Models with `splm()`
 
@@ -77,7 +77,7 @@ Spatial linear models can be fit using the `splm()` function when the data are p
 * `data`: a `data.frame`, `sf`, or `sp` object that contains the response variable, predictor variables, and spatial information
 * `spcov_type`: the spatial covariance type (`"exponential"`, `"spherical"`, `"matern"`, etc)
 
-If `data` are an `sp` or `sf` object, the coordinate information is taken from the object's geometry. If `data` are a `data.frame` or `tibble`, then `xcoord` and `ycoord` are required arguments to `splm()` that specify the columns in `data` representing the x-coordinates and y-coordinates, respectively. spmodel uses the spatial coordinates "as-is," meaning that spmodel does not perform any projections. To project your data or change the coordinate reference system, use `sf::st_transform()`. If an `sf` or `sp` object with polygon geometries is given to `splm()`, the centroids of each polygon will be used to fit the spatial linear model.
+If `data` are an `sp` or `sf` object, the coordinate information is taken from the object's geometry. If `data` are a `data.frame` or `tibble`, then `xcoord` and `ycoord` are required arguments to `splm()` that specify the columns in `data` representing the x-coordinates and y-coordinates, respectively. `spmodel` uses the spatial coordinates "as-is," meaning that `spmodel` does not perform any projections. To project your data or change the coordinate reference system, use `sf::st_transform()`. If an `sf` or `sp` object with polygon geometries is given to `splm()`, the centroids of each polygon will be used to fit the spatial linear model.
 
 We next show the basic features and syntax of `splm()` using the Alaskan `moss` data. We study the impact of log distance to the road (`log_dist2road`) on log zinc concentration (`log_Zn`). We view the first few rows of the `moss` data by running
 ```{r}
@@ -85,18 +85,36 @@ moss
 ```
 
 We can visualize the distribution of log zinc concentration (`log_Zb`) by running
-```{r, eval = FALSE}
-ggplot(moss, aes(color = log_Zn)) + 
-  geom_sf(size = 2) +
-  scale_color_viridis_c()
+```{r}
+plot(
+  moss["log_Zn"],
+  pal = hcl.colors,
+  pch = 19,
+  bgc = "grey95",
+  graticule = TRUE,
+  axes = TRUE,
+  key.pos = 4
+)
 ```
 
 ```{r, echo = FALSE}
-# polygon edge not found bug in MacOS
-ggplot(moss, aes(color = log_Zn)) + 
-  geom_sf(size = 2) +
-  scale_color_viridis_c() +
-theme(axis.text = element_blank())
+# # using ggplot2
+# ggplot(moss, aes(color = log_Zn)) + 
+#   geom_sf(size = 2) +
+#   scale_color_viridis_c()
+
+# # workaround for MacOS geom_sf() polygon edge not found bug
+# moss_df <- sf::st_drop_geometry(moss)
+# moss_df[, c("X", "Y")] <- sf::st_coordinates(moss)
+# ggplot(moss_df, aes(x = X, y = Y, color = log_Zn)) + 
+#   geom_point(size = 2) +
+#   scale_color_viridis_c() +
+#   coord_fixed() +
+#   theme(axis.text = element_blank(),
+#         axis.title = element_blank())
+
+# # workaround using sf
+# plot(moss["log_Zn"], pal = hcl.colors, pch = 19)
 ```
 
 
@@ -180,18 +198,37 @@ By default, `augment()` only returns the variables in the data used by the model
 Commonly a goal of a data analysis is to make predictions at unobserved locations. In spatial contexts, prediction is often called Kriging. Next we use the `sulfate` data to build a spatial linear model of sulfate measurements in the conterminous United States with the goal of making sulfate predictions (Kriging) for the unobserved locations in `sulfate_preds`.
 
 We visualize the distribution of `sulfate` by running
-```{r, eval = FALSE}
-ggplot(sulfate, aes(color = sulfate)) + 
-  geom_sf(size = 2) +
-  scale_color_viridis_c(limits = c(0, 45))
+```{r}
+plot(
+  sulfate["sulfate"],
+  pal = hcl.colors,
+  pch = 19,
+  bgc = "grey95",
+  graticule = TRUE,
+  axes = TRUE,
+  key.pos = 4,
+  breaks = seq(0, 45, length.out = 10)
+)
 ```
 
-```{r}
-# polygon edge not found bug in MacOS
-ggplot(sulfate, aes(color = sulfate)) + 
-  geom_sf(size = 2) +
-  scale_color_viridis_c(limits = c(0, 45)) + 
-  theme(axis.text = element_blank())
+```{r, echo = FALSE}
+# # using ggplot2
+# ggplot(sulfate, aes(color = sulfate)) + 
+#   geom_sf(size = 2) +
+#   scale_color_viridis_c(limits = c(0, 45))
+
+# # workaround for MacOS geom_sf() polygon edge not found bug
+# sulfate_df <- sf::st_drop_geometry(sulfate)
+# sulfate_df[, c("X", "Y")] <- sf::st_coordinates(sulfate)
+# ggplot(sulfate_df, aes(x = X, y = Y, color = sulfate)) + 
+#   geom_point(size = 2) +
+#   scale_color_viridis_c(limits = c(0, 45)) +
+#   coord_fixed() +
+#   theme(axis.text = element_blank(),
+#         axis.title = element_blank())
+
+# # workaround using sf
+# plot(sulfate["sulfate"], pal = hcl.colors, pch = 19, breaks = seq(0, 45, length.out = 10))
 ```
 
 
@@ -202,29 +239,49 @@ We fit a spatial linear model of sulfate on an intercept using a spherical spati
 sulfmod <- splm(sulfate ~ 1, data = sulfate, spcov_type =  "spherical")
 ```
 
-We make predictions at the locations in `sulfate_preds` and store them as a new variable in the `sulfate_preds` data set called `model_preds` by running
+We make predictions at the locations in `sulfate_preds` and store them as a new variable in the `sulfate_preds` data set called `preds` by running
 ```{r}
-sulfate_preds$model_preds <- predict(sulfmod, newdata = sulfate_preds)
+sulfate_preds$preds <- predict(sulfmod, newdata = sulfate_preds)
 ```
 
 We visualize these predictions by running
-```{r, eval = FALSE}
-ggplot(sulfate_preds, aes(color = model_preds)) +
-  geom_sf(size = 2) +
-  scale_color_viridis_c(limits = c(0, 45))
+```{r}
+plot(
+  sulfate_preds["preds"],
+  pal = hcl.colors,
+  pch = 19,
+  bgc = "grey95",
+  graticule = TRUE,
+  axes = TRUE,
+  key.pos = 4,
+  breaks = seq(0, 45, length.out = 10)
+)
 ```
 
 ```{r, echo = FALSE}
-# polygon edge not found bug in MacOS
-ggplot(sulfate_preds, aes(color = model_preds)) +
-  geom_sf(size = 2) +
-  scale_color_viridis_c(limits = c(0, 45)) +
-  theme(axis.text = element_blank())
+# # using ggplot2
+# ggplot(sulfate_preds, aes(color = preds)) +
+#   geom_sf(size = 2) +
+#   scale_color_viridis_c(limits = c(0, 45))
+
+# # workaround for MacOS geom_sf() polygon edge not found bug
+# sulfate_preds_df <- sf::st_drop_geometry(sulfate_preds)
+# sulfate_preds_df[, c("X", "Y")] <- sf::st_coordinates(sulfate_preds)
+# ggplot(sulfate_preds_df, aes(x = X, y = Y, color = preds)) + 
+#   geom_point(size = 2) +
+#   scale_color_viridis_c(limits = c(0, 45)) +
+#   coord_fixed() +
+#   theme(axis.text = element_blank(),
+#         axis.title = element_blank())
+
+# # workaround using sf
+# plot(sulfate_preds["preds"], pal = hcl.colors, pch = 19, breaks = seq(0, 45, length.out = 10))
+
 ```
 
 These predictions have similar sulfate patterns as in the observed data (predicted values are highest in the northeast and lowest in the midwest and west). Next we remove the model predictions from `sulfate_preds` before showing how `augment()` can be used to obtain the same predictions:
 ```{r}
-sulfate_preds$model_preds <- NULL
+sulfate_preds$preds <- NULL
 ```
 
 While `augment()` was previously used to augment the original data with model diagnostics, it can also be used to augment the prediction data with predictions:
@@ -264,7 +321,7 @@ There seems to be significant evidence that at least one tarp cover impacts nitr
 
 # Function Glossary
 
-Here we list some commonly used functions in spmodel. For a full list of functions, see the documentation manual.
+Here we list some commonly used functions in `spmodel`. For a full list of functions, see the documentation manual.
 
 * `AIC()`: Compute the AIC.
 * `AICc()`: Compute the AICc.

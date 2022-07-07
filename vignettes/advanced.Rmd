@@ -28,7 +28,7 @@ library(ggplot2)
 
 # Introduction
 
-The spmodel R package is used to fit and summarize spatial models and make predictions at unobserved locations (Kriging). This vignette covers advanced features of spmodel, which can be read in any order: 
+The `spmodel` R package is used to fit and summarize spatial models and make predictions at unobserved locations (Kriging). This vignette covers advanced features of `spmodel`, which can be read in any order: 
 
 *   Random effects for incorporating additional sources of variability.
 *   Specifying fixed (known) values of spatial and/or random effect covariance parameters for model-fitting.
@@ -38,7 +38,7 @@ The spmodel R package is used to fit and summarize spatial models and make predi
 *   Big data approaches to model-fitting and prediction.
 *   Spatial linear models for autoregressive data (conditional and simultaneous autoregressive spatial covariance functions).
 
-We load spmodel by running
+We load `spmodel` by running
 ```{r}
 library(spmodel)
 ```
@@ -47,7 +47,7 @@ We will use the `moss` data throughout the vignette. The first few rows can be v
 ```{r}
 moss
 ```
-The purpose of this vignette is to gain experience using advanced features in spmodel, not necessarily to find the best fitting model to the data.
+The purpose of this vignette is to gain experience using advanced features in `spmodel`, not necessarily to find the best fitting model to the data.
 
 While introducing the advanced features, we often compare against a basic spatial linear model of log zinc concentration on the log distance to the road using an exponential spatial covariance function.
 ```{r}
@@ -55,12 +55,12 @@ basic <- splm(log_Zn ~ log_dist2road, moss, "exponential")
 glance(basic)
 ```
 
-If you use spmodel in a formal publication or report, please cite it. Citing spmodel lets us devote more resources to it in the future. We view the spmodel citation by running
+If you use `spmodel` in a formal publication or report, please cite it. Citing `spmodel` lets us devote more resources to it in the future. We view the `spmodel` citation by running
 ```{r}
 citation(package = "spmodel")
 ```
 
-There are three additional spmodel vignettes:
+There are three additional `spmodel` vignettes:
 
 * An overview of basic features: `vignette("basic", "spmodel")`
 * A detailed guide with relevant methodological background: `vignette("guide", "spmodel")`
@@ -180,7 +180,8 @@ ggplot(df_orig, aes(x = x, y = y)) +
   scale_x_continuous(breaks = c(0)) + 
   scale_y_continuous(breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_bw(base_size = 20)
+  theme_bw(base_size = 20) +
+  coord_fixed()
 
 theta <- pi / 6 # (30 degrees)
 R <- 1 / 4
@@ -194,7 +195,8 @@ ggplot(df, aes(x = x, y = y)) +
   scale_x_continuous(breaks = c(0)) + 
   scale_y_continuous(breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_bw(base_size = 20)
+  theme_bw(base_size = 20) +
+  coord_fixed()
 ```
 
 The black outline of these ellipses indicates the distance at which observations are approximately uncorrelated. The left ellipse (a circle) represents an isotropic covariance function. The distance at which observations are approximately uncorrelated is the same in all directions. The right ellipse represents an anisotropic covariance function. The distance at which observations are approximately uncorrelated is different in different directions. 
@@ -222,7 +224,7 @@ $$
 
 The original coordinates are first multiplied by the rotation matrix, which rotates the coordinates clockwise by angle $\alpha$. They are then multiplied by the scaling matrix, which scales the minor axis of the spatial covariance ellipse imposed by the coordinates by the reciprocal of $S$. This type of anisotropy is more formally known as "geometric" anisotropy because it involves a geometric transformation of the coordinates.
 
-In spmodel, $\alpha$ and $R$ from the above matrices are called `rotate` and `scale`, respectively. These parameters are estimated in `splm()` if `estmethod` is `"reml"` or `"ml"` by setting `anisotropy` to `TRUE`:
+In `spmodel`, $\alpha$ and $R$ from the above matrices are called `rotate` and `scale`, respectively. These parameters are estimated in `splm()` if `estmethod` is `"reml"` or `"ml"` by setting `anisotropy` to `TRUE`:
 ```{r}
 anis1 <- splm(log_Zn ~ log_dist2road, moss, "exponential", anisotropy = TRUE)
 summary(anis1)
@@ -298,7 +300,7 @@ ggplot(sim_data, aes(x = x, y = y, color = sim_resp)) +
 
 # Big Data
 
-spmodel has options for accommodating big data using approximations. Big data options for model-fitting are available for `splm()` objects, while big data options for prediction are available for `splm()` objects and [`spautor()`](#autoreg) objects. Before we explore these big data options, if the `sim_data` object from the [Simulating Data section](#simdata) has not yet been created, it can be created by running
+`spmodel` has options for accommodating big data using approximations. Big data options for model-fitting are available for `splm()` objects, while big data options for prediction are available for `splm()` objects and [`spautor()`](#autoreg) objects. Before we explore these big data options, if the `sim_data` object from the [Simulating Data section](#simdata) has not yet been created, it can be created by running
 ```{r, eval = FALSE}
 n <- 3000
 x <- runif(n)
@@ -385,7 +387,7 @@ For models fit using [`spautor()`](#autoreg), no big data approximations are ava
 
 Spatial autoregressive models allow for spatial dependence defined through a neighborhood structure rather than a Euclidean distance. Often this neighborhood structure is imposed via a set of polygons, and polygons sharing a boundary are considered neighbors. For example, a neighborhood structure could be state boundaries within a country. A matrix that contains neighborhood relationships among all observations is called a weight matrix.
 
-Spatial autoregressive models are fit in spmodel using the `spautor()` function. The `spautor()` function is very similar to the `splm()` function: both functions generally require the `formula`, `data`, and `spcov_type` arguments. There are some optional arguments for `spautor()` that relate to the data's neighborhood structure. Next we use `spautor()` to fit a spatial autoregressive model to the `seal` data, an `sf` object with log harbor seal abundance across polygons in Alaska.
+Spatial autoregressive models are fit in `spmodel` using the `spautor()` function. The `spautor()` function is very similar to the `splm()` function: both functions generally require the `formula`, `data`, and `spcov_type` arguments. There are some optional arguments for `spautor()` that relate to the data's neighborhood structure. Next we use `spautor()` to fit a spatial autoregressive model to the `seal` data, an `sf` object with log harbor seal abundance across polygons in Alaska.
 
 We view the first few rows of the `seal` data by running
 ```{r}
@@ -393,18 +395,26 @@ seal
 ```
 
 We visualize the distribution of log abundance by running
-```{r, eval = FALSE}
-ggplot(seal, aes(fill = log_abund)) + 
-  geom_sf() +
-  scale_fill_viridis_c()
+```{r}
+plot(
+  seal["log_abund"],
+  pal = hcl.colors,
+  pch = 19,
+  bgc = "grey95",
+  graticule = TRUE,
+  axes = TRUE,
+  key.pos = 4,
+)
 ```
 
 ```{r, echo = FALSE}
-# polygon edge not found bug in MacOS
-ggplot(seal, aes(fill = log_abund)) + 
-  geom_sf() +
-  scale_fill_viridis_c() +
-  theme(axis.text = element_blank())
+# # using ggplot2
+# ggplot(seal, aes(fill = log_abund)) + 
+#   geom_sf() +
+#   scale_fill_viridis_c()
+
+# # workaround using sf
+# plot(seal["log_abund"], pal = hcl.colors)
 ```
 
 
@@ -448,23 +458,39 @@ We previously mentioned that for spatial autoregressive models, prediction can o
 augment(sealmod, newdata = sealmod$newdata)
 ```
 
-We visualize these predictions alongside the observed data by running
-```{r, eval = FALSE}
+These predictions are visualized alongside the observed data below:
+```{r, echo = FALSE}
 seal_preds <- augment(sealmod, newdata = sealmod$newdata)
-ggplot() +
-  geom_sf(data = seal, aes(fill = log_abund)) + 
-  geom_sf(data = seal_preds, aes(fill = .fitted)) +
-  scale_fill_viridis_c()
+seal <- seal[!is.na(seal$log_abund), , drop = FALSE]
+seal_preds <- seal_preds[, -1]
+names(seal_preds)[1] <- "log_abund"
+seal <- rbind(seal, seal_preds)
+plot(
+  seal["log_abund"],
+  pal = hcl.colors,
+  pch = 19,
+  bgc = "grey95",
+  graticule = TRUE,
+  axes = TRUE,
+  key.pos = 4
+)
 ```
 
 ```{r, echo = FALSE}
-# polygon edge not found bug in MacOS
-seal_preds <- augment(sealmod, newdata = sealmod$newdata)
-ggplot() +
-  geom_sf(data = seal, aes(fill = log_abund)) + 
-  geom_sf(data = seal_preds, aes(fill = .fitted)) +
-  scale_fill_viridis_c() +
-  theme(axis.text = element_blank())
+# # using ggplot2
+# seal_preds <- augment(sealmod, newdata = sealmod$newdata)
+# ggplot() +
+#   geom_sf(data = seal, aes(fill = log_abund)) + 
+#   geom_sf(data = seal_preds, aes(fill = .fitted)) +
+#   scale_fill_viridis_c()
+
+# workaround using sf
+# seal_preds <- augment(sealmod, newdata = sealmod$newdata)
+# seal <- seal[!is.na(seal$log_abund), , drop = FALSE]
+# seal_preds <- seal_preds[, -1]
+# names(seal_preds)[1] <- "log_abund"
+# seal <- rbind(seal, seal_preds)
+# plot(seal["log_abund"], pal = hcl.colors)
 ```
 
 While the fitted model in this example only uses an intercept, the same code is used for prediction with fitted models having predictor variables.

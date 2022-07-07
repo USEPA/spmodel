@@ -402,7 +402,6 @@ plot(
   pch = 19,
   bgc = "grey95",
   graticule = TRUE,
-  axes = TRUE,
   key.pos = 4,
 )
 ```
@@ -471,7 +470,6 @@ plot(
   pch = 19,
   bgc = "grey95",
   graticule = TRUE,
-  axes = TRUE,
   key.pos = 4
 )
 ```

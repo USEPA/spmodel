@@ -93,7 +93,6 @@ plot(
   pch = 19,
   bgc = "grey95",
   graticule = TRUE,
-  axes = TRUE,
   key.pos = 4
 )
 
@@ -287,7 +286,6 @@ plot(
   pch = 19,
   bgc = "grey95",
   graticule = TRUE,
-  axes = TRUE,
   key.pos = 4,
 )
 
@@ -332,7 +330,6 @@ plot(
   pch = 19,
   bgc = "grey95",
   graticule = TRUE,
-  axes = TRUE,
   key.pos = 4,
   breaks = seq(0, 45, length.out = 10)
 )
@@ -344,7 +341,6 @@ plot(
   pch = 19,
   bgc = "grey95",
   graticule = TRUE,
-  axes = TRUE,
   key.pos = 4,
   breaks = seq(0, 45, length.out = 10)
 )

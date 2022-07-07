@@ -85,16 +85,20 @@ moss
 ```
 
 We can visualize the distribution of log zinc concentration (`log_Zb`) by running
-```{r}
-plot(
-  moss["log_Zn"],
-  pal = hcl.colors,
-  pch = 19,
-  bgc = "grey95",
-  graticule = TRUE,
-  key.pos = 4
-)
+```{r, eval = FALSE}
+ggplot(moss, aes(color = log_Zn)) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c()
 ```
+
+```{r, echo = FALSE}
+ggplot(moss, aes(color = log_Zn)) +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank()) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c()
+```
+
 
 ```{r, echo = FALSE}
 # # using ggplot2
@@ -113,7 +117,14 @@ plot(
 #         axis.title = element_blank())
 
 # # workaround using sf
-# plot(moss["log_Zn"], pal = hcl.colors, pch = 19)
+# plot(
+#   moss["log_Zn"],
+#   pal = hcl.colors,
+#   pch = 19,
+#   bgc = "grey95",
+#   graticule = TRUE,
+#   key.pos = 4
+# )
 ```
 
 
@@ -197,16 +208,18 @@ By default, `augment()` only returns the variables in the data used by the model
 Commonly a goal of a data analysis is to make predictions at unobserved locations. In spatial contexts, prediction is often called Kriging. Next we use the `sulfate` data to build a spatial linear model of sulfate measurements in the conterminous United States with the goal of making sulfate predictions (Kriging) for the unobserved locations in `sulfate_preds`.
 
 We visualize the distribution of `sulfate` by running
-```{r}
-plot(
-  sulfate["sulfate"],
-  pal = hcl.colors,
-  pch = 19,
-  bgc = "grey95",
-  graticule = TRUE,
-  key.pos = 4,
-  breaks = seq(0, 45, length.out = 10)
-)
+```{r, eval = FALSE}
+ggplot(sulfate, aes(color = sulfate)) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c(limits = c(0, 45))
+```
+
+```{r, echo = FALSE}
+ggplot(sulfate, aes(color = sulfate)) +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank()) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c(limits = c(0, 45))
 ```
 
 ```{r, echo = FALSE}
@@ -226,7 +239,15 @@ plot(
 #         axis.title = element_blank())
 
 # # workaround using sf
-# plot(sulfate["sulfate"], pal = hcl.colors, pch = 19, breaks = seq(0, 45, length.out = 10))
+# plot(
+#   sulfate["sulfate"],
+#   pal = hcl.colors,
+#   pch = 19,
+#   bgc = "grey95",
+#   graticule = TRUE,
+#   key.pos = 4,
+#   breaks = seq(0, 45, length.out = 10)
+# )
 ```
 
 
@@ -243,17 +264,19 @@ sulfate_preds$preds <- predict(sulfmod, newdata = sulfate_preds)
 ```
 
 We visualize these predictions by running
-```{r}
-plot(
-  sulfate_preds["preds"],
-  pal = hcl.colors,
-  pch = 19,
-  bgc = "grey95",
-  graticule = TRUE,
-  key.pos = 4,
-  breaks = seq(0, 45, length.out = 10)
-)
+```{r, eval = FALSE}
+ggplot(sulfate_preds, aes(color = preds)) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c(limits = c(0, 45))
 ```
+
+```{r, echo = FALSE}
+ggplot(sulfate_preds, aes(color = preds)) +
+  theme(axis.text = element_blank()) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c(limits = c(0, 45))
+```
+
 
 ```{r, echo = FALSE}
 # # using ggplot2
@@ -272,7 +295,15 @@ plot(
 #         axis.title = element_blank())
 
 # # workaround using sf
-# plot(sulfate_preds["preds"], pal = hcl.colors, pch = 19, breaks = seq(0, 45, length.out = 10))
+# plot(
+#   sulfate_preds["preds"],
+#   pal = hcl.colors,
+#   pch = 19,
+#   bgc = "grey95",
+#   graticule = TRUE,
+#   key.pos = 4,
+#   breaks = seq(0, 45, length.out = 10)
+# )
 
 ```
 

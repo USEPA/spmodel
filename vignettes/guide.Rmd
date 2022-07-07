@@ -303,13 +303,13 @@ Figure$~$\ref{fig:log_abund} shows the distribution of log seal abundance in the
 
 We estimate parameters of a spatial linear model regressing log seal abundance (`log_abund`) on an intercept using a conditional autoregressive spatial covariance by running
 ```{r}
-spamod <- spautor(log_abund ~ 1, seal, spcov_type = "car")
+sealmod <- spautor(log_abund ~ 1, seal, spcov_type = "car")
 ```
 We tidy, glance at, and augment the fitted model by running
 ```{r}
-tidy(spamod)
-glance(spamod)
-augment(spamod)
+tidy(sealmod)
+glance(sealmod)
+augment(sealmod)
 ```
 
 # Prediction {#sec:prediction}
@@ -392,13 +392,13 @@ augment(sulfmod, newdata = sulfate_preds, interval = "prediction", level = 0.90)
 
 For autoregressive data, predictions cannot be computed at locations that were not incorporated in the neighborhood structure used to fit the model. Thus predictions are possible only possible for observations in `data` whose response values are missing (`NA`), as their locations are incorporated into the neighborhood structure. For example, we make predictions of log abundance of seals at the missing polygons from Figure$~$\ref{fig:log_abund} by running
 ```{r, results = "hide"}
-predict(spamod)
+predict(sealmod)
 ```
 We augment the prediction data and view the first few rows by running
 ```{r}
-augment(spamod, newdata = spamod$newdata)
+augment(sealmod, newdata = sealmod$newdata)
 ```
-Notice that when calling `augment()` for prediction data originally treated as missing data, the `newdata` argument is required and is the `newdata` object in the fitted model object (`spamod`).
+Notice that when calling `augment()` for prediction data originally treated as missing data, the `newdata` argument is required and is the `newdata` object in the fitted model object (`sealmod`).
 
 # Advanced Features {#sec:advfeatures}
 

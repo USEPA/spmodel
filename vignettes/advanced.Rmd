@@ -460,13 +460,13 @@ augment(sealmod, newdata = sealmod$newdata)
 
 These predictions are visualized alongside the observed data below:
 ```{r, echo = FALSE}
-seal_preds <- augment(sealmod, newdata = sealmod$newdata)
-seal <- seal[!is.na(seal$log_abund), , drop = FALSE]
-seal_preds <- seal_preds[, -1]
-names(seal_preds)[1] <- "log_abund"
-seal <- rbind(seal, seal_preds)
+seal_preds2 <- augment(sealmod, newdata = sealmod$newdata)
+seal2 <- seal[!is.na(seal$log_abund), , drop = FALSE]
+seal_preds2 <- seal_preds2[, -1]
+names(seal_preds2)[1] <- "log_abund"
+seal2 <- rbind(seal2, seal_preds2)
 plot(
-  seal["log_abund"],
+  seal2["log_abund"],
   pal = hcl.colors,
   pch = 19,
   bgc = "grey95",

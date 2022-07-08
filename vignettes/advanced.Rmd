@@ -22,7 +22,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-set.seed(0)
 library(ggplot2)
 ```
 
@@ -170,21 +169,25 @@ summary(init2)
 A common assumption for spatial covariance functions is isotropy. An isotropic spatial covariance function behaves similarly in all directions (i.e., is independent of direction) as a function of distance. An anisotropic covariance function does not behave similarly in all directions. Consider the spatial covariance imposed by an eastward-moving wind pattern. It is likely that a one-unit distance in the x-direction means something different than a one-unit distance in the y-direction. Observe the figures below:
 
 ```{r, echo = FALSE, out.width = "49%", fig.show="hold"}
+# PRELIMINARIES 
 r <- 1
 theta_seq <- seq(0, 2 * pi, length.out = 1000)
 x_orig <- r * cos(theta_seq)
 y_orig <- r * sin(theta_seq)
 df_orig <- data.frame(x = x_orig, y = y_orig)
+
+# FIRST FIGURE
 ggplot(df_orig, aes(x = x, y = y)) + 
   geom_point() +
-  scale_x_continuous(breaks = c(0)) + 
-  scale_y_continuous(breaks = c(0)) +
+  scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
+  scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_bw(base_size = 20) +
+  theme_gray(base_size = 20) + 
   coord_fixed()
 
-theta <- pi / 6 # (30 degrees)
-R <- 1 / 4
+# SECOND FIGURE
+theta <- pi / 4 # (30 degrees)
+R <- 1 / 3
 scale <- matrix(c(1, 0, 0, R), nrow = 2, byrow = TRUE)
 rotate <- matrix(c(cos(theta), -sin(theta), sin(theta), cos(theta)), nrow = 2, byrow = TRUE)
 transform <- rotate %*% scale
@@ -192,10 +195,10 @@ coords <- transform %*% rbind(df_orig[["x"]], df_orig[["y"]])
 df <- data.frame(x = coords[1, ], y = coords[2, ])
 ggplot(df, aes(x = x, y = y)) + 
   geom_point() + 
-  scale_x_continuous(breaks = c(0)) + 
-  scale_y_continuous(breaks = c(0)) +
+  scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
+  scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_bw(base_size = 20) +
+  theme_gray(base_size = 20) +
   coord_fixed()
 ```
 
@@ -266,8 +269,9 @@ The model with the partition factor has the lower AIC, indicating that it is a b
 
 # Simulating Data {#simdata}
 
-The `sprnorm()` function is used to simulate spatially dependent normal (Gaussian) random variables. Suppose we want to simulate at a set of 3000 locations in the unit square. First, we randomly generate 3000 x-coordinates and y-coordinates by running
+The `sprnorm()` function is used to simulate spatially dependent normal (Gaussian) random variables. Suppose we want to simulate at a set of 3000 locations in the unit square. First, we set a reproducible seed and then randomly generate 3000 x-coordinates and y-coordinates by running
 ```{r}
+set.seed(0)
 n <- 3000
 x <- runif(n)
 y <- runif(n)
@@ -291,17 +295,32 @@ sim_data <- tibble::tibble(sim_coords, sim_resp)
 ```
 
 The spatial dependence in `sim_data` is noticeable, with clusters of observations having similar values:
-```{r}
-ggplot(sim_data, aes(x = x, y = y, color = sim_resp)) +
-  geom_point() +
-  theme_gray(base_size = 20) +
-  scale_colour_viridis_c()
+```{r, echo = FALSE}
+sim_data_sf <- sf::st_as_sf(sim_data, coords = c("x", "y"))
+plot(
+  sim_data_sf["sim_resp"],
+  pal = hcl.colors,
+  pch = 19,
+  bgc = "grey95",
+  graticule = TRUE,
+  key.pos = 4,
+  breaks = seq(-7, 7, length.out = 10)
+)
+
+```
+
+```{r, echo = FALSE}
+# ggplot(sim_data, aes(x = x, y = y, color = sim_resp)) +
+#   geom_point() +
+#   theme_gray(base_size = 20) +
+#   scale_colour_viridis_c()
 ```
 
 # Big Data
 
 `spmodel` has options for accommodating big data using approximations. Big data options for model-fitting are available for `splm()` objects, while big data options for prediction are available for `splm()` objects and [`spautor()`](#autoreg) objects. Before we explore these big data options, if the `sim_data` object from the [Simulating Data section](#simdata) has not yet been created, it can be created by running
 ```{r, eval = FALSE}
+set.seed(0)
 n <- 3000
 x <- runif(n)
 y <- runif(n)
@@ -312,12 +331,12 @@ sim_resp <- sprnorm(sim_params, data = sim_coords, xcoord = x, ycoord = y)
 sim_data <- tibble::tibble(sim_coords, sim_resp)
 ```
 
-We then split up the simulated data so that 90% of the observations are used for model-fitting and 10% are used for prediction.
-
+We then simulate 1000 locations in the unit square requiring prediction by running
 ```{r}
-fit_rows <- 1:2700
-sim_data_model <- sim_data[fit_rows, ]
-sim_data_pred <- sim_data[-fit_rows, ]
+n_pred <- 1000
+x <- runif(n_pred)
+y <- runif(n_pred)
+sim_preds <- tibble::tibble(x = x, y = y)
 ```
 
 ## Model-fitting
@@ -334,7 +353,7 @@ First we explore big data options for `splm()` objects, which are capable of fit
 
 The simplest way to implement the default big data approximation is to set the `local` argument equal to `TRUE`. This is shorthand for `local = list(method = "random", size = 50, var_adjust = "none", parallel = FALSE)`:
 ```{r}
-big1 <- splm(sim_resp ~ 1, sim_data_model, "exponential", x, y, local = TRUE)
+big1 <- splm(sim_resp ~ 1, sim_data, "exponential", x, y, local = TRUE)
 summary(big1)
 ```
 
@@ -347,7 +366,7 @@ local_list <- list(
   parallel = TRUE,
   ncores = 2
 )
-big2 <- splm(sim_resp ~ 1, sim_data_model, "exponential", x, y, local = local_list)
+big2 <- splm(sim_resp ~ 1, sim_data, "exponential", x, y, local = local_list)
 summary(big2)
 ```
 
@@ -366,17 +385,49 @@ Next we explore big data prediction options for `splm()` objects, which are capa
 
 For models fit using `splm()`, the simplest way to implement the default big data approximation for prediction is to set the `local` argument equal to `TRUE`. This is shorthand for `local = list(method = "covariance", size = 50, parallel = FALSE)`:
 ```{r, results = "hide"}
-predict(big1, sim_data_pred, local = TRUE)
+predict(big1, sim_preds, local = TRUE)
 ```
 
 Or we could augment the prediction data with the predictions:
 ```{r}
-augment(big1, newdata = sim_data_pred, local = TRUE)
+augment(big1, newdata = sim_preds, local = TRUE)
 ```
 
-We specify a more complicated version of `local` by running
+These observed data and predictions are visualized below:
+```{r, echo = FALSE, fig.show="hold"}
+sim_data_sf <- sf::st_as_sf(sim_data, coords = c("x", "y"))
+plot(
+    sim_data_sf["sim_resp"],
+    pal = hcl.colors,
+    pch = 19,
+    bgc = "grey95",
+    graticule = TRUE,
+    key.pos = 4,
+    breaks = seq(-7, 7, length.out = 10)
+)
+
+sim_preds$preds <- predict(big1, sim_preds, local = TRUE)
+
+sim_preds_sf <- sf::st_as_sf(sim_preds, coords = c("x", "y"))
+plot(
+    sim_preds_sf["preds"],
+    pal = hcl.colors,
+    pch = 19,
+    bgc = "grey95",
+    graticule = TRUE,
+    key.pos = 4,
+    breaks = seq(-7, 7, length.out = 10)
+)
+
+sim_preds$preds <- NULL
+```
+
+
+The predictions display a similar pattern as the observed data.
+
+We could alternatively specify a more complicated version of `local` by running
 ```{r, results = "hide"}
-predict(big1, sim_data_pred, local = list(method = "distance", size = 30, parallel = TRUE, ncores = 2))
+predict(big1, sim_preds, local = list(method = "distance", size = 30, parallel = TRUE, ncores = 2))
 ```
 
 As previously mentioned, if `local` is specified using a list structure and only some elements are provided, defaults are chosen for the remaining ones. For example, `local = list(method = "distance")` is shorthand for `local = list(method = "distance", size = 50, parallel = FALSE)`.

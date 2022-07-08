@@ -87,7 +87,10 @@ We can learn more about `moss` by running `help("moss", "spmodel")`.
 Generally the covariance parameters ($\boldsymbol{\theta}$) and fixed effects ($\boldsymbol{\beta}$) of the spatial linear model require estimation. The default estimation method in `spmodel` is restricted maximum likelihood [@patterson1971recovery; @harville1977maximum; @wolfinger1994computing], though maximum likelihood is also available. For point-referenced data, semivariogram weighted least squares [@cressie1985fitting] and semivariogram composite likelihood [@curriero1999composite] are additional estimation methods. The estimation method is controlled using the `estmethod` argument. 
 
 ```{r log_zn, fig.cap="Distribution of log zinc concentration in the moss data.", out.width = "65%", fig.align="center", echo = FALSE}
-
+ggplot(moss, aes(color = log_Zn)) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c() +
+  theme_gray(base_size = 14)
 
 # # using ggplot2
 # ggplot(moss, aes(color = log_Zn)) +
@@ -97,14 +100,14 @@ Generally the covariance parameters ($\boldsymbol{\theta}$) and fixed effects ($
 #   scale_color_viridis_c()
 
 # # workaround using sf
-plot(
-  moss["log_Zn"],
-  pal = hcl.colors,
-  pch = 19,
-  bgc = "grey95",
-  graticule = TRUE,
-  key.pos = 4
-)
+# plot(
+#   moss["log_Zn"],
+#   pal = hcl.colors,
+#   pch = 19,
+#   bgc = "grey95",
+#   graticule = TRUE,
+#   key.pos = 4
+# )
 ```
 
 Figure$~$\ref{fig:log_zn} shows the distribution of log zinc concentration in the `moss` data. We estimate parameters of a spatial linear model regressing log zinc concentration (`log_Zn`) on log distance to a haul road (`log_dist2road`) using an exponential spatial covariance by running
@@ -282,6 +285,11 @@ seal
 We can learn more about the data by running `help("seal", "spmodel")`.
 
 ```{r log_abund, fig.cap="Distribution of log abundance in the seal data. Polygons are grey where abundance data were not collected.", out.width = "65%", fig.align="center", echo = FALSE}
+ggplot(seal, aes(fill = log_abund)) +
+  geom_sf(size = 0.75) +
+  scale_fill_viridis_c() +
+  theme_gray(base_size = 14)
+
 
 # using ggplot2
 # ggplot(seal, aes(fill = log_abund)) +
@@ -291,14 +299,14 @@ We can learn more about the data by running `help("seal", "spmodel")`.
 #   scale_fill_viridis_c()
 
 # # workaround using sf
-plot(
-  seal["log_abund"],
-  pal = hcl.colors,
-  pch = 19,
-  bgc = "grey95",
-  graticule = TRUE,
-  key.pos = 4,
-)
+# plot(
+#   seal["log_abund"],
+#   pal = hcl.colors,
+#   pch = 19,
+#   bgc = "grey95",
+#   graticule = TRUE,
+#   key.pos = 4,
+# )
 ```
 Figure$~$\ref{fig:log_abund} shows the distribution of log seal abundance in the `seal` data. Polygons are considered neighbors if they share at least one boundary. Gray polygons indicate log abundance is missing. It is important to keep these missing observations in the data to preserve the neighborhood structure while fitting the model. 
 
@@ -327,6 +335,17 @@ predict(sulfmod, newdata = sulfate_preds)
 ```
 Figure$~$\ref{fig:sulfate} also shows the distribution of the sulfate predictions.
 ```{r sulfate, fig.cap="Distribution of observed sulfate (left) and sulfate predictions (right) in the conterminous United States.", out.width = "49%", fig.align="center", fig.show="hold", echo = FALSE}
+ggplot(sulfate, aes(color = sulfate)) +
+  geom_sf(size = 2.5) +
+  scale_color_viridis_c(limits = c(0, 45)) +
+  theme_gray(base_size = 18)
+
+sulfate_preds$preds <- predict(sulfmod, newdata = sulfate_preds)
+ggplot(sulfate_preds, aes(color = preds)) +
+  geom_sf(size = 2.5) +
+  scale_color_viridis_c(limits = c(0, 45)) +
+  theme_gray(base_size = 18)
+
 # # using ggplot2
 # ggplot(sulfate, aes(color = sulfate)) +
 #   theme(axis.text = element_blank(),
@@ -344,26 +363,26 @@ Figure$~$\ref{fig:sulfate} also shows the distribution of the sulfate prediction
 #   scale_color_viridis_c(limits = c(0, 45))
 
 # # workaround using sf
-plot(
-  sulfate["sulfate"],
-  pal = hcl.colors,
-  pch = 19,
-  bgc = "grey95",
-  graticule = TRUE,
-  key.pos = 4,
-  breaks = seq(0, 45, length.out = 10)
-)
-
-sulfate_preds$preds <- predict(sulfmod, newdata = sulfate_preds)
-plot(
-  sulfate_preds["preds"],
-  pal = hcl.colors,
-  pch = 19,
-  bgc = "grey95",
-  graticule = TRUE,
-  key.pos = 4,
-  breaks = seq(0, 45, length.out = 10)
-)
+# plot(
+#   sulfate["sulfate"],
+#   pal = hcl.colors,
+#   pch = 19,
+#   bgc = "grey95",
+#   graticule = TRUE,
+#   key.pos = 4,
+#   breaks = seq(0, 45, length.out = 10)
+# )
+# 
+# sulfate_preds$preds <- predict(sulfmod, newdata = sulfate_preds)
+# plot(
+#   sulfate_preds["preds"],
+#   pal = hcl.colors,
+#   pch = 19,
+#   bgc = "grey95",
+#   graticule = TRUE,
+#   key.pos = 4,
+#   breaks = seq(0, 45, length.out = 10)
+# )
 ```
 
 If predictor variables were used to fit the model, it is necessary that for each observation requiring prediction, the same predictor variables are included in `newdata` with the same names as they have in `data`. Alternatively, one can include data intended for model fitting and data intended for predictions in the call to `splm()` as long as the data intended for predictions contain missing (`NA`) values for the response variable. Then we can make predictions by running
@@ -484,7 +503,7 @@ ggplot(df_orig, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_bw(base_size = 20) + 
+  theme_gray(base_size = 20) + 
   coord_fixed()
 
 # SECOND FIGURE
@@ -500,7 +519,7 @@ ggplot(df, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_bw(base_size = 20) +
+  theme_gray(base_size = 20) +
   coord_fixed()
 ```
 The black outline of these ellipses indicates the distance at which observations are approximately uncorrelated. The left ellipse (a circle) represents an isotropic covariance function. The distance at which observations are approximately uncorrelated is the same in all directions. The right ellipse represents an anisotropic covariance function. The distance at which observations are approximately uncorrelated is different in different directions. 
@@ -535,7 +554,7 @@ ggplot(df, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "", y = "") +
-  theme_bw(base_size = 20) +
+  theme_gray(base_size = 20) +
   coord_fixed() +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank()) +
@@ -557,7 +576,7 @@ ggplot(df, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "", y = "") +
-  theme_bw(base_size = 20) +
+  theme_gray(base_size = 20) +
   coord_fixed() +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank()) +
@@ -579,7 +598,7 @@ ggplot(df, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "", y = "") +
-  theme_bw(base_size = 20) +
+  theme_gray(base_size = 20) +
   coord_fixed() +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank())
@@ -666,12 +685,12 @@ sim_preds$preds <- predict(local1, newdata = sim_preds, local = TRUE)
 ggplot(sim_data, aes(x = x, y = y, color = sim_resp)) +
   geom_point(size = 1.5) +
   scale_color_viridis_c(limits = c(-7, 7)) + 
-  theme_gray(base_size = 17)
+  theme_gray(base_size = 18)
 
 ggplot(sim_preds, aes(x = x, y = y, color = preds)) +
   geom_point(size = 1.5) +
   scale_color_viridis_c(limits = c(-7, 7)) + 
-  theme_gray(base_size = 17)
+  theme_gray(base_size = 18)
 ```
 
 More generally, `local` is a list with several arguments. When `local` is `TRUE`, certain defaults are chosen for the `local` list. The arguments to the `local` list control the method used to create the subsets for each prediction, the size of the subsets, and whether or not to use parallel processing. For example, we accommodate big data using the 30 nearest neighbors (in terms of Euclidean distance) for each observation requiring prediction by running

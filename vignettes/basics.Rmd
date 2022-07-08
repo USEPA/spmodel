@@ -24,6 +24,7 @@ knitr::opts_chunk$set(
   warning = FALSE, 
   message = FALSE
 )
+library(ggplot2)
 ```
 
 # Introduction
@@ -53,12 +54,12 @@ Many of the data sets we use in this vignette are `sf` objects. `sf` objects are
 * `sulfate_preds`: An `sf` object with locations at which sulfate predictions in the conterminous United States are desired.
 * `caribou`: A tibble with data on a caribou foraging experiment in Alaska.
 
-We will create visualizations using [ggplot2](https://cran.r-project.org/package=ggplot2), which we load by running
-```{r}
+<!-- We will create visualizations using [ggplot2](https://cran.r-project.org/package=ggplot2), which we load by running
+```{r, eval = FALSE}
 library(ggplot2)
 ```
 
-ggplot2 is only installed alongside `spmodel` when `dependencies = TRUE` in `install.packages()`.
+ggplot2 is only installed alongside `spmodel` when `dependencies = TRUE` in `install.packages()`. -->
 
 # Spatial Linear Models with `splm()`
 

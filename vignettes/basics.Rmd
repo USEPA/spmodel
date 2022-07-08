@@ -53,7 +53,7 @@ Many of the data sets we use in this vignette are `sf` objects. `sf` objects are
 * `sulfate_preds`: An `sf` object with locations at which sulfate predictions in the conterminous United States are desired.
 * `caribou`: A tibble with data on a caribou foraging experiment in Alaska.
 
-Throughout this vignette, we will create visualizations using [ggplot2](https://cran.r-project.org/package=ggplot2), which we load by running
+We will create visualizations using [ggplot2](https://cran.r-project.org/package=ggplot2), which we load by running
 ```{r}
 library(ggplot2)
 ```
@@ -72,12 +72,12 @@ where $\mathbf{X}$ is a matrix of predictor variables (usually including a colum
 
 Spatial linear models can be fit using the `splm()` function when the data are point-referenced (specified via coordinates). The `splm()` function has similar syntax and output as the commonly used `lm()` function used to fit non-spatial linear models. `splm()` generally requires at least three arguments:
 
-* `formula`: a formula that describes the relationship between the response variable and predictor variables
+* `formula`: a formula that describes the relationship between the response variable and predictor variables.
     * `formula` uses the same syntax as the `formula` argument in `lm()`
-* `data`: a `data.frame`, `sf`, or `sp` object that contains the response variable, predictor variables, and spatial information
-* `spcov_type`: the spatial covariance type (`"exponential"`, `"spherical"`, `"matern"`, etc)
+* `data`: a `data.frame`, `sf`, or `sp` object that contains the response variable, predictor variables, and spatial information.
+* `spcov_type`: the spatial covariance type (`"exponential"`, `"spherical"`, `"matern"`, etc).
 
-If `data` are an `sp` or `sf` object, the coordinate information is taken from the object's geometry. If `data` are a `data.frame` or `tibble`, then `xcoord` and `ycoord` are required arguments to `splm()` that specify the columns in `data` representing the x-coordinates and y-coordinates, respectively. `spmodel` uses the spatial coordinates "as-is," meaning that `spmodel` does not perform any projections. To project your data or change the coordinate reference system, use `sf::st_transform()`. If an `sf` or `sp` object with polygon geometries is given to `splm()`, the centroids of each polygon will be used to fit the spatial linear model.
+If `data` are an `sp` or `sf` object, the coordinate information is taken from the object's geometry. If `data` are a `data.frame` (or `tibble`), then `xcoord` and `ycoord` are required arguments to `splm()` that specify the columns in `data` representing the x-coordinates and y-coordinates, respectively. `spmodel` uses the spatial coordinates "as-is," meaning that `spmodel` does not perform any projections. To project your data or change the coordinate reference system, use `sf::st_transform()`. If an `sf` or `sp` object with polygon geometries is given to `splm()`, the centroids of each polygon are used to fit the spatial linear model.
 
 We next show the basic features and syntax of `splm()` using the Alaskan `moss` data. We study the impact of log distance to the road (`log_dist2road`) on log zinc concentration (`log_Zn`). We view the first few rows of the `moss` data by running
 ```{r}

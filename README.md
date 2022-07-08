@@ -69,6 +69,10 @@ citation(package = "spmodel")
 #>   }
 ```
 
+## Code Coverage
+
+The [covr](https://cran.r-project.org/package=covr) package measures the percentage of code being exercised by a set of tests as an indirect measure of test quality and completeness. spmodel's code coverage is 95.26%.
+
 ## Package Contributions
 
 We encourage users submit GitHub issues and enhancement requests so we may

@@ -395,23 +395,27 @@ seal
 ```
 
 We visualize the distribution of log abundance by running
-```{r, eval = FALSE}
-ggplot(seal, aes(fill = log_abund)) +
-  geom_sf() +
-  scale_fill_viridis_c()
+```{r}
+plot(
+  seal["log_abund"],
+  pal = hcl.colors,
+  pch = 19,
+  bgc = "grey95",
+  graticule = TRUE,
+  key.pos = 4,
+)
 ```
 
-```{r, echo = FALSE}
-ggplot(seal, aes(fill = log_abund)) +
-  theme(axis.text = element_blank(),
-        axis.title = element_blank()) +
-  geom_sf() +
-  scale_fill_viridis_c()
-```
 
 ```{r, echo = FALSE}
 # # using ggplot2
 # ggplot(seal, aes(fill = log_abund)) + 
+#   geom_sf() +
+#   scale_fill_viridis_c()
+
+# ggplot(seal, aes(fill = log_abund)) +
+#   theme(axis.text = element_blank(),
+#         axis.title = element_blank()) +
 #   geom_sf() +
 #   scale_fill_viridis_c()
 
@@ -468,29 +472,36 @@ augment(sealmod, newdata = sealmod$newdata)
 ```
 
 These predictions are visualized alongside the observed data below:
-```{r, eval = FALSE}
-seal_preds <- augment(sealmod, newdata = sealmod$newdata)
-ggplot() +
-  geom_sf(data = seal, aes(fill = log_abund)) +
-  geom_sf(data = seal_preds, aes(fill = .fitted)) +
-  scale_fill_viridis_c()
+```{r, echo = FALSE}
+seal_preds2 <- augment(sealmod, newdata = sealmod$newdata)
+seal2 <- seal[!is.na(seal$log_abund), , drop = FALSE]
+seal_preds2 <- seal_preds2[, -1]
+names(seal_preds2)[1] <- "log_abund"
+seal2 <- rbind(seal2, seal_preds2)
+plot(
+  seal2["log_abund"],
+  pal = hcl.colors,
+  pch = 19,
+  bgc = "grey95",
+  graticule = TRUE,
+  key.pos = 4
+)
 ```
 
-```{r, echo = FALSE}
-seal_preds <- augment(sealmod, newdata = sealmod$newdata)
-ggplot() +
-  theme(axis.text = element_blank(),
-        axis.title = element_blank()) +
-  geom_sf(data = seal, aes(fill = log_abund)) +
-  geom_sf(data = seal_preds, aes(fill = .fitted)) +
-  scale_fill_viridis_c()
-```
 
 ```{r, echo = FALSE}
 # # using ggplot2
 # seal_preds <- augment(sealmod, newdata = sealmod$newdata)
 # ggplot() +
 #   geom_sf(data = seal, aes(fill = log_abund)) + 
+#   geom_sf(data = seal_preds, aes(fill = .fitted)) +
+#   scale_fill_viridis_c()
+
+# seal_preds <- augment(sealmod, newdata = sealmod$newdata)
+# ggplot() +
+#   theme(axis.text = element_blank(),
+#         axis.title = element_blank()) +
+#   geom_sf(data = seal, aes(fill = log_abund)) +
 #   geom_sf(data = seal_preds, aes(fill = .fitted)) +
 #   scale_fill_viridis_c()
 

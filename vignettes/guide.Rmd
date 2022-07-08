@@ -484,7 +484,7 @@ ggplot(df_orig, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_gray(base_size = 20) + 
+  theme_bw(base_size = 20) + 
   coord_fixed()
 
 # SECOND FIGURE
@@ -500,7 +500,7 @@ ggplot(df, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_gray(base_size = 20) +
+  theme_bw(base_size = 20) +
   coord_fixed()
 ```
 The black outline of these ellipses indicates the distance at which observations are approximately uncorrelated. The left ellipse (a circle) represents an isotropic covariance function. The distance at which observations are approximately uncorrelated is the same in all directions. The right ellipse represents an anisotropic covariance function. The distance at which observations are approximately uncorrelated is different in different directions. 
@@ -535,7 +535,7 @@ ggplot(df, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "", y = "") +
-  theme_gray(base_size = 20) +
+  theme_bw(base_size = 20) +
   coord_fixed() +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank()) +
@@ -557,7 +557,7 @@ ggplot(df, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "", y = "") +
-  theme_gray(base_size = 20) +
+  theme_bw(base_size = 20) +
   coord_fixed() +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank()) +
@@ -579,7 +579,7 @@ ggplot(df, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "", y = "") +
-  theme_gray(base_size = 20) +
+  theme_bw(base_size = 20) +
   coord_fixed() +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank())

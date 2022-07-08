@@ -47,7 +47,7 @@ jobs:
 
       - uses: r-lib/actions/check-r-package@v1
         with:
-          args: `'--compact-vignettes="both"'`
+          args: `'--compact-vignettes=both'`
 
       - name: Show testthat output
         if: always()

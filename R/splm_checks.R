@@ -19,7 +19,7 @@ splm_checks <- function(spcov_initial, xcoord_given, ycoord_given, estmethod, an
   # }
 
   if (spcov_type %in% c("triangular", "cosine") && ycoord_given) {
-    warning(paste0(spcov_type, " covariance can only be used in one dimension. Overwriting y-coordinate."), call. = FALSE)
+    warning(paste0(spcov_type, " covariance can only be used in one dimension. Ignoring y-coordinate."), call. = FALSE)
     # should also be given for sf objects
   }
 

@@ -191,9 +191,9 @@ for \eqn{h} distance between observations:
 \item{gravity: }{\eqn{(1 + distr^2)^{-0.5}}}
 \item{rquad: }{\eqn{(1 + distr^2)^{-1}}}
 \item{magnetic: }{\eqn{(1 + distr^2)^{-1.5}}}
-\item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * distr)^{0.5}}, Bk is Bessel-K function with order \eqn{extra} between 1/5 and 5.}
-\item{cauchy: }{\eqn{(1 + distr^2)^{-extra}}}
-\item{pexponential: }{\eqn{exp(h^{extra/range)}}}
+\item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * distr)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
+\item{cauchy: }{\eqn{(1 + distr^2)^{-extra}}, \eqn{extra > 0}}
+\item{pexponential: }{\eqn{exp(h^{extra/range)}}, \eqn{0 < extra \le 2}}
 \item{none: }{\eqn{0}}
 }
 

@@ -42,6 +42,11 @@ test_that("spcov_params errors", {
   expect_error(spcov_params("matern", de = 1, ie = -1, range = 1, extra = -1))
   expect_error(spcov_params("matern", de = 1, ie = -1, range = 1, extra = 1 / 6))
   expect_error(spcov_params("matern", de = 1, ie = -1, range = 1, extra = 6))
+  expect_error(spcov_params("cauchy", de = 1, ie = 1, range = 1, extra = -5))
+  expect_error(spcov_params("cauchy", de = 1, ie = 1, range = 1, extra = 0))
+  expect_error(spcov_params("pexponential", de = 1, ie = 1, range = 1, extra = 3))
+  expect_error(spcov_params("pexponential", de = 1, ie = 1, range = 1, extra = 0))
+  expect_error(spcov_params("pexponential", de = 1, ie = 1, range = 1, extra = -3))
 
   # spcov type problems
   expect_error(spcov_params(de = 1, ie = 1, range = 1))

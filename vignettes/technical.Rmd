@@ -25,14 +25,14 @@ library(ggplot2)
 
 # Introduction
 
-This vignette covers technical details regarding the functions in `spmodel`} that perform computations. We first provide a notation guide and then describe relevant details for each function.
+This vignette covers technical details regarding the functions in `spmodel` that perform computations. We first provide a notation guide and then describe relevant details for each function.
 
-If you use `spmodel`} in a formal publication or report, please cite it. Citing `spmodel`} lets us devote more resources to it in the future. To view the `spmodel`} citation, run
+If you use `spmodel` in a formal publication or report, please cite it. Citing `spmodel` lets us devote more resources to it in the future. To view the `spmodel` citation, run
 ```{r}
 citation(package = "spmodel")
 ```
 
-In addition to this document on the technical details of `spmodel`}, there are three other vignettes:
+In addition to this document on the technical details of `spmodel`, there are three other vignettes:
 
 * An overview of basic features: `vignette("basics", "spmodel")`
 * An overview of advanced features: `vignette("advanced", "spmodel")`
@@ -50,6 +50,9 @@ In addition to this document on the technical details of `spmodel`}, there are t
    \mathbf{Z} & = \text{Design matrix of known random effect variables} \\
    \boldsymbol{\theta} & = \text{Covariance parameter vector} \\   
    \boldsymbol{\Sigma} & = \text{Covariance matrix evaluated at } \boldsymbol{\theta} \\
+   \boldsymbol{\Sigma}^{-1} & = \text{The inverse of } \boldsymbol{\Sigma} \\
+   \boldsymbol{\Sigma}^{1/2} & = \text{The square root of } \boldsymbol{\Sigma} \\
+   \boldsymbol{\Sigma}^{-1/2} & = \text{The inverse of } \boldsymbol{\Sigma}^{1/2} \\
    \boldsymbol{\Theta} & = \text{General parameter vector} \\  
    \ell(\boldsymbol{\Theta}) & = \text{Log-likelihood evaluated at } \boldsymbol{\Theta} \\
    \boldsymbol{\tau} & = \text{Spatial (dependent) random error} \\
@@ -75,7 +78,7 @@ Additional notation is used in Section$~$\ref{sec:predict} (`predict()`):
 
 # `AIC()` and `AICc()` {#sec:aic}
 
-The `AIC()` and `AICc()` functions in `spmodel`} are defined for restricted maximum likelihood and maximum likelihood estimation, which maximize a likelihood. They follow @hoeting2006model, defining spatial AIC and AICc as
+The `AIC()` and `AICc()` functions in `spmodel` are defined for restricted maximum likelihood and maximum likelihood estimation, which maximize a likelihood. They follow @hoeting2006model, defining spatial AIC and AICc as
 \begin{equation*}\label{eq:sp_aic}
   \begin{split}
     \text{AIC} & = -2\ell(\hat{\boldsymbol{\Theta}}) + 2(|\hat{\boldsymbol{\Theta}}| + 1) \\
@@ -88,7 +91,7 @@ AIC comparisons between a model fit using restricted maximum likelihood and a mo
 
 # `anova()` {#sec:anova}
 
-Test statistics from \texttt{anova()} are formed using the general linear hypothesis test. Let $\mathbf{L}$ be an $l \times p$ contrast matrix and $l_0$ be an $l \times 1$ vector. The null hypothesis is that $\mathbf{L} \boldsymbol{\hat{\beta}} = l_0$ and the alternative hypothesis is that $\mathbf{L} \boldsymbol{\hat{\beta}} \neq l_0$. Usually, $l_0$ is the zero vector (in `spmodel`}, this is assumed). The test statistic is denoted $X^2$ and is given by
+Test statistics from \texttt{anova()} are formed using the general linear hypothesis test. Let $\mathbf{L}$ be an $l \times p$ contrast matrix and $l_0$ be an $l \times 1$ vector. The null hypothesis is that $\mathbf{L} \boldsymbol{\hat{\beta}} = l_0$ and the alternative hypothesis is that $\mathbf{L} \boldsymbol{\hat{\beta}} \neq l_0$. Usually, $l_0$ is the zero vector (in `spmodel`, this is assumed). The test statistic is denoted $X^2$ and is given by
 \begin{equation*}\label{eq:glht}
   X^2 = [(\mathbf{L} \boldsymbol{\hat{\beta}} - l_0)^\top(\mathbf{L} (\mathbf{X}^\top \mathbf{\hat{\Sigma}} \mathbf{X})^{-1} \mathbf{L}^\top)^{-1}(\mathbf{L} \boldsymbol{\hat{\beta}} - l_0)]
 \end{equation*}
@@ -100,7 +103,7 @@ It is notoriously difficult to determine appropriate p-values for linear mixed m
   * The second challenge is that the standard error of $X^2$ does not account for the uncertainty in $\boldsymbol{\hat{\theta}}$. For some approaches to addressing this problem, see @kackar1984approximations, @prasad1990estimation, @harville1992mean, and @kenward1997small.
   * The third challenge is in determining denominator degrees of freedom. Again, in certain cases, these are known -- but this is not true in general. For some approaches to addressing this problem, see @satterthwaite1946approximate, @schluchter1990small, @hrong1996approximate, @kenward1997small, @littell2006sas, @pinheiro2006mixed, and @kenward2009improved.
 
-For these reasons, `spmodel`} uses an asymptotic (i.e., large sample) Chi-squared test when calculating p-values using `anova()`. This approach addresses the three points above by assuming that with a large enough sample size:
+For these reasons, `spmodel` uses an asymptotic (i.e., large sample) Chi-squared test when calculating p-values using `anova()`. This approach addresses the three points above by assuming that with a large enough sample size:
 
   * $X^2$ is asymptotically Chi-squared (under certain conditions) with $rank(\mathbf{L})$ degrees of freedom when the null hypothesis is true.
   * The uncertainty from estimating $\boldsymbol{\hat{\theta}}$ is small enough to be safely ignored.
@@ -161,7 +164,7 @@ The empirical semivariogram is a moment-based estimate of the theoretical semiva
 \begin{equation}\label{eq:esv}
   \hat{\gamma}(h) = \frac{1}{2|N(h)|} \sum_{N(h)} (y_i - y_j)^2, 
 \end{equation}
-where $N(h)$ is the set of observations in $\mathbf{y}$ that are $h$ distance units apart (distance classes) and $|N(h)|$ is the cardinality of $N(h)$ [@cressie1993statistics]. Often the set $N(h)$ contains observations that are $h \pm c$ apart, where $c$ is some constant. This approach is known as "binning" the empirical semivariogram. The default in `spmodel`} is to construct the semivariogram using 15 equally spaced bins where $h$ is contained in $(0, h_{max}]$, and $h_{max}$ is known as a "distance cutoff". Distance cutoffs are commonly used when constructing Equation$~$\ref{eq:esv} because there tend to be few pairs with large distances. A commonly used cutoff is to ignore $h$ larger than half the maximum distance in the domain. The default in `spmodel`} is to use a cutoff of half the maximum distance (hypotenuse) of the domain's bounding box. 
+where $N(h)$ is the set of observations in $\mathbf{y}$ that are $h$ distance units apart (distance classes) and $|N(h)|$ is the cardinality of $N(h)$ [@cressie1993statistics]. Often the set $N(h)$ contains observations that are $h \pm c$ apart, where $c$ is some constant. This approach is known as "binning" the empirical semivariogram. The default in `spmodel` is to construct the semivariogram using 15 equally spaced bins where $h$ is contained in $(0, h_{max}]$, and $h_{max}$ is known as a "distance cutoff". Distance cutoffs are commonly used when constructing Equation$~$\ref{eq:esv} because there tend to be few pairs with large distances. A commonly used cutoff is to ignore $h$ larger than half the maximum distance in the domain. The default in `spmodel` is to use a cutoff of half the maximum distance (hypotenuse) of the domain's bounding box. 
 
 The main purpose of the empirical semivariogram is its use in semivariogram weighted least squares estimation, though it can also be used as a visual diagnostic to assess the fit of a spatial covariance function.
 
@@ -305,7 +308,7 @@ A similar result exists for the log determinant of $\boldsymbol{\Sigma}_o$, whic
 
 ## Big Data
 
-When the number of observations in the fitted model (observed data) are large or there are many locations to predict at or both, it is often necessary to implement computationally efficient big data approximations. Big data approximations are implemented in `spmodel`} using the `local` argument to `predict()`. When the method in `local` is `"all"`, all of the fitted model data are used to make predictions. In this context, computational efficiency is only gained by parallelizing each prediction. The only available method for `spautor()` fitted models is `"all"`. This is because the neighborhood structure of `spautor()` fitted models does not permit the subsetting used by the `"covariance"` and `"distance"` methods that we discuss next.
+When the number of observations in the fitted model (observed data) are large or there are many locations to predict at or both, it is often necessary to implement computationally efficient big data approximations. Big data approximations are implemented in `spmodel` using the `local` argument to `predict()`. When the method in `local` is `"all"`, all of the fitted model data are used to make predictions. In this context, computational efficiency is only gained by parallelizing each prediction. The only available method for `spautor()` fitted models is `"all"`. This is because the neighborhood structure of `spautor()` fitted models does not permit the subsetting used by the `"covariance"` and `"distance"` methods that we discuss next.
 
 When the `local` method is `"covariance"`, $\hat{\boldsymbol{\Sigma}}_{uo}$ is computed between the observation being predicted ($\mathbf{y}_u$) and the rest of the observed data. This vector is then ordered and the `size` observations having the highest covariance with $\mathbf{y}_u$ are subset, yielding $\check{\boldsymbol{\Sigma}}_{uo}$ which has dimension $1 \times size$. Then similarly $\hat{\boldsymbol{\Sigma}}$, $\mathbf{y}_o$, and $\mathbf{X}_u$ are also subset by these `size` observations, yielding $\check{\boldsymbol{\Sigma}}_{o}$, $\check{\mathbf{y}}_u$, and $\check{\mathbf{X}}_u$, respectively. Equations$~$\ref{eq:blup} and \ref{eq:blup_cov} can be evaluated at $\check{\boldsymbol{\Sigma}}_{uo}$, $\check{\boldsymbol{\Sigma}}_{o}$ and $\check{\mathbf{X}}_u$. When the local method is `"distance"`, a similar approach is used except the `size` observations closest (by Euclidean distance) to $\mathbf{y}_u$ are subset instead. When random effects are not used, partition factors are not used, and the spatial covariance function is monotone decreasing, `"covariance"` and `"distance"` are equivalent. This approach of subsetting the observed data by the set of locations closest in covariance or proximity to $\mathbf{y}_u$ is known as the local neighborhood approach. As long as `size` is relatively small (the default is 50), the local neighborhood approach is very computationally efficient, mainly because $\check{\boldsymbol{\Sigma}}_{o}^{-1}$ is easy to compute. Additional computational efficiency is gained by parallelizing each prediction. 
 
@@ -334,7 +337,7 @@ If the fitted model does not have an intercept, the $n - 1$ term is instead $n$.
 
 # `residuals()` {#sec:residuals}
 
-Terminology regarding residual names if often conflicting and confusing. Because of this, next we explicitly define the residual options in `spmodel`}. These definitions may be different from others you may have seen in the literature.
+Terminology regarding residual names if often conflicting and confusing. Because of this, next we explicitly define the residual options in `spmodel`. These definitions may be different from others you may have seen in the literature.
 
 When `type = "raw"`, raw residuals are returned:
 \begin{equation*}
@@ -352,10 +355,9 @@ If the errors are normal (Gaussian), the pearson residuals should be approximate
 and
 \begin{equation*}
   \begin{split}
-  \text{Cov}(\hat{\boldsymbol{\Sigma}}^{-1/2} \mathbf{e}_{r}) & \approx \boldsymbol{\Sigma}^{-1/2} \text{Cov}(\mathbf{e}_{r}) (\boldsymbol{\Sigma}^{-1/2})^\top \\
-  & \approx \boldsymbol{\Sigma}^{-1/2} \boldsymbol{\Sigma} (\boldsymbol{\Sigma}^{-1/2})^\top \\
-  & = \boldsymbol{\Sigma}^{-1/2} \boldsymbol{\Sigma}^{1/2} (\boldsymbol{\Sigma}^{1/2})^\top (\boldsymbol{\Sigma}^{-1/2})^\top \\
-  & = (\mathbf{I}) (\mathbf{I}) \\
+  \text{Cov}(\boldsymbol{\Sigma}^{-1/2} \mathbf{e}_{r}) & = \boldsymbol{\Sigma}^{-1/2} \text{Cov}(\mathbf{e}_{r}) \boldsymbol{\Sigma}^{-1/2} \\
+  & \approx \boldsymbol{\Sigma}^{-1/2} \boldsymbol{\Sigma} \boldsymbol{\Sigma}^{-1/2} \\
+  & = (\boldsymbol{\Sigma}^{-1/2} \boldsymbol{\Sigma}^{1/2})(\boldsymbol{\Sigma}^{1/2} \boldsymbol{\Sigma}^{-1/2}) \\
   & = \mathbf{I}
   \end{split}
 \end{equation*}
@@ -390,25 +392,26 @@ For spatial autoregressive data, the covariance matrix depends on the specificat
   \end{bmatrix}
   + \sigma^2_{ie} \mathbf{I},
 \end{equation*}
-where $\sigma^2_{de}$ is the spatially dependent (correlated) variance for the connected observations, $\mathbf{R}$ is the spatial correlation matrix for the connected observations, $\sigma^2_{\xi}$ is the independent (not correlated) variance for the unconnected observations, and $\sigma^2_{ie}$ is the independent (not correlated) variance for all observations. As seen, the connected and unconnected observations are allowed different variances. The total variance for connected observations is then $\sigma^2_{de} + \sigma^2_{ie}$ and the total variance for unconnected observations is $\sigma^2_{\xi} + \sigma^2_{ie}$. `spmodel`} accommodates two forms for $\mathbf{R}$: conditional autoregressive (CAR) and simultaneous autoregressive (SAR). For both CAR and SAR covariance functions, $\mathbf{R}$ depends on similar quantities: $\mathbf{I}$, an identity matrix; $\phi$, a range parameter, and $\mathbf{W}$, a matrix that defines the neighborhood structure. Often $\mathbf{W}$ is symmetric but it need not be. Valid values for $\phi$ are in $(1 / \lambda_{max}, 1 / \lambda_{min})$, where $\lambda_{min}$ is the minimum eigenvalue of $\mathbf{W}$ and $\lambda_{max}$ is the maximum eigenvalue of $\mathbf{W}$. For SAR covariance functions, $\lambda_{min}$ must be negative and $\lambda_{max}$ must be positive. For CAR covariances functions, a matrix $\mathbf{M}$ matrix must be provided that satisfies the CAR symmetry condition, which enforces the symmetry of the covariance matrix. The CAR symmetry condition states 
+where $\sigma^2_{de} (\geq 0)$ is the spatially dependent (correlated) variance for the connected observations, $\mathbf{R}$ is the spatial correlation matrix for the connected observations, $\sigma^2_{\xi} (\geq 0)$ is the independent (not correlated) variance for the unconnected observations, and $\sigma^2_{ie} (\geq 0)$ is the independent (not correlated) variance for all observations. As seen, the connected and unconnected observations are allowed different variances. The total variance for connected observations is then $\sigma^2_{de} + \sigma^2_{ie}$ and the total variance for unconnected observations is $\sigma^2_{\xi} + \sigma^2_{ie}$. `spmodel` accommodates two forms for $\mathbf{R}$: conditional autoregressive (CAR) and simultaneous autoregressive (SAR), both of which are provided in Table$~$\ref{tab:cov_spautor}. For both CAR and SAR covariance functions, $\mathbf{R}$ depends on similar quantities: $\mathbf{I}$, an identity matrix; $\phi$, a range parameter, and $\mathbf{W}$, a matrix that defines the neighborhood structure. Often $\mathbf{W}$ is symmetric but it need not be. Valid values for $\phi$ are in $(1 / \lambda_{max}, 1 / \lambda_{min})$, where $\lambda_{min}$ is the minimum eigenvalue of $\mathbf{W}$ and $\lambda_{max}$ is the maximum eigenvalue of $\mathbf{W}$. For SAR covariance functions, $\lambda_{min}$ must be negative and $\lambda_{max}$ must be positive. For CAR covariances functions, a matrix $\mathbf{M}$ matrix must be provided that satisfies the CAR symmetry condition, which enforces the symmetry of the covariance matrix. The CAR symmetry condition states 
 \begin{equation*}
   \frac{\mathbf{W}_{ij}}{\mathbf{M}_{ii}} = \frac{\mathbf{W}_{ji}}{\mathbf{M}_{jj}}
 \end{equation*}
 for all $i$ and $j$, where $i$ and $j$ index rows or columns. When $\mathbf{W}$ is symmetric, $\mathbf{M}$ is often taken to be the identity matrix.
 
-The default in `spmodel`} is to row-standardize $\mathbf{W}$ by dividing each element by its respective row sum, which decreases variance. If row-standardization is not used for a CAR model, the default in `spmodel`} for $\mathbf{M}$ is the identity matrix. Table$~$\ref{tab:cov_spautor} shows the parametric form of $\mathbf{R}$ for CAR and SAR covariance functions.
+The default in `spmodel` is to row-standardize $\mathbf{W}$ by dividing each element by its respective row sum, which decreases variance. If row-standardization is not used for a CAR model, the default in `spmodel` for $\mathbf{M}$ is the identity matrix.
 
-\begin{table}\label{tab:cov_spautor}
+\begin{table}
   \centering
   \begin{tabular}{c|l}
   \hline
-  Spatial covariance type Name & $\mathbf{R}$ functional form \\
+  Spatial covariance type & $\mathbf{R}$ functional form \\
   \hline
   \texttt{"car"} & $(\mathbf{I} - \phi\mathbf{W})^{-1}\mathbf{M}$ \\
   \texttt{"sar"} & $[(\mathbf{I} - \phi\mathbf{W})(\mathbf{I} - \phi\mathbf{W})^\top]^{-1}$ \\
   \hline
   \end{tabular}
-  \caption{Table of spatial covariance functions types available in \texttt{spautor()}.}
+  \caption{The forms of $\mathbf{R}$ for each spatial covariance type available in \texttt{spautor()}.}
+  \label{tab:cov_spautor}
 \end{table}
 
 ## `splm()` Spatial Covariance Functions
@@ -417,12 +420,12 @@ For point-referenced data, the spatial covariance is given by
 \begin{equation*}
 \sigma^2_{de}\mathbf{R} + \sigma^2_{ie} \mathbf{I},
 \end{equation*}
-where $\sigma^2_{de}$ is the spatially dependent (correlated) random error, $\mathbf{R}$ is a spatial correlation matrix, $\sigma^2_{ie}$ is the spatially independent (not correlated) random error, and $\mathbf{I}$ is an identity matrix. The $\mathbf{R}$ matrix always depends on a range parameter that controls the behavior of the covariance function with distance. For some covariance functions, the $\mathbf{R}$ matrix depends on an additional parameter that we call the "extra" parameter.  Table$~$\ref{tab:cov_splm} shows the parametric form for all $\mathbf{R}$ matrices available in `splm()`. In Table$~$\ref{tab:cov_splm}, the range parameter is denoted as $\phi$, the distance divided by the range parameter ($h / \phi$) is denoted as $\eta$, $\mathbbm{1}\{\cdot\}$ is an indicator function equal to 1 when $\cdot$ occurs and 0 otherwise, and the extra parameter is denoted as $\xi$ (when relevant).
-\begin{table}\label{tab:cov_splm}
+where $\sigma^2_{de} (\geq 0)$ is the spatially dependent (correlated) variance, $\mathbf{R}$ is a spatial correlation matrix, $\sigma^2_{ie} (\geq 0)$ is the spatially independent (not correlated) variance, and $\mathbf{I}$ is an identity matrix. The $\mathbf{R}$ matrix always depends on a range parameter, $\phi (> 0)$ that controls the behavior of the covariance function with distance. For some covariance functions, the $\mathbf{R}$ matrix depends on an additional parameter that we call the "extra" parameter, $\xi$.  Table$~$\ref{tab:cov_splm} shows the parametric form for all $\mathbf{R}$ matrices available in `splm()`. In Table$~$\ref{tab:cov_splm}, the range parameter is denoted as $\phi$, the distance divided by the range parameter ($h / \phi$) is denoted as $\eta$, $\mathbbm{1}\{\cdot\}$ is an indicator function equal to one when the argument occurs and zero otherwise, and the extra parameter is denoted as $\xi$ (when relevant).
+\begin{table}
   \centering
   \begin{tabular}{c|l}
   \hline
-  Spatial covariance type Name & $\mathbf{R}$ functional form \\
+  Spatial covariance type & $\mathbf{R}$ functional form \\
   \hline
   \texttt{"exponential"} & $e^{-\eta}$ \\
   \texttt{"spherical"} & $(1 - 1.5\eta + 0.5\eta^3)\mathbbm{1}\{h \leq \phi \}$ \\
@@ -438,12 +441,13 @@ where $\sigma^2_{de}$ is the spatially dependent (correlated) random error, $\ma
   \texttt{"rquad"} & $(1 + \eta^2)^{-1}$ \\
   \texttt{"magnetic"} & $(1 + \eta^2)^{-3/2}$ \\
   \texttt{"matern"} & $\frac{2^{(1 - \xi)}}{\Gamma(\xi)} \alpha^\xi B_k(\alpha, \xi), \alpha = \sqrt{2\xi \eta}, B_k$ is Bessel-K with order $\xi$, $\xi \in [1/5, 5]$ \\
-  \texttt{"cauchy"} & $(1 + \eta^2)^{-\xi}$ \\
-  \texttt{"pexonential"} & $exp(-h^\xi / \phi)$ \\
+  \texttt{"cauchy"} & $(1 + \eta^2)^{-\xi}$, $\xi > 0$ \\
+  \texttt{"pexonential"} & $exp(-h^\xi / \phi)$, $\xi \in (0, 2]$ \\
   \texttt{"none"} & $0$ \\
   \hline
   \end{tabular}
-  \caption{Table of spatial covariance functions types available in \texttt{splm()}. All spatial covariance functions are valid in two dimensions except \texttt{"triangular"} and \texttt{"cosine"}, which are only valid in one dimension.}
+  \caption{The forms of $\mathbf{R}$ for each spatial covariance type available in \texttt{splm()}. All spatial covariance functions are valid in two dimensions except \texttt{"triangular"} and \texttt{"cosine"}, which are only valid in one dimension.}
+  \label{tab:cov_splm}
 \end{table}
 
 ## Model-fitting {#subsec:estimation}
@@ -464,17 +468,17 @@ The covariance matrix can often be written as $\boldsymbol{\Sigma} = \sigma^2 \b
 \begin{equation*}\label{eq:ml-plik}
   -2\ell_p^*(\boldsymbol{\theta}^*) = \ln{|\boldsymbol{\Sigma^*}|} + n\ln[(\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})^\top \boldsymbol{\Sigma}^{* -1} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] + n + n\ln{2\pi / n}.
 \end{equation*}
-After finding $\hat{\boldsymbol{\theta}}^*_{ml}$, a closed form solution for $\hat{\sigma}^2_{ml}$ exists: $\hat{\sigma}^2_{ml} = [(\mathbf{y} - \mathbf{X} \boldsymbol{\tilde{\beta}})^\top \mathbf{\Sigma}^{^{* -1}} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] / n$. Then $\boldsymbol{\hat{\theta}}^*_{ml}$ is combined with $\hat{\sigma}^2_{ml}$ to yield $\boldsymbol{\hat{\theta}}_{ml}$ and subsequently $\boldsymbol{\hat{\beta}}_{ml}$. A similar result holds for restricted maximum likelihood estimation. Profiling $\sigma^2$ out of Equation$~$\ref{eq:reml-lik} yields
+After finding $\hat{\boldsymbol{\theta}}^*_{ml}$, a closed form solution for $\hat{\sigma}^2_{ml}$ exists: $\hat{\sigma}^2_{ml} = [(\mathbf{y} - \mathbf{X} \boldsymbol{\tilde{\beta}})^\top \mathbf{\Sigma}^{* -1} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] / n$. Then $\boldsymbol{\hat{\theta}}^*_{ml}$ is combined with $\hat{\sigma}^2_{ml}$ to yield $\boldsymbol{\hat{\theta}}_{ml}$ and subsequently $\boldsymbol{\hat{\beta}}_{ml}$. A similar result holds for restricted maximum likelihood estimation. Profiling $\sigma^2$ out of Equation$~$\ref{eq:reml-lik} yields
 \begin{equation*}\label{eq:reml-plik}
-  -2\ell_R^*(\boldsymbol{\Theta}) = \ln{|\boldsymbol{\Sigma^*}|} + (n - p)\ln[(\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})^\top \boldsymbol{\Sigma}^{* -1} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] + \ln{|\mathbf{X}^\top \boldsymbol{\Sigma}^{* -1} \mathbf{X}|} + (n - p) + (n - p)\ln2\pi / (n - p).
+  -2\ell_R^*(\boldsymbol{\Theta}) = \ln{|\boldsymbol{\Sigma}^*|} + (n - p)\ln[(\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})^\top \boldsymbol{\Sigma}^{* -1} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] + \ln{|\mathbf{X}^\top \boldsymbol{\Sigma}^{* -1} \mathbf{X}|} + (n - p) + (n - p)\ln2\pi / (n - p).
 \end{equation*}
-After finding $\hat{\boldsymbol{\theta}}^*_{reml}$, a closed form solution for $\hat{\sigma}^2_{reml}$ exists: $\hat{\sigma}^2_{reml} = [(\mathbf{y} - \mathbf{X} \boldsymbol{\tilde{\beta}})^\top \mathbf{\Sigma}^{^{* -1}} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] / (n - p)$. Then $\boldsymbol{\hat{\theta}}^*_{reml}$ is combined with $\hat{\sigma}^2_{reml}$ to yield $\boldsymbol{\hat{\theta}}_{reml}$ and subsequently $\boldsymbol{\hat{\beta}}_{reml}$. For more on profiling Gaussian likelihoods, see @wolfinger1994computing.
+After finding $\hat{\boldsymbol{\theta}}^*_{reml}$, a closed form solution for $\hat{\sigma}^2_{reml}$ exists: $\hat{\sigma}^2_{reml} = [(\mathbf{y} - \mathbf{X} \boldsymbol{\tilde{\beta}})^\top \mathbf{\Sigma}^{* -1} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] / (n - p)$. Then $\boldsymbol{\hat{\theta}}^*_{reml}$ is combined with $\hat{\sigma}^2_{reml}$ to yield $\boldsymbol{\hat{\theta}}_{reml}$ and subsequently $\boldsymbol{\hat{\beta}}_{reml}$. For more on profiling Gaussian likelihoods, see @wolfinger1994computing.
 
 Both maximum likelihood and restricted maximum likelihood estimation rely on the $n \times n$ covariance matrix inverse. Inverting an $n \times n$ matrix is an enormous computational demand that scales cubically with the sample size. For this reason, maximum likelihood and restricted maximum likelihood estimation have historically been unfeasible to implement in their standard form with data larger than a few thousand observations. This motivates the use for the big data approaches outlined in Section$~$\ref{subsec:bigdata}.
 
 ### Semivariogram-based Estimation (`splm()` only)
 
-An alternative approach to likelihood-based estimation is semivariogram-based estimation. The semivariogram of a constant-mean process $\mathbf{y}$ is the expectation of the squared half-difference between two observations $h$ distance units apart. More formally, the semivariogram is denoted $\gamma(h)$ and defined as
+An alternative approach to likelihood-based estimation is semivariogram-based estimation. The semivariogram of a constant-mean process $\mathbf{y}$ is the expectation of half of the squared difference between two observations $h$ distance units apart. More formally, the semivariogram is denoted $\gamma(h)$ and defined as
 \begin{equation*}\label{eq:sv}
   \gamma(h) = \text{E}[(y_i - y_j)^2] / 2 ,
 \end{equation*}
@@ -494,8 +498,8 @@ where $N(h)$ is the set of observations in $\mathbf{y}$ that are $h$ distance un
 \end{equation}
 where $w_i$, $\hat{\gamma}(h)_i$, and $\gamma(h)_i$ are the weights, empirical semivariogram, and semivariogram for the $i$th distance class, respectively. Minimizing Equation$~$\ref{eq:svwls} yields $\boldsymbol{\hat{\theta}}_{wls}$, the semivariogram weighted least squares estimate of $\boldsymbol{\theta}$. After estimating $\boldsymbol{\theta}$, $\boldsymbol{\beta}$ estimates are constructed using (empirical) generalized least squares: $\boldsymbol{\hat{\beta}}_{wls} = (\mathbf{X}^\top \hat{\mathbf{\Sigma}}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \hat{\mathbf{\Sigma}}^{-1} \mathbf{y}$.
 
-@cressie1985fitting recommends setting the $w_i$ in Equation$~$\ref{eq:svwls} as $w_i = |N(h)| / \gamma(h)_i^2$, which gives more weight to distance classes with more observations ($|N(h)|$) and shorter distances ($1 / \gamma(h)_i^2$). The default in `spmodel`} is to use these $w_i$, known as Cressie weights, though several other options for $w_i$ exist and are available through the `weights` argument. Table$~$\ref{tab:weights} contains all $w_i$ available via the `weights` argument.
-\begin{table}\label{tab:weights}
+@cressie1985fitting recommends setting the $w_i$ in Equation$~$\ref{eq:svwls} as $w_i = |N(h)| / \gamma(h)_i^2$, which gives more weight to distance classes with more observations ($|N(h)|$) and shorter distances ($1 / \gamma(h)_i^2$). The default in `spmodel` is to use these $w_i$, known as Cressie weights, though several other options for $w_i$ exist and are available through the `weights` argument. Table$~$\ref{tab:weights} contains all $w_i$ available via the `weights` argument.
+\begin{table}
   \centering
   \begin{tabular}{c|c|c}
   \hline
@@ -512,10 +516,11 @@ where $w_i$, $\hat{\gamma}(h)_i$, and $\gamma(h)_i$ are the weights, empirical s
   \hline
   \end{tabular}
   \caption{Table of \texttt{weights} arguments to \texttt{splm()} when \texttt{estmethod = "sv-wls"}.}
+  \label{tab:weights}
 \end{table}
 The number of $N(h)$ classes and the maximum distance for $h$ are specified by passing the `bins` and `cutoff` arguments to `splm()` (these arguments are passed via `...` to `esv()`). The default value for `bins` is 15 and the default value for `cutoff` is half the maximum distance of the spatial domain's bounding box.
 
-Recall that the semivariogram is defined for a constant-mean process. Generally, $\mathbf{y}$ does not necessarily have a constant mean. So the empirical semivariogram and $\boldsymbol{\hat{\theta}}_{wls}$ are typically constructed using the residuals from an ordinary least squares regression of $\mathbf{y}$ on $\mathbf{X}$. These ordinary least squares residuals are assumed to have mean zero.
+Recall that the semivariogram is defined for a constant-mean process. Generally, $\mathbf{y}$ does not necessarily have a constant mean so the empirical semivariogram and $\boldsymbol{\hat{\theta}}_{wls}$ are typically constructed using the residuals from an ordinary least squares regression of $\mathbf{y}$ on $\mathbf{X}$. These ordinary least squares residuals are assumed to have mean zero.
 
 #### Composite Likelihood (`estmethod = "sv-cl"`)
 
@@ -529,63 +534,58 @@ An advantage of the composite likelihood approach to semivariogram estimation is
 
 ## Optimization
 
-Parameter estimation is performed using `stats::optim()`. The default estimation method is Nelder-Mead [@nelder1965simplex] and the stopping criterion is a relative convergence tolerance (`reltol`) of .0001. If only one parameter requires estimation (on the profiled scale if relevant), the Brent algorithm is instead used [@brent1971algorithm]. Arguments to `optim()` are passed via `...` to `splm()` and `spautor()`. For example, the default estimation method and convergence criteria are overridden by passing `method` and `control`, respectively, to `splm()` and `spautor()`. If the `lower` and `upper` arguments to `optim()` are passed to `splm()` and `spautor()`, they are ignored, as optimization for all parameters is generally unconstrained. Initial values for `optim()` are found using the grid search described next.
+Parameter estimation is performed using `stats::optim()`. The default estimation method is Nelder-Mead [@nelder1965simplex] and the stopping criterion is a relative convergence tolerance (`reltol`) of .0001. If only one parameter requires estimation (on the profiled scale if relevant), the Brent algorithm is instead used [@brent1971algorithm]. Arguments to `optim()` are passed via `...` to `splm()` and `spautor()`. For example, the default estimation method and convergence criteria are overridden by passing `method` and `control`, respectively, to `splm()` and `spautor()`. If the `lower` and `upper` arguments to `optim()` are specified in `splm()` and `spautor()` to be passed to `optim()`, they are ignored, as optimization for all parameters is generally unconstrained. Initial values for `optim()` are found using the grid search described next.
 
 ### Grid Search
 
-`spmodel`} uses a grid search to find suitable initial values for use in optimization. For spatial linear models without random effects, the `de`, `ie` parameters are given "low", "medium", and "high" values. The sample variance of a non-spatial linear model is slightly inflated by a factor of 1.2 (non-spatial models can underestimate the variance when there is spatial dependence) and these "low", "medium", and "high" values correspond to 10%, 50%, and 90% of the inflated sample variance. Only combinations of `de` and `ie` whose proportions sum to 100% are considered. The `range` and `extra` parameters are given "low" and "high" values that are unique to each spatial covariance function. The `rotate` parameter is given six values that correspond to 0, $\pi/6$, $2\pi/6$, $4\pi/6$, $5\pi/6$, and $\pi$ radians. The `scale` parameter is given "low", "medium", and "high" values that correspond to scaling factors of 0.25, 0.75, and 1. Note that the `rotate` and `scale` parameters are only used during grid searches for point-referenced data. 
+`spmodel` uses a grid search to find suitable initial values for use in optimization. For spatial linear models without random effects, the spatially dependent variance ($\sigma^2_{de}$) and spatially independent variance ($\sigma^2_{ie}$) parameters are given "low", "medium", and "high" values. The sample variance of a non-spatial linear model is slightly inflated by a factor of 1.2 (non-spatial models can underestimate the variance when there is spatial dependence) and these "low", "medium", and "high" values correspond to 10%, 50%, and 90% of the inflated sample variance. Only combinations of $\sigma^2_{de}$ and $\sigma^2_{ie}$ whose proportions sum to 100% are considered. The range ($\phi$) and extra ($\xi$) parameters are given "low" and "high" values that are unique to each spatial covariance function. The anisotropy (Section$~$\ref{sec:anisotropy}) rotation parameter ($\alpha$) is given six values that correspond to 0, $\pi/6$, $2\pi/6$, $4\pi/6$, $5\pi/6$, and $\pi$ radians. The anisotropy scale parameter ($S$) is given "low", "medium", and "high" values that correspond to scaling factors of 0.25, 0.75, and 1. Note that the anisotropy parameters are only used during grid searches for point-referenced data. 
 
 The crossing of all appropriate parameter values is considered. If initial values are used for a parameter, the initial value replaces all values of the parameter in this crossing. Duplicate crossings are then omitted. The parameter configuration that yields the smallest value of the objective function is then used as an initial value for optimization. Suppose the inflated sample variance is 10 and the exponential covariance is used assuming isotropy. The parameter configurations evaluated are shown in Table$~$\ref{tab:grid1}.
-```{r, echo = FALSE}
-params <- data.frame(
-  de = c(9, 1, 5, 9, 1, 5),
-  ie = c(1, 9, 5, 1, 9, 5),
-  range = c(15, 15, 15, 45, 45, 45),
-  rotate = c(0, 0, 0, 0, 0, 0),
-  scale = c(1, 1, 1, 1, 1, 1)
-)
-knitr::kable(params, caption = "\\label{tab:grid1}Grid search parameter configurations for an isotropic exponential spatial covariance with inflated sample variance 10.")
-```
-
+\begin{table}
+  \centering
+  \begin{tabular}{ccccc}
+  \hline
+  $\sigma^2_{de}$ & $\sigma^2_{ie}$ & $\phi$ & $\alpha$ & $S$ \\
+  \hline
+  9 & 1 & 15 & 0 & 1 \\
+  1 & 9 & 15 & 0 & 1 \\
+  5 & 5 & 15 & 0 & 1 \\
+  9 & 1 & 45 & 0 & 1 \\
+  1 & 9 & 45 & 0 & 1 \\
+  5 & 5 & 45 & 0 & 1 \\
+  \hline
+  \end{tabular}
+  \caption{Grid search parameter configurations for an isotropic exponential spatial covariance with inflated sample variance 10.}
+  \label{tab:grid1}
+\end{table}
 
 For spatial linear models with random effects, the same approach is used to create a crossing of spatial covariance parameters. A separate approach is used to create a set of random effect variances. The random effect variances are similarly first grouped by proportions. The first combination is such that the first random effect variance is given 90% of variance, and the remaining 10% is spread out evenly among the remaining random effect variances.  The second combination is such that the second random effect variance is given 90% of the variance, and the remaining 10% is spread out evenly among the remaining random effect variances. And so on and so forth. These combinations ascertain whether one random effect dominates variability. A final grouping is lastly considered: all 100% of variance is spread out evenly among all random effects. 
 
 When finding parameter values `de`, `ie,` and the random effect variances, three scenarios are considered. In the first scenario, `de` and `ie` get 90% of the inflated sample variance and the random effect variances get 10%. In this scenario, only the random effect grouping where the variance is evenly spread out is considered. This is because the random effect variances are already contributing little to the overall variability, so performing additional objective function evaluations is unnecessary. In the second scenario, the random effects get 90% of the inflated sample variances and `de` and `ie` get 10%. Similarly in this scenario, only the `de` and `ie` grouping where the variance is evenly spread out is considered. Also in this scenario, only the lowest value for `range` and `extra` are used. In the third scenario, the 50% of the inflated sample variance is given to `de` and `ie` and 50% to the random effects. In this scenario, the only parameter combination considered is the case where variances are evenly spread out among `de`, `ie`, and the random effect variances. Together, there are parameter configurations where the spatial variability dominates (scenario 1), the random variability dominates (scenario 2), and where there is an even contribution from spatial and random variability. The parameter configuration that minimizes the objective function is then used as an initial value for optimization. Recall that random effects are only used with restricted maximum likelihood or maximum likelihood estimation, so the objective function is always a likelihood.
 
 Suppose the inflated sample variance is 10, the exponential covariance is used assuming isotropy, and there are two random effects. The parameter configurations evaluated are shown in Table$~$\ref{tab:grid2}.
-```{r grid2, echo = FALSE}
-sp_dom <- data.frame(
-  de = c(8.1, 0.9, 4.5, 8.1, 0.9, 4.5),
-  ie = c(0.9, 8.1, 4.5, 0.9, 8.1, 4.5),
-  range = c(15, 15, 15, 45, 45, 45),
-  rotate = c(0, 0, 0, 0, 0, 0),
-  scale = c(1, 1, 1, 1, 1, 1),
-  rand1 = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
-  rand2 = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
-)
-
-rand_dom <- data.frame(
-  de = c(0.5, 0.5, 0.5),
-  ie = c(0.5, 0.5, 0.5),
-  range = c(15, 15, 15),
-  rotate = c(0, 0, 0),
-  scale = c(1, 1, 1),
-  rand1 = c(8.1, 0.9, 4.5),
-  rand2 = c(0.9, 8.1, 4.5)
-)
-  
-even_dom <- data.frame(
-  de = c(2.5, 2.5),
-  ie = c(2.5, 2.5),
-  range = c(15, 45),
-  rotate = c(0, 0),
-  scale = c(1, 1),
-  rand1 = c(2.5, 2.5),
-  rand2 = c(2.5, 2.5)
-)
-
-knitr::kable(rbind(sp_dom, rand_dom, even_dom), caption = "\\label{tab:grid2}Grid search parameter configurations for an isotropic exponential spatial covariance with two random effects and inflated sample variance 10.")
-```
+\begin{table}
+  \centering
+  \begin{tabular}{ccccccc}
+  \hline
+  $\sigma^2_{de}$ & $\sigma^2_{ie}$ & $\phi$ & $\alpha$ & $S$ & $\sigma^2_{u_1}$ & $\sigma^2_{u_2}$ \\
+  \hline
+  8.1 & 0.9 & 15 & 0 & 1 & 0.5 & 0.5 \\
+  0.9 & 8.1 & 15 & 0 & 1 & 0.5 & 0.5 \\
+  4.5 & 4.5 & 15 & 0 & 1 & 0.5 & 0.5 \\
+  8.1 & 0.9 & 45 & 0 & 1 & 0.5 & 0.5 \\
+  0.9 & 8.1 & 45 & 0 & 1 & 0.5 & 0.5 \\
+  4.5 & 4.5 & 45 & 0 & 1 & 0.5 & 0.5 \\
+  0.5 & 0.5 & 15 & 0 & 1 & 8.1 & 0.9 \\
+  0.5 & 0.5 & 15 & 0 & 1 & 0.9 & 8.1 \\
+  0.5 & 0.5 & 15 & 0 & 1 & 4.5 & 4.5 \\
+  2.5 & 2.5 & 15 & 0 & 1 & 2.5 & 2.5 \\
+  2.5 & 2.5 & 45 & 0 & 1 & 2.5 & 2.5 \\
+  \hline
+  \end{tabular}
+  \caption{Grid search parameter configurations for an isotropic exponential spatial covariance with two random effects and inflated sample variance 10.}
+  \label{tab:grid2}
+\end{table}
 
 This grid search approach balances a thorough exploration of the parameter space with computational efficiency, as each objective function evaluation can be computationally expensive.
 
@@ -631,9 +631,9 @@ u_2
 \end{equation*}
 where $u_1$ and $u_2$ are the random slopes for the first and second levels of $\mathbf{u}$, respectively. If a random slope is included in the model, it is common for the auxiliary variable to be a column in $\mathbf{X}$, the fixed effects design matrix (i.e., also a fixed effect). Denote this column as $\mathbf{x}$. Here $\boldsymbol{\beta}$ captures the average effect of $\mathbf{x}$ on $\mathbf{y}$ (accounting for other predictors) and $\mathbf{u}$ captures a subject-specific effect of $\mathbf{x}$ on $\mathbf{y}$. So for a subject in the $i$th level of $\mathbf{u}$, the average increase in $y$ associated with a one-unit increase $x$ is $\beta + u_i$.
 
-The `sv-wls` and `sv-cl` estimation methods do not use a likelihood, and thus, they do not allow for the estimation of random effects in `spmodel`}.
+The `sv-wls` and `sv-cl` estimation methods do not use a likelihood, and thus, they do not allow for the estimation of random effects in `spmodel`.
 
-## Anisotropy (`splm()` only)
+## Anisotropy (`splm()` only) {#sec:anisotropy}
 
 A (geometrically) isotropic spatial covariance function behaves similarly in all directions (i.e., is independent of direction) as a function of distance. An anisotropic spatial covariance function does not behave similarly in all directions. 
 ```{r anisotropy, echo = FALSE, out.width = "50%", fig.show = "hold", fig.cap = "In the plot on the left, the ellipse of an isotropic spatial covariance function centered at the origin is shown. In the plot on the right, the ellipse of an anisotropic spatial covariance function centered at the origin is shown. The black lines indicate the distance at which observations are approximately uncorrelated."}
@@ -764,9 +764,9 @@ ggplot(df_iso, aes(x = x, y = y)) +
 ```
 
 
-Anisotropy parameters ($\alpha$ and $S$) can be estimated in `spmodel`} using restricted maximum likelihood or maximum likelihood. Estimating anisotropy can be challenging because the likelihood surface is sensitive to local minima. First, note that estimation need only occur for $\alpha$ on $[0, \pi]$ radians due to symmetry of the covariance ellipse at rotations $\alpha$ and $\alpha + \pi$. Second, note that estimation need only occur for $S$ on $[0, 1]$ because we have defined $S$ as the scaling factor for the length of the minor axis relative to the major axis. To address the local minima problem, each optimization iteration actually involves two likelihood evaluations -- one for $\alpha$ and another for $|\pi - \alpha|$, where $|\cdot|$ denotes absolute value. Thus one likelihood evaluation is always in $[0, \pi/2]$ radians and another in $[\pi/2, \pi]$ radians, exploring different quadrants of the parameter space.
+Anisotropy parameters ($\alpha$ and $S$) can be estimated in `spmodel` using restricted maximum likelihood or maximum likelihood. Estimating anisotropy can be challenging because the likelihood surface is sensitive to local minima. First, note that estimation need only occur for $\alpha$ on $[0, \pi]$ radians due to symmetry of the covariance ellipse at rotations $\alpha$ and $\alpha + \pi$. Second, note that estimation need only occur for $S$ on $[0, 1]$ because we have defined $S$ as the scaling factor for the length of the minor axis relative to the major axis. To address the local minima problem, each optimization iteration actually involves two likelihood evaluations -- one for $\alpha$ and another for $|\pi - \alpha|$, where $|\cdot|$ denotes absolute value. Thus one likelihood evaluation is always in $[0, \pi/2]$ radians and another in $[\pi/2, \pi]$ radians, exploring different quadrants of the parameter space.
 
-Anisotropy parameters cannot be estimated in `spmodel`} when `estmethod` is `sv-wls` or `sv-cl`. However, known anisotropy parameters for these estimation methods can be specified via `spcov_initial` and incorporated into estimation of $\boldsymbol{\theta}$ and $\boldsymbol{\beta}$. Anisotropy is not defined for autoregressive data given its (binary) neighborhood structure.
+Anisotropy parameters cannot be estimated in `spmodel` when `estmethod` is `sv-wls` or `sv-cl`. However, known anisotropy parameters for these estimation methods can be specified via `spcov_initial` and incorporated into estimation of $\boldsymbol{\theta}$ and $\boldsymbol{\beta}$. Anisotropy is not defined for autoregressive data given its (binary) neighborhood structure.
 
 ## Partition Factors
 
@@ -780,7 +780,7 @@ When computing the empirical semivariogram using `esv()`, semivariances are igno
 
 ## Big Data (`splm()` only) {#subsec:bigdata}
 
-Big data model-fitting is accommodated in `spmodel`} using a "local indexing" approach. Observations with the same index value are assumed independent of observations with different index values for estimation purposes. Thus
+Big data model-fitting is accommodated in `spmodel` using a "local indexing" approach. Observations with the same index value are assumed independent of observations with different index values for estimation purposes. Thus
 \begin{equation}\label{eq:bd_cov}
   \boldsymbol{\Sigma} = 
   \begin{bmatrix}
@@ -793,7 +793,7 @@ Big data model-fitting is accommodated in `spmodel`} using a "local indexing" ap
 \end{equation}
 where $m$ is the number of local indexes. Estimation then proceeds as described in Section$~$\ref{subsec:estimation} using this $\boldsymbol{\Sigma}$. When computing the empirical semivariogram, semivariances are ignored when observations have different location indexes. For the `sv-wls` and `sv-cl` estimation methods, semivariances are ignored when observations have different local indexes. Via Equation$~$\ref{eq:bd_cov}, it can be seen that the local index acts as a partition factor separate from the partition factor explicitly defined by `partition_factor`.
 
-`spmodel`} allows for custom local indexes to be passed. If a custom local index is not passed, the local index is determined using the `"random"` or `"kmeans"` method. The `"random"` method assigns observations to indexes randomly based on the number of groups desired. The `"kmeans"` method uses k-means clustering [@macqueen1967some] on the x-coordinates and y-coordinates to assign observations to indexes (based on the number of clusters (groups) desired).
+`spmodel` allows for custom local indexes to be passed. If a custom local index is not passed, the local index is determined using the `"random"` or `"kmeans"` method. The `"random"` method assigns observations to indexes randomly based on the number of groups desired. The `"kmeans"` method uses k-means clustering [@macqueen1967some] on the x-coordinates and y-coordinates to assign observations to indexes (based on the number of clusters (groups) desired).
 
 Recall that the covariance matrix of $\hat{\boldsymbol{\beta}}$ is given by $(\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1}$. Though Equation$~$\ref{eq:bd_cov} is used for estimation, it is not the covariance matrix of $\mathbf{y}$. Thus the covariance matrix of $\boldsymbol{\hat{\beta}}$ using $\boldsymbol{\Sigma}$ from Equation$~$\ref{eq:bd_cov} yields a covariance matrix different from the one obtained if local indexing was not used and $\boldsymbol{\Sigma}$ instead represented the covariance matrix of $\mathbf{y}$. We can adjust the covariance matrix of $\hat{\boldsymbol{\beta}}$ using $\boldsymbol{\Sigma}$ from Equation$~$\ref{eq:bd_cov} so that it is theoretically correct. Here theoretically correct means that the covariance of $\hat{\boldsymbol{\beta}}$ is computed using the $\boldsymbol{\Sigma}$ that equals the covariance of $\mathbf{y}$. The theoretical variance adjustment is given by
 \begin{equation*}
@@ -837,7 +837,7 @@ where $\boldsymbol{\mu}$ is the fixed mean. It follows that
 
 # A Note on Inverse Products {#sec:iroot}
 
-It is worth noting $\boldsymbol{\Sigma}^{-1}$ is not strictly needed for estimation, prediction, or other purposes. Generally, however, at least the product $\boldsymbol{\Sigma}^{-1}$ and some other matrix is needed. In `spmodel`}, calculating these products requires a Cholesky decomposition. Though still having cubic computational complexity asymptotically, computing the Cholesky decomposition is far more efficient than computing the inverse.
+It is worth noting $\boldsymbol{\Sigma}^{-1}$ is not strictly needed for estimation, prediction, or other purposes. Generally, however, at least the product $\boldsymbol{\Sigma}^{-1}$ and some other matrix is needed. In `spmodel`, calculating these products requires a Cholesky decomposition. Though still having cubic computational complexity asymptotically, computing the Cholesky decomposition is far more efficient than computing the inverse.
 
 Recall that the Cholesky decomposition of the covariance matrix $\boldsymbol{\Sigma}$ is $\mathbf{C}\mathbf{C}^\top$, where $\mathbf{C}$ is a lower triangular matrix (so $\mathbf{C}\mathbf{C}^\top = \boldsymbol{\Sigma}$). Now consider the example of restricted maximum likelihood or maximum likelihood estimation and observe $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X}$ and $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{y}$ are needed (but not $\boldsymbol{\Sigma}^{-1}$ on its own). We can rewrite $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X}$ as $\mathbf{X}^\top (\mathbf{C}^\top)^{-1} \mathbf{C}^{-1} \mathbf{X} = (\mathbf{C}^{-1} \mathbf{X})^\top \mathbf{C}^{-1} \mathbf{X}$. Then $\mathbf{C}^{-1} \mathbf{X} = \mathbf{A}$ for some matrix $\mathbf{A}$ implies $\mathbf{X} = \mathbf{C} \mathbf{A}$. This system can be efficiently solved for $\mathbf{A}$ using linear forward solves (forward substitution). Then $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X} = \mathbf{A}^\top \mathbf{A}$. A similar approach is used to solve $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{y}$ as well as other products involving $\boldsymbol{\Sigma}^{-1/2}$. 
 # References {.unnumbered}

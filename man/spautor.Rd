@@ -112,21 +112,20 @@ a spatial covariance function, expressed as
 \eqn{de * R + ie * I}, where \eqn{de} is the dependent error variance, \eqn{R}
 is a correlation matrix that depends the neighboring structure among observations,
 \eqn{ie} is the independent error variance, and \eqn{I} is
-an identity matrix.
+an identity matrix. Note that \eqn{de} and \eqn{ie} must be non-negative while \eqn{range}
+must be between the reciprocal of the maximum
+eigenvalue of \code{W} and the reciprocal of the minimum eigenvalue of
+\code{W}.
 
 \code{spcov_type} Details: Parametric forms for \eqn{R} are given below, where \eqn{distr = h / range}:
 \itemize{
 \item{car: }{\eqn{(I - range * W)^{-1}M}, weights matrix \eqn{W},
-symmetry condition matrix \eqn{M}, observations with no neighbors
-are given a unique variance
-parameter called \eqn{extra}.}
+symmetry condition matrix \eqn{M}}
 \item{sar: }{\eqn{[(I - range * W)(I - range * W)^T]^{-1}},
-weights matrix \eqn{W}, \eqn{^T} indicates matrix transpose,
-observations with no neighbors are given a unique variance
-parameter called \eqn{extra}.}
+weights matrix \eqn{W}, \eqn{^T} indicates matrix transpose}
 }
 If there are observations with no neighbors, they are given a unique variance
-parameter called \code{extra}.
+parameter called \code{extra}, which must be non-negative.
 
 \code{estmethod} Details: The various estimation methods are
 \itemize{

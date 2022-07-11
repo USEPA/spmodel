@@ -85,7 +85,27 @@ spcov_optim2orig.matern <- function(spcov_orig2optim, par, spcov_profiled, data_
 }
 
 #' @export
-spcov_optim2orig.cauchy <- spcov_optim2orig.matern
+spcov_optim2orig.cauchy <- function(spcov_orig2optim, par, spcov_profiled, data_object) {
+  fill_optim_par_val <- fill_optim_par(spcov_orig2optim, par[seq(1, spcov_orig2optim$n_est)])
+
+  if (spcov_profiled) {
+    ie_prop <- 1 / (1 + (1 / exp(fill_optim_par_val[["ie_prop_logodds"]])))
+    de <- 1 - ie_prop
+    ie <- ie_prop
+  } else {
+    de <- exp(fill_optim_par_val[["de_log"]])
+    ie <- exp(fill_optim_par_val[["ie_log"]])
+  }
+
+  # extra <- exp(fill_optim_par_val[["extra_log"]])
+  extra <- exp(fill_optim_par_val[["extra_log"]])
+  range <- exp(fill_optim_par_val[["range_log"]])
+  rotate <- (pi) * (1 / (1 + (1 / exp(fill_optim_par_val[["rotate_logodds"]]))))
+  scale <- 1 / (1 + (1 / exp(fill_optim_par_val[["scale_logodds"]])))
+
+
+  fill_orig_val <- c(de = de, ie = ie, range = range, extra = extra, rotate = rotate, scale = scale)
+}
 
 #' @export
 spcov_optim2orig.pexponential <- function(spcov_orig2optim, par, spcov_profiled, data_object) {

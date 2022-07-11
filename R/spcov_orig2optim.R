@@ -169,7 +169,66 @@ spcov_orig2optim.matern <- function(spcov_initial, spcov_profiled, data_object) 
   new_spcov_orig2optim_val <- structure(spcov_orig2optim_val, class = class(spcov_initial))
 }
 #' @export
-spcov_orig2optim.cauchy <- spcov_orig2optim.matern
+spcov_orig2optim.cauchy <- function(spcov_initial, spcov_profiled, data_object) {
+  # are variance parameters spcov_profiled
+  if (spcov_profiled) { # log odds
+    ie_prop <- spcov_initial$initial[["ie"]] / (spcov_initial$initial[["de"]] + spcov_initial$initial[["ie"]])
+    ie_prop_logodds <- log(ie_prop / (1 - ie_prop))
+    spcov_orig2optim_val <- c(ie_prop_logodds = ie_prop_logodds)
+    ie_prop_logodds_is_known <- FALSE
+    spcov_orig2optim_is_known <- c(ie_prop_logodds = ie_prop_logodds_is_known)
+  } else { # log
+    de <- spcov_initial$initial[["de"]]
+    de_log <- log(spcov_initial$initial[["de"]])
+    ie <- spcov_initial$initial[["ie"]]
+    ie_log <- log(spcov_initial$initial[["ie"]])
+    spcov_orig2optim_val <- c(de_log = de_log, ie_log = ie_log)
+    spcov_orig2optim_is_known <- c(
+      de_log = spcov_initial$is_known[["de"]],
+      ie_log = spcov_initial$is_known[["ie"]]
+    )
+  }
+
+  # range changes based on type
+  range <- spcov_initial$initial[["range"]]
+  range_log <- log(range)
+  spcov_orig2optim_val <- c(spcov_orig2optim_val, range_log = range_log)
+  spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_log = spcov_initial$is_known[["range"]])
+
+  # extra p log
+  extra <- spcov_initial$initial[["extra"]]
+  extra_log <- log(extra)
+  spcov_orig2optim_val <- c(spcov_orig2optim_val, extra_log = extra_log)
+  spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, extra_log = spcov_initial$is_known[["extra"]])
+
+  # anisotropy parameters
+  ## rotate (between 0 and pi radians)
+  rotate <- spcov_initial$initial[["rotate"]]
+  rotate_prop <- rotate / (pi)
+  rotate_logodds <- log(rotate_prop / (1 - rotate_prop))
+  spcov_orig2optim_val <- c(spcov_orig2optim_val, rotate_logodds = rotate_logodds)
+  spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, rotate_logodds = spcov_initial$is_known[["rotate"]])
+
+  ## scale (between 0 and 1)
+  scale <- spcov_initial$initial[["scale"]]
+  scale_logodds <- log(scale / (1 - scale))
+  spcov_orig2optim_val <- c(spcov_orig2optim_val, scale_logodds = scale_logodds)
+  spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, scale_logodds = spcov_initial$is_known[["scale"]])
+
+  # return covariance parameter vector
+  spcov_orig2optim_val <- ifelse(spcov_orig2optim_val > 50 & !spcov_orig2optim_is_known, 50, spcov_orig2optim_val)
+  spcov_orig2optim_val <- ifelse(spcov_orig2optim_val < -50 & !spcov_orig2optim_is_known, -50, spcov_orig2optim_val)
+
+  # return list
+  spcov_orig2optim_val <- list(
+    value = spcov_orig2optim_val,
+    is_known = spcov_orig2optim_is_known,
+    n_est = sum(!spcov_orig2optim_is_known)
+  )
+
+  # give class to vector
+  new_spcov_orig2optim_val <- structure(spcov_orig2optim_val, class = class(spcov_initial))
+}
 #' @export
 spcov_orig2optim.pexponential <- function(spcov_initial, spcov_profiled, data_object) {
   # are variance parameters spcov_profiled

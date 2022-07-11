@@ -14,8 +14,8 @@ This is a new release.
 
 * `rhub::check(platform = "macos-highsierra-release-cran")`
 * Platform: macOS 10.13.6 High Sierra, R-release, CRAN's setup
-        * Status: SUCCESS (NOTE related to manual PDF size see next section)
-        * Build ID: https:
+        * Status: SUCCESS (NOTE related to doc sub-directory PDF size see next section)
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-d45f8503c3194072bb30e0f1d4889975
         
 * rhub tests were available on Solaris but not tested, as CRAN does not appear to
   perform Solaris checks anymore

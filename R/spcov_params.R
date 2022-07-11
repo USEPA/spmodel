@@ -101,6 +101,14 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     stop("extra must be between 0.2 and 5", call. = FALSE)
   }
 
+  if (spcov_type == "cauchy" && (extra <= 0)) {
+    stop("extra must be positive", call. = FALSE)
+  }
+
+  if (spcov_type == "pexponential" && (extra <= 0 || extra > 2)) {
+    stop("extra must be positive and no larger than 2", call. = FALSE)
+  }
+
   # this approach captures the arguments, removes the first default list value,
   # removes the spcov_type list argument, and evaluates the numeric arguments (in
   # case they are a language e.g. 1 / 2). It is an alternative to the below

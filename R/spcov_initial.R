@@ -37,7 +37,11 @@
 #'   is a correlation matrix that depends on the distance between observations,
 #'   \eqn{h}, \eqn{ie} is \code{ie} above, and \eqn{I(h = 0)} is
 #'   an indicator function equal to 1 when \eqn{h} equals zero and zero otherwise.
-#'   Parameteric forms for \eqn{R} are given below, where \eqn{distr = h / range}:
+#'   Note that \eqn{de} and \eqn{ie} must be non-negative while \eqn{range}
+#'   must be positive, except when \code{spcov_type} is \code{car} or \code{sar},
+#'   in which case \eqn{range} must be between the reciprocal of the maximum
+#'   eigenvalue of \code{W} and the reciprocal of the minimum eigenvalue of
+#'   \code{W}. Parameteric forms for \eqn{R} are given below, where \eqn{distr = h / range}:
 #'   \itemize{
 #'     \item{exponential: }{\eqn{exp(- distr )}}
 #'     \item{spherical: }{\eqn{(1 - 1.5distr + 0.5distr^3) * I(h <= range)}}
@@ -52,17 +56,17 @@
 #'     \item{gravity: }{\eqn{(1 + distr^2)^(-0.5)}}
 #'     \item{rquad: }{\eqn{(1 + distr^2)^-1}}
 #'     \item{magnetic: }{\eqn{(1 + distr^2)^-1.5}}
-#'     \item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * distr)^{0.5}}, Bk is Bessel-K function with order \eqn{extra} between 1/5 and 5}
-#'     \item{cauchy: }{\eqn{(1 + distr^2)^{-extra}}}
-#'     \item{pexponential: }{\eqn{exp(h^{extra/range)}}}
+#'     \item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * distr)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
+#'     \item{cauchy: }{\eqn{(1 + distr^2)^{-extra}}, \eqn{extra > 0}}
+#'     \item{pexponential: }{\eqn{exp(h^{extra/range)}}, \eqn{0 < extra \leq 2}}
 #'     \item{car: }{\eqn{(I - range * W)^{-1} * M}, weights matrix \eqn{W},
 #'      symmetry condition matrix \eqn{M}, observations with no neighbors
 #'      are given a unique variance
-#'     parameter called \eqn{extra}.}
+#'     parameter called \eqn{extra}, \eqn{extra \ge 0}.}
 #'     \item{sar: }{\eqn{[(I - range * W)(I - range * W)^T]^{-1}},
 #'      weights matrix \eqn{W}, \eqn{^T} indicates matrix transpose,
 #'       observations with no neighbors are given a unique variance
-#'     parameter called \eqn{extra}.}
+#'     parameter called \eqn{extra}, \eqn{extra \ge 0}.}
 #'     \item{none: }{\eqn{0}}
 #'   }
 #'
@@ -153,6 +157,14 @@ spcov_initial <- function(spcov_type, de, ie, range, extra, rotate, scale, known
 
   if (spcov_type == "matern" && !is.null(extra) && !is.na(extra) && (extra < 1 / 5 || extra > 5)) {
     stop("extra must be between 0.2 and 5", call. = FALSE)
+  }
+
+  if (spcov_type == "cauchy" && !is.null(extra) && !is.na(extra) && (extra <= 0)) {
+    stop("extra must be positive", call. = FALSE)
+  }
+
+  if (spcov_type == "pexponential" && !is.null(extra) && !is.na(extra) && (extra <= 0 || extra > 2)) {
+    stop("extra must be positive and no larger than 2", call. = FALSE)
   }
 
   spcov_params_given <- c(

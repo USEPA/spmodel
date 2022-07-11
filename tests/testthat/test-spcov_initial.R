@@ -83,6 +83,11 @@ test_that("errors return", {
   expect_error(spcov_initial("matern", de = 1, ie = -1, range = 1, extra = -1))
   expect_error(spcov_initial("matern", de = 1, ie = -1, range = 1, extra = 1 / 6))
   expect_error(spcov_initial("matern", de = 1, ie = -1, range = 1, extra = 6))
+  expect_error(spcov_initial("cauchy", de = 1, ie = 1, range = 1, extra = -5))
+  expect_error(spcov_initial("cauchy", de = 1, ie = 1, range = 1, extra = 0))
+  expect_error(spcov_initial("pexponential", de = 1, ie = 1, range = 1, extra = 3))
+  expect_error(spcov_initial("pexponential", de = 1, ie = 1, range = 1, extra = 0))
+  expect_error(spcov_initial("pexponential", de = 1, ie = 1, range = 1, extra = -3))
 
   # spcov type problems
   expect_error(spcov_initial(de = 1, ie = 1, range = 1))

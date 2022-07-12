@@ -503,8 +503,9 @@ ggplot(df_orig, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_gray(base_size = 20) + 
-  coord_fixed()
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18)) +
+  coord_fixed() # theme_gray() causes polygon edge not found bug
 
 # SECOND FIGURE
 theta <- pi / 4 # (30 degrees)
@@ -519,8 +520,9 @@ ggplot(df, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_gray(base_size = 20) +
-  coord_fixed()
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18)) +
+  coord_fixed() # theme_gray() causes polygon edge not found bug
 ```
 The black outline of these ellipses indicates the distance at which observations are approximately uncorrelated. The left ellipse (a circle) represents an isotropic covariance function. The distance at which observations are approximately uncorrelated is the same in all directions. The right ellipse represents an anisotropic covariance function. The distance at which observations are approximately uncorrelated is different in different directions. 
 

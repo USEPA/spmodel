@@ -561,7 +561,7 @@ The crossing of all appropriate parameter values is considered. If initial value
 
 For spatial linear models with random effects, the same approach is used to create a crossing of spatial covariance parameters. A separate approach is used to create a set of random effect variances. The random effect variances are similarly first grouped by proportions. The first combination is such that the first random effect variance is given 90% of variance, and the remaining 10% is spread out evenly among the remaining random effect variances.  The second combination is such that the second random effect variance is given 90% of the variance, and the remaining 10% is spread out evenly among the remaining random effect variances. And so on and so forth. These combinations ascertain whether one random effect dominates variability. A final grouping is lastly considered: all 100% of variance is spread out evenly among all random effects. 
 
-When finding parameter values `de`, `ie,` and the random effect variances, three scenarios are considered. In the first scenario, `de` and `ie` get 90% of the inflated sample variance and the random effect variances get 10%. In this scenario, only the random effect grouping where the variance is evenly spread out is considered. This is because the random effect variances are already contributing little to the overall variability, so performing additional objective function evaluations is unnecessary. In the second scenario, the random effects get 90% of the inflated sample variances and `de` and `ie` get 10%. Similarly in this scenario, only the `de` and `ie` grouping where the variance is evenly spread out is considered. Also in this scenario, only the lowest value for `range` and `extra` are used. In the third scenario, the 50% of the inflated sample variance is given to `de` and `ie` and 50% to the random effects. In this scenario, the only parameter combination considered is the case where variances are evenly spread out among `de`, `ie`, and the random effect variances. Together, there are parameter configurations where the spatial variability dominates (scenario 1), the random variability dominates (scenario 2), and where there is an even contribution from spatial and random variability. The parameter configuration that minimizes the objective function is then used as an initial value for optimization. Recall that random effects are only used with restricted maximum likelihood or maximum likelihood estimation, so the objective function is always a likelihood.
+When finding parameter values $\sigma^2_{de}$, $\sigma^2_{ie}$, and the random effect variances ($\sigma^2_{u_i}$ for the $i$th random effect), three scenarios are considered. In the first scenario, $\sigma^2_{de}$ and $\sigma^2_{ie}$ get 90% of the inflated sample variance and the random effect variances get 10%. In this scenario, only the random effect grouping where the variance is evenly spread out is considered. This is because the random effect variances are already contributing little to the overall variability, so performing additional objective function evaluations is unnecessary. In the second scenario, the random effects get 90% of the inflated sample variances and $\sigma^2_{de}$ and $\sigma^2_{ie}$ get 10%. Similarly in this scenario, only the $\sigma^2_{de}$ and $\sigma^2_{ie}$ grouping where the variance is evenly spread out is considered. Also in this scenario, only the lowest value for `range` and `extra` are used. In the third scenario, the 50% of the inflated sample variance is given to $\sigma^2_{de}$ and $\sigma^2_{ie}$ and 50% to the random effects. In this scenario, the only parameter combination considered is the case where variances are evenly spread out among $\sigma^2_{de}$, $\sigma^2_{ie}$, and the random effect variances. Together, there are parameter configurations where the spatial variability dominates (scenario 1), the random variability dominates (scenario 2), and where there is an even contribution from spatial and random variability. The parameter configuration that minimizes the objective function is then used as an initial value for optimization. Recall that random effects are only used with restricted maximum likelihood or maximum likelihood estimation, so the objective function is always a likelihood.
 
 Suppose the inflated sample variance is 10, the exponential covariance is used assuming isotropy, and there are two random effects. The parameter configurations evaluated are shown in Table$~$\ref{tab:grid2}.
 \begin{table}
@@ -595,15 +595,15 @@ The hypothesis tests for $\hat{\boldsymbol{\beta}}$ returned by `summary()` or `
 \begin{equation*}
   \tilde{z} = \frac{\hat{\beta}_i}{\text{SE}(\hat{\beta}_i)},
 \end{equation*}
-where $\text{SE}(\hat{\beta}_i)$ is the standard error of $\hat{\beta}_i$, which equals $(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}_{ii}$. The p-value is given by $2 * (1 - \Phi(|\tilde{z}|))$, which corresponds to an equal-tailed, two-sided hypothesis test of level $\alpha$ where $\Phi(\cdot)$ denotes the standard normal (Gaussian) cumulative distribution function and $|\cdot|$ denotes the absolute value.
+where $\text{SE}(\hat{\beta}_i)$ is the standard error of $\hat{\beta}_i$, which equals the square root of the $i$th diagonal element of $(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}$. The p-value is given by $2 * (1 - \Phi(|\tilde{z}|))$, which corresponds to an equal-tailed, two-sided hypothesis test of level $\alpha$ where $\Phi(\cdot)$ denotes the standard normal (Gaussian) cumulative distribution function and $|\cdot|$ denotes the absolute value.
 
 ## Random Effects (`splm()` only and `"reml"` or `"ml"` `estmethod` only)
 
 The random effects contribute directly to the covariance through their design matrices. Let $\mathbf{u}$ be a mean-zero random effect column vector of length $n_u$, where $n_u$ is the number of levels of the random effect, with design matrix $\mathbf{Z}_u$. Then $\text{Cov}(\mathbf{Z}_u\mathbf{u}) =  \mathbf{Z}_u \text{Cov}(\mathbf{u})\mathbf{Z}_u^\top$. Because each element of $\mathbf{u}$ is independent of one another, this reduces to $\text{Cov}(\mathbf{Z}_u\mathbf{u}) = \sigma^2_u \mathbf{Z}_u \mathbf{Z}_u^\top$, where $\sigma^2_u$ is the variance parameter corresponding to the random effect (i.e., the random effect variance parameter).
 
-The $\mathbf{Z}$ matrices index the levels of the random effect. $\mathbf{Z}$ has dimension $n \times n_u$, where $n$ is the sample size. Each row of $\mathbf{Z}$ corresponds to an observation and each column to a level of the random effect. For example, suppose we have $n = 4$ observations, so $\mathbf{y} = \{y_1, y_2, y_3, y_4\}$. Also suppose that the random effect $u$ has two levels and that $y_1$ and $y_4$ are in the first level and $y_2$ and $y_3$ are in the second level. For random intercepts, each element of $\mathbf{Z}$ is one if the observation is in the appropriate level of the random effect and zero otherwise. So it follows that 
+The $\mathbf{Z}$ matrices index the levels of the random effect. $\mathbf{Z}$ has dimension $n \times n_u$, where $n$ is the sample size. Each row of $\mathbf{Z}$ corresponds to an observation and each column to a level of the random effect. For example, suppose we have $n = 4$ observations, so $\mathbf{y} = \{y_1, y_2, y_3, y_4\}$. Also suppose that the random effect $\mathbf{u}$ has two levels and that $y_1$ and $y_4$ are in the first level and $y_2$ and $y_3$ are in the second level. For random intercepts, each element of $\mathbf{Z}$ is one if the observation is in the appropriate level of the random effect and zero otherwise. So it follows that 
 \begin{equation*}
-\mathbf{Z}u = 
+\mathbf{Z}\mathbf{u} = 
 \begin{bmatrix}
 1 & 0 \\
 0 & 1 \\
@@ -617,7 +617,7 @@ u_2
 \end{equation*}
 where $u_1$ and $u_2$ are the random intercepts for the first and second levels of $\mathbf{u}$, respectively. For random slopes, each element of $\mathbf{Z}$ equals the value of an auxiliary variable, $\mathbf{k}$, if the observation is in the appropriate level of the random effect and zero otherwise. So if $\mathbf{k} = \{2, 7, 5, 4 \}$ it follows that
 \begin{equation*}
-\mathbf{Z}u = 
+\mathbf{Z}\mathbf{u} = 
 \begin{bmatrix}
 2 & 0 \\
 0 & 7 \\
@@ -650,8 +650,9 @@ ggplot(df_orig, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_gray(base_size = 20) + 
-  coord_fixed()
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18)) +
+  coord_fixed() # theme_gray() causes polygon edge not found bug
 
 # SECOND FIGURE
 theta <- pi / 4 # (30 degrees)
@@ -666,8 +667,9 @@ ggplot(df, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_gray(base_size = 20) +
-  coord_fixed()
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18)) +
+  coord_fixed() # theme_gray() causes polygon edge not found bug
 ```
 
 Figure$~$\ref{fig:anisotropy} shows ellipses for an isotropic and anisotropic spatial covariance function centered at the origin (a distance of zero). The black outline of these ellipses indicates the distance at which observations are approximately uncorrelated. The left ellipse (a circle) represents an isotropic spatial covariance function. The distance at which observations are approximately uncorrelated is the same in all directions. The right ellipse represents an anisotropic spatial covariance function. The distance at which observations are approximately uncorrelated is different in different directions.

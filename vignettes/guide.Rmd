@@ -1,6 +1,6 @@
 ---
 title: "A Detailed Guide to spmodel"
-author: "Michael Dumelle, Matt Higham, and Jay Ver Hoef"
+author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
 header-includes:
    - \usepackage{amsmath,amsfonts,amssymb}
    - \usepackage{bm, bbm}
@@ -489,7 +489,7 @@ part <- splm(
 ## Anisotropy
 
 A covariance function for point-referenced data is isotropic if it behaves similarly in all directions (i.e., is independent of direction) as a function of distance. An anisotropic covariance function does not behave similarly in all directions. Consider the spatial covariance imposed by an eastward-moving wind pattern. A one-unit distance in the x-direction likely means something different than a one-unit distance in the y-direction. Figure$~$\ref{fig:anisotropy} shows ellipses for an isotropic and anisotropic covariance function centered at the origin (a distance of zero).
-```{r anisotropy, echo = FALSE, out.width = "49%", fig.show = "hold", fig.cap = "Ellipses for an isotropic (left) and anisotropic (right) covariance function centered at the origin. he black lines indicate the distance at which observations are approximately uncorrelated."}
+```{r anisotropy, echo = FALSE, out.width = "49%", fig.show = "hold", fig.cap = "Ellipses for an isotropic (left) and anisotropic (right) covariance function centered at the origin. The black outline of each ellipse is a level curve of equal correlation."}
 # PRELIMINARIES 
 r <- 1
 theta_seq <- seq(0, 2 * pi, length.out = 1000)
@@ -524,7 +524,7 @@ ggplot(df, aes(x = x, y = y)) +
         axis.title = element_text(size = 18)) +
   coord_fixed() # theme_gray() causes polygon edge not found bug
 ```
-The black outline of these ellipses indicates the distance at which observations are approximately uncorrelated. The left ellipse (a circle) represents an isotropic covariance function. The distance at which observations are approximately uncorrelated is the same in all directions. The right ellipse represents an anisotropic covariance function. The distance at which observations are approximately uncorrelated is different in different directions. 
+The black outline of each ellipse is a level curve of equal correlation. The left ellipse (a circle) represents an isotropic covariance function. The distance at which the correlation between two observations lays on the level curve is the same in all directions. The right ellipse represents an anisotropic covariance function. The distance at which the correlation between two observations lays on the level curve is different in different directions. 
 
 Accounting for anisotropy involves a rotation and scaling of the x-coordinates and y-coordinates such that the covariance function based on these transformed distances is isotropic. We fit a model with anisotropy by running
 ```{r}
@@ -539,9 +539,9 @@ We see the spatial covariance parameter estimates by running
 ```{r}
 coef(spmod_anis, type = "spcov")
 ```
-The `rotate` parameter is between zero and $\pi$ radians and represents the angle of a clockwise rotation of the ellipse. The `scale` parameter is between zero and one and represents the ratio of the distance between the origin and the edge of the ellipse along the minor axis to the distance between the origin and the edge of the ellipse along the major axis. Figure$~$\ref{fig:anisotropy_fit} shows the transformation that turns an anisotropic ellipse into an isotropic one (i.e., a circle). This transformation requires rotating the the coordinates clockwise by `rotate` and then scaling them the reciprocal of `scale`.  The transformed coordinates are then used instead of the original coordinates to compute spatial covariances.
+The `rotate` parameter is between zero and $\pi$ radians and represents the angle of a clockwise rotation of the ellipse. The `scale` parameter is between zero and one and represents the ratio of the distance between the origin and the edge of the ellipse along the minor axis to the distance between the origin and the edge of the ellipse along the major axis. Figure$~$\ref{fig:anisotropy_fit} shows the transformation that turns an anisotropic ellipse into an isotropic one (i.e., a circle). This transformation requires rotating the the coordinates clockwise by `rotate` and then scaling them the reciprocal of `scale`.  The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances.
 
-```{r, anisotropy_fit, echo = FALSE, out.width = "33%", fig.show = "hold", fig.cap = "A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the rotate parameter. In the middle figure, the second step is to scale the minor axis by the reciprocal of the scale parameter. In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute spatial covariances."}
+```{r, anisotropy_fit, echo = FALSE, out.width = "33%", fig.show = "hold", fig.cap = "A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the rotate parameter. In the middle figure, the second step is to scale the minor axis by the reciprocal of the scale parameter. In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances."}
 spcov_params_val <- coef(spmod_anis, type = "spcov")
 # FIRST FIGURE
 theta <- spcov_params_val["rotate"]

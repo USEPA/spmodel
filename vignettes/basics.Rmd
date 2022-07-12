@@ -1,6 +1,6 @@
 ---
 title: "An Overview of Basic Features in spmodel"
-author: "Michael Dumelle, Matt Higham, and Jay Ver Hoef"
+author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
 output: 
   html_document:
     theme: default

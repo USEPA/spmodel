@@ -1,6 +1,6 @@
 ---
 title: "Advanced spmodel Features"
-author: "Michael Dumelle, Matt Higham, and Jay Ver Hoef"
+author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
 output: 
   html_document:
     theme: default
@@ -204,7 +204,7 @@ ggplot(df, aes(x = x, y = y)) +
   coord_fixed() # theme_gray() causes polygon edge not found bug
 ```
 
-The black outline of these ellipses indicates the distance at which observations are approximately uncorrelated. The left ellipse (a circle) represents an isotropic covariance function. The distance at which observations are approximately uncorrelated is the same in all directions. The right ellipse represents an anisotropic covariance function. The distance at which observations are approximately uncorrelated is different in different directions. 
+The black outline of each ellipse is a level curve of equal correlation. The left ellipse (a circle) represents an isotropic covariance function. The distance at which the correlation between two observations lays on the level curve is the same in all directions. The right ellipse represents an anisotropic covariance function. The distance at which the correlation between two observations lays on the level curve is different in different directions.
 
 To accommodate spatial anisotropy, the original coordinates must be transformed such that they resemble an isotropic process. This transformation involves a rotation and a scaling. Consider a set of anisotropic $x$ and $y$ coordinates that should be transformed into isotropic $x^*$ and $y^*$ coordinates. This transformation is formally defined as 
 $$
@@ -227,7 +227,7 @@ y \\
 $$
 
 
-The original coordinates are first multiplied by the rotation matrix, which rotates the coordinates clockwise by angle $\alpha$. They are then multiplied by the scaling matrix, which scales the minor axis of the spatial covariance ellipse imposed by the coordinates by the reciprocal of $S$. This type of anisotropy is more formally known as "geometric" anisotropy because it involves a geometric transformation of the coordinates.
+The original coordinates are first multiplied by the rotation matrix, which rotates the coordinates clockwise by angle $\alpha$. They are then multiplied by the scaling matrix, which scales the minor axis of the spatial covariance ellipse by the reciprocal of $S$. The transformed coordinates are then used to compute distances and spatial covariances. This type of anisotropy is more formally known as "geometric" anisotropy because it involves a geometric transformation of the coordinates.
 
 In `spmodel`, $\alpha$ and $R$ from the above matrices are called `rotate` and `scale`, respectively. These parameters are estimated in `splm()` if `estmethod` is `"reml"` or `"ml"` by setting `anisotropy` to `TRUE`:
 ```{r}

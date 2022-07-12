@@ -1,6 +1,6 @@
 ---
 title: "Technical Details"
-author: "Michael Dumelle, Matt Higham, and Jay Ver Hoef"
+author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
 header-includes:
    - \usepackage{amsmath,amsfonts,amssymb}
    - \usepackage{bm, bbm}
@@ -635,8 +635,8 @@ The `sv-wls` and `sv-cl` estimation methods do not use a likelihood, and thus, t
 
 ## Anisotropy (`splm()` only) {#sec:anisotropy}
 
-A (geometrically) isotropic spatial covariance function behaves similarly in all directions (i.e., is independent of direction) as a function of distance. An anisotropic spatial covariance function does not behave similarly in all directions. 
-```{r anisotropy, echo = FALSE, out.width = "50%", fig.show = "hold", fig.cap = "In the plot on the left, the ellipse of an isotropic spatial covariance function centered at the origin is shown. In the plot on the right, the ellipse of an anisotropic spatial covariance function centered at the origin is shown. The black lines indicate the distance at which observations are approximately uncorrelated."}
+An isotropic spatial covariance function behaves similarly in all directions (i.e., is independent of direction) as a function of distance. An anisotropic spatial covariance function does not behave similarly in all directions. 
+```{r anisotropy, echo = FALSE, out.width = "50%", fig.show = "hold", fig.cap = "In the plot on the left, the ellipse of an isotropic spatial covariance function centered at the origin is shown. In the plot on the right, the ellipse of an anisotropic spatial covariance function centered at the origin is shown. The black outline of each ellipse is a level curve of equal correlation. "}
 # PRELIMINARIES 
 r <- 1
 theta_seq <- seq(0, 2 * pi, length.out = 1000)
@@ -672,13 +672,13 @@ ggplot(df, aes(x = x, y = y)) +
   coord_fixed() # theme_gray() causes polygon edge not found bug
 ```
 
-Figure$~$\ref{fig:anisotropy} shows ellipses for an isotropic and anisotropic spatial covariance function centered at the origin (a distance of zero). The black outline of these ellipses indicates the distance at which observations are approximately uncorrelated. The left ellipse (a circle) represents an isotropic spatial covariance function. The distance at which observations are approximately uncorrelated is the same in all directions. The right ellipse represents an anisotropic spatial covariance function. The distance at which observations are approximately uncorrelated is different in different directions.
+Figure$~$\ref{fig:anisotropy} shows ellipses for an isotropic and anisotropic spatial covariance function centered at the origin (a distance of zero). The black outline of each ellipse is a level curve of equal correlation. The left ellipse (a circle) represents an isotropic covariance function. The distance at which the correlation between two observations lays on the level curve is the same in all directions. The right ellipse represents an anisotropic covariance function. The distance at which the correlation between two observations lays on the level curve is different in different directions.
 
 To accommodate spatial anisotropy, the original coordinates must be transformed such that the transformed coordinates yield an isotropic spatial covariance. This transformation involves a rotation and a scaling. Consider a set of $x$ and $y$ coordinates that should be transformed into $x^*$ and $y^*$ coordinates. This transformation is formally defined as 
 \begin{equation*}
   \begin{bmatrix}
-    \mathbf{x}^* \\
-    \mathbf{y}^*
+    x^* \\
+    y^*
   \end{bmatrix} = 
   \begin{bmatrix}
     1 & 0 \\
@@ -689,13 +689,13 @@ To accommodate spatial anisotropy, the original coordinates must be transformed 
     -\sin(\alpha) & \cos(\alpha)
   \end{bmatrix}  
   \begin{bmatrix}
-    \mathbf{x} \\
-    \mathbf{y}
+    x \\
+    y
   \end{bmatrix}.
 \end{equation*}
-The original coordinates are first multiplied by the rotation matrix, which rotates the coordinates clockwise by angle $\alpha$. They are then multiplied by the scaling matrix, which scales the minor axis of the spatial covariance ellipse by the reciprocal of $S$. This type of anisotropy is more formally known as "geometric" anisotropy because it involves a geometric transformation of the coordinates. Figure$~$\ref{fig:anisotropy2} shows this process step-by-step.
+The original coordinates are first multiplied by the rotation matrix, which rotates the coordinates clockwise by angle $\alpha$. They are then multiplied by the scaling matrix, which scales the minor axis of the spatial covariance ellipse by the reciprocal of $S$. The transformed coordinates are then used to compute distances and the spatial covariances in Table$~$\ref{tab:cov_splm}. This type of anisotropy is more formally known as "geometric" anisotropy because it involves a geometric transformation of the coordinates. Figure$~$\ref{fig:anisotropy2} shows this process step-by-step.
 
-```{r anisotropy2, echo = FALSE, out.width = "33%", fig.show = "hold", fig.cap = "In the plot on the left, the ellipse of an anisotropic spatial covariance function centered at the origin is shown. In the plot in the center, the ellipse has been rotated clockwise by the rotate parameter so the major axis is the transformed x-axis and the minor axis is the transformed y-axis. In the figure on the right, the minor axis of the ellipse has been scaled by the reciprocal of the scale parameter so that the ellipse becomes a circle, which corresponds to an isotropic spatial covariance function. The transformed coordinates are then used to compute spatial covariances."}
+```{r anisotropy2, echo = FALSE, out.width = "33%", fig.show = "hold", fig.cap = "In the left figure, the ellipse of an anisotropic spatial covariance function centered at the origin is shown. The blue lines represent the original axes and the red lines the transformed axes. The solid lines represent the x-axes and the dotted lines the y-axes. Note that the solid, red line is the major axis of the ellpise and the dashed, red line is the minor axis of the ellipse. In the center figure, the ellipse has been rotated clockwise by the rotate parameter so the major axis is the transformed x-axis and the minor axis is the transformed y-axis. In the right figure, the minor axis of the ellipse has been scaled by the reciprocal of the scale parameter so that the ellipse becomes a circle, which corresponds to an isotropic spatial covariance function. The transformed coordinates are then used to compute distances and spatial covariances."}
 # PRELIMINARIES
 r <- 1
 theta_seq <- seq(0, 2 * pi, length.out = 1000)
@@ -766,7 +766,7 @@ ggplot(df_iso, aes(x = x, y = y)) +
 ```
 
 
-Anisotropy parameters ($\alpha$ and $S$) can be estimated in `spmodel` using restricted maximum likelihood or maximum likelihood. Estimating anisotropy can be challenging because the likelihood surface is sensitive to local minima. First, note that estimation need only occur for $\alpha$ on $[0, \pi]$ radians due to symmetry of the covariance ellipse at rotations $\alpha$ and $\alpha + \pi$. Second, note that estimation need only occur for $S$ on $[0, 1]$ because we have defined $S$ as the scaling factor for the length of the minor axis relative to the major axis. To address the local minima problem, each optimization iteration actually involves two likelihood evaluations -- one for $\alpha$ and another for $|\pi - \alpha|$, where $|\cdot|$ denotes absolute value. Thus one likelihood evaluation is always in $[0, \pi/2]$ radians and another in $[\pi/2, \pi]$ radians, exploring different quadrants of the parameter space.
+Anisotropy parameters ($\alpha$ and $S$) can be estimated in `spmodel` using restricted maximum likelihood or maximum likelihood. Estimating anisotropy can be challenging. First, we need to restrict the parameter space so that the two parameters are identifiable (there is a unique parameter set for each possible outcome). We restricted $\alpha$ to $[0, \pi]$ radians due to symmetry of the covariance ellipse at rotations $\alpha$ and $\alpha + j \pi$, where $j$ is any integer. We also restricted $S$ to occur on $[0, 1]$ because we have defined $S$ as the scaling factor for the length of the minor axis relative to the major axis -- otherwise it would not be clear whether $S$ refers to the minor or major axis. Given this restricted parameter space, there is still an issue of local maxima, particularly at rotation parameters near zero, which have a rotation very close to rotation parameter $\pi$, but zero is far from $\pi$ in the parameter space. To address the local maxima problem, each optimization iteration actually involves two likelihood evaluations -- one for $\alpha$ and another for $|\pi - \alpha|$, where $|\cdot|$ denotes absolute value. Thus one likelihood evaluation is always in $[0, \pi/2]$ radians and another in $[\pi/2, \pi]$ radians, exploring different quadrants of the parameter space and allowing optimization to test solutions near zero and $\pi$ simultaneously.
 
 Anisotropy parameters cannot be estimated in `spmodel` when `estmethod` is `sv-wls` or `sv-cl`. However, known anisotropy parameters for these estimation methods can be specified via `spcov_initial` and incorporated into estimation of $\boldsymbol{\theta}$ and $\boldsymbol{\beta}$. Anisotropy is not defined for autoregressive data given its (binary) neighborhood structure.
 
@@ -776,7 +776,7 @@ A partition factor is a factor (or categorical) variable in which observations f
 \begin{equation*}
  \boldsymbol{\Sigma}_{updated} = \boldsymbol{\Sigma}_{initial} \odot \mathbf{P},
 \end{equation*}
-where $\odot$ indicates the Hadmard product.
+where $\odot$ indicates the Hadmard product. Partition factors impose a block structure in $\boldsymbol{\Sigma}$, which allows for efficient computation of $\boldsymbol{\Sigma}^{-1}$ used for estimation and prediction.
 
 When computing the empirical semivariogram using `esv()`, semivariances are ignored when observations are from different levels of the partition factor. For the `sv-wls` and `sv-cl` estimation methods, semivariances are ignored when observations are from different levels of the partition factor.
 
@@ -799,7 +799,7 @@ where $m$ is the number of local indexes. Estimation then proceeds as described 
 
 Recall that the covariance matrix of $\hat{\boldsymbol{\beta}}$ is given by $(\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1}$. Though Equation$~$\ref{eq:bd_cov} is used for estimation, it is not the covariance matrix of $\mathbf{y}$. Thus the covariance matrix of $\boldsymbol{\hat{\beta}}$ using $\boldsymbol{\Sigma}$ from Equation$~$\ref{eq:bd_cov} yields a covariance matrix different from the one obtained if local indexing was not used and $\boldsymbol{\Sigma}$ instead represented the covariance matrix of $\mathbf{y}$. We can adjust the covariance matrix of $\hat{\boldsymbol{\beta}}$ using $\boldsymbol{\Sigma}$ from Equation$~$\ref{eq:bd_cov} so that it is theoretically correct. Here theoretically correct means that the covariance of $\hat{\boldsymbol{\beta}}$ is computed using the $\boldsymbol{\Sigma}$ that equals the covariance of $\mathbf{y}$. The theoretical variance adjustment is given by
 \begin{equation*}
-(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}} \mathbf{X})^{-1} + (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}} \mathbf{X})^{-1} \mathbf{W} (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}} \mathbf{X})^{-1},
+(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1} + (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1} \mathbf{W} (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1},
 \end{equation*}
 where 
 \begin{equation*}
@@ -810,12 +810,12 @@ and $\boldsymbol{\Sigma}_{i, j}$ is the covariance matrix between the $i$th and 
 This variance adjustment can be computationally burdensome, so two alternative variance adjustments are provided: the empirical and pooled adjustments.
 The empirical variance adjustment is given by
 \begin{equation*}
-\frac{1}{m(m -1)} \sum_{i = 1}^m (\boldsymbol{hat{\beta}}_i - \boldsymbol{\hat{\beta}})(\boldsymbol{\hat{\beta}}_i - \boldsymbol{\hat{\beta}})^\top,
+\frac{1}{m(m -1)} \sum_{i = 1}^m (\boldsymbol{\hat{\beta}}_i - \boldsymbol{\hat{\beta}})(\boldsymbol{\hat{\beta}}_i - \boldsymbol{\hat{\beta}})^\top,
 \end{equation*}
-where $\boldsymbol{\hat{\beta}}_i = (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}} \mathbf{X})^{-1}\mathbf{X}_i \hat{\boldsymbol{\Sigma}}_i \mathbf{y}_i$. A similar adjustment could use $\boldsymbol{\hat{\beta}}_i = (\mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}_{i, i} \mathbf{X}_i)^{-1}\mathbf{X}_i \hat{\boldsymbol{\Sigma}}_i \mathbf{y}_i$, which more closely resembles a composite likelihood approach. This approach is sensitive to the presence of at least one singularity in $(\mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}_{i, i} \mathbf{X}_i)^{-1}$, in which case the variance adjustment cannot be computed.
+where $\boldsymbol{\hat{\beta}}_i = (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}\mathbf{X}_i \hat{\boldsymbol{\Sigma}}^{-1}_i \mathbf{y}_i$. A similar adjustment could use $\boldsymbol{\hat{\beta}}_i = (\mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \mathbf{X}_i)^{-1}\mathbf{X}_i \hat{\boldsymbol{\Sigma}}^{-1}_i \mathbf{y}_i$, which more closely resembles a composite likelihood approach. This approach is sensitive to the presence of at least one singularity in $(\mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}_{i, i} \mathbf{X}_i)^{-1}$, in which case the variance adjustment cannot be computed.
 The `"pooled"` variance adjustment is given by
 \begin{equation*}
-\frac{1}{m^2} \sum_{i = 1}^m (\mathbf{X}^\top_i \hat{\boldsymbol{\Sigma}}_i \mathbf{X}_i)^{-1}.
+\frac{1}{m^2} \sum_{i = 1}^m (\mathbf{X}^\top_i \hat{\boldsymbol{\Sigma}}^{-1}_i \mathbf{X}_i)^{-1}.
 \end{equation*}
 Note that the pooled variance adjustment cannot be computed if any $(\mathbf{X}_i^\top \boldsymbol{\Sigma}_i^{-1} \mathbf{X}_i)^{-1}$ are singular.
 

@@ -59,7 +59,7 @@ get_local_list_estimation <- function(local, data, xcoord, ycoord, n, partition_
 
   # setting var adjust
   if (!"var_adjust" %in% names_local) {
-    local$var_adjust <- "none"
+    local$var_adjust <- "theoretical"
   } # "none", "empirical", "theoretical", and "pooled"
 
   # setting partition factor

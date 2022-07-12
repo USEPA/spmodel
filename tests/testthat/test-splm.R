@@ -211,7 +211,7 @@ test_that("the model runs for big data", {
   # in case var_adjust default changed to "none"
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "reml", local = list(parallel = TRUE, var_adjust = "theoretical", ncores = 2)
+    spcov_type = spcov_type, estmethod = "reml", local = list(parallel = TRUE, var_adjust = "none", ncores = 2)
   ), NA)
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
@@ -219,11 +219,11 @@ test_that("the model runs for big data", {
   ), NA)
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "sv-wls", local = list(parallel = TRUE, var_adjust = "theoretical", ncores = 2)
+    spcov_type = spcov_type, estmethod = "sv-wls", local = list(parallel = TRUE, var_adjust = "pooled", ncores = 2)
   ), NA)
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "sv-cl", local = list(parallel = TRUE, var_adjust = "theoretical", ncores = 2)
+    spcov_type = spcov_type, estmethod = "sv-cl", local = list(parallel = TRUE, var_adjust = "empirical", ncores = 2)
   ), NA)
 
   expect_error(splm(y ~ x, exdata,
@@ -292,7 +292,7 @@ test_that("the model runs for big data", {
   ), NA)
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "reml", local = list(adjust_var = "none")
+    spcov_type = spcov_type, estmethod = "reml", local = list(var_adjust = "none")
   ), NA)
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,

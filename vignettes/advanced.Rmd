@@ -182,7 +182,8 @@ ggplot(df_orig, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_gray(base_size = 20) + 
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18)) +
   coord_fixed()
 
 # SECOND FIGURE
@@ -198,7 +199,8 @@ ggplot(df, aes(x = x, y = y)) +
   scale_x_continuous(limits = c(-1, 1), breaks = c(0)) + 
   scale_y_continuous(limits = c(-1, 1), breaks = c(0)) +
   labs(x = "x-distance", y = "y-distance") +
-  theme_gray(base_size = 20) +
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18)) +
   coord_fixed()
 ```
 

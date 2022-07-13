@@ -56,11 +56,15 @@ In addition to this document on the technical details of `spmodel`, there are th
    \boldsymbol{\Theta} & = \text{General parameter vector} \\  
    \ell(\boldsymbol{\Theta}) & = \text{Log-likelihood evaluated at } \boldsymbol{\Theta} \\
    \boldsymbol{\tau} & = \text{Spatial (dependent) random error} \\
-   \mathbf{A}^* & = \Sigma^{-1/2}\mathbf{A} \text{ for a general matrix } \mathbf{A} \text{ (this is known as whitening $\mathbf{A}$)} 
+   \mathbf{A}^* & = \boldsymbol{\Sigma}^{-1/2}\mathbf{A} \text{ for a general matrix } \mathbf{A} \text{ (this is known as whitening $\mathbf{A}$)} 
   \end{split}
 \end{equation*}
 
-A hat indicates the parameters are estimated (i.e., $\hat{\boldsymbol{\beta}}$) or evaluated at a relevant estimated parameter vector (e.g., $\hat{\boldsymbol{\Sigma}}$ is evaluated at $\hat{\boldsymbol{\theta}}$). When $\ell(\boldsymbol{\hat{\Theta}})$ is written, it means the log-likelihood evaluated at its maximum, $\boldsymbol{\hat{\Theta}}$.
+A hat indicates the parameters are estimated (i.e., $\hat{\boldsymbol{\beta}}$) or evaluated at a relevant estimated parameter vector (e.g., $\hat{\boldsymbol{\Sigma}}$ is evaluated at $\hat{\boldsymbol{\theta}}$). When $\ell(\boldsymbol{\hat{\Theta}})$ is written, it means the log-likelihood evaluated at its maximum, $\boldsymbol{\hat{\Theta}}$. When the covariance matrix of $\mathbf{A}$ is $\boldsymbol{\Sigma}$, we say $\mathbf{A}^*$ "whitens" $\mathbf{A}$ because 
+\begin{equation*}
+\text{Cov}(\mathbf{A}^*) = \text{Cov}(\boldsymbol{\Sigma}^{-1/2}\mathbf{A}) = \boldsymbol{\Sigma}^{-1/2}\text{Cov}(\mathbf{A})\boldsymbol{\Sigma}^{-1/2} = \boldsymbol{\Sigma}^{-1/2}\boldsymbol{\Sigma} \boldsymbol{\Sigma}^{-1/2} = (\boldsymbol{\Sigma}^{-1/2}\boldsymbol{\Sigma}^{1/2})(\boldsymbol{\Sigma}^{1/2}\boldsymbol{\Sigma}^{-1/2}) = \mathbf{I}.
+\end{equation*}
+See Section$~$\ref{sec:iprod} for a discussion on obtaining $\boldsymbol{\Sigma}^{1/2}$.
 
 Additional notation is used in Section$~$\ref{sec:predict} (`predict()`):
 \begin{equation*}
@@ -808,9 +812,20 @@ When computing the empirical semivariogram using `esv()`, semivariances are igno
 
 ## Big Data (`splm()` only) {#subsec:bigdata}
 
-Big data model-fitting is accommodated in `spmodel` using a "local indexing" approach. Observations with the same index value are assumed independent of observations with different index values for estimation purposes. Thus
-\begin{equation}\label{eq:bd_cov}
+Big data model-fitting is accommodated in `spmodel` using a "local indexing" approach. Suppose there are $m$ unique indexes, and each observation is in one index. Then $\boldsymbol{\Sigma}$ can be represented blockwise as
+\begin{equation}\label{eq:full_cov}
   \boldsymbol{\Sigma} = 
+  \begin{bmatrix}
+  \boldsymbol{\Sigma}_{1,1} & \boldsymbol{\Sigma}_{1,2} & \hdots & \hdots & \boldsymbol{\Sigma}_{1,m} \\
+  \boldsymbol{\Sigma}_{2,1} & \boldsymbol{\Sigma}_{2,2} & \boldsymbol{\Sigma}_{2,3} & \hdots & \boldsymbol{\Sigma}_{2,m} \\
+  \vdots & \boldsymbol{\Sigma}_{3,2} & \ddots & \boldsymbol{\Sigma}_{3,4} & \vdots \\
+  \vdots & \vdots & \boldsymbol{\Sigma}_{4,3} & \ddots & \vdots \\
+  \boldsymbol{\Sigma}_{m,1} & \hdots & \hdots & \hdots & \boldsymbol{\Sigma}_{m, m}
+  \end{bmatrix},
+\end{equation}
+To perform estimation for big data, observations with the same index value are assumed independent of observations with different index values, yielding a "big-data" covariance matrix given by
+\begin{equation}\label{eq:bd_cov}
+  \boldsymbol{\Sigma}_{bd} = 
   \begin{bmatrix}
   \boldsymbol{\Sigma}_{1,1} & \boldsymbol{0} & \hdots & \hdots & \boldsymbol{0} \\
   \boldsymbol{0} & \boldsymbol{\Sigma}_{2,2} & \boldsymbol{0} & \hdots & \boldsymbol{0} \\
@@ -819,35 +834,39 @@ Big data model-fitting is accommodated in `spmodel` using a "local indexing" app
   \boldsymbol{0} & \hdots & \hdots & \hdots & \boldsymbol{\Sigma}_{m, m}
   \end{bmatrix},
 \end{equation}
-where $m$ is the number of local indexes. Estimation then proceeds as described in Section$~$\ref{subsec:estimation} using this $\boldsymbol{\Sigma}$. When computing the empirical semivariogram, semivariances are ignored when observations have different location indexes. For the `sv-wls` and `sv-cl` estimation methods, semivariances are ignored when observations have different local indexes. Via Equation$~$\ref{eq:bd_cov}, it can be seen that the local index acts as a partition factor separate from the partition factor explicitly defined by `partition_factor`.
+Estimation then proceeds as described in Section$~$\ref{subsec:estimation} using $\boldsymbol{\Sigma}_{bd}$ instead of $\boldsymbol{\Sigma}$. When computing the empirical semivariogram, semivariances are ignored when observations have different location indexes. For the `sv-wls` and `sv-cl` estimation methods, semivariances are ignored when observations have different local indexes. Via Equation$~$\ref{eq:bd_cov}, it can be seen that the local index acts as a partition factor separate from the partition factor explicitly defined by `partition_factor`.
 
-`spmodel` allows for custom local indexes to be passed. If a custom local index is not passed, the local index is determined using the `"random"` or `"kmeans"` method. The `"random"` method assigns observations to indexes randomly based on the number of groups desired. The `"kmeans"` method uses k-means clustering [@macqueen1967some] on the x-coordinates and y-coordinates to assign observations to indexes (based on the number of clusters (groups) desired).
 
-Recall that the covariance matrix of $\hat{\boldsymbol{\beta}}$ is given by $(\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1}$. Though Equation$~$\ref{eq:bd_cov} is used for estimation, it is not the covariance matrix of $\mathbf{y}$. Thus the covariance matrix of $\boldsymbol{\hat{\beta}}$ using $\boldsymbol{\Sigma}$ from Equation$~$\ref{eq:bd_cov} yields a covariance matrix different from the one obtained if local indexing was not used and $\boldsymbol{\Sigma}$ instead represented the covariance matrix of $\mathbf{y}$. We can adjust the covariance matrix of $\hat{\boldsymbol{\beta}}$ using $\boldsymbol{\Sigma}$ from Equation$~$\ref{eq:bd_cov} so that it is theoretically correct. Here theoretically correct means that the covariance of $\hat{\boldsymbol{\beta}}$ is computed using the $\boldsymbol{\Sigma}$ that equals the covariance of $\mathbf{y}$. The theoretical variance adjustment is given by
-\begin{equation*}
-(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1} + (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1} \mathbf{W} (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1},
-\end{equation*}
-where 
-\begin{equation*}
-\mathbf{W} = \sum_{i = 1}^{m - 1} \sum_{j = i + 1}^m [(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \hat{\boldsymbol{\Sigma}}_{i, j} \hat{\boldsymbol{\Sigma}}^{-1}_{j, j} \mathbf{X}_j) + (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \hat{\boldsymbol{\Sigma}}_{i, j} \hat{\boldsymbol{\Sigma}}^{-1}_{j, j} \mathbf{X}_j)^\top]
-\end{equation*}
-and $\boldsymbol{\Sigma}_{i, j}$ is the covariance matrix between the $i$th and $j$th index.
+spmodel allows for custom local indexes can be passed to `splm()`. If a custom local index is not passed, the local index is determined using the `"random"` or `"kmeans"` method. The `"random"` method assigns observations to indexes randomly based on the number of groups desired. The `"kmeans"` method uses k-means clustering [@macqueen1967some] on the x-coordinates and y-coordinates to assign observations to indexes (based on the number of clusters (groups) desired).
 
-This variance adjustment can be computationally burdensome, so two alternative variance adjustments are provided: the empirical and pooled adjustments.
-The empirical variance adjustment is given by
+The estimate of $\boldsymbol{\beta}$ when using Equation$~$\ref{eq:bd_cov} is given by
+\begin{equation}\label{eq:beta_bd}
+  \hat{\boldsymbol{\beta}}_{bd} = (\mathbf{X}^\top \boldsymbol{\hat{\Sigma}}^{-1}_{bd}\mathbf{X})^{-1}\mathbf{X}^\top \boldsymbol{\hat{\Sigma}}^{-1}_{bd} \mathbf{y} = \mathbf{T}^{-1}_{xx}\mathbf{t}_{xy},
+\end{equation}
+where $\mathbf{T}_{xx} = \sum_{i = 1}^m \mathbf{X}_i^\top \boldsymbol{\hat{\Sigma}}^{-1}_{i, i}\mathbf{X}_i$ and $\mathbf{t}_{xy} = \sum_{i = 1}^m \mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \mathbf{y}_i$. Note that in $\hat{\boldsymbol{\beta}}_{bd}$, $\mathbf{X}_i$ and $\mathbf{y}_i$ are the subsets of $\mathbf{X}$ and $\mathbf{y}$, respectively, for the $i$th local index. Equation$~$\ref{eq:beta_bd} acts as a pooled estimator of $\boldsymbol{\beta}$ across the indexes.
+
+`spmodel` has four approaches for estimating the covariance matrix of $\hat{\boldsymbol{\beta}}_{bd}$. The choice is determined by the `var_adjust` argument to `local`. The first approach is implements no adjustment (`var_adjust = "none"`) and simply uses $\mathbf{T}_{xx}^{-1}$, which is the covariance matrix of $\hat{\boldsymbol{\beta}}_{bd}$ using $\boldsymbol{\Sigma}_{bd}$ (Equation$~$\ref{eq:bd_cov}). While computationally efficient, this approach ignores the covariance across indexes. It can be shown that the covariance of $\hat{\boldsymbol{\beta}}_{bd}$ using $\boldsymbol{\Sigma}$ (Equation$~$\ref{eq:full_cov}) is given by
+\begin{equation}\label{eq:var_theo}
+  \mathbf{T}_{xx}^{-1} + \mathbf{T}_{xx}^{-1} \mathbf{W}_{xx}\mathbf{T}_{xx}^{-1},
+\end{equation}
+where
 \begin{equation*}
-\frac{1}{m(m -1)} \sum_{i = 1}^m (\boldsymbol{\hat{\beta}}_i - \boldsymbol{\hat{\beta}})(\boldsymbol{\hat{\beta}}_i - \boldsymbol{\hat{\beta}})^\top,
+\mathbf{W} = \sum_{i = 1}^{m - 1} \sum_{j = i + 1}^m (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \hat{\boldsymbol{\Sigma}}_{i, j} \hat{\boldsymbol{\Sigma}}^{-1}_{j, j} \mathbf{X}_j) + (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \hat{\boldsymbol{\Sigma}}_{i, j} \hat{\boldsymbol{\Sigma}}^{-1}_{j, j} \mathbf{X}_j)^\top
 \end{equation*}
-where $\boldsymbol{\hat{\beta}}_i = (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}\mathbf{X}_i \hat{\boldsymbol{\Sigma}}^{-1}_i \mathbf{y}_i$. A similar adjustment could use $\boldsymbol{\hat{\beta}}_i = (\mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \mathbf{X}_i)^{-1}\mathbf{X}_i \hat{\boldsymbol{\Sigma}}^{-1}_i \mathbf{y}_i$, which more closely resembles a composite likelihood approach. This approach is sensitive to the presence of at least one singularity in $(\mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}_{i, i} \mathbf{X}_i)^{-1}$, in which case the variance adjustment cannot be computed.
+Equation$~$\ref{eq:var_theo} can be viewed as the sum of the unadjusted covariance matrix of $\hat{\boldsymbol{\beta}}_{bd}$ ($\mathbf{T}_{xx}^{-1}$) and a correction that incorporates the covariance across indexes ($\mathbf{T}_{xx}^{-1} \mathbf{W}_{xx}\mathbf{T}_{xx}^{-1}$). This adjustment is known as the "theoretically-correct" (`var_adjust = "theoretical"`) adjustment because it uses $\boldsymbol{\Sigma}$. The theoretical adjustment is the most computationally expensive adjustment. The theoretical adjustment is the default adjustment in `spmodel`. Two alternative adjustments are also provided, and while not equal to the theoretical adjustment, they are easier to compute. They are the empirical (`var_adjust = "empirical"`) and pooled (`var_adjust = "pooled"`) adjustments. The empirical adjustment is given by
+\begin{equation*}
+\frac{1}{m(m -1)} \sum_{i = 1}^m (\boldsymbol{\hat{\beta}}_i - \boldsymbol{\hat{\beta}}_{bd})(\boldsymbol{\hat{\beta}}_i - \boldsymbol{\hat{\beta}}_{bd})^\top,
+\end{equation*}
+where $\boldsymbol{\hat{\beta}}_i = (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}\mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \mathbf{y}_i$. A similar adjustment could use $\boldsymbol{\hat{\beta}}_i = (\mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \mathbf{X}_i)^{-1}\mathbf{X}_i \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \mathbf{y}_i$, which more closely resembles a composite likelihood approach. This approach is sensitive to the presence of at least one singularity in $\mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \mathbf{X}_i$, in which case the variance adjustment cannot be computed.
 The `"pooled"` variance adjustment is given by
 \begin{equation*}
-\frac{1}{m^2} \sum_{i = 1}^m (\mathbf{X}^\top_i \hat{\boldsymbol{\Sigma}}^{-1}_i \mathbf{X}_i)^{-1}.
+\frac{1}{m^2} \sum_{i = 1}^m (\mathbf{X}^\top_i \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \mathbf{X}_i)^{-1}.
 \end{equation*}
-Note that the pooled variance adjustment cannot be computed if any $(\mathbf{X}_i^\top \boldsymbol{\Sigma}_i^{-1} \mathbf{X}_i)^{-1}$ are singular.
+Note that the pooled variance adjustment cannot be computed if any $\mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \mathbf{X}_i$ are singular.
 
 # `sprnorm()` {#sec:sprnorm}
 
-Spatial normal (Gaussian) random variables are simulated by taking the sum of a fixed mean and random errors. The random errors have mean zero and covariance matrix $\boldsymbol{\Sigma}$. A realization of the random errors is obtained from $\boldsymbol{\Sigma}^{-1/2} \mathbf{e}$, where $\mathbf{e}$ is a normal random variable with mean zero and covariance matrix $\mathbf{I}$. Then the spatial normal random variable equals
+Spatial normal (Gaussian) random variables are simulated by taking the sum of a fixed mean and random errors. The random errors have mean zero and covariance matrix $\boldsymbol{\Sigma}$. A realization of the random errors is obtained from $\boldsymbol{\Sigma}^{1/2} \mathbf{e}$, where $\mathbf{e}$ is a normal random variable with mean zero and covariance matrix $\mathbf{I}$. Then the spatial normal random variable equals
 \begin{equation*}
  \mathbf{y} = \boldsymbol{\mu} + \boldsymbol{\Sigma}^{1/2} \mathbf{e},
 \end{equation*}
@@ -863,13 +882,24 @@ where $\boldsymbol{\mu}$ is the fixed mean. It follows that
 
 `vcov()` returns the variance-covariance matrix of estimated parameters. Currently, `vcov()` only returns the variance-covariance matrix of $\hat{\boldsymbol{\beta}}$, the fixed effects. The variance-covariance matrix of the fixed effects is given by $(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}$.
 
-# A Note on Covariance Square Roots and Inverse Products {#sec:iroot}
+# A Note on Covariance Square Roots and Inverse Products {#sec:iprod}
 
-Talk about SVD / eigendecomposition here.
+Often $\boldsymbol{\Sigma}^{-1}$ is not strictly needed for estimation, prediction, or other purposes, but at least the product between $\boldsymbol{\Sigma}^{-1}$ and some other matrix is needed. Consider the example of the covariance matrix of $\hat{\boldsymbol{\beta}}$ and observe $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X}$ is needed. The most direct way to find this product is certainly to obtain $\boldsymbol{\Sigma}^{-1}$. This is both computationally expensive and cannot be used to compute products that involve $\boldsymbol{\Sigma}^{-1/2}$, which are often useful (Section$~$\ref{sec:residuals}). It is helpful to rewrite $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X}$ as $\mathbf{X}^\top (\mathbf{S}^\top)^{-1} \mathbf{S}^{-1} \mathbf{X} = (\mathbf{S}^{-1} \mathbf{X})^\top \mathbf{S}^{-1} \mathbf{X}$. Then one computes the inverse products by finding $\mathbf{S}$.
 
-It is worth noting $\boldsymbol{\Sigma}^{-1}$ is not strictly needed for estimation, prediction, or other purposes. Generally, however, at least the product $\boldsymbol{\Sigma}^{-1}$ and some other matrix is needed. In `spmodel`, calculating these products requires a Cholesky decomposition. Though still having cubic computational complexity asymptotically, computing the Cholesky decomposition is far more efficient than computing the inverse.
+One way to find $\mathbf{S}$ is to use an eigendecomposition. The eigendecomposition of $\boldsymbol{\Sigma}$ (which is real and symmetric) is given by
+\begin{equation*}
+\boldsymbol{\Sigma} = \mathbf{U} \mathbf{D} \mathbf{U}^\top,
+\end{equation*}
+where $\mathbf{U}$ is an orthogonal matrix of eigenvectors of $\boldsymbol{\Sigma}$ and $\mathbf{D}$ is a diagonal matrix with eigenvalues of $\boldsymbol{\Sigma}$ on the diagonal. Then $\boldsymbol{\Sigma}^{1/2} = \mathbf{U} \mathbf{D}^{1/2} \mathbf{U}^\top$, where $\mathbf{D}^{1/2}$ is a diagonal matrix with square roots of eigenvalues of $\boldsymbol{\Sigma}$ on the diagonal. This result follows because $\mathbf{U}$ being orthogonal implies $\mathbf{U}^\top = \mathbf{U}^{-1}$ and
+\begin{equation*}
+\boldsymbol{\Sigma}^{1/2}\boldsymbol{\Sigma}^{1/2} = \mathbf{U} \mathbf{D}^{1/2} \mathbf{U}^\top \mathbf{U} \mathbf{D}^{1/2} \mathbf{U}^\top = \mathbf{U} \mathbf{D}^{1/2} (\mathbf{U}^\top \mathbf{U}) \mathbf{D}^{1/2} \mathbf{U}^\top = \mathbf{U} \mathbf{D} \mathbf{U}^\top = \boldsymbol{\Sigma}.
+\end{equation*}
+So then taking $\mathbf{S} = \mathbf{D}^{1/2}$ implies $\mathbf{S}^{-1} = \mathbf{D}^{-1/2}$, which is straightforward to calculate as $\mathbf{D}^{1/2}$ is diagonal. So not only does the eigendecomposition approach give us the inverse products, it also gives us $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1/2}$. While straightforward, this approach is less efficient than the Cholesky decomposition [@golub2013matrix], which we discuss next.
 
-Recall that the Cholesky decomposition of the covariance matrix $\boldsymbol{\Sigma}$ is $\mathbf{C}\mathbf{C}^\top$, where $\mathbf{C}$ is a lower triangular matrix (so $\mathbf{C}\mathbf{C}^\top = \boldsymbol{\Sigma}$). Now consider the example of restricted maximum likelihood or maximum likelihood estimation and observe $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X}$ and $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{y}$ are needed (but not $\boldsymbol{\Sigma}^{-1}$ on its own). We can rewrite $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X}$ as $\mathbf{X}^\top (\mathbf{C}^\top)^{-1} \mathbf{C}^{-1} \mathbf{X} = (\mathbf{C}^{-1} \mathbf{X})^\top \mathbf{C}^{-1} \mathbf{X}$. Then $\mathbf{C}^{-1} \mathbf{X} = \mathbf{A}$ for some matrix $\mathbf{A}$ implies $\mathbf{X} = \mathbf{C} \mathbf{A}$. This system can be efficiently solved for $\mathbf{A}$ using linear forward solves (forward substitution). Then $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X} = \mathbf{A}^\top \mathbf{A}$. A similar approach is used to solve $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{y}$. Products in this document that involve $\boldsymbol{\Sigma}^{-1/2}$ are implemented in `spmodel` using $\mathbf{C}$ instead of $\boldsymbol{\Sigma}^{-1/2}$.
+The Cholesky decomposition decomposes $\boldsymbol{\Sigma}$ into the product between $\mathbf{C}$ and $\mathbf{C}^\top$ ($\boldsymbol{\Sigma} = \mathbf{C}\mathbf{C}^\top$)), where $\mathbf{C}$ is a lower triangular matrix. Note that $\mathbf{C}$ is generally not equal to $\boldsymbol{\Sigma}^{1/2}$. Taking $\mathbf{S}$ to be $\mathbf{C}$, we see that finding the inverse products requires solving $\mathbf{C}^{-1}\mathbf{X}$. Observe that $\mathbf{C}^{-1}\mathbf{X} = \mathbf{A}$ for some matrix $\mathbf{A}$. This implies $\mathbf{X} = \mathbf{C}\mathbf{A}$, which can be efficiently solved using forward substitution because $\mathbf{C}$ is lower triangular. 
+
+The products in this document that involve $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1/2}$ are actually implemented in `spmodel` using $\mathbf{C}$ and $\mathbf{C}^{-1}$ (instead of $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1/2}$). They are written in this document using $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1/2}$ because the underlying concepts are easier to communicate using the square root notation.
+
 
 # References {.unnumbered}
 

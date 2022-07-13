@@ -969,3 +969,9 @@ test_that("errors occur", {
   expect_error(splm(y ~ x, exdata, "exponential", xcoord, ycoord, estmethod = "sv-wls", random = ~group))
   expect_error(splm(y ~ x, exdata, "exponential", xcoord, ycoord, estmethod = "sv-cl", random = ~group))
 })
+
+test_that("messages occur", {
+  expect_message(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord))
+  spcov_initial_val <- spcov_initial("exponential")
+  expect_message(splm(y ~ x, exdata, "exponential", xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val))
+})

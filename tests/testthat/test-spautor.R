@@ -378,3 +378,9 @@ test_that("additional covr", {
   exdata_Mpoly$part <- 1
   expect_error(spautor(formula = y ~ x, data = exdata_Mpoly, "car", random = ~group, partition_factor = ~part), NA)
 })
+
+test_that("messages occur", {
+  expect_message(spautor(y ~ x, exdata_poly))
+  spcov_initial_val <- spcov_initial("car")
+  expect_message(spautor(y ~ x, exdata_poly, "car", spcov_initial = spcov_initial_val))
+})

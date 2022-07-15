@@ -40,9 +40,9 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     #   # warning here from sf about assuming attributes are constant over geometries of x
     #   data <- suppressWarnings(sf::st_centroid(data))
     # }
-    data <- suppressWarnings(sf::st_centroid(data))
+    data_sf <- suppressWarnings(sf::st_centroid(data))
     # store as data frame
-    data <- sf_to_df(data)
+    data <- sf_to_df(data_sf)
     ## name xcoord "xcoord" to be used later
     xcoord <- "xcoord"
     ## name ycoord "ycoord" to be used later
@@ -51,6 +51,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     is_sf <- FALSE
     sf_column_name <- NULL
     crs <- NULL
+    data_sf <- NULL
   }
 
   if (!is_sf && missing(xcoord) && !inherits(spcov_initial, "none")) {
@@ -122,7 +123,11 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   # find small and newdata
   if (any(na_index)) {
     ## find newdata to be used in prediction later
-    newdata <- data[na_index, , drop = FALSE]
+    if (is_sf) {
+      newdata <- data_sf[na_index, , drop = FALSE] # keep as sf object is users want that
+    } else {
+      newdata <- data[na_index, , drop = FALSE]
+    }
     ## subset original data
     obdata <- data[!na_index, , drop = FALSE]
   } else {

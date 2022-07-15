@@ -3,6 +3,7 @@
 load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
 load(file = system.file("extdata", "exdata_M.rda", package = "spmodel"))
 load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
+load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
 load(system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
 
 test_that("Prediction for splm works", {
@@ -182,7 +183,29 @@ test_that("Prediction works for other covariances", {
 
 test_that("errors occur", {
   spcov_type <- "exponential"
-  smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
-  expect_error(predict(smod))
-  expect_error(predict(smod, newexdata = newexdata, local = list(method = "xyz")))
+  spmod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+  expect_error(predict(spmod))
+  expect_error(predict(spmod, newexdata = newexdata, local = list(method = "xyz")))
+
+  spmod <- spautor(y ~ x, exdata_poly, "car")
+  expect_error(predict(spmod))
+})
+
+test_that("prediction values match for both approaches", {
+  spmod1 <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
+  pred1 <- predict(spmod1, newdata = newexdata)
+  newexdata$y <- NA
+  exdata_with_NA <- rbind(exdata, newexdata)
+  spmod2 <- splm(y ~ x, exdata_with_NA, "exponential", xcoord, ycoord)
+  pred2 <- predict(spmod2)
+  pred3 <- predict(spmod2, newdata = spmod2$newdata)
+
+  spmod1$call <- NULL # calls are different among two splm() calls
+  spmod2$call <- NULL
+  names(pred1) <- NULL # names start at 1
+  names(pred2) <- NULL # names start at index in data
+  names(pred3) <- NULL # names start at 1
+  expect_equal(summary(spmod1), summary(spmod2))
+  expect_equal(pred1, pred2)
+  expect_equal(pred2, pred3)
 })

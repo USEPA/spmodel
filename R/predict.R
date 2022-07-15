@@ -89,6 +89,11 @@ predict.spmod <- function(object, newdata, se.fit = FALSE, interval = c("none", 
     local <- NULL
   }
 
+  # error if newdata missing from arguments and object
+  if (missing(newdata) && is.null(object$newdata)) {
+    stop("newdata must be specified in the newdata argument or in the newdata element of object.", call. = FALSE)
+  }
+
   switch(object$fn,
     "splm" = predict_splm(object, newdata, se.fit, interval, level, local, ...),
     "spautor" = predict_spautor(object, se.fit, interval, level, local, ...)

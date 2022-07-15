@@ -131,7 +131,7 @@
 #' @export
 #'
 #' @examples
-#' spmod <- spautor(log_abund ~ 1, data = seal, spcov_type = "car")
+#' spmod <- spautor(log_trend ~ 1, data = seal, spcov_type = "car")
 #' summary(spmod)
 spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml", random, randcov_initial, partition_factor, W, row_st = TRUE, M, ...) {
   # browser()

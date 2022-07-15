@@ -19,8 +19,8 @@ and \code{2}.}
 \item{sideroad: }{A factor representing direction relative to the haul road.
 Takes values \code{N} (north of the haul road) and \code{S} (south
 of the haul road).}
-\item{log_dist2road: }{The log distance (in meters) to the haul road.}
-\item{log_Zn: }{The log zinc concentration in moss tissue (mg/kg).}
+\item{log_dist2road: }{The log of distance (in meters) to the haul road.}
+\item{log_Zn: }{The log of zinc concentration in moss tissue (mg/kg).}
 \item{geometry: }{\code{POINT} geometry representing coordinates in an Alaksa
 Albers projection (EPSG: 3338).}
 }

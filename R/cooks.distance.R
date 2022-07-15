@@ -8,9 +8,8 @@
 #'
 #' @details Cook's distance measures the influence of an observation on a fitted
 #'   model object. If an observation is influential, its omission from the data
-#'   noticeably impacts parameter estimates. One suggested cutoff used to identify influential is 1.0.
-#'   Observations with Cook's distance larger than the specified
-#'   cutoff are considered influential.
+#'   noticeably impacts parameter estimates. The larger the Cook's distance, the
+#'   larger the influence.
 #'
 #' @return A vector of Cook's distance values for each observation from the
 #'   fitted model object.

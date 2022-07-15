@@ -10,11 +10,7 @@
 #'   are relative to the average. In other words, observations with high
 #'   leverage are typically considered to have an extreme or unusual combination of predictor
 #'   variables. Leverage values are the diagonal of the hat (projection) matrix.
-#'   One suggested cutoff used to identify high leverage
-#'   observations is \eqn{3p / n}, where \eqn{p} is the
-#'   number of fixed effects and \code{n} is the sample size.
-#'   Observations with leverage values larger than the specified
-#'   cutoff are considered high leverage observations.
+#'   The larger the hat value, the larger the leverage.
 #'
 #' @return A vector of leverage (hat) values for each observation from the
 #'   fitted model object.

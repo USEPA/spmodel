@@ -166,7 +166,7 @@ The spatial AIC and AICc are given by
     \text{AICc} & = -2\ell(\hat{\boldsymbol{\Theta}}) + 2n(|\hat{\boldsymbol{\Theta}}| + 1) / (n - |\hat{\boldsymbol{\Theta}}| - 2),
   \end{split}
 \end{equation*}
-where $\ell(\hat{\boldsymbol{\Theta}})$ is the log-likelihood of the data evaluated at the estimated parameter vector $\hat{\boldsymbol{\Theta}}$ maximizing $\ell(\boldsymbol{\Theta})$, and $n$ is the sample size. For maximum likelihood, $\hat{\boldsymbol{\Theta}} = \{\hat{\boldsymbol{\theta}}, \hat{\boldsymbol{\beta}}\}$. For restricted maximum likelihood $\hat{\boldsymbol{\Theta}} = \{\hat{\boldsymbol{\theta}}\}$. Because the restricted maximum likelihood depends explicitly on $\mathbf{X}$, AIC and AICc comparisons should only be made for models fit with the same predictor variables.
+where $\ell(\hat{\boldsymbol{\Theta}})$ is the log-likelihood of the data evaluated at the estimated parameter vector $\hat{\boldsymbol{\Theta}}$ maximizing $\ell(\boldsymbol{\Theta})$, and $n$ is the sample size. For maximum likelihood, $\hat{\boldsymbol{\Theta}} = \{\hat{\boldsymbol{\theta}}, \hat{\boldsymbol{\beta}}\}$. For restricted maximum likelihood $\hat{\boldsymbol{\Theta}} = \{\hat{\boldsymbol{\theta}}\}$. AIC comparisons between a model fit using restricted maximum likelihood and a model fit using maximum likelihood are meaningless, as the models are fit with different likelihoods. AIC comparisons between models fit using restricted maximum likelihood are only valid when the models have the same fixed effect structure. AIC comparisons between models fit using maximum likelihood are valid when models have different fixed effect structures.
 
 Suppose we want to quantify the difference in model quality between the spatial model and a non-spatial model using the AIC and AICc criteria. We fit a non-spatial model (Equation$~$\ref{eq:lm}) in `spmodel` by running
 ```{r}
@@ -197,10 +197,11 @@ For a spatial model, the hat matrix is given by
 \begin{equation*}
   \mathbf{H}^* = (\mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X})^{-1} \mathbf{X}^{* \top}) ,
 \end{equation*}
-where $\mathbf{X}^* = \boldsymbol{\Sigma}^{-1/2}\mathbf{X}$ and $\boldsymbol{\Sigma}^{-1/2}$ is the matrix square root of the covariance matrix, $\boldsymbol{\Sigma}$ [@montgomery2021introduction]. The spatial model hat matrix can be viewed as the non-spatial hat matrix applied to the "whitened" $\mathbf{X}$ matrix. A suggested cutoff for identifying observations with high leverage is $3p / n$, where $p$ is the number of fixed effects and $n$ is the sample size. We compute the hat values (leverage) by running
+where $\mathbf{X}^* = \boldsymbol{\Sigma}^{-1/2}\mathbf{X}$ and $\boldsymbol{\Sigma}^{-1/2}$ is the matrix square root of the covariance matrix, $\boldsymbol{\Sigma}$ [@montgomery2021introduction]. The spatial model hat matrix can be viewed as the non-spatial hat matrix applied to the "whitened" $\mathbf{X}$ matrix. We compute the hat values (leverage) by running
 ```{r, results = "hide"}
 hatvalues(spmod)
 ```
+The larger the hat value, the larger the leverage. 
 
 The fitted value of an observation is the estimated mean response given the observation's predictor variable values and the model fit:
 \begin{equation*}
@@ -210,7 +211,7 @@ We compute the fitted values by running
 ```{r, results = "hide"}
 fitted(spmod)
 ```
-Fitted values for the spatial random errors ($\boldsymbol{\tau}$ and $\boldsymbol{\epsilon}$) as well as random effects can also be obtained via `fitted()` by changing the `type` argument.
+Fitted values for the spatially dependent random errors ($\boldsymbol{\tau}$), spatially independent random errors ($\boldsymbol{\epsilon}$), and random effects can also be obtained via `fitted()` by changing the `type` argument.
 
 The residuals act as estimates of errors, measuring each response's deviation from its fitted value. The raw residuals are given by
 \begin{equation*}
@@ -238,7 +239,7 @@ residuals(spmod, type = "standardized")
 ```
 or
 ```{r, results = "hide"}
-rstandard(spmod, type = "standardized")
+rstandard(spmod)
 ```
 When the model is correct, the standardized residuals have mean zero, variance one, and are uncorrelated. It is common to check linear model assumptions through visualizations. We can plot the standardized residuals vs fitted values by running
 ```{r r_vs_f, fig.cap="Standardized residuals vs fitted values of fitted model.", out.width="75%", fig.align="center", eval = FALSE}
@@ -258,7 +259,7 @@ For a spatial model, the Cook's distance is given by
 \begin{equation*}
   D_i^* = \mathbf{e}_{s}^2 \frac{h_{ii}^*}{p(1 - h_{ii}^*)} .
 \end{equation*}
-A suggested cutoff for identifying influential observations is 1. We compute Cook's distance by running
+The larger the Cook's distance, the larger the influence. We compute Cook's distance by running
 ```{r, results = "hide"}
 cooks.distance(spmod)
 ```
@@ -289,21 +290,21 @@ By default, only the columns of `data` used to fit the model are returned alongs
 
 ## An Areal Data Example
 
-Next we use the areal `seal` data, an `sf` object that contains data on harbor seal trends in southeast Alaska, USA. We view the first few rows of `seal` by running
+Next we use the areal `seal` data, an `sf` object that contains the log of estimated harbor seal abundance trends across polygons in Alaska. We view the first few rows of `seal` by running
 ```{r}
 seal
 ```
 We can learn more about the data by running `help("seal", "spmodel")`.
 
-```{r log_abund, fig.cap="Distribution of log abundance in the seal data. Polygons are grey where abundance data were not collected.", out.width = "65%", fig.align="center", echo = FALSE}
-ggplot(seal, aes(fill = log_abund)) +
+```{r log_trend, fig.cap="Distribution of log seal trends in the seal data. Polygons are grey where seal trends were not available.", out.width = "65%", fig.align="center", echo = FALSE}
+ggplot(seal, aes(fill = log_trend)) +
   geom_sf(size = 0.75) +
   scale_fill_viridis_c() +
   theme_gray(base_size = 14)
 
 
 # using ggplot2
-# ggplot(seal, aes(fill = log_abund)) +
+# ggplot(seal, aes(fill = log_trend)) +
 #   theme(axis.text = element_blank(),
 #         axis.title = element_blank()) +
 #   geom_sf(size = 0.75) +
@@ -311,7 +312,7 @@ ggplot(seal, aes(fill = log_abund)) +
 
 # # workaround using sf
 # plot(
-#   seal["log_abund"],
+#   seal["log_trend"],
 #   pal = hcl.colors,
 #   pch = 19,
 #   bgc = "grey95",
@@ -319,11 +320,11 @@ ggplot(seal, aes(fill = log_abund)) +
 #   key.pos = 4,
 # )
 ```
-Figure$~$\ref{fig:log_abund} shows the distribution of log seal abundance in the `seal` data. Polygons are considered neighbors if they share at least one boundary. Gray polygons indicate log abundance is missing. It is important to keep these missing observations in the data to preserve the neighborhood structure while fitting the model. 
+Figure$~$\ref{fig:log_trend} shows the distribution of log seal trends in the `seal` data. Polygons are considered neighbors if they share at least one boundary. Gray polygons indicate log abundance is missing. It is important to keep these missing observations in the data to preserve the neighborhood structure while fitting the model. 
 
-We estimate parameters of a spatial autoregressive model regressing log seal abundance (`log_abund`) on an intercept using a conditional autoregressive (CAR) spatial covariance by running
+We estimate parameters of a spatial autoregressive model regressing log seal trends (`log_trend`) on an intercept using a conditional autoregressive (CAR) spatial covariance by running
 ```{r}
-sealmod <- spautor(log_abund ~ 1, seal, spcov_type = "car")
+sealmod <- spautor(log_trend ~ 1, seal, spcov_type = "car")
 ```
 We tidy, glance at, and augment the fitted model by running
 ```{r}
@@ -419,7 +420,7 @@ Previously we used the `augment()` function to augment `data` with model diagnos
 augment(sulfmod, newdata = sulfate_preds, interval = "prediction", level = 0.90)
 ```
 
-For areal data, predictions cannot be computed at locations that were not incorporated in the neighborhood structure used to fit the model. Thus predictions are possible only possible for observations in `data` whose response values are missing (`NA`), as their locations are incorporated into the neighborhood structure. For example, we make predictions of log abundance of seals at the missing polygons from Figure$~$\ref{fig:log_abund} by running
+For areal data, predictions cannot be computed at locations that were not incorporated in the neighborhood structure used to fit the model. Thus predictions are possible only possible for observations in `data` whose response values are missing (`NA`), as their locations are incorporated into the neighborhood structure. For example, we make predictions of log abundance of seals at the missing polygons from Figure$~$\ref{fig:log_trend} by running
 ```{r, results = "hide"}
 predict(sealmod)
 ```

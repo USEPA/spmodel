@@ -92,7 +92,7 @@ spmod_sulf <- splm(sulfate ~ 1, data = sulfate, spcov_type = "exponential")
 augment(spmod_sulf)
 augment(spmod_sulf, newdata = sulfate_preds)
 # missingness in original data
-spmod_seal <- spautor(log_abund ~ 1, data = seal, spcov_type = "car")
+spmod_seal <- spautor(log_trend ~ 1, data = seal, spcov_type = "car")
 augment(spmod_seal)
 augment(spmod_seal, newdata = spmod_seal$newdata)
 }

@@ -164,6 +164,6 @@ stable due to large extremely large variances, scale relevant variables
 so they have variance 1 before optimization.
 }
 \examples{
-spmod <- spautor(log_abund ~ 1, data = seal, spcov_type = "car")
+spmod <- spautor(log_trend ~ 1, data = seal, spcov_type = "car")
 summary(spmod)
 }

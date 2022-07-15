@@ -139,11 +139,11 @@ where $(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}_{ii}$ is
 
 # `cooks.distance()` {#sec:cooks}
 
-Cook's distance measures the influence of an observation [@cook1979influential]. An influential observation has a large impact on the model fit. The vector of Cook's distances for the spatial linear model is given by 
+Cook's distance measures the influence of an observation [@cook1979influential; @cook1982residuals]. An influential observation has a large impact on the model fit. The vector of Cook's distances for the spatial linear model is given by 
 \begin{equation} \label{eq:cooksd}
 \frac{\hat{\mathbf{e}}_p}{p}\frac{diag(\mathbf{H}_s)}{1 - diag(\mathbf{H}_s)},
 \end{equation}
-where $\hat{\mathbf{e}}_p$ are the Pearson residuals and $diag(\mathbf{H}_s)$ is the diagonal of the spatial hat matrix, $\mathbf{H}_s \equiv \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}$ [@montgomery2021introduction]. A suggested cutoff for identifying influential observations is 1 [@cook1982residuals].
+where $\hat{\mathbf{e}}_p$ are the Pearson residuals and $diag(\mathbf{H}_s)$ is the diagonal of the spatial hat matrix, $\mathbf{H}_s \equiv \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}$ [@montgomery2021introduction]. The larger the Cook's distance, the larger the influence.
 
 To better understand the form in Equation \ref{eq:cooksd}, recall that the the non-spatial linear model $\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}$ assumes elements of $\boldsymbol{\epsilon}$ are independent and identically distributed (iid) with constant variance. In this context the vector of non-spatial Cook's distances is given by
 \begin{equation*}
@@ -231,7 +231,7 @@ Hat values measure the leverage of an observation. An observation has high lever
 \label{eq:leverage}
  \mathbf{H}_s = \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}.
 \end{equation}
-The diagonal of this matrix yields the leverage (hat) values for each observation [@montgomery2021introduction]. One suggested cutoff for identifying observations with high leverage is $3p / n$.
+The diagonal of this matrix yields the leverage (hat) values for each observation [@montgomery2021introduction]. The larger the hat value, the larger the leverage
 
 To better understand the form in Equation \ref{eq:leverage}, recall that the the non-spatial linear model $\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}$ assumes elements of $\boldsymbol{\epsilon}$ are independent and identically distributed (iid) with constant variance. In this context, the leverage (hat) matrix is given by
 \begin{equation*}

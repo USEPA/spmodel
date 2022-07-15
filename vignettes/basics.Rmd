@@ -1,16 +1,15 @@
 ---
 title: "An Overview of Basic Features in spmodel"
 author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
-output: 
-  html_document:
-    theme: default
-    number_sections: true
-    highlighted: default 
-    toc: yes
-    toc_float:
-      collapsed: no
-      smooth_scroll: no
-    toc_depth: 2
+header-includes:
+   - \usepackage{amsmath,amsfonts,amssymb}
+   - \usepackage{bm, bbm}
+   - \usepackage{mathtools}
+bibliography: '`r system.file("references.bib", package="spmodel")`'
+output:
+    pdf_document:
+      number_sections: true
+      toc: false
 vignette: >
   %\VignetteIndexEntry{An Overview of Basic Features}
   %\VignetteEngine{knitr::rmarkdown}
@@ -18,19 +17,22 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = FALSE,
-  comment = "#>", 
-  warning = FALSE, 
-  message = FALSE
-)
+# # jss style
+# knitr::opts_chunk$set(prompt=TRUE, echo = TRUE, highlight = FALSE, continue = " + ", comment = "")
+# options(replace.assign=TRUE, width=90, prompt="R> ")
+
+# rmd style
+knitr::opts_chunk$set(collapse = FALSE, comment = "#>", warning = FALSE, message = FALSE)
+
+# load packages
 library(ggplot2)
+library(spmodel)
 ```
 
 # Introduction
 
 The `spmodel` package is used to fit and summarize spatial models and make predictions at unobserved locations (Kriging). This vignette covers the basics of how to fit spatial linear models in `spmodel`. We load `spmodel` by running
-```{r}
+```{r, eval = FALSE}
 library(spmodel)
 ```
 
@@ -39,29 +41,28 @@ If you use `spmodel` in a formal publication or report, please cite it. Citing `
 citation(package = "spmodel")
 ```
 
-There are three additional `spmodel` vignettes:
+There are two additional `spmodel` vignettes:
 
-* An overview of advanced features: `vignette("advanced", "spmodel")`
 * A detailed guide with relevant methodological background: `vignette("guide", "spmodel")`
 * Technical details regarding many functions: `vignette("technical", "spmodel")`
 
 # The Data
 
-Many of the data sets we use in this vignette are `sf` objects. `sf` objects are data frames (or tibbles) with a special structure that store spatial information. They are built using the [sf](https://cran.r-project.org/package=sf) package, which is installed alongside `spmodel`. We will use four data sets throughout this vignette:
+Many of the data sets we use in this vignette are `sf` objects. `sf` objects are data frames (or tibbles) with a special structure that store spatial information. They are built using the sf [@pebesma2018sf] package, which is installed alongside `spmodel`. We will use four data sets throughout this vignette:
 
 * `moss`: An `sf` object with heavy metal concentrations in Alaska.
 * `sulfate`: An `sf` object with sulfate measurements in the conterminous United States.
 * `sulfate_preds`: An `sf` object with locations at which sulfate predictions in the conterminous United States are desired.
-* `caribou`: A tibble with data on a caribou foraging experiment in Alaska.
+* `caribou`: A `tibble` (a special `data.frame`) with data on a caribou foraging experiment in Alaska.
 
-<!-- We will create visualizations using [ggplot2](https://cran.r-project.org/package=ggplot2), which we load by running
+We will create visualizations using ggplot2 [@wickham2016ggplot2], which we load by running
 ```{r, eval = FALSE}
 library(ggplot2)
 ```
 
-ggplot2 is only installed alongside `spmodel` when `dependencies = TRUE` in `install.packages()`. -->
+ggplot2 is only installed alongside `spmodel` when `dependencies = TRUE` in `install.packages()`, so check that it is installed before proceeding.
 
-# Spatial Linear Models with `splm()`
+# Spatial Linear Models
 
 Spatial linear models for a quantitative response vector $\mathbf{y}$ have spatially dependent random errors and are often parameterized as
 
@@ -69,69 +70,32 @@ Spatial linear models for a quantitative response vector $\mathbf{y}$ have spati
 \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
 \end{equation*}
 
-where $\mathbf{X}$ is a matrix of explanatory variables (usually including a column of 1's for an intercept), $\boldsymbol{\beta}$ is a vector of fixed effects that describe the average impact of $\mathbf{X}$ on $\mathbf{y}$, $\boldsymbol{\tau}$ is a vector of spatially dependent (correlated) random errors, and $\boldsymbol{\epsilon}$ is a vector of spatially independent (uncorrelated) random errors. The spatial dependence of $\boldsymbol{\tau}$ is explicitly specified using a spatial covariance function that incorporates the variance of $\boldsymbol{\tau}$, often called the partial sill, and a range parameter that controls the behavior of the spatial covariance as a function of the distance between observations. The variance of $\boldsymbol{\epsilon}$ is often called the nugget. All spatial covariance functions are explicitly defined in `splm()`'s documentation, which can be viewed by running `help("splm", "spmodel")`.
+where $\mathbf{X}$ is a matrix of explanatory variables (usually including a column of 1's for an intercept), $\boldsymbol{\beta}$ is a vector of fixed effects that describe the average impact of $\mathbf{X}$ on $\mathbf{y}$, $\boldsymbol{\tau}$ is a vector of spatially dependent (correlated) random errors, and $\boldsymbol{\epsilon}$ is a vector of spatially independent (uncorrelated) random errors. The spatial dependence of $\boldsymbol{\tau}$ is explicitly specified using a spatial covariance function that incorporates the variance of $\boldsymbol{\tau}$, often called the partial sill, and a range parameter that controls the behavior of the spatial covariance as a function of the distance between observations. The variance of $\boldsymbol{\epsilon}$ is often called the nugget. 
 
-Spatial linear models can be fit using the `splm()` function when the data are point-referenced (i.e., specified via coordinates). The `splm()` function has similar syntax and output as the commonly used `lm()` function used to fit non-spatial linear models. `splm()` generally requires at least three arguments:
+Spatial linear models are fit in `spmodel` for point-referenced and areal data. Data are point-referenced when the elements in $\mathbf{y}$ are observed at point-locations indexed by x-coordinates and y-coordinates on a spatially continuous surface with an infinite number of locations. The `splm()` function is used to fit spatial linear models for point-referenced data. Data are areal when the elements in $\mathbf{y}$ are observed as part of a finite network of polygons whose connections are indexed by a neighborhood structure. For example, the polygons may represent counties in a state who are neighbors if they share at least one boundary. The `spautor()` function is used to fit spatial linear models for areal data (these are often called spatial autoregressive models). This vignette focuses on spatial linear models for point-referenced data, though `spmodel`'s other vignettes discuss spatial linear models for areal data.
+
+The `splm()` function has similar syntax and output as the commonly used `lm()` function used to fit non-spatial linear models. `splm()` generally requires at least three arguments:
 
 * `formula`: a formula that describes the relationship between the response variable and explanatory variables.
     * `formula` uses the same syntax as the `formula` argument in `lm()`
-* `data`: a `data.frame`, `sf`, or `sp` object that contains the response variable, explanatory variables, and spatial information.
+* `data`: a `data.frame` or `sf` object that contains the response variable, explanatory variables, and spatial information.
 * `spcov_type`: the spatial covariance type (`"exponential"`, `"spherical"`, `"matern"`, etc).
 
-If `data` are an `sp` or `sf` object, the coordinate information is taken from the object's geometry. If `data` are a `data.frame` (or `tibble`), then `xcoord` and `ycoord` are required arguments to `splm()` that specify the columns in `data` representing the x-coordinates and y-coordinates, respectively. `spmodel` uses the spatial coordinates "as-is," meaning that `spmodel` does not perform any projections. To project your data or change the coordinate reference system, use `sf::st_transform()`. If an `sf` or `sp` object with polygon geometries is given to `splm()`, the centroids of each polygon are used to fit the spatial linear model.
+If `data` is an `sf` object, the coordinate information is taken from the object's geometry. If `data` is a `data.frame` (or `tibble`), then `xcoord` and `ycoord` are required arguments to `splm()` that specify the columns in `data` representing the x-coordinates and y-coordinates, respectively. `spmodel` uses the spatial coordinates "as-is," meaning that `spmodel` does not perform any projections. To project your data or change the coordinate reference system, use `sf::st_transform()`. If an `sf` object with polygon geometries is given to `splm()`, the centroids of each polygon are used to fit the spatial linear model.
 
-We next show the basic features and syntax of `splm()` using the Alaskan `moss` data. We study the impact of log distance to the road (`log_dist2road`) on log zinc concentration (`log_Zn`). We view the first few rows of the `moss` data by running
+Next we show the basic features and syntax of `splm()` using the Alaskan `moss` data. We study the impact of log distance to the road (`log_dist2road`) on log zinc concentration (`log_Zn`). We view the first few rows of the `moss` data by running
 ```{r}
 moss
 ```
 
-We can visualize the distribution of log zinc concentration (`log_Zb`) by running
+We can visualize the distribution of log zinc concentration (`log_Zn`) by running
 ```{r}
-plot(
-  moss["log_Zn"],
-  pal = hcl.colors,
-  pch = 19,
-  bgc = "grey95",
-  graticule = TRUE,
-  key.pos = 4
-)
+ggplot(moss, aes(color = log_Zn)) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c()
 ```
 
-```{r, echo = FALSE}
-# # using ggplot2
-# ggplot(moss, aes(color = log_Zn)) + 
-#   geom_sf(size = 2) +
-#   scale_color_viridis_c()
-
-# ggplot(moss, aes(color = log_Zn)) +
-#   theme(axis.text = element_blank(),
-#         axis.title = element_blank()) +
-#   geom_sf(size = 2) +
-#   scale_color_viridis_c()
-
-# # workaround for MacOS geom_sf() polygon edge not found bug
-# moss_df <- sf::st_drop_geometry(moss)
-# moss_df[, c("X", "Y")] <- sf::st_coordinates(moss)
-# ggplot(moss_df, aes(x = X, y = Y, color = log_Zn)) + 
-#   geom_point(size = 2) +
-#   scale_color_viridis_c() +
-#   coord_fixed() +
-#   theme(axis.text = element_blank(),
-#         axis.title = element_blank())
-
-# # workaround using sf
-# plot(
-#   moss["log_Zn"],
-#   pal = hcl.colors,
-#   pch = 19,
-#   bgc = "grey95",
-#   graticule = TRUE,
-#   key.pos = 4
-# )
-```
-
-
-Log zinc concentration appears highest in the middle of the spatial domain, which has a road running through it. We fit a spatial linear model of log zinc concentration on the log distance to the road using an exponential spatial covariance function by running
+Log zinc concentration appears highest in the middle of the spatial domain, which has a road running through it. We fit a spatial linear model regressing log zinc concentration on the log distance to the road using an exponential spatial covariance function by running
 ```{r}
 spmod <- splm(log_Zn ~ log_dist2road, data = moss, spcov_type = "exponential")
 ```
@@ -155,7 +119,7 @@ summary(spmod)
 
 Similar to summaries of `lm()` objects, summaries of `splm()` objects include the original function call, residuals, and a coefficients table of fixed effects. The log zinc concentration appears to significantly decrease with log distance from the road, as evidenced by the small p-value associated with the asymptotic z-test. A pseudo r-squared is also returned, which quantifies the proportion of variability explained by the fixed effects.
 
-In the remainder of this subsection, we describe the [broom](https://broom.tidymodels.org/) functions `tidy()`, `glance()` and `augment()`. `tidy()` tidies coefficient output in a convenient `tibble`, `glance()` glances at model-fit statistics, and `augment()` augments the data with fitted model diagnostics.
+In the remainder of this subsection, we describe the broom [@robinson2021broom] functions `tidy()`, `glance()` and `augment()`. `tidy()` tidies coefficient output in a convenient `tibble`, `glance()` glances at model-fit statistics, and `augment()` augments the data with fitted model diagnostics.
 
 We tidy the fixed effects by running
 ```{r}
@@ -174,15 +138,14 @@ The columns of this `tibble` represent:
 * `npar`: The number of estimated parameters (this depends on the estimation method)
 * `value`: The value of the minimized objective function used when fitting the model
 * `AIC`: The Akaike Information Criterion (AIC)
-* `AICc`: The AIC with a small sample correction
+* `AICc`: The AIC with a small sample size correction
 * `logLik`: The log-likelihood
 * `deviance`: The model deviance
 * `pseudo.r.squared`: The pseudo r-squared
 
 The `glances()` function can be used to glance at multiple models at once. Suppose we wanted to compare the current model with an exponential spatial covariance to a new model without spatial covariance (equivalent to a model fit using `lm()`). We do this using `glances()` by running
 ```{r}
-lmod <- splm(log_Zn ~ log_dist2road, 
-             data = moss, spcov_type = "none")
+lmod <- splm(log_Zn ~ log_dist2road, data = moss, spcov_type = "none")
 glances(spmod, lmod)
 ```
 
@@ -197,14 +160,14 @@ The columns of this tibble represent:
 
 * `log_Zn`: The log zinc concentration.
 * `log_dist2road`: The log distance to the road.
-* `.fitted`: The fitted values (the estimated mean based on the explanatory variable values).
+* `.fitted`: The fitted values (the estimated mean given the explanatory variable values).
 * `.resid`: The residuals (the response minus the fitted values).
 * `.hat`: The leverage (hat) values.
-* `.cooksd`: The Cook's distance, a metric of influence.
-* `.std.residuals`: Standardized residuals that have a mean of zero, a variance of approximately 1, and are uncorrelated with one another.
+* `.cooksd`: The Cook's distance
+* `.std.residuals`: Standardized residuals
 * `geometry`: The spatial information in the `sf` object.
 
-By default, `augment()` only returns the variables in the data used by the model. All variables from the original data are returned by setting `drop = FALSE`. Many of these model diagnostics can be visualized by running `plot(spmod)`. 
+By default, `augment()` only returns the variables in the data used by the model. All variables from the original data are returned by setting `drop = FALSE`. Many of these model diagnostics can be visualized by running `plot(spmod)`. We can learn more about `plot()` in `spmodel` by running `help("plot.spmod", "spmodel")`. 
 
 ## Prediction (Kriging)
 
@@ -212,56 +175,14 @@ Commonly a goal of a data analysis is to make predictions at unobserved location
 
 We visualize the distribution of `sulfate` by running
 ```{r}
-plot(
-  sulfate["sulfate"],
-  pal = hcl.colors,
-  pch = 19,
-  bgc = "grey95",
-  graticule = TRUE,
-  key.pos = 4,
-  breaks = seq(0, 45, length.out = 10)
-)
+ggplot(sulfate, aes(color = sulfate)) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c(limits = c(0, 45))
 ```
-
-
-```{r, echo = FALSE}
-# # using ggplot2
-# ggplot(sulfate, aes(color = sulfate)) + 
-#   geom_sf(size = 2) +
-#   scale_color_viridis_c(limits = c(0, 45))
-
-# ggplot(sulfate, aes(color = sulfate)) +
-#   theme(axis.text = element_blank(),
-#         axis.title = element_blank()) +
-#   geom_sf(size = 2) +
-#   scale_color_viridis_c(limits = c(0, 45))
-
-# # workaround for MacOS geom_sf() polygon edge not found bug
-# sulfate_df <- sf::st_drop_geometry(sulfate)
-# sulfate_df[, c("X", "Y")] <- sf::st_coordinates(sulfate)
-# ggplot(sulfate_df, aes(x = X, y = Y, color = sulfate)) + 
-#   geom_point(size = 2) +
-#   scale_color_viridis_c(limits = c(0, 45)) +
-#   coord_fixed() +
-#   theme(axis.text = element_blank(),
-#         axis.title = element_blank())
-
-# # workaround using sf
-# plot(
-#   sulfate["sulfate"],
-#   pal = hcl.colors,
-#   pch = 19,
-#   bgc = "grey95",
-#   graticule = TRUE,
-#   key.pos = 4,
-#   breaks = seq(0, 45, length.out = 10)
-# )
-```
-
 
 Sulfate appears spatially dependent, as measurements are highest in the northeast and lowest in the midwest and west.
 
-We fit a spatial linear model of sulfate on an intercept using a spherical spatial covariance function by running
+We fit a spatial linear model regressing sulfate on an intercept using a spherical spatial covariance function by running
 ```{r}
 sulfmod <- splm(sulfate ~ 1, data = sulfate, spcov_type =  "spherical")
 ```
@@ -273,51 +194,9 @@ sulfate_preds$preds <- predict(sulfmod, newdata = sulfate_preds)
 
 We visualize these predictions by running
 ```{r}
-plot(
-  sulfate_preds["preds"],
-  pal = hcl.colors,
-  pch = 19,
-  bgc = "grey95",
-  graticule = TRUE,
-  key.pos = 4,
-  breaks = seq(0, 45, length.out = 10)
-)
-```
-
-
-
-```{r, echo = FALSE}
-# # using ggplot2
-# ggplot(sulfate_preds, aes(color = preds)) +
-#   geom_sf(size = 2) +
-#   scale_color_viridis_c(limits = c(0, 45))
-
-# ggplot(sulfate_preds, aes(color = preds)) +
-#   theme(axis.text = element_blank()) +
-#   geom_sf(size = 2) +
-#   scale_color_viridis_c(limits = c(0, 45))
-
-# # workaround for MacOS geom_sf() polygon edge not found bug
-# sulfate_preds_df <- sf::st_drop_geometry(sulfate_preds)
-# sulfate_preds_df[, c("X", "Y")] <- sf::st_coordinates(sulfate_preds)
-# ggplot(sulfate_preds_df, aes(x = X, y = Y, color = preds)) + 
-#   geom_point(size = 2) +
-#   scale_color_viridis_c(limits = c(0, 45)) +
-#   coord_fixed() +
-#   theme(axis.text = element_blank(),
-#         axis.title = element_blank())
-
-# # workaround using sf
-# plot(
-#   sulfate_preds["preds"],
-#   pal = hcl.colors,
-#   pch = 19,
-#   bgc = "grey95",
-#   graticule = TRUE,
-#   key.pos = 4,
-#   breaks = seq(0, 45, length.out = 10)
-# )
-
+ggplot(sulfate_preds, aes(color = preds)) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c(limits = c(0, 45))
 ```
 
 These predictions have similar sulfate patterns as in the observed data (predicted values are highest in the northeast and lowest in the midwest and west). Next we remove the model predictions from `sulfate_preds` before showing how `augment()` can be used to obtain the same predictions:
@@ -325,7 +204,7 @@ These predictions have similar sulfate patterns as in the observed data (predict
 sulfate_preds$preds <- NULL
 ```
 
-While `augment()` was previously used to augment the original data with model diagnostics, it can also be used to augment the prediction data with predictions:
+While `augment()` was previously used to augment the original data with model diagnostics, it can also be used to augment the `newdata` data with predictions:
 ```{r}
 augment(sulfmod, newdata = sulfate_preds)
 ```
@@ -338,8 +217,6 @@ augment(sulfmod, newdata = sulfate_preds, interval = "prediction")
 
 While the fitted model in this example only used an intercept, the same code is used for prediction with fitted models having explanatory variables. If explanatory variables were used to fit the model, the same explanatory variables must be included in `newdata` with the same names they have in `data`. If the data are a `data.frame`, coordinates must be included in `newdata` with the same names as they have in `data`. If the data are an `sf` object, coordinates must be included in `newdata` with the same geometry name as they have in `data`. When using projected coordinates, the projection for `newdata` should be the same as the projection for `data`.
 
-If `data` has missing values for the response variable, they are automatically removed when fitting the model. Predictions for the response of these observations are then obtained using `predict(spmod)` or `augment(spmod, newdata = spmod$newdata)`. This is an alternative way to specify `newdata` that guarantees the columns for `data` and `newdata` match.
-
 ## An Additional Example
 
 We now use the `caribou` data from a foraging experiment conducted in Alaska to show an application of `splm()` to data stored in a `data.frame` instead of an `sf` object. In `caribou`, the x-coordinates are stored in the `x` column and the y-coordinates are stored in the `y` column. We view the first few rows of `caribou` by running
@@ -347,11 +224,10 @@ We now use the `caribou` data from a foraging experiment conducted in Alaska to 
 caribou
 ```
 
-We fit a spatial linear model of the nitrogen percentage (`z`) on water presence (`water`) and tarp cover (`tarp`) by running
+We fit a spatial linear model regressing nitrogen percentage (`z`) on water presence (`water`) and tarp cover (`tarp`) by running
 ```{r}
-cariboumod <- splm(z ~ water + tarp,
-                   data = caribou, spcov_type = "exponential",
-                   xcoord = x, ycoord = y)
+cariboumod <- splm(z ~ water + tarp, data = caribou,
+                   spcov_type = "exponential", xcoord = x, ycoord = y)
 ```
 
 An analysis of variance can be conducted to assess the overall impact of the `tarp` variable, which has three levels (clear, shade, and none), and the `water` variable, which has two levels (water and no water). We perform an analysis of variance by running
@@ -362,7 +238,7 @@ There seems to be significant evidence that at least one tarp cover impacts nitr
 
 # Function Glossary
 
-Here we list some commonly used functions in `spmodel`. For a full list of functions, see the documentation manual.
+Here we list some commonly used `spmodel` functions.
 
 * `AIC()`: Compute the AIC.
 * `AICc()`: Compute the AICc.
@@ -387,5 +263,10 @@ Here we list some commonly used functions in `spmodel`. For a full list of funct
 * `sprnorm()`: Simulate spatially correlated normal (Gaussian) random variables.
 * `summary()`: Summarize fitted models.
 * `tidy()`: Tidy fitted models.
-* `update()`: Update a fitted model.
 * `vcov()`: Compute variance-covariance matrices of estimated parameters.
+
+For a full list of `spmodel` functions alongside their documentation, see the documentation manual.
+
+# References {.unnumbered}
+
+<div id="refs"></div>

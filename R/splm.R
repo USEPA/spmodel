@@ -305,6 +305,13 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
     data_object$cl <- parallel::stopCluster(data_object$cl) # makes it NULL
   }
 
+  # store index if necessary
+  if (is.null(local)) { # local was stored as NULL in previous function call
+    local_index <- NULL
+  } else {
+    local_index <- data_object$local_index
+  }
+
   # browser()
   if (inherits(spcov_initial, c("triangular", "circular"))) {
     data_object <- replace_data_object_dimcoords1(data_object)
@@ -341,7 +348,7 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
     max_dist = 2 * data_object$max_halfdist,
     observed_index = data_object$observed_index,
     missing_index = data_object$missing_index,
-    local_index = data_object$local_index,
+    local_index = local_index,
     contrasts = data_object$contrasts,
     is_sf = data_object$is_sf,
     sf_column_name = data_object$sf_column_name,

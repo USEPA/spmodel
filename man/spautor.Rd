@@ -98,7 +98,7 @@ object, including \code{AIC}, \code{AICc},
 \code{predict}, \code{print}, \code{pseudoR2}, and \code{vcov}.
 }
 \description{
-Fit spatial linear models for autoregressive data
+Fit spatial linear models for areal data (i.e., spatial autoregressive models)
 using a variety of estimation methods, allowing for random effects
 and partition factors.
 }

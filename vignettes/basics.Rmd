@@ -69,9 +69,9 @@ Spatial linear models for a quantitative response vector $\mathbf{y}$ have spati
 \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
 \end{equation*}
 
-where $\mathbf{X}$ is a matrix of predictor variables (usually including a column of 1's for an intercept), $\boldsymbol{\beta}$ is a vector of fixed effects that describe the average impact of $\mathbf{X}$ on $\mathbf{y}$, $\boldsymbol{\tau}$ is a vector of spatially dependent (correlated) random errors, and $\boldsymbol{\epsilon}$ is a vector of spatially independent (uncorrelated) random errors. The spatial dependence of $\boldsymbol{\tau}$ is explicitly specified using a spatial covariance function. The spatial covariance function incorporates the variance of $\boldsymbol{\tau}$ (often called the partial sill), the variance of $\boldsymbol{\epsilon}$ (often called the nugget), and a range parameter that controls the behavior of the spatial covariance as a function of the distance between observations. All spatial covariance functions are explicitly defined in `splm()`'s documentation, which can be viewed by running `help("splm", "spmodel")`.
+where $\mathbf{X}$ is a matrix of predictor variables (usually including a column of 1's for an intercept), $\boldsymbol{\beta}$ is a vector of fixed effects that describe the average impact of $\mathbf{X}$ on $\mathbf{y}$, $\boldsymbol{\tau}$ is a vector of spatially dependent (correlated) random errors, and $\boldsymbol{\epsilon}$ is a vector of spatially independent (uncorrelated) random errors. The spatial dependence of $\boldsymbol{\tau}$ is explicitly specified using a spatial covariance function that incorporates the variance of $\boldsymbol{\tau}$, often called the partial sill, and a range parameter that controls the behavior of the spatial covariance as a function of the distance between observations. The variance of $\boldsymbol{\epsilon}$ is often called the nugget. All spatial covariance functions are explicitly defined in `splm()`'s documentation, which can be viewed by running `help("splm", "spmodel")`.
 
-Spatial linear models can be fit using the `splm()` function when the data are point-referenced (specified via coordinates). The `splm()` function has similar syntax and output as the commonly used `lm()` function used to fit non-spatial linear models. `splm()` generally requires at least three arguments:
+Spatial linear models can be fit using the `splm()` function when the data are point-referenced (i.e., specified via coordinates). The `splm()` function has similar syntax and output as the commonly used `lm()` function used to fit non-spatial linear models. `splm()` generally requires at least three arguments:
 
 * `formula`: a formula that describes the relationship between the response variable and predictor variables.
     * `formula` uses the same syntax as the `formula` argument in `lm()`
@@ -153,7 +153,7 @@ We summarize the fitted model by running
 summary(spmod)
 ```
 
-Similar to summaries of `lm()` objects, summaries of `splm()` objects include the original function call, residuals, and a coefficients table of fixed effects. The log zinc concentration appears to significantly decrease with log distance from the road, as evidenced by the small p-value associated with the asymptotic z-test (Wald test). A pseudo r-squared is also returned, which quantifies the proportion of variability explained by the fixed effects.
+Similar to summaries of `lm()` objects, summaries of `splm()` objects include the original function call, residuals, and a coefficients table of fixed effects. The log zinc concentration appears to significantly decrease with log distance from the road, as evidenced by the small p-value associated with the asymptotic z-test. A pseudo r-squared is also returned, which quantifies the proportion of variability explained by the fixed effects.
 
 In the remainder of this subsection, we describe the [broom](https://broom.tidymodels.org/) functions `tidy()`, `glance()` and `augment()`. `tidy()` tidies coefficient output in a convenient `tibble`, `glance()` glances at model-fit statistics, and `augment()` augments the data with fitted model diagnostics.
 
@@ -170,7 +170,7 @@ glance(spmod)
 The columns of this `tibble` represent:
 
 * `n`: The sample size
-* `p`: The number of fixed effects
+* `p`: The number of fixed effects (linearly independent columns in $\mathbf{X}$)
 * `npar`: The number of estimated parameters (this depends on the estimation method)
 * `value`: The value of the minimized objective function used when fitting the model
 * `AIC`: The Akaike Information Criterion (AIC)
@@ -179,7 +179,7 @@ The columns of this `tibble` represent:
 * `deviance`: The model deviance
 * `pseudo.r.squared`: The pseudo r-squared
 
-The `glances()` function can be used to glance at multiple models at once. Suppose we wanted to compare the current model with an exponential spatial covariance to a new model with a no spatial covariance (this is equivalent to using `lm()`). We do this using `glances()` by running
+The `glances()` function can be used to glance at multiple models at once. Suppose we wanted to compare the current model with an exponential spatial covariance to a new model without spatial covariance (equivalent to a model fit using `lm()`). We do this using `glances()` by running
 ```{r}
 lmod <- splm(log_Zn ~ log_dist2road, 
              data = moss, spcov_type = "none")
@@ -204,7 +204,7 @@ The columns of this tibble represent:
 * `.std.residuals`: Standardized residuals that have a mean of zero, a variance of approximately 1, and are uncorrelated with one another.
 * `geometry`: The spatial information in the `sf` object.
 
-By default, `augment()` only returns the variables in the data used by the model. All variables from the original data are returned by setting `drop = FALSE`. Many of these model diagnostics can be visualized by running `plot(spmod)`.
+By default, `augment()` only returns the variables in the data used by the model. All variables from the original data are returned by setting `drop = FALSE`. Many of these model diagnostics can be visualized by running `plot(spmod)`. 
 
 ## Prediction (Kriging)
 
@@ -382,8 +382,8 @@ Here we list some commonly used functions in `spmodel`. For a full list of funct
 * `predict()`: Compute predictions and confidence / prediction intervals.
 * `pseudoR2()`: Compute the pseudo r-squared.
 * `residuals()`: Compute residuals.
-* `spautor()`: Fit a spatial linear model (for autoregressive data).
-* `splm()`: Fit a spatial linear model (for point-referenced data).
+* `spautor()`: Fit a spatial autoregressive model for areal data.
+* `splm()`: Fit a spatial linear model for point-referenced data.
 * `sprnorm()`: Simulate spatially correlated normal (Gaussian) random variables.
 * `summary()`: Summarize fitted models.
 * `tidy()`: Tidy fitted models.

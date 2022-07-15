@@ -1,6 +1,6 @@
 #' Fit spatial autoregressive models
 #'
-#' @description Fit spatial linear models for autoregressive data
+#' @description Fit spatial linear models for areal data (i.e., spatial autoregressive models)
 #'   using a variety of estimation methods, allowing for random effects
 #'   and partition factors.
 #'

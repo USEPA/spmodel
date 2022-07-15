@@ -23,7 +23,7 @@
 #'     \item{5:}{ Standardized residuals vs leverage}
 #'     \item{6:}{ Cook's distance vs leverage}
 #'   }
-#'   For [splm()], there is an additional value of \code{which}
+#'   For [splm()], there is an additional value of \code{which}:
 #'   \itemize{
 #'     \item{7:}{ Empirical spatial covariance vs distance}
 #'   }

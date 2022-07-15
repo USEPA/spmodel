@@ -35,7 +35,7 @@ The `spmodel` R package is used to fit and summarize spatial models and make pre
 *   Partition factors that assume observations are uncorrelated if they are from different levels of a factor variable.
 *   Simulating spatially dependent normal (Gaussian) random variables.
 *   Big data approaches to model-fitting and prediction.
-*   Spatial linear models for autoregressive data (conditional and simultaneous autoregressive spatial covariance functions).
+*   Spatial autoregressive models for areal data.
 
 We load `spmodel` by running
 ```{r}
@@ -72,7 +72,7 @@ Sometimes additional sources of variability are incorporated into linear models 
 \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z}_1 u_1 + ... + \mathbf{Z}_m u_m + \boldsymbol{\tau} + \boldsymbol{\epsilon},
 \end{equation*} where $\mathbf{y}$ is a vector of responses, $\mathbf{X}$ is a matrix of predictor variables, $\boldsymbol{\beta}$ is a vector of fixed effects, $\mathbf{Z}_i$ is a matrix that describes the $i$th random effect, $u_i$, $\boldsymbol{\tau}$ is a vector of spatially dependent (correlated) random errors, and $\boldsymbol{\epsilon}$ is a vector of spatially independent (not correlated) random errors.
 
-`splm()` and [`spautor()`](#autoreg) (for autoregressive data) incorporate random effects using similar syntax as used by the `lme()` function from the [nlme](https://cran.r-project.org/package=nlme) R package and the `lmer()` function from the [lme4](https://cran.r-project.org/package=lme4) R package. Random effects are specified using the `random` argument, which is a formula built from variables in `data`. A couple of common ways to specify random effects in `random` include:
+`splm()` and [`spautor()`](#autoreg) (for spatial autoregressive models) incorporate random effects using similar syntax as used by the `lme()` function from the [nlme](https://cran.r-project.org/package=nlme) R package and the `lmer()` function from the [lme4](https://cran.r-project.org/package=lme4) R package. Random effects are specified using the `random` argument, which is a formula built from variables in `data`. A couple of common ways to specify random effects in `random` include:
 
 
 *   `~ (1 | group)` : Random intercepts for each level of `group`. `~ group` is shorthand for `~ (1 | group)`.
@@ -290,7 +290,7 @@ The first argument to `sprnorm()` takes an `spcov_params` object. An `spcov_para
 sim_params <- spcov_params("exponential", de = 5, ie = 1, range = 0.5)
 ```
 
-The next argument to `sprnorm()` is `mean`, which specifies the mean vector. This can either be length one and recycled or have length equal to the number of observations. The default is `0`. The next argument is `samples`, which indicates the number of desired samples. The default is `1`, though the computational cost for generating $m$ samples is nearly the same as for generating 1 sample. If more than one sample is desired, the output is a matrix where rows indicate observations and columns indicate independent samples. The next argument to `sprnorm()` is `data`, which contains geographic information. If the data are an `sp` or `sf` object, the geographic information is taken from the object's geometry. If the data are a data frame, either coordinates via `xcoord` and `ycoord` (if the data are point-referenced) or a weight matrix via `W` (if the data are autoregressive) are specified. Additional arguments include `randcov_params` for incorporating random effects and `partition_factor` for incorporating a partition factor. Next we simulate a response variable using `sim_params` and `sim_coords`.
+The next argument to `sprnorm()` is `mean`, which specifies the mean vector. This can either be length one and recycled or have length equal to the number of observations. The default is `0`. The next argument is `samples`, which indicates the number of desired samples. The default is `1`, though the computational cost for generating $m$ samples is nearly the same as for generating 1 sample. If more than one sample is desired, the output is a matrix where rows indicate observations and columns indicate independent samples. The next argument to `sprnorm()` is `data`, which contains geographic information. If the data are an `sp` or `sf` object, the geographic information is taken from the object's geometry. If the data are a data frame, either coordinates via `xcoord` and `ycoord` (if the data are point-referenced) or a weight matrix via `W` (for autoregressive models with areal data) are specified. Additional arguments include `randcov_params` for incorporating random effects and `partition_factor` for incorporating a partition factor. Next we simulate a response variable using `sim_params` and `sim_coords`.
 ```{r}
 sim_resp <- sprnorm(sim_params, data = sim_coords, xcoord = x, ycoord = y)
 sim_data <- tibble::tibble(sim_coords, sim_resp)
@@ -438,7 +438,7 @@ For models fit using [`spautor()`](#autoreg), no big data approximations are ava
 
 # Spatial Autoregressive Models with `spautor()` {#autoreg}
 
-Spatial autoregressive models allow for spatial dependence defined through a neighborhood structure rather than a Euclidean distance. Often this neighborhood structure is imposed via a set of polygons, and polygons sharing a boundary are considered neighbors. For example, a neighborhood structure could be state boundaries within a country. A matrix that contains neighborhood relationships among all observations is called a weight matrix.
+Spatial autoregressive models are spatial linear models that allow for spatial dependence defined through a neighborhood structure rather than a Euclidean distance. Often this neighborhood structure is imposed via a set of polygons, and polygons sharing a boundary are considered neighbors. For example, a neighborhood structure could be state boundaries within a country. A matrix that contains neighborhood relationships among all observations is called a weight matrix.
 
 Spatial autoregressive models are fit in `spmodel` using the `spautor()` function. The `spautor()` function is very similar to the `splm()` function: both functions generally require the `formula`, `data`, and `spcov_type` arguments. There are some optional arguments for `spautor()` that relate to the data's neighborhood structure. Next we use `spautor()` to fit a spatial autoregressive model to the `seal` data, an `sf` object with log harbor seal abundance across polygons in Alaska.
 
@@ -578,7 +578,7 @@ While the fitted model in this example only uses an intercept, the same code is 
 
 ## An Additional Example
 
-Here we revisit the `caribou` data used in the basic features vignette from a spatial autoregressive perspective. Recall the first few rows of the `caribou` data:
+Here we revisit the `caribou` data used in the basic features vignette from a spatial autoregressive modeling perspective. Recall the first few rows of the `caribou` data:
 ```{r}
 caribou
 ```

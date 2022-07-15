@@ -20,9 +20,9 @@ Compute the leverage (hat) value for each observation from a fitted
 model object.
 }
 \details{
-Leverage values measure how far an observation's predictor variables
+Leverage values measure how far an observation's explanatory variables
 are relative to the average. In other words, observations with high
-leverage are typically considered to have an extreme or unusual combination of predictor
+leverage are typically considered to have an extreme or unusual combination of explanatory
 variables. Leverage values are the diagonal of the hat (projection) matrix.
 The larger the hat value, the larger the leverage.
 }

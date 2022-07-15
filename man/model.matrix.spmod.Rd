@@ -13,10 +13,11 @@
 }
 \value{
 The model matrix (of the fixed effects), whose rows represent
-observations and whose columns represent each predictor variable value.
+observations and whose columns represent explanatory variables corresponding
+to each fixed effect.
 }
 \description{
-Extract the model matrix from a fitted model object.
+Extract the model matrix (X) from a fitted model object.
 }
 \examples{
 spmod <- splm(z ~ water + tarp,

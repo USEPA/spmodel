@@ -47,7 +47,7 @@ Statistical linear models are often parameterized as
 \begin{equation}\label{eq:lm}
  \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon},
 \end{equation}
-where for a sample size $n$, $\mathbf{y}$ is an $n \times 1$ vector of response variables, $\mathbf{X}$ is an $n \times p$ design (model) matrix of predictor variables, $\boldsymbol{\beta}$ is an $p \times 1$ vector of fixed effects controlling the impact of $\mathbf{X}$ on $\mathbf{y}$, and $\boldsymbol{\epsilon}$ is an $n \times 1$ vector of random errors. Typically, it is assumed that $\text{E}(\boldsymbol{\epsilon}) = \mathbf{0}$ and $\text{Cov}(\boldsymbol{\epsilon}) = \sigma^2_\epsilon \mathbf{I}$, where $\text{E}(\cdot)$ denotes expectation, $\text{Cov}(\cdot)$ denotes covariance, $\sigma^2_\epsilon$ denotes a variance parameter, and $\mathbf{I}$ denotes the identity matrix.
+where for a sample size $n$, $\mathbf{y}$ is an $n \times 1$ vector of response variables, $\mathbf{X}$ is an $n \times p$ design (model) matrix of explanatory variables, $\boldsymbol{\beta}$ is an $p \times 1$ vector of fixed effects controlling the impact of $\mathbf{X}$ on $\mathbf{y}$, and $\boldsymbol{\epsilon}$ is an $n \times 1$ vector of random errors. Typically, it is assumed that $\text{E}(\boldsymbol{\epsilon}) = \mathbf{0}$ and $\text{Cov}(\boldsymbol{\epsilon}) = \sigma^2_\epsilon \mathbf{I}$, where $\text{E}(\cdot)$ denotes expectation, $\text{Cov}(\cdot)$ denotes covariance, $\sigma^2_\epsilon$ denotes a variance parameter, and $\mathbf{I}$ denotes the identity matrix.
 
 The model in Equation$~$\ref{eq:lm} assumes the elements of $\mathbf{y}$ are uncorrelated. Typically for spatial data, elements of $\mathbf{y}$ are correlated, as observations close together in space tend to be more similar than observations far apart [@tobler1970computer]. Failing to properly accommodate the spatial dependence in $\mathbf{y}$ can cause researchers to draw incorrect conclusions about their data. To accommodate spatial dependence in $\mathbf{y}$, an $n \times 1$ spatial random effect, $\boldsymbol{\tau}$, is added to Equation$~$\ref{eq:lm}, yielding the model
 \begin{equation}\label{eq:splm}
@@ -69,9 +69,9 @@ where $\phi$ is the range parameter and $\mathbf{W}$ is a weight matrix describi
 
 In this section, we show how to use the `splm()` and `spautor()` functions to estimate parameters of the spatial linear model. We also explore diagnostic tools in `spmodel` that evaluate model fit. The `splm()` and `spautor()` functions share similar syntactic structure with the `lm()` function used to fit non-spatial linear models (linear models without spatial dependence) from Equation$~$\ref{eq:lm}. `splm()` and `spautor()` generally require at least three arguments:
 
-* `formula`: a formula that describes the relationship between the response variable ($\mathbf{y}$) and predictor variables ($\mathbf{X}$)
+* `formula`: a formula that describes the relationship between the response variable ($\mathbf{y}$) and explanatory variables ($\mathbf{X}$)
     * `formula` in `splm()` is the same as `formula` in `lm()`
-* `data`: a `data.frame`, `sf`, or `sp` object that contains the response variable, predictor variables, and spatial information
+* `data`: a `data.frame`, `sf`, or `sp` object that contains the response variable, explanatory variables, and spatial information
 * `spcov_type`: the spatial covariance type (`"exponential"`, `"matern"`, `"car"`, etc)
 
 If `data` are an `sf` [@pebesma2018sf] or `sp` object [@bivand2013sp], spatial information is stored in the object's geometry. If `data` are a `data.frame`, then for point-referenced data the x-coordinates and y-coordinates must be provided via the `xcoord` and `ycoord` arguments, and for areal data, the weight matrix must be provided via the `W` argument. 
@@ -155,7 +155,7 @@ where $\mathcal{D}(\boldsymbol{\hat{\Theta}})$ is the deviance of the fitted mod
 ```{r}
 pseudoR2(spmod)
 ```
-Roughly `r 100 * round(pseudoR2(spmod), digits = 2)`% of the variability in log zinc is explained by log distance from the road. The pseudo R-squared can be adjusted to account for the number of predictor variables using the `adjust` argument. Pseudo R-squared (and the adjusted version) is most helpful for ranking model fit when the models have the same covariance structure. 
+Roughly `r 100 * round(pseudoR2(spmod), digits = 2)`% of the variability in log zinc is explained by log distance from the road. The pseudo R-squared can be adjusted to account for the number of explanatory variables using the `adjust` argument. Pseudo R-squared (and the adjusted version) is most helpful for ranking model fit when the models have the same covariance structure. 
 
 The next two model-fit statistics we consider are the spatial AIC and AICc [@hoeting2006model]. The AIC and AICc evaluate the fit of a model with a penalty for the number of parameters estimated. This penalty balances model fit and model parsimony. The AICc is a correction to AIC for small sample sizes. As the sample size increases, the AIC and AICc become closer to one another. The lower the AIC and AICc, the better the balance of model fit and parsimony. 
 
@@ -189,7 +189,7 @@ The noticeably lower mean-squared-prediction error of the spatial model indicate
 
 ## Diagnostics
 
-An observation is said to have high leverage if its combination of predictor variable values is far from the mean vector of the predictor variables. For a non-spatial model, the leverage of the $i$th observation is denoted $h_{ii}$ and called the hat value. It is called the hat value because it is the $i$th diagonal element of the hat matrix given by
+An observation is said to have high leverage if its combination of explanatory variable values is far from the mean vector of the explanatory variables. For a non-spatial model, the leverage of the $i$th observation is denoted $h_{ii}$ and called the hat value. It is called the hat value because it is the $i$th diagonal element of the hat matrix given by
 \begin{equation*}
   \mathbf{H} = \mathbf{X}(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top .
 \end{equation*}
@@ -203,7 +203,7 @@ hatvalues(spmod)
 ```
 The larger the hat value, the larger the leverage. 
 
-The fitted value of an observation is the estimated mean response given the observation's predictor variable values and the model fit:
+The fitted value of an observation is the estimated mean response given the observation's explanatory variable values and the model fit:
 \begin{equation*}
   \hat{\mathbf{y}} = \mathbf{X} \hat{\boldsymbol{\beta}}.
 \end{equation*}
@@ -397,7 +397,7 @@ ggplot(sulfate_preds, aes(color = preds)) +
 # )
 ```
 
-If predictor variables were used to fit the model, it is necessary that for each observation requiring prediction, the same predictor variables are included in `newdata` with the same names as they have in `data`. Alternatively, one can include data intended for model fitting and data intended for predictions in the call to `splm()` as long as the data intended for predictions contain missing (`NA`) values for the response variable. Then we can make predictions by running
+If explanatory variables were used to fit the model, it is necessary that for each observation requiring prediction, the same explanatory variables are included in `newdata` with the same names as they have in `data`. Alternatively, one can include data intended for model fitting and data intended for predictions in the call to `splm()` as long as the data intended for predictions contain missing (`NA`) values for the response variable. Then we can make predictions by running
 ```{r, eval = FALSE}
 predict(sulfmod)
 ```
@@ -410,7 +410,7 @@ The `interval` argument determines the type of interval returned. If `interval` 
 ```{r, results = "hide"}
 predict(sulfmod, newdata = sulfate_preds, interval = "prediction")
 ```
-If `interval` is `"confidence"`, the predictions are instead the estimated mean given each observation's predictor variable values. The corresponding `100 * level`% confidence interval is returned:
+If `interval` is `"confidence"`, the predictions are instead the estimated mean given each observation's explanatory variable values. The corresponding `100 * level`% confidence interval is returned:
 ```{r, results = "hide"}
 predict(sulfmod, newdata = sulfate_preds, interval = "confidence")
 ```

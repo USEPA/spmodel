@@ -45,7 +45,7 @@ In addition to this document on the technical details of `spmodel`, there are th
    n & = \text{Sample size} \\
    \mathbf{y} & = \text{Response vector} \\
    \boldsymbol{\beta} & = \text{Fixed effect parameter vector} \\
-   \mathbf{X} & = \text{Design matrix of known predictor variables (covariates)} \\
+   \mathbf{X} & = \text{Design matrix of known explanatory variables (covariates)} \\
    p & = \text{The number of linearly independent columns in } \mathbf{X} \\
    \mathbf{Z} & = \text{Design matrix of known random effect variables} \\
    \boldsymbol{\theta} & = \text{Covariance parameter vector} \\   
@@ -71,8 +71,8 @@ Additional notation is used in Section$~$\ref{sec:predict} (`predict()`):
   \begin{split}
    \mathbf{y}_o & = \text{Observed response vector} \\
    \mathbf{y}_u & = \text{Unobserved response vector} \\
-   \mathbf{X}_o & = \text{Design matrix of known predictor variables at observed response variable locations} \\
-   \mathbf{X}_u & = \text{Design matrix of known predictor variables at unobserved response variable locations} \\
+   \mathbf{X}_o & = \text{Design matrix of known explanatory variables at observed response variable locations} \\
+   \mathbf{X}_u & = \text{Design matrix of known explanatory variables at unobserved response variable locations} \\
    \boldsymbol{\Sigma}_o & = \text{Covariance matrix of $\mathbf{y}_o$ evaluated at } \boldsymbol{\theta} \\
    \boldsymbol{\Sigma}_u & = \text{Covariance matrix of $\mathbf{y}_u$ evaluated at } \boldsymbol{\theta} \\
    \boldsymbol{\Sigma}_{uo} & = \text{A matrix of covariances between $\mathbf{y}_u$ and $\mathbf{y}_o$ evaluated at } \boldsymbol{\theta} \\
@@ -118,7 +118,7 @@ Note that when comparing full and reduced models, the general linear hypothesis 
 
 A second approach to determining p-values is a likelihood ratio test. Let $\ell(\boldsymbol{\hat{\Theta}})$ be the log-likelihood for some full model and $\ell(\boldsymbol{\hat{\Theta}}_0)$ be the log-likelihood for some reduced model. For the likelihood ratio test to be valid, the reduced model must be nested in the full model, which means that $\ell(\boldsymbol{\hat{\Theta}}_0)$ is obtained by fixing some parameters in $\boldsymbol{\Theta}$. When the likelihood ratio test is valid, $X^2 = 2\ell(\boldsymbol{\hat{\Theta}}) - 2\ell(\boldsymbol{\hat{\Theta}}_0)$ is asymptotically Chi-squared with degrees of freedom equal to the difference in estimated parameters between the full and reduced models.
 
-For restricted maximum likelihood estimation, likelihood ratio tests can only be used to compare nested models with the same predictor variables. This is because the restricted maximum likelihood likelihood in Equation \ref{eq:reml-lik} depends on the predictor variables through $\ln{|\mathbf{X}^\top \mathbf{\Sigma}^{-1} \mathbf{X}|}$. To use likelihood ratio tests for comparing different predictor variable structures, parameters must be estimated using maximum likelihood estimation. When using likelihood ratio tests to assess the importance of parameters on the boundary of a parameter space (e.g., a variance parameter being zero), p-values tend to be too large [@self1987asymptotic; @stram1994variance; @goldman2000statistical; @pinheiro2006mixed].
+For restricted maximum likelihood estimation, likelihood ratio tests can only be used to compare nested models with the same explanatory variables. This is because the restricted maximum likelihood likelihood in Equation \ref{eq:reml-lik} depends on the explanatory variables through $\ln{|\mathbf{X}^\top \mathbf{\Sigma}^{-1} \mathbf{X}|}$. To use likelihood ratio tests for comparing different explanatory variable structures, parameters must be estimated using maximum likelihood estimation. When using likelihood ratio tests to assess the importance of parameters on the boundary of a parameter space (e.g., a variance parameter being zero), p-values tend to be too large [@self1987asymptotic; @stram1994variance; @goldman2000statistical; @pinheiro2006mixed].
 
 # `coef()` {#sec:coef}
 
@@ -178,7 +178,7 @@ Fitted values can be obtained for the response, spatial random errors, and rando
 \begin{equation*}\label{eq:fit_resp}
   \mathbf{\hat{y}} = \mathbf{X} \boldsymbol{\hat{\beta}} .
 \end{equation*}
-They are the estimated mean response given the set of predictor variables for each observation. 
+They are the estimated mean response given the set of explanatory variables for each observation. 
 
 Fitted values for spatial random errors (`type = "spcov"`) and random effects (`type = "randcov"`) are linked to best linear unbiased predictors from linear mixed model theory. Consider the standard random effects parameterization
 \begin{equation*}
@@ -226,7 +226,7 @@ For big data without partition factors, the local indexes act as partition facto
 
 # `hatvalues()` {#sec:hatvalues}
 
-Hat values measure the leverage of an observation. An observation has high leverage if its combination of predictor variables is atypical (far from the mean predictor vector). The spatial leverage (hat) matrix is given by
+Hat values measure the leverage of an observation. An observation has high leverage if its combination of explanatory variables is atypical (far from the mean explanatory vector). The spatial leverage (hat) matrix is given by
 \begin{equation}
 \label{eq:leverage}
  \mathbf{H}_s = \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}.
@@ -359,7 +359,7 @@ PR2 = 1 - \frac{(\mathbf{y} - \mathbf{X} \hat{\boldsymbol{\beta}})^\top \hat{\bo
 \end{equation*}
 where SSE denotes the error sum of squares and SST denotes the total sum of squares. The result follows because for a non-spatial model, $\boldsymbol{\Sigma}$ is proportional to the identity matrix.
 
-The adjusted pseudo r-squared adjusts for additional predictor variables and is given by
+The adjusted pseudo r-squared adjusts for additional explanatory variables and is given by
 \begin{equation*}
   PR2adj = 1 - (1 - PR2)\frac{n - 1}{n - p}.
 \end{equation*}
@@ -659,7 +659,7 @@ u_1 \\
 u_2
 \end{bmatrix},
 \end{equation*}
-where $u_1$ and $u_2$ are the random slopes for the first and second levels of $\mathbf{u}$, respectively. If a random slope is included in the model, it is common for the auxiliary variable to be a column in $\mathbf{X}$, the fixed effects design matrix (i.e., also a fixed effect). Denote this column as $\mathbf{x}$. Here $\boldsymbol{\beta}$ captures the average effect of $\mathbf{x}$ on $\mathbf{y}$ (accounting for other predictors) and $\mathbf{u}$ captures a subject-specific effect of $\mathbf{x}$ on $\mathbf{y}$. So for a subject in the $i$th level of $\mathbf{u}$, the average increase in $y$ associated with a one-unit increase $x$ is $\beta + u_i$.
+where $u_1$ and $u_2$ are the random slopes for the first and second levels of $\mathbf{u}$, respectively. If a random slope is included in the model, it is common for the auxiliary variable to be a column in $\mathbf{X}$, the fixed effects design matrix (i.e., also a fixed effect). Denote this column as $\mathbf{x}$. Here $\boldsymbol{\beta}$ captures the average effect of $\mathbf{x}$ on $\mathbf{y}$ (accounting for other explanatory variables) and $\mathbf{u}$ captures a subject-specific effect of $\mathbf{x}$ on $\mathbf{y}$. So for a subject in the $i$th level of $\mathbf{u}$, the average increase in $y$ associated with a one-unit increase $x$ is $\beta + u_i$.
 
 The `sv-wls` and `sv-cl` estimation methods do not use a likelihood, and thus, they do not allow for the estimation of random effects in `spmodel`.
 

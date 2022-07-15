@@ -70,7 +70,7 @@ There are three additional `spmodel` vignettes:
 Sometimes additional sources of variability are incorporated into linear models via random effects. The spatial linear model with random effects can be written as
 \begin{equation*}
 \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z}_1 u_1 + ... + \mathbf{Z}_m u_m + \boldsymbol{\tau} + \boldsymbol{\epsilon},
-\end{equation*} where $\mathbf{y}$ is a vector of responses, $\mathbf{X}$ is a matrix of predictor variables, $\boldsymbol{\beta}$ is a vector of fixed effects, $\mathbf{Z}_i$ is a matrix that describes the $i$th random effect, $u_i$, $\boldsymbol{\tau}$ is a vector of spatially dependent (correlated) random errors, and $\boldsymbol{\epsilon}$ is a vector of spatially independent (not correlated) random errors.
+\end{equation*} where $\mathbf{y}$ is a vector of responses, $\mathbf{X}$ is a matrix of explanatory variables, $\boldsymbol{\beta}$ is a vector of fixed effects, $\mathbf{Z}_i$ is a matrix that describes the $i$th random effect, $u_i$, $\boldsymbol{\tau}$ is a vector of spatially dependent (correlated) random errors, and $\boldsymbol{\epsilon}$ is a vector of spatially independent (not correlated) random errors.
 
 `splm()` and [`spautor()`](#autoreg) (for spatial autoregressive models) incorporate random effects using similar syntax as used by the `lme()` function from the [nlme](https://cran.r-project.org/package=nlme) R package and the `lmer()` function from the [lme4](https://cran.r-project.org/package=lme4) R package. Random effects are specified using the `random` argument, which is a formula built from variables in `data`. A couple of common ways to specify random effects in `random` include:
 
@@ -574,7 +574,7 @@ plot(
 # )
 ```
 
-While the fitted model in this example only uses an intercept, the same code is used for prediction with fitted models having predictor variables.
+While the fitted model in this example only uses an intercept, the same code is used for prediction with fitted models having explanatory variables.
 
 ## An Additional Example
 

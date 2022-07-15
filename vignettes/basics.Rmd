@@ -69,13 +69,13 @@ Spatial linear models for a quantitative response vector $\mathbf{y}$ have spati
 \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
 \end{equation*}
 
-where $\mathbf{X}$ is a matrix of predictor variables (usually including a column of 1's for an intercept), $\boldsymbol{\beta}$ is a vector of fixed effects that describe the average impact of $\mathbf{X}$ on $\mathbf{y}$, $\boldsymbol{\tau}$ is a vector of spatially dependent (correlated) random errors, and $\boldsymbol{\epsilon}$ is a vector of spatially independent (uncorrelated) random errors. The spatial dependence of $\boldsymbol{\tau}$ is explicitly specified using a spatial covariance function that incorporates the variance of $\boldsymbol{\tau}$, often called the partial sill, and a range parameter that controls the behavior of the spatial covariance as a function of the distance between observations. The variance of $\boldsymbol{\epsilon}$ is often called the nugget. All spatial covariance functions are explicitly defined in `splm()`'s documentation, which can be viewed by running `help("splm", "spmodel")`.
+where $\mathbf{X}$ is a matrix of explanatory variables (usually including a column of 1's for an intercept), $\boldsymbol{\beta}$ is a vector of fixed effects that describe the average impact of $\mathbf{X}$ on $\mathbf{y}$, $\boldsymbol{\tau}$ is a vector of spatially dependent (correlated) random errors, and $\boldsymbol{\epsilon}$ is a vector of spatially independent (uncorrelated) random errors. The spatial dependence of $\boldsymbol{\tau}$ is explicitly specified using a spatial covariance function that incorporates the variance of $\boldsymbol{\tau}$, often called the partial sill, and a range parameter that controls the behavior of the spatial covariance as a function of the distance between observations. The variance of $\boldsymbol{\epsilon}$ is often called the nugget. All spatial covariance functions are explicitly defined in `splm()`'s documentation, which can be viewed by running `help("splm", "spmodel")`.
 
 Spatial linear models can be fit using the `splm()` function when the data are point-referenced (i.e., specified via coordinates). The `splm()` function has similar syntax and output as the commonly used `lm()` function used to fit non-spatial linear models. `splm()` generally requires at least three arguments:
 
-* `formula`: a formula that describes the relationship between the response variable and predictor variables.
+* `formula`: a formula that describes the relationship between the response variable and explanatory variables.
     * `formula` uses the same syntax as the `formula` argument in `lm()`
-* `data`: a `data.frame`, `sf`, or `sp` object that contains the response variable, predictor variables, and spatial information.
+* `data`: a `data.frame`, `sf`, or `sp` object that contains the response variable, explanatory variables, and spatial information.
 * `spcov_type`: the spatial covariance type (`"exponential"`, `"spherical"`, `"matern"`, etc).
 
 If `data` are an `sp` or `sf` object, the coordinate information is taken from the object's geometry. If `data` are a `data.frame` (or `tibble`), then `xcoord` and `ycoord` are required arguments to `splm()` that specify the columns in `data` representing the x-coordinates and y-coordinates, respectively. `spmodel` uses the spatial coordinates "as-is," meaning that `spmodel` does not perform any projections. To project your data or change the coordinate reference system, use `sf::st_transform()`. If an `sf` or `sp` object with polygon geometries is given to `splm()`, the centroids of each polygon are used to fit the spatial linear model.
@@ -197,7 +197,7 @@ The columns of this tibble represent:
 
 * `log_Zn`: The log zinc concentration.
 * `log_dist2road`: The log distance to the road.
-* `.fitted`: The fitted values (the estimated mean based on the predictor variable values).
+* `.fitted`: The fitted values (the estimated mean based on the explanatory variable values).
 * `.resid`: The residuals (the response minus the fitted values).
 * `.hat`: The leverage (hat) values.
 * `.cooksd`: The Cook's distance, a metric of influence.
@@ -336,7 +336,7 @@ Confidence intervals for the mean response or prediction intervals for the predi
 augment(sulfmod, newdata = sulfate_preds, interval = "prediction")
 ```
 
-While the fitted model in this example only used an intercept, the same code is used for prediction with fitted models having predictor variables. When performing prediction for fitted models with predictor variables, `newdata` **must** have columns that contain the same predictor variables used to fit the model. Furthermore, the names of the columns for each predictor variable in `newdata` must match the names of the columns for each predictor variable in `data`.
+While the fitted model in this example only used an intercept, the same code is used for prediction with fitted models having explanatory variables. When performing prediction for fitted models with explanatory variables, `newdata` **must** have columns that contain the same explanatory variables used to fit the model. Furthermore, the names of the columns for each explanatory variable in `newdata` must match the names of the columns for each explanatory variable in `data`.
 
 If `data` has missing values for the response variable, they are automatically removed when fitting the model. Predictions for the response of these observations are then obtained using `predict(spmod)` or `augment(spmod, newdata = spmod$newdata)`. This is an alternative way to specify `newdata` that guarantees the columns for `data` and `newdata` match.
 

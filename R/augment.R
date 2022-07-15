@@ -18,7 +18,7 @@
 #'   fitted model object \code{x} when augmenting. The default for \code{drop} is \code{TRUE}.
 #'   \code{drop} is ignored if augmenting \code{newdata}.
 #' @param newdata A data frame or tibble containing observations requiring prediction.
-#'   All of the original predictors used to create the fitted model object \code{x}
+#'   All of the original explanatory variables used to create the fitted model object \code{x}
 #'   must be present in \code{newdata}. Defaults to \code{NULL}, which indicates
 #'   that nothing has been passed to \code{newdata}.
 #' @param se_fit Logical indicating whether or not a \code{.se.fit} column should

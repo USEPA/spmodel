@@ -394,12 +394,12 @@ Next we explore big data prediction options for `splm()` objects, which are capa
 
 For models fit using `splm()`, the simplest way to implement the default big data approximation for prediction is to set the `local` argument equal to `TRUE`. This is shorthand for `local = list(method = "covariance", size = 50, parallel = FALSE)`:
 ```{r, results = "hide"}
-predict(big1, sim_preds, local = TRUE)
+predict(local1, sim_preds, local = TRUE)
 ```
 
 Or we could augment the prediction data with the predictions:
 ```{r}
-augment(big1, newdata = sim_preds, local = TRUE)
+augment(local1, newdata = sim_preds, local = TRUE)
 ```
 
 These observed data and predictions are visualized below:
@@ -415,7 +415,7 @@ plot(
     breaks = seq(-7, 7, length.out = 10)
 )
 
-sim_preds$preds <- predict(big1, sim_preds, local = TRUE)
+sim_preds$preds <- predict(local1, sim_preds, local = TRUE)
 
 sim_preds_sf <- sf::st_as_sf(sim_preds, coords = c("x", "y"))
 plot(
@@ -436,7 +436,7 @@ The predictions display a similar pattern as the observed data.
 
 We could alternatively specify a more complicated version of `local` by running
 ```{r, results = "hide"}
-predict(big1, sim_preds, local = list(method = "distance", size = 30, parallel = TRUE, ncores = 2))
+predict(local1, sim_preds, local = list(method = "distance", size = 30, parallel = TRUE, ncores = 2))
 ```
 
 As previously mentioned, if `local` is specified using a list structure and only some elements are provided, defaults are chosen for the remaining ones. For example, `local = list(method = "distance")` is shorthand for `local = list(method = "distance", size = 50, parallel = FALSE)`.

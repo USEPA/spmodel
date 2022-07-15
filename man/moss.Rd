@@ -11,7 +11,7 @@ An \code{sf} object with 365 rows and 10 columns:
 \item{sample: }{A factor with a sample identifier. Some samples were
 replicated in the field or laboratory. As a result, there are 318 unique
 sample identifiers.}
-\item{field_rep: }{A factor representing field replicate. Takes values \code{1}
+\item{field_dup: }{A factor representing field duplicate. Takes values \code{1}
 and \code{2}.}
 \item{lab_rep: }{A factor representing laboratory replicate. Takes values \code{1}
 and \code{2}.}

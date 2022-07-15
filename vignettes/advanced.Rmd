@@ -88,23 +88,27 @@ Some additional syntax for more complicated random effects structures include:
 *   `~ x | group/subgroup`: Shorthand for `~ (x | group) + (x | group:subgroup)`. Commonly, the `group/subgroup` notation implies `subgroup` is nested within `group`.
 *   `~ (x - 1 | group/subgroup)`: Shorthand for `~ (x - 1 | group) + (x - 1 | group:subgroup)`. Commonly, the `group/subgroup` notation implies `subgroup` is nested within `group`.
 
-Distinct random effects terms are separated in `random` by `+`. Each term **must** be wrapped in parentheses. For example, to incorporate random intercepts for `group` and `subgroup`, `random` looks like `~ (1 | group) + (1 | subgroup)`. For random intercepts, recall that `~ group` is shorthand for `~ (1 | group)`. Thus, an equivalent representation of `~ (1 | group) + (1 | subgroup)` is `~ group + subgroup`. Note that for both random intercepts and random slopes, the variable on the right-hand side of `|` **must** be a factor (or character) variable.
+Distinct random effects terms are separated in `random` by `+`. Each term must be wrapped in parentheses. For example, to incorporate random intercepts for `group` and `subgroup`, `random` looks like `~ (1 | group) + (1 | subgroup)`. For random intercepts, recall that `~ group` is shorthand for `~ (1 | group)`. Thus, an equivalent representation of `~ (1 | group) + (1 | subgroup)` is `~ group + subgroup`. Note that for both random intercepts and random slopes, the variable on the right-hand side of `|` must be a factor (or character) variable.
 
 ## Random Intercepts
 
-The `year` variable in `moss` indicates which year the sample was taken (`2001` or `2006`). It is likely that there is some variability in log zinc attributable to the different years. This year-to-year variability can be incorporated using a random intercept for `year`. This random effect lets each year have a different intercept, or "starting mean." We fit a spatial linear model of log zinc concentration on the log distance to the road using an exponential spatial covariance function with a random effect for year by running
-
+The first example explores random intercepts for the `sample` variable. The `sample` variable indexes each unique location, which can have replicate observations due to field duplicates (`field_dup`) and lab replicates (`lab_rep`). We create extra correlation for repeated observations from a sample by creating a random intercept (or, "starting mean") for each level of `sample`. We incorporate the random intercepts for `sample` by running
 ```{r}
-rand1 <- splm(log_Zn ~ log_dist2road, data = moss,
-              spcov_type = "exponential", random = ~ year)
+rand1 <- splm(
+  log_Zn ~ log_dist2road,
+  moss,
+  spcov_type = "exponential",
+  random = ~ lab_rep
+)
 ```
+Note that `sample` is shorthand for `(1 | sample)`, which is more explicit notation that indicates random intercepts for each level of `sample`.
 
-We glance at the models fit without (`basic`) and with (`rand1`) the random intercept by running
+We glance at the models fit without (`basic`) and with (`rand1`) random intercepts by running
 ```{r}
 glances(basic, rand1)
 ```
 
-The model with the random effect has a much lower AIC, indicating it is a better fit to the data. This is confirmed when performing a likelihood ratio test comparing the full model with the random effect to the reduced model (which is nested in the full model) without the random effect:
+The model with the random effect has a much lower AIC, indicating it is a better fit to the data. A similar conclusion is made when performing a likelihood ratio test that comapres the full model with a random intercepts for `sample` to the reduced model (which is nested in the full model) without the random intercepts for `sample`:
 ```{r}
 tidy(anova(basic, rand1))
 ```
@@ -114,25 +118,28 @@ We summarize the random intercept model by running
 summary(rand1)
 ```
 
-We tidy the random effect by running
+We tidy random effects by running
 ```{r}
 tidy(rand1, effects = "randcov")
 ```
 
-We obtain best linear unbiased predictions (BLUPs) of the random effects (similar to `ranef()` from nlme or lme4) by running
-```{r}
+We obtain best linear unbiased predictions (BLUPs) of random effects (similar to `ranef()` from nlme or lme4) by running
+```{r, results = "hide"}
 fitted(rand1, type = "randcov")
 ```
 
-Because of the random effect, observations in 2001 have higher intercepts than observations in 2006.
-
 ## Random Intercepts and Slopes
 
-Suppose that in addition to random intercepts for year, the association between `log_dist2road` on `log_Zn` differs between the years. In this context, we can include a random slope for `log_dist2road` within year. We incorporate the random slope by running
+The second example adds a random intercept for `year`, which creates extra correlation for observations within a year. It also adds a random slope for `log_dist2road` within `year`, which lets the effect of `log_dist2road` vary between years. We fit this model by running
 ```{r}
-rand2 <- splm(log_Zn ~ log_dist2road, data = moss,
-              spcov_type = "exponential", random = ~ log_dist2road | year)
+rand2 <- splm(
+  log_Zn ~ log_dist2road,
+  moss,
+  spcov_type = "exponential",
+  random = ~ sample + (log_dist2road | year)
+)
 ```
+Note that `sample + (log_dist2road | year)` is shorthand for `(1 | sample) + (log_dist2road | year)`. If only random slopes within year are desired (no random intercepts), a `- 1` is given to the relevant portion of the formula: `(log_dist2road - 1 | year)`. When there is more than one term in `random`, each term must be surrounded by parentheses (recall that the random intercept shorthand automatically includes relevant parentheses).
 
 # Specifying Known and Initial Covariance Parameter Values {#initvals}
 
@@ -353,23 +360,23 @@ First we explore big data options for `splm()` objects, which are capable of fit
 * `parallel`: If `TRUE`, parallel processing via the parallel package is automatically used. The default is `FALSE`.
 * `ncores`: If `parallel = TRUE`, the number of cores use for parallelization. The default is the number of available cores on your machine.
 
-The simplest way to implement the default big data approximation is to set the `local` argument equal to `TRUE`. This is shorthand for `local = list(method = "random", size = 50, var_adjust = "none", parallel = FALSE)`:
+The simplest way to implement the default big data approximation is to set the `local` argument equal to `TRUE`. This is shorthand for `local = list(method = "random", size = 50, var_adjust = "theoretical", parallel = FALSE)`:
 ```{r}
-big1 <- splm(sim_resp ~ 1, sim_data, "exponential", x, y, local = TRUE)
-summary(big1)
+local1 <- splm(sim_resp ~ 1, sim_data, "exponential", x, y, local = TRUE)
+summary(local1)
 ```
 
 We specify a more complicated version of `local` by running
 ```{r}
-local_list <- list(
+local2_list <- list(
   groups = 30,
   method = "kmeans",
   var_adjust = "theoretical",
   parallel = TRUE,
   ncores = 2
 )
-big2 <- splm(sim_resp ~ 1, sim_data, "exponential", x, y, local = local_list)
-summary(big2)
+local2 <- splm(sim_resp ~ 1, sim_data, "exponential", x, y, local = local2_list)
+summary(local2)
 ```
 
 As previously mentioned, if `local` is specified using a list structure and only some elements are provided, defaults are chosen for the remaining elements. For example, `local = list(method = "kmeans")` is shorthand for `local = list(method = "kmeans", size = 50, var_adjust = "none", parallel = FALSE)`.
@@ -519,7 +526,12 @@ augment(sealmod)
 
 ## Prediction (Kriging)
 
-We previously mentioned that for spatial autoregressive models, prediction can only be performed for missing-data polygons that were incorporated into model fitting. Thus, prediction using `spautor()` does not accommodate "new" locations like prediction using `splm()` does. We predict the log seal trends at the 28 sites in `seal` with missing-data polygons by running `predict(sealmod)`. We augment prediction data by running
+We previously mentioned that for spatial autoregressive models, prediction can only be performed for missing-data polygons that were incorporated into model fitting. Thus, prediction using `spautor()` does not accommodate "new" locations like prediction using `splm()` does. We predict the log seal trends at the 28 sites in `seal` with missing-data polygons by running `predict(sealmod)`. Recall that the missing-data polygons are stored as `newdata` in `seal`:
+```{r}
+sealmod$newdata
+```
+
+We augment `newdata` by running
 ```{r}
 augment(sealmod, newdata = sealmod$newdata)
 ```

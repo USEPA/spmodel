@@ -482,7 +482,7 @@ The lower AIC and AICc of the full model compared to the reduced model indicates
 
 Random effects incorporate additional sources of variability into model fitting. They are accommodated in `spmodel` using similar syntax as for random effects in the nlme [@pinheiro2006mixed] and lme4 [@bates2015lme4] \textbf{\textsf{R}} packages. Random effects are specified via a formula passed to the `random` argument. Next we show two examples incorporating random effects into the spatial linear model using the `moss` data.
 
-The first example explores random intercepts for the `lab_rep` variable. The `lab_rep` variable indexes a laboratory replication analysis of a sample. We incorporate the random intercepts for `lab_rep` by running
+The first example explores random intercepts for the `sample` variable. The `sample` variable indexes each unique location, which can have replicate observations due to field duplicates (`field_dup`) and lab replicates (`lab_rep`). We create extra correlation for repeated observations from a sample by creating a random intercept for each level of `sample`. We incorporate the random intercepts for `sample` by running
 ```{r}
 rand1 <- splm(
   log_Zn ~ log_dist2road,
@@ -491,19 +491,20 @@ rand1 <- splm(
   random = ~ lab_rep
 )
 ```
-Note that `lab_rep` is shorthand for `(1 | lab_rep)`, which is more explicit notation that indicates random intercepts for each level of `lab_rep`.
+Note that `sample` is shorthand for `(1 | sample)`, which is more explicit notation that indicates random intercepts for each level of `sample`.
 
-The second example explores random intercepts for the `lab_rep` variable, random intercepts for the `year` variable, and random slopes for the `log_dist2road` fixed effect within `year`. The `year` variable indicates which year the sample was analyzed in (2001 or 2006). We incorporate the random intercepts for `lab_rep`, random intercepts for `year`, and random slopes for `log_dist2road` within `year` by running
+The second example adds a random intercept for `year`, which creates extra correlation for observations within a year. It also adds a random slope for `log_dist2road` within `year`, which lets the effect of `log_dist2road` vary between years. We fit this model by running
 ```{r}
 rand2 <- splm(
   log_Zn ~ log_dist2road,
   moss,
   spcov_type = "exponential",
-  random = ~ lab_rep + (log_dist2road | year)
+  random = ~ sample + (log_dist2road | year)
 )
 ```
-Note that `lab_rep + (log_dist2road | year)` is shorthand for `(1 | lab_rep) + (log_dist2road | year)`. If only random slopes within year are desired (no random intercepts), a `- 1` is given to the relevant portion of the formula: `(log_dist2road - 1 | year)`. When there is more than one term in `random`, each term **must** be surrounded by parentheses (recall that the random intercept shorthand automatically includes relevant parentheses).
+Note that `sample + (log_dist2road | year)` is shorthand for `(1 | sample) + (log_dist2road | year)`. If only random slopes within year are desired (no random intercepts), a `- 1` is given to the relevant portion of the formula: `(log_dist2road - 1 | year)`. When there is more than one term in `random`, each term must be surrounded by parentheses (recall that the random intercept shorthand automatically includes relevant parentheses).
 
+We can glance at all three models by running
 ```{r}
 glances(spmod, rand1, rand2)
 ```
@@ -677,7 +678,11 @@ The computational cost associated with model fitting is exponential in the sampl
 
 ### Model-fitting 
 
-`spmodel` uses a "local indexing" approximation for big data model fitting. Observations are first assigned an index. Then for the purposes of model fitting, observations with different indexes are assumed uncorrelated. This approach has some connections to composite likelihood and to the partition factors discussed earlier. The `local` argument to `splm()` controls the big data options. The simplest way to accommodate big data is to set `local` to `TRUE`:
+`spmodel` uses a "local indexing" approximation for big data model fitting. Observations are first assigned an index. Then for the purposes of model fitting, observations with different indexes are assumed uncorrelated. This approach has some connections to composite likelihood and to the partition factors discussed earlier. 
+
+The `local` argument to `splm()` controls the big data options. `local` is a list with several arguments. The arguments to the `local` list control the method used to assign the indexes, the number of observations with the same index, the number of unique indexes, variance adjustments to the covariance matrix of $\hat{\boldsymbol{\beta}}$, whether or not to use parallel processing, and if parallel processing is used, the number of cores.
+
+The simplest way to accommodate big data is to set `local` to `TRUE`. This is shorthand for `local = list(method = "random", size = 50, var_adjust = "theoretical", parallel = FALSE)`, which creates groups with approximately 50 observations each using a random assignment of groups to indexes, uses the theoretically-correct variance adjustment, and does not use parallel processing. 
 ```{r}
 local1 <- splm(
   sim_resp ~ 1, 
@@ -687,33 +692,48 @@ local1 <- splm(
   ycoord = y, 
   local = TRUE
 )
+summary(local1)
 ```
 
-More generally, `local` is a list with several arguments. When `local` is `TRUE`, certain defaults are chosen for the `local` list. The arguments to the `local` list control the method used to assign the indexes, the number of observations with the same index, the number of unique indexes, variance adjustments to the covariance matrix of $\hat{\boldsymbol{\beta}}$, and whether or not to use parallel processing. For example, we accommodate big data using k-means clustering [@macqueen1967some] with 50 clusters and a theoretical variance adjustment to the covariance of $\hat{\boldsymbol{\beta}}$ by running
+
+Instead of setting `local = TRUE`, we can explicitly set `local`. For example, we create groups using k-means clustering [@macqueen1967some] with 60 groups (clusters), use the pooled variance adjustment, and use parallel processing with two cores by running
 ```{r}
+local2_list <- list(method = "kmeans", groups = 60, var_adjust = "pooled", parallel = TRUE, ncores = 2)
 local2 <- splm(
   sim_resp ~ 1, 
   sim_data, 
   spcov_type = "exponential", 
   xcoord = x, 
   ycoord = y, 
-  local = list(method = "kmeans", groups = 50, var_adjust = "theoretical")
+  local = local2_list
 )
+summary(local2)
 ```
+
+We can use `loocv()` to evaluate model fit. Note that `loocv()` has big data options that are passed to `predict()`, which we discuss next.
+```{r}
+loocv(local1, local = list(method = "distance", parallel = TRUE, ncores = 2))
+loocv(local2, local = list(method = "distance", parallel = TRUE, ncores = 2))
+```
+
 
 ### Prediction
 
-`spmodel` uses a "local neighborhood" approximation for big data prediction. Each prediction is computed using a subset of the observed data instead of all the observed data. The `local` argument to `predict()` controls the big data options. Before showing how to implement big data prediction, we simulate 1000 locations in the unit square requiring prediction:
+`spmodel` uses a "local neighborhood" approximation for big data prediction. Each prediction is computed using a subset of the observed data instead of all the observed data. Before further discussing big data prediction, we simulate 1000 locations in the unit square requiring prediction:
 ```{r}
 n_pred <- 1000
 x <- runif(n_pred)
 y <- runif(n_pred)
 sim_preds <- tibble::tibble(x = x, y = y)
 ```
-The simplest way to accommodate big data prediction is to set `local` to `TRUE`:
+
+The `local` argument to `predict()` controls the big data options. `local` is a list with several arguments. The arguments to the `local` list control the method used to subset the observed data, the number of observations in each subset, whether or not to use parallel processing, and if parallel processing is used, the number of cores.
+
+The simplest way to accommodate big data prediction is to set `local` to `TRUE`. This is shorthand for `local = list(method = "covariance", size = 50, parallel = FALSE)`, which implies that uniquely for each prediction, only the 50 observations in the data most correlated with it are used in the computation (instead of all the data). In other words, each prediction generally gets a different subset of 50 observations from the observed data. Also, parallel processing is not used. Using the `local1` fitted model, we store these predictions in the `sim_preds` data by running
 ```{r, results = "hide"}
 predict(local1, newdata = sim_preds, local = TRUE)
 ```
+
 Figure$~$\ref{fig:sim_preds} shows these predictions alongside the observed data. The predictions display a similar pattern as the observed data.
 ```{r, echo = FALSE}
 sim_preds$preds <- predict(local1, newdata = sim_preds, local = TRUE)
@@ -732,14 +752,15 @@ ggplot(sim_preds, aes(x = x, y = y, color = preds)) +
   theme_gray(base_size = 18)
 ```
 
-More generally, `local` is a list with several arguments. When `local` is `TRUE`, certain defaults are chosen for the `local` list. The arguments to the `local` list control the method used to create the subsets for each prediction, the size of the subsets, and whether or not to use parallel processing. For example, we accommodate big data using the 30 nearest neighbors (in terms of Euclidean distance) for each observation requiring prediction by running
+Instead of setting `local = TRUE`, we can explicitly set `local`. For example, we make predictions using the distance method, subsets of 30 observations, and use parallel processing with 2 cores by running
 ```{r, results = "hide"}
-predict(local1, newdata = sim_preds, local = list(method = "distance", size = 30))
+pred_list <- list(method = "distance", size = 30, parallel = TRUE, ncores = 2)
+predict(local1, newdata = sim_preds, local = pred_list)
 ```
 
 # Discussion
 
-Throughout this vignette, we have shown how to use `spmodel` to fit, summarize, and predict for a variety of spatial statistical models. Spatial linear models for point-referenced data are fit using the `splm()` function. Spatial linear models for areal data (i.e., spatial autoregressive models) are fit using the `spautor()` function. Several model-fit statistics and diagnostics are available. The broom functions `tidy()`, `glance()`, and `augment()` are useful to tidy, glance at, and augment a fitted model. `augment()` is also used augment predictions. Several advanced features are available to accommodate fixed covariance parameter values, random effects, partition factors, anisotropy, simulated data, and big data approximations for model-fitting and prediction.
+Throughout this vignette, we have shown how to use `spmodel` to fit, summarize, and predict for a variety of spatial statistical models. Spatial linear models for point-referenced data are fit using the `splm()` function. Spatial linear models for areal data (i.e., spatial autoregressive models) are fit using the `spautor()` function. Several model-fit statistics and diagnostics are available. The broom functions `tidy()`, `glance()`, and `augment()` are useful to tidy, glance at, and augment a fitted model. `augment()` is also used to augment new data requiring predictions. Several advanced features are available to accommodate fixed covariance parameter values, random effects, partition factors, anisotropy, simulated data, and big data approximations for model-fitting and prediction.
 
 We appreciate feedback from users regarding `spmodel`. To learn more about how to provide feedback or contribute to `spmodel`, please visit our GitHub repository at [https://github.com/USEPA/spmodel](https://github.com/USEPA/spmodel).
 

@@ -336,7 +336,7 @@ Confidence intervals for the mean response or prediction intervals for the predi
 augment(sulfmod, newdata = sulfate_preds, interval = "prediction")
 ```
 
-While the fitted model in this example only used an intercept, the same code is used for prediction with fitted models having explanatory variables. When performing prediction for fitted models with explanatory variables, `newdata` **must** have columns that contain the same explanatory variables used to fit the model. Furthermore, the names of the columns for each explanatory variable in `newdata` must match the names of the columns for each explanatory variable in `data`.
+While the fitted model in this example only used an intercept, the same code is used for prediction with fitted models having explanatory variables. If explanatory variables were used to fit the model, the same explanatory variables must be included in `newdata` with the same names they have in `data`. If the data are a `data.frame`, coordinates must be included in `newdata` with the same names as they have in `data`. If the data are an `sf` object, coordinates must be included in `newdata` with the same geometry name as they have in `data`. When using projected coordinates, the projection for `newdata` should be the same as the projection for `data`.
 
 If `data` has missing values for the response variable, they are automatically removed when fitting the model. Predictions for the response of these observations are then obtained using `predict(spmod)` or `augment(spmod, newdata = spmod$newdata)`. This is an alternative way to specify `newdata` that guarantees the columns for `data` and `newdata` match.
 

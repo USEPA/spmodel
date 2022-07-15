@@ -397,10 +397,7 @@ ggplot(sulfate_preds, aes(color = preds)) +
 # )
 ```
 
-If explanatory variables were used to fit the model, it is necessary that for each observation requiring prediction, the same explanatory variables are included in `newdata` with the same names as they have in `data`. Alternatively, one can include data intended for model fitting and data intended for predictions in the call to `splm()` as long as the data intended for predictions contain missing (`NA`) values for the response variable. Then we can make predictions by running
-```{r, eval = FALSE}
-predict(sulfmod)
-```
+If explanatory variables were used to fit the model, the same explanatory variables must be included in `newdata` with the same names they have in `data`. If the data are a `data.frame`, coordinates must be included in `newdata` with the same names as they have in `data`. If the data are an `sf` object, coordinates must be included in `newdata` with the same geometry name as they have in `data`. When using projected coordinates, the projection for `newdata` should be the same as the projection for `data`.
 
 Standard errors are returned for predictions by setting the `se.fit` argument to `TRUE`:
 ```{r, results = "hide"}
@@ -415,12 +412,41 @@ If `interval` is `"confidence"`, the predictions are instead the estimated mean 
 predict(sulfmod, newdata = sulfate_preds, interval = "confidence")
 ```
 
-Previously we used the `augment()` function to augment `data` with model diagnostics. We can also use `augment()` to augment `newdata` with predictions, standard errors, and intervals. We view the first few rows of `sulfate_preds` augmented with a 90% prediction interval by running
+Previously we used the `augment()` function to augment `data` with model diagnostics. We can also use `augment()` to augment `newdata` with predictions, standard errors, and intervals. First we remove the model predictions from `sulfate_preds` before showing how `augment()` is used to obtain the same predictions:
+```{r}
+sulfate_preds$preds <- NULL
+```
+
+We then view the first few rows of `sulfate_preds` augmented with a 90% prediction interval by running
 ```{r}
 augment(sulfmod, newdata = sulfate_preds, interval = "prediction", level = 0.90)
 ```
+Here `.fitted` represents the predictions.
 
-For areal data, predictions cannot be computed at locations that were not incorporated in the neighborhood structure used to fit the model. Thus predictions are possible only possible for observations in `data` whose response values are missing (`NA`), as their locations are incorporated into the neighborhood structure. For example, we make predictions of log abundance of seals at the missing polygons from Figure$~$\ref{fig:log_trend} by running
+Alternatively, we can include missing responses `NA` values in the data used for model fitting. The missing values will be ignored for model fitting but stored in the fitted model object. We can add a column of `NA` values to `sulfate_preds` and bind it together with `sulfate`.
+```{r}
+sulfate_preds$sulfate <- NA
+sulfate_with_NA <- rbind(sulfate, sulfate_preds)
+sulfmod_with_NA <- splm(sulfate ~ 1, sulfate_with_NA, "spherical")
+```
+
+We can then create predictions at the observations with missing responses by running
+```{r}
+predict(sulfmod_with_NA)
+```
+
+This call to `predict()` finds in `sulfmod_with_NA` the `newdata` object, which is a subset of `data` that contains only the observations with missing responses:
+```{r}
+sulfmod_with_NA$newdata
+```
+
+We can also use `augment()`, as long as we explicitly specify the `newdata` argument:
+```{r}
+augment(sulfmod_with_NA, newdata = sulfmod_with_NA$newdata)
+```
+The explicit specification of `newdata` is required because `augment()` works differently whether or not there is a `newdata` object specified. Recall that when `newdata` is not specified, only model diagnostics are returned. Thus running `augment(sulfmod_with_NA)` only returns model diagnostics, not predictions.
+
+For areal data, predictions cannot be computed at locations that were not incorporated in the neighborhood structure used to fit the model. Thus predictions are possible only possible for observations in `data` whose response values are missing (`NA`), as their locations are incorporated into the neighborhood structure. For example, we make predictions of log trends at the missing polygons from Figure$~$\ref{fig:log_trend} by running
 ```{r, results = "hide"}
 predict(sealmod)
 ```
@@ -428,7 +454,6 @@ We augment the prediction data and view the first few rows by running
 ```{r}
 augment(sealmod, newdata = sealmod$newdata)
 ```
-Notice that when calling `augment()` for prediction data originally treated as missing data, the `newdata` argument is required and is the `newdata` object in the fitted model object (`sealmod`).
 
 # Advanced Features {#sec:advfeatures}
 

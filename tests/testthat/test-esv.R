@@ -32,4 +32,8 @@ test_that("esv works", {
   expect_equal(NROW(esv1), 15)
   expect_equal(NCOL(esv1), 4)
   expect_false(identical(esv1, esv4)) # make sure results are not identical to full esv
+
+  # quoting works
+  esv1_2 <- esv(y ~ x, exdata, "xcoord", "ycoord")
+  expect_equal(esv1, esv1_2)
 })

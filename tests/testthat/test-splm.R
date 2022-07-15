@@ -975,3 +975,11 @@ test_that("messages occur", {
   spcov_initial_val <- spcov_initial("exponential")
   expect_message(splm(y ~ x, exdata, "exponential", xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val))
 })
+
+test_that("quoting arguments works", {
+  spmod1 <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
+  spmod1$call <- NULL
+  spmod2 <- splm(y ~ x, exdata, "exponential", "xcoord", "ycoord")
+  spmod2$call <- NULL
+  expect_equal(spmod1, spmod2)
+})

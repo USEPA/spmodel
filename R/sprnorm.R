@@ -79,7 +79,8 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
     # if (inherits(data, c("SpatialPointsDataFrame", "SpatialPolygonsDataFrame"))) {
-    data <- sf::st_as_sf(data)
+    # data <- sf::st_as_sf(data)
+    stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
     # data <- sp_to_df(data)
     # ### name xcoord "xcoord" to be used later
     # xcoord <- "xcoord"
@@ -283,8 +284,11 @@ sprnorm.car <- function(spcov_params, mean = 0, samples = 1, data, randcov_param
   # matrix equal to zero
   if (missing(W)) {
     ## convert sp to sf object
-    if (inherits(data, "SpatialPolygonsDataFrame")) {
-      data <- sf::st_as_sf(data)
+    attr_sp <- attr(class(data), "package")
+    if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
+    # if (inherits(data, "SpatialPolygonsDataFrame")) {
+      # data <- sf::st_as_sf(data)
+      stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
     }
     W <- sf::st_intersects(data, sparse = FALSE)
     W_rowsums <- Matrix::rowSums(W)

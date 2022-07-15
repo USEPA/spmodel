@@ -12,7 +12,8 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     # } else {
     #   data <- sf::st_as_sf(data)
     # }
-    data <- sf::st_as_sf(data)
+    # data <- sf::st_as_sf(data)
+    stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
   }
 
   # convert sp to data frame (point geometry)
@@ -280,13 +281,16 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
                                     estmethod, W, M, random, randcov_initial,
                                     partition_factor, row_st, ...) {
   ## convert sp to sf object
-  if (inherits(data, "SpatialPolygonsDataFrame")) {
+  attr_sp <- attr(class(data), "package")
+  if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
+  # if (inherits(data, "SpatialPolygonsDataFrame")) {
     # if (!requireNamespace("sf", quietly = TRUE)) { # requireNamespace checks if sf is installed
     #   stop("Install the sf R package to use an sp object with spautor()", call. = FALSE)
     # } else {
     #   data <- sf::st_as_sf(data)
     # }
-    data <- sf::st_as_sf(data)
+    # data <- sf::st_as_sf(data)
+    stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
   }
 
   if (inherits(data, "sf")) {

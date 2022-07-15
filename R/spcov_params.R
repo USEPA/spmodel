@@ -44,11 +44,11 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     "none", "cubic", "penta", "cosine", "wave", "matern", "car", "sar", "jbessel",
     "gravity", "rquad", "magnetic", "cauchy", "pexponential"
   )) {
-    stop(paste(spcov_type), "is not a valid spatial covariance function")
+    stop(paste(spcov_type), "is not a valid spatial covariance function.")
   }
 
   if (missing(spcov_type)) {
-    stop("spcov_type must be specified", call. = FALSE)
+    stop("spcov_type must be specified.", call. = FALSE)
   }
 
   if (spcov_type == "none") {
@@ -58,18 +58,22 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
 
   # some parameter specification checks
   if (spcov_type != "none" && any(missing(de), missing(ie), missing(range))) {
-    stop("de, ie, and range must be specified", call. = FALSE)
+    stop("de, ie, and range must be specified.", call. = FALSE)
   }
 
   if (spcov_type == "none" && missing(ie)) {
-    stop("ie must be specified", call. = FALSE)
+    stop("ie must be specified.", call. = FALSE)
   }
 
   if (!(spcov_type %in% c("matern", "cauchy", "pexponential", "car", "sar")) && !missing(extra)) {
-    stop("extra cannot be specified for this covariance", call. = FALSE)
+    stop("extra cannot be specified for this spatial covariance.", call. = FALSE)
   }
-  if (spcov_type %in% c("matern", "cauchy", "pexponential", "car", "sar") && missing(extra)) {
-    stop("extra must be specified", call. = FALSE)
+  if (spcov_type %in% c("matern", "cauchy", "pexponential") && missing(extra)) {
+    stop("extra must be specified.", call. = FALSE)
+  }
+
+  if (spcov_type %in% c("car", "sar") && missing(extra)) {
+    stop("extra must be specified. If there are no unconnected sites in the data, set extra = 0.", call. = FALSE)
   }
 
   # if (spcov_type %in% c("car", "sar") && (!missing(rotate) | !missing(scale))) {
@@ -77,10 +81,10 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
   # }
 
   if (!is.na(de) && de < 0) {
-    stop("de must be positive", call. = FALSE)
+    stop("de must be positive.", call. = FALSE)
   }
   if (!is.na(ie) && ie < 0) {
-    stop("ie must be positive", call. = FALSE)
+    stop("ie must be positive.", call. = FALSE)
   }
   if (!is.na(range) && range < 0 && !spcov_type %in% c("car", "sar")) {
     stop("range must be positive", call. = FALSE)
@@ -98,15 +102,15 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
   }
 
   if (spcov_type == "matern" && (extra < 1 / 5 || extra > 5)) {
-    stop("extra must be between 0.2 and 5", call. = FALSE)
+    stop("extra must be between 0.2 and 5.", call. = FALSE)
   }
 
   if (spcov_type == "cauchy" && (extra <= 0)) {
-    stop("extra must be positive", call. = FALSE)
+    stop("extra must be positive.", call. = FALSE)
   }
 
   if (spcov_type == "pexponential" && (extra <= 0 || extra > 2)) {
-    stop("extra must be positive and no larger than 2", call. = FALSE)
+    stop("extra must be positive and no larger than 2.", call. = FALSE)
   }
 
   # this approach captures the arguments, removes the first default list value,
@@ -129,6 +133,7 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
   }
 
   spcov_params_val <- c(de = de, ie = ie, range = range, extra = extra, rotate = rotate, scale = scale)
+
   # the constructor giving the class
   new_spcov_params <- structure(spcov_params_val, class = spcov_type)
   new_spcov_params

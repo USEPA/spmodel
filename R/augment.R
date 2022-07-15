@@ -164,7 +164,8 @@ augment_splm <- function(x, drop, newdata, se_fit, interval, ...) {
       # } else {
       #   newdata <- sf::st_as_sf(newdata)
       # }
-      newdata <- sf::st_as_sf(newdata)
+      # newdata <- sf::st_as_sf(newdata)
+      stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
     }
 
     if (inherits(newdata, "sf")) {

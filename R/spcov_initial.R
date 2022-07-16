@@ -11,9 +11,9 @@
 #'   \code{"jbessel"}, \code{"gravity"}, \code{"rquad"},
 #'   \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 #'   \code{"car"}, \code{"sar"}, and \code{"none"}.
-#' @param de The dependent (correlated) random error variance. Commonly referred to as
+#' @param de The spatially dependent (correlated) random error variance. Commonly referred to as
 #'   a partial sill.
-#' @param ie The independent (uncorrelated) random error variance. Commonly referred to as
+#' @param ie The spatially independent (uncorrelated) random error variance. Commonly referred to as
 #'   a nugget.
 #' @param range The correlation parameter.
 #' @param extra An extra covariance parameter used when \code{spcov_type} is
@@ -33,10 +33,9 @@
 #'   otherwise assumed known (e.g., \code{rotate} and \code{scale} with [splm()]
 #'   and \code{ie} with [spautor()]).
 #'   The spatial covariance functions can be generally expressed as
-#'   \eqn{de * R + ie * I(h = 0)}, where \eqn{de} is \code{de} above, \eqn{R}
+#'   \eqn{de * R + ie * I}, where \eqn{de} is \code{de} above, \eqn{R}
 #'   is a correlation matrix that depends on the distance between observations,
-#'   \eqn{h}, \eqn{ie} is \code{ie} above, and \eqn{I(h = 0)} is
-#'   an indicator function equal to 1 when \eqn{h} equals zero and zero otherwise.
+#'   \eqn{h}, \eqn{ie} is \code{ie} above, and \eqn{I} is and identity matrix.
 #'   Note that \eqn{de} and \eqn{ie} must be non-negative while \eqn{range}
 #'   must be positive, except when \code{spcov_type} is \code{car} or \code{sar},
 #'   in which case \eqn{range} must be between the reciprocal of the maximum

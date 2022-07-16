@@ -25,9 +25,12 @@
 #' @param row_st A logical indicating whether row standardization be performed on
 #'   \code{W}. The default is \code{TRUE}.
 #' @param M M matrix satisfying the car symmetry condition. The car
-#'   symmetry condition states that \eqn{(I - range * W)^{-1}M} is symmetric (where
-#'   \eqn{^{-1}} represents the inverse operator). \code{M} is required for car models
-#'   when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M}
+#'   symmetry condition states that \eqn{(I - range * W)^{-1}M} is symmetric, where
+#'   \eqn{I} is an identity matrix, \eqn{range} is a constant that controls the
+#'   spatial dependence, \code{W} is the weights matrix,
+#'   and \eqn{^{-1}} represents the inverse operator.
+#'   \code{M} is required for car models
+#'   when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M},
 #'   is required, the default is the identity matrix.
 #'
 #' @details Random variables are simulated via the product of the covariance matrix's
@@ -47,8 +50,8 @@
 #'   \code{jbessel}, \code{gravity}, \code{rquad}, \code{magnetic}, \code{matern},
 #'   \code{cauchy}, and \code{pexponential} methods. Syntax for
 #'   the \code{car} method is the same as syntax for the \code{sar} method. The
-#'   \code{extra} parameter for car and sar models is ignored if there are no
-#'   observations without neighbors.
+#'   \code{extra} parameter for car and sar models is ignored all observations have
+#'   neighbors.
 #'
 #'
 #' @return If \code{samples} is 1, a vector of random variables for each row of \code{data}

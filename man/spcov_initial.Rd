@@ -15,10 +15,10 @@ spcov_initial(spcov_type, de, ie, range, extra, rotate, scale, known)
 \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 \code{"car"}, \code{"sar"}, and \code{"none"}.}
 
-\item{de}{The dependent (correlated) random error variance. Commonly referred to as
+\item{de}{The spatially dependent (correlated) random error variance. Commonly referred to as
 a partial sill.}
 
-\item{ie}{The independent (uncorrelated) random error variance. Commonly referred to as
+\item{ie}{The spatially independent (uncorrelated) random error variance. Commonly referred to as
 a nugget.}
 
 \item{range}{The correlation parameter.}
@@ -57,10 +57,9 @@ The \code{spcov_initial} vector is later passed to \code{\link[=splm]{splm()}} o
 otherwise assumed known (e.g., \code{rotate} and \code{scale} with \code{\link[=splm]{splm()}}
 and \code{ie} with \code{\link[=spautor]{spautor()}}).
 The spatial covariance functions can be generally expressed as
-\eqn{de * R + ie * I(h = 0)}, where \eqn{de} is \code{de} above, \eqn{R}
+\eqn{de * R + ie * I}, where \eqn{de} is \code{de} above, \eqn{R}
 is a correlation matrix that depends on the distance between observations,
-\eqn{h}, \eqn{ie} is \code{ie} above, and \eqn{I(h = 0)} is
-an indicator function equal to 1 when \eqn{h} equals zero and zero otherwise.
+\eqn{h}, \eqn{ie} is \code{ie} above, and \eqn{I} is and identity matrix.
 Note that \eqn{de} and \eqn{ie} must be non-negative while \eqn{range}
 must be positive, except when \code{spcov_type} is \code{car} or \code{sar},
 in which case \eqn{range} must be between the reciprocal of the maximum

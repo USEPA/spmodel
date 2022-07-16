@@ -15,10 +15,10 @@ spcov_params(spcov_type, de, ie, range, extra, rotate = 0, scale = 1)
 \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 \code{"car"}, \code{"sar"}, and \code{"none"}.}
 
-\item{de}{The dependent (correlated) random error variance. Commonly referred to as
+\item{de}{The spatially dependent (correlated) random error variance. Commonly referred to as
 a partial sill.}
 
-\item{ie}{The independent (uncorrelated) random error variance. Commonly referred to as
+\item{ie}{The spatially independent (uncorrelated) random error variance. Commonly referred to as
 a nugget.}
 
 \item{range}{The correlation parameter.}
@@ -42,9 +42,11 @@ functions.
 }
 \details{
 Generally, all arguments to \code{spcov_params} must be specified, though
-default arguments are often chosen based on \code{spcov_type}. For example,
-\code{rotate} and \code{scale} are assumed to be 0 and 1, respectively,
-unless specified otherwise. For full parameterizations of all spatial covariance
+default arguments are often chosen based on \code{spcov_type}.
+For example, \code{rotate} and \code{scale} are assumed to be 0 and 1, respectively,
+unless specified otherwise. When \code{spcov_type} is \code{car} or
+\code{sar}, \code{ie} is assumed to be 0 unless specified otherwise.
+For full parameterizations of all spatial covariance
 functions, see \code{\link[=spcov_initial]{spcov_initial()}}.
 }
 \examples{

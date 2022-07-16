@@ -10,9 +10,9 @@
 #'   \code{"jbessel"}, \code{"gravity"}, \code{"rquad"},
 #'   \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 #'   \code{"car"}, \code{"sar"}, and \code{"none"}.
-#' @param de The dependent (correlated) random error variance. Commonly referred to as
+#' @param de The spatially dependent (correlated) random error variance. Commonly referred to as
 #'   a partial sill.
-#' @param ie The independent (uncorrelated) random error variance. Commonly referred to as
+#' @param ie The spatially independent (uncorrelated) random error variance. Commonly referred to as
 #'   a nugget.
 #' @param range The correlation parameter.
 #' @param extra An extra covariance parameter used when \code{spcov_type} is
@@ -25,9 +25,11 @@
 #'
 #' @details
 #'   Generally, all arguments to \code{spcov_params} must be specified, though
-#'   default arguments are often chosen based on \code{spcov_type}. For example,
-#'   \code{rotate} and \code{scale} are assumed to be 0 and 1, respectively,
-#'   unless specified otherwise. For full parameterizations of all spatial covariance
+#'   default arguments are often chosen based on \code{spcov_type}.
+#'   For example, \code{rotate} and \code{scale} are assumed to be 0 and 1, respectively,
+#'   unless specified otherwise. When \code{spcov_type} is \code{car} or
+#'   \code{sar}, \code{ie} is assumed to be 0 unless specified otherwise.
+#'   For full parameterizations of all spatial covariance
 #'   functions, see [spcov_initial()].
 #'
 #' @return A named numeric vector of spatial covariance parameters with class \code{spcov_type}.
@@ -56,6 +58,15 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     range <- Inf
   }
 
+  if (spcov_type %in% c("car", "sar")) {
+    if (missing(extra)) {
+      stop("extra must be specified. If there are no unconnected sites in the data, set extra = 0.", call. = FALSE)
+    }
+    if (missing(ie)) {
+      ie <- 0
+    }
+  }
+
   # some parameter specification checks
   if (spcov_type != "none" && any(missing(de), missing(ie), missing(range))) {
     stop("de, ie, and range must be specified.", call. = FALSE)
@@ -70,10 +81,6 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
   }
   if (spcov_type %in% c("matern", "cauchy", "pexponential") && missing(extra)) {
     stop("extra must be specified.", call. = FALSE)
-  }
-
-  if (spcov_type %in% c("car", "sar") && missing(extra)) {
-    stop("extra must be specified. If there are no unconnected sites in the data, set extra = 0.", call. = FALSE)
   }
 
   # if (spcov_type %in% c("car", "sar") && (!missing(rotate) | !missing(scale))) {

@@ -112,8 +112,8 @@ determined by specifying \code{method} and either \code{size} or \code{groups}.}
 \item{\code{method}: }{The big data approximation method used to determine \code{index}. Ignored
 if \code{index} is provided. If \code{method = "random"},
 observations are randomly assigned to \code{index} based on \code{size}.
-If \code{method = "kmeans"}, observations re assigned to \code{index}
-based on k-means clustering with \code{groups} clusters. The default
+If \code{method = "kmeans"}, observations assigned to \code{index}
+based on k-means clustering on the coordinates with \code{groups} clusters. The default
 is \code{"random"}. Note that both methods have a random component, which
 means that you may get different results from separate model fitting calls.
 To ensure consistent results, specify \code{index} or set a seed via
@@ -129,7 +129,7 @@ is specified. If \code{method} is \code{"kmeans"}, \code{groups}
 is the number of clusters.}
 \item{\code{var_adjust: }}{The approach for adjusting the variance-covariance
 matrix of the fixed effects. \code{"none"} for no adjustment, \code{"theoretical"}
-for the theoretically-correct (and computationally-intensive) adjustment,
+for the theoretically-correct (and computationally intensive) adjustment,
 \code{"pooled"} for the pooled adjustment, and \code{"empirical"} for the
 empirical adjustment.}
 \item{\code{parallel}: }{If \code{TRUE}, parallel processing via the
@@ -141,7 +141,7 @@ When \code{local} is a list, at least one list element must be provided to
 initialize default arguments for the other list elements.
 If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 that \code{local} is transformed into
-\code{list(size = 50, method = "random", var_adjust = "none", parallel = FALSE)}.}
+\code{list(size = 50, method = "random", var_adjust = "theoretical", parallel = FALSE)}.}
 
 \item{...}{Other arguments to \code{\link[=esv]{esv()}} or \code{\link[stats:optim]{stats::optim()}}.}
 }
@@ -155,13 +155,12 @@ object, including \code{AIC}, \code{AICc},
 \code{anova}, \code{coef}, \code{cooks.distance}, \code{deviance},
 \code{fitted}, \code{formula}, \code{hatvalues}, \code{influence},
 \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},
-\code{predict}, \code{print}, \code{pseudoR2}, and \code{vcov}.
+\code{predict}, \code{print}, \code{pseudoR2}, \code{update}, and \code{vcov}.
 }
 \description{
 Fit spatial linear models for point-referenced data using
-a variety of estimation methods, allowing for random effects (\code{random}),
-anisotropy (\code{anisotropy}), partition factors (\code{partition_factor}),
-and big data methods (\code{local}).
+a variety of estimation methods, allowing for random effects,
+anisotropy, partition factors, and big data methods.
 }
 \details{
 The spatial linear mixed model can be written as
@@ -182,7 +181,7 @@ for \eqn{h} distance between observations:
 \item{spherical: }{\eqn{(1 - 1.5distr + 0.5distr^3) * I(h <= range)}}
 \item{gaussian: }{\eqn{exp(- distr^2 )}}
 \item{triangular: }{\eqn{(1 - distr) * I(h <= range)}}
-\item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(sqrt(m)))) * I(h <= range)}, m = min(distr, 1)}
+\item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(sqrt(m)))) * I(h <= range), m = min(distr, 1)}}
 \item{cubic: }{\eqn{(1 - 7distr^2 + 8.75distr^3 - 3.5distr^5 + 0.75distr^7) * I(h <= range)}}
 \item{penta: }{\eqn{(1 - 1.875distr + 1.25distr^3 - 0.375distr^5) * I(h <= range)}}
 \item{cosine: }{\eqn{cos(distr)}}
@@ -236,14 +235,14 @@ spatial and random effects components is then multiplied element-wise
 
 \code{local} Details: The big data approximation works by sorting observations into different levels
 of an index variable. Observations in different levels of the index variable
-are assumed to have zero covariance for the purposes of model fitting. Sparse matrix methods are then implemented
+are assumed to be uncorrelated for the purposes of model fitting. Sparse matrix methods are then implemented
 for significant computational gains. Parallelization further speeds up
 computations. Both the \code{"random"} and \code{"kmeans"} values of \code{method}
 in \code{local} have random components. That means you may get slightly different
 results when using the big data approximation and rerunning \code{splm()} with the same code. For consistent results,
 either set a seed via \code{\link[base:Random]{base::set.seed()}} or specify \code{index} to \code{local}.
 
-Observations whose response value is \code{NA} are removed for model
+Observations with \code{NA} response values are removed for model
 fitting, but their values can be predicted afterwards by running
 \code{predict(object)}.
 }

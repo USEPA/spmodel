@@ -1,6 +1,7 @@
-#' Turn an \code{sf} object into a data frame#'
+#' Turn an \code{sf} object into a data frame
 #'
-#' @param data An \code{sf} object with all \code{POINT} geometries
+#' @param data An \code{sf} object with all \code{POINT} geometries or geometries
+#'   coercible to \code{POINT} geometries via sf::st_centriod().
 #'
 #' @return A data frame with coordinates added as columns
 #'

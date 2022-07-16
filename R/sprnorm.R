@@ -9,18 +9,18 @@
 #'   to the number of rows in \code{data}. The default is \code{0}.
 #' @param samples The number of independent samples to generate. The default
 #'   is \code{1}.
-#' @param data A data frame, \code{sf}, or \code{sp} object containing spatial information.
+#' @param data A data frame or \code{sf} object containing spatial information.
 #' @param randcov_params A [randcov_params()] object.
 #' @param partition_factor A formula indicating the partition factor.
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #' @param xcoord Name of the column in \code{data} representing the x-coordinate.
 #'   Can be quoted or unquoted. Not required if \code{data} are an \code{sf}
-#'   or \code{sp} object.
+#'   object.
 #' @param ycoord Name of the column in \code{data} representing the y-coordinate.
 #'   Can be quoted or unquoted. Not required if \code{data} are an \code{sf}
-#'   or \code{sp} object.
+#'   object.
 #' @param W Weight matrix specifying the neighboring structure used for car and
-#'   sar models. Not required if \code{data} are an \code{sf} or \code{sp}
+#'   sar models. Not required if \code{data} are an \code{sf}
 #'   polygon object and \code{W} should be calculated internally.
 #' @param row_st A logical indicating whether row standardization be performed on
 #'   \code{W}. The default is \code{TRUE}.

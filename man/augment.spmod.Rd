@@ -63,7 +63,7 @@ dataset.
 Augment behaves differently depending on whether the original data or new data
 requires augmenting. Typically, when augmenting the original data, only the fitted
 model object is specified, and when augmenting new data, the fitted model object
-and \code{newdata} is specified. When augmenting the original data, influence
+and \code{newdata} is specified. When augmenting the original data, diagnostic
 statistics are augmented to each row in the dataset. When augmenting new data,
 predictions and optional intervals or standard errors are augmented to each
 row in the new dataset.
@@ -74,7 +74,6 @@ the fitted model object \code{x}. That is, if the model object \code{x} is
 an \code{sf} object, then the augmented object (obtained via \code{augment(x)})
 will be an \code{sf} object as well. When augmenting \code{newdata}, the
 augmented object has the same class as \code{x}.
-\code{sp} objects are coerced to \code{sf} objects.
 
 Missing response values from the original data can be augmented as if
 they were a \code{newdata} object by providing \code{x$newdata} to the

@@ -39,8 +39,8 @@
 #'   specified, the linear combinations of terms specified by \code{L} are jointly
 #'   tested against zero.
 #'
-#'   When two fitted model objects are present, one must be a "reduced" (1)
-#'   model nested in a "full" (2) model. Then \code{anova()} performs a likelihood ratio test.
+#'   When two fitted model objects are present, one must be a "reduced"
+#'   model nested in a "full" model. Then \code{anova()} performs a likelihood ratio test.
 #'
 #' @return When one fitted model object is present, \code{anova()}
 #'   returns a data frame with degrees of
@@ -52,7 +52,7 @@
 #'   statistic, and a p-value corresponding to the likelihood ratio test.
 #'
 #'   Whether one or two fitted model objects are provided,
-#'   [tidy.anova.spmod] can be used
+#'   \code{tidy()} can be used
 #'   to obtain tidy tibbles of the \code{anova(object)} output.
 #'
 #'

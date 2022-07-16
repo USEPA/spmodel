@@ -7,9 +7,9 @@
 #' @param formula A two-sided linear formula describing the fixed effect structure
 #'   of the model, with the response to the left of the \code{~} operator and
 #'   the terms, separated by \code{+} operators, on the right.
-#' @param data A data frame, \code{sf} object, or \code{sp} object that contains
+#' @param data A data frame or \code{sf} object that contains
 #'   the variables in \code{fixed}, \code{random}, and \code{partition_factor}
-#'   as potentially geographical information. If a \code{sp} or \code{sf} object is
+#'   as potentially geographical information. If an \code{sf} object is
 #'   provided with \code{POLYGON} geometries and \code{W} is not provided,
 #'   the weights matrix is calculated from the geometry. If \code{data} is a data frame,
 #'   \code{W} must be provided.
@@ -46,7 +46,7 @@
 #'   specifying the partition factor.  The partition factor assumes observations
 #'   from different levels of the partition factor are uncorrelated.
 #' @param W Weight matrix specifying the neighboring structure used.
-#'   Not required if \code{data} is an \code{sf} or \code{sp} polygon object,
+#'   Not required if \code{data} is an \code{sf} polygon object,
 #'   as \code{W} is calculated internally. If calculated internally,
 #'   \code{W} is computed using [sf::st_intersects()].
 #' @param row_st A logical indicating whether row standardization be performed on

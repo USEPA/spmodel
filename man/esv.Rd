@@ -18,14 +18,14 @@ esv(
 \arguments{
 \item{formula}{A formula describing the fixed effect structure.}
 
-\item{data}{A data frame, \code{sf}, or \code{sp} object containing the variables in \code{formula}
+\item{data}{A data frame or \code{sf} object containing the variables in \code{formula}
 and geographic information.}
 
 \item{xcoord}{Name of the variable in \code{data} representing the x-coordinate.
-Can be quoted or unquoted. Not required if \code{data} is an \code{sf} or \code{sp} object.}
+Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 
 \item{ycoord}{Name of the variable in \code{data} representing the y-coordinate.
-Can be quoted or unquoted. Not required if \code{data} is an \code{sf} or \code{sp} object.}
+Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 
 \item{dist_matrix}{A distance matrix to be used instead of providing coordinate names.}
 
@@ -49,7 +49,8 @@ cutoff values.
 }
 \details{
 The empirical semivariogram is a tool used to visualize and model
-spatial dependence by estimating the semivariance of a process at varying distances. The
+spatial dependence by estimating the semivariance of a process at varying distances.
+For a constant-mean process, the
 semivariance at distance \eqn{h} is denoted \eqn{\gamma(h)} and defined as
 \eqn{0.5 * Var(z1  - z2)}. Under second-order stationarity,
 \eqn{\gamma(h) = Cov(0) - Cov(h)}, where \eqn{Cov(h)} is the covariance function at distance \code{h}. Typically the residuals from an ordinary

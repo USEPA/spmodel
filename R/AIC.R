@@ -18,8 +18,8 @@
 #'   \code{"ml"} or \code{"reml"}. Additionally, AIC and AICc comparisons between \code{"ml"}
 #'   and \code{"reml"} models are meaningless -- comparisons should only be made
 #'   within a set of models estimated using \code{"ml"} or a set of models estimated
-#'   using \code{"reml"}. Also, AIC and AICc comparisons for \code{"reml"} must
-#'   use the same fixed effects -- to vary the covariance parameters and
+#'   using \code{"reml"}. AIC and AICc comparisons for \code{"reml"} must
+#'   use the same fixed effects. To vary the covariance parameters and
 #'   fixed effects simultaneously, use \code{"ml"}.
 #'
 #'   Hoeting et al. (2006) defines that spatial AIC as
@@ -27,7 +27,7 @@
 #'   \eqn{-2loglik + 2n(npar + 1) / (n - npar - 2)}, where \eqn{n} is the sample size
 #'   and \eqn{npar} is the number of estimated parameters. For \code{"ml"}, \eqn{npar} is
 #'   the number of estimated covariance parameters plus the number of estimated
-#'   fixed effects. For \code{"reml"}, npar is the number of estimated covariance
+#'   fixed effects. For \code{"reml"}, \eqn{npar} is the number of estimated covariance
 #'   parameters.
 #'
 #' @return If just one object is provided, a numeric value with the corresponding
@@ -43,10 +43,8 @@
 #' @export
 #'
 #' @examples
-#' spmod <- splm(z ~ water + tarp,
-#'   data = caribou,
-#'   spcov_type = "exponential", xcoord = x, ycoord = y
-#' )
+#' spmod <- splm(z ~ water + tarp, data = caribou,
+#'   spcov_type = "exponential", xcoord = x, ycoord = y)
 #' AIC(spmod)
 #' AICc(spmod)
 #' @references

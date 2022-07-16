@@ -44,7 +44,6 @@ citation(package = "spmodel")
 ```
 
 * An overview of basic features: `vignette("basics", "spmodel")`
-* An overview of advanced features: `vignette("advanced", "spmodel")`
 * Technical details regarding many functions: `vignette("technical", "spmodel")`
 
 We will create visualizations using ggplot2 [@wickham2016ggplot2], which we load by running
@@ -84,7 +83,7 @@ In this section, we show how to use the `splm()` and `spautor()` functions to es
 
 * `formula`: a formula that describes the relationship between the response variable ($\mathbf{y}$) and explanatory variables ($\mathbf{X}$)
     * `formula` in `splm()` is the same as `formula` in `lm()`
-* `data`: a `data.frame`, `sf`, or `sp` object that contains the response variable, explanatory variables, and spatial information
+* `data`: a `data.frame` or `sf`object that contains the response variable, explanatory variables, and spatial information
 * `spcov_type`: the spatial covariance type (`"exponential"`, `"matern"`, `"car"`, etc)
 
 If `data` are an `sf` [@pebesma2018sf] or object [@bivand2013sp], spatial information is stored in the object's geometry. If `data` are a `data.frame`, then for point-referenced data the x-coordinates and y-coordinates must be provided via the `xcoord` and `ycoord` arguments, and for areal data, the weight matrix must be provided via the `W` argument. Appendix$~$\ref{app:caribou} uses the `caribou` data, a `data.frame`, to show how to explicitly provide spatial information via `xcoord`, `ycoord` (in `splm()`) or `W` (in `spautor()`).

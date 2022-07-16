@@ -17,10 +17,16 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(prompt=TRUE, echo = TRUE, highlight = FALSE, continue = " + ", comment = "")
-options(replace.assign=TRUE, width=90, prompt="R> ")
-library(spmodel)
+# # jss style
+# knitr::opts_chunk$set(prompt=TRUE, echo = TRUE, highlight = FALSE, continue = " + ", comment = "")
+# options(replace.assign=TRUE, width=90, prompt="R> ")
+
+# rmd style
+knitr::opts_chunk$set(collapse = FALSE, comment = "#>", warning = FALSE, message = FALSE)
+
+# loading
 library(ggplot2)
+library(spmodel)
 ```
 
 # Introduction
@@ -35,7 +41,6 @@ citation(package = "spmodel")
 In addition to this document on the technical details of `spmodel`, there are three other vignettes:
 
 * An overview of basic features: `vignette("basics", "spmodel")`
-* An overview of advanced features: `vignette("advanced", "spmodel")`
 * A detailed guide with relevant methodological background: `vignette("guide", "spmodel")`
 
 # Notation Guide

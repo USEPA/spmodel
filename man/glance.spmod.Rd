@@ -22,7 +22,7 @@ A single-row tibble with columns
 \item{\code{AICc}}{ The AICc.}
 \item{\code{logLik}}{ The log-likelihood}
 \item{\code{deviance}}{ The deviance.}
-\item{\code{pseudo.r.squared}}{ The pseudo R-squared}
+\item{\code{pseudo.r.squared}}{ The pseudo r-squared}
 }
 }
 \description{

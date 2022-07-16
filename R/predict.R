@@ -3,10 +3,10 @@
 #' @description Predicted values and intervals based on a fitted model object.
 #'
 #' @param object A fitted model object from [splm()] or [spautor()].
-#' @param newdata A data frame, \code{sf}, or \code{sp} object in which to
+#' @param newdata A data frame or \code{sf} object in which to
 #'   look for variables with which to predict. If a data frame, \code{newdata}
 #'   must contain all variables used by \code{formula(object)} and all variables
-#'   representing coordinates. If an \code{sf} or \code{sp} object, \code{newdata} must contain
+#'   representing coordinates. If an \code{sf} object, \code{newdata} must contain
 #'   all variables used by \code{formula(object)} and coordinates are obtained
 #'   from the geometry of \code{newdata}. If omitted, missing data from the
 #'   fitted model object are used.

@@ -62,7 +62,7 @@ to the number of rows in \code{data}. The default is \code{0}.}
 \item{samples}{The number of independent samples to generate. The default
 is \code{1}.}
 
-\item{data}{A data frame, \code{sf}, or \code{sp} object containing spatial information.}
+\item{data}{A data frame or \code{sf} object containing spatial information.}
 
 \item{randcov_params}{A \code{\link[=randcov_params]{randcov_params()}} object.}
 
@@ -72,14 +72,14 @@ is \code{1}.}
 
 \item{xcoord}{Name of the column in \code{data} representing the x-coordinate.
 Can be quoted or unquoted. Not required if \code{data} are an \code{sf}
-or \code{sp} object.}
+object.}
 
 \item{ycoord}{Name of the column in \code{data} representing the y-coordinate.
 Can be quoted or unquoted. Not required if \code{data} are an \code{sf}
-or \code{sp} object.}
+object.}
 
 \item{W}{Weight matrix specifying the neighboring structure used for car and
-sar models. Not required if \code{data} are an \code{sf} or \code{sp}
+sar models. Not required if \code{data} are an \code{sf}
 polygon object and \code{W} should be calculated internally.}
 
 \item{row_st}{A logical indicating whether row standardization be performed on

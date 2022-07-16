@@ -26,11 +26,11 @@ splm(
 of the model, with the response to the left of the \code{~} operator and
 the terms on the right, separated by \code{+} operators.}
 
-\item{data}{A data frame, \code{sf} object, or \code{sp} object that contains
+\item{data}{A data frame or \code{sf} object object that contains
 the variables in \code{fixed}, \code{random}, and \code{partition_factor}
-as well as geographical information. If an \code{sp} or \code{sf} object is
+as well as geographical information. If an \code{sf} object is
 provided with \code{POINT} geometries, the x-coordinates and y-coordinates
-are used directly. If an \code{sp} or \code{sf} object is
+are used directly. If an \code{sf} object is
 provided with \code{POLYGON} geometries, the x-coordinates and y-coordinates
 are taken as the centroids of each polygon.}
 
@@ -48,10 +48,10 @@ ignored) if \code{spcov_initial} is provided. The default for \code{spcov_type}
 is \code{"exponential"}.}
 
 \item{xcoord}{The name of the column in \code{data} representing the x-coordinate.
-Can be quoted or unquoted. Not required if \code{data} is an \code{sf} or \code{sp} object.}
+Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 
 \item{ycoord}{The name of the column in \code{data} representing the y-coordinate.
-Can be quoted or unquoted. Not required if \code{data} is an \code{sf} or \code{sp} object.}
+Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 
 \item{spcov_initial}{An object from \code{\link[=spcov_initial]{spcov_initial()}} specifying initial and/or
 known values for the spatial covariance parameters.

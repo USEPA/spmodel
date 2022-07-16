@@ -33,7 +33,7 @@ library(spmodel)
 # Introduction {#sec:introduction}
 
 
-`spmodel` is an \textbf{\textsf{R}} package used to fit, summarize, and predict for a variety of spatial statistical models. Throughout this document, we give a brief theoretical introduction to spatial linear models in Section \ref{sec:theomodel}, outline the variety of methods used to estimate the parameters of spatial linear models in Section \ref{sec:modelfit}, explain how to obtain predictions at unobserved locations in Section \ref{sec:prediction}, and detail some additional modeling features, including random effects, partition factors, anisotropy, and big data approaches in Section \ref{sec:advfeatures}.  Before proceeding, we load `spmodel` by running
+`spmodel` is an \textbf{\textsf{R}} package used to fit, summarize, and predict for a variety of spatial statistical models. Throughout this document, we give a brief theoretical introduction to spatial linear models in Section \ref{sec:theomodel}, outline the variety of methods used to estimate the parameters of spatial linear models in Section \ref{sec:modelfit}, explain how to obtain predictions at unobserved locations in Section \ref{sec:prediction}, and detail some additional modeling features, including random effects, partition factors, anisotropy, and big data approaches in Section \ref{sec:advfeatures}.  We end with a short discussion in Section$~$\ref{sec:discussion}. Before proceeding, we load `spmodel` by running
 ```{r, eval = FALSE}
 library(spmodel)
 ```
@@ -65,17 +65,17 @@ The model in Equation$~$\ref{eq:lm} assumes the elements of $\mathbf{y}$ are unc
 \begin{equation}\label{eq:splm}
  \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
 \end{equation}
-where $\text{E}(\boldsymbol{\tau}) = \mathbf{0}$, $\text{Cov}(\boldsymbol{\tau}) = \sigma^2_\tau \mathbf{R}$, and $\mathbf{R}$ is a correlation matrix that determines the spatial dependence structure in $\mathbf{y}$. The parameter $\sigma^2_\tau$ is called the spatially dependent random error variance or partial sill. The parameter $\sigma^2_\epsilon$ is called the spatially independent random error variance or nugget. These two variance parameters are henceforth more intuitively written as $\sigma^2_{de}$ and $\sigma^2_{ie}$, respectively. The covariance of $\mathbf{y}$ is denoted $\boldsymbol{\Sigma}$ and given by $\sigma^2_{de} \mathbf{R} + \sigma^2_{ie} \mathbf{I}$. The parameters that compose this covariance are typically referenced by the vector $\boldsymbol{\theta}$, which is called the covariance parameter vector.
+where $\text{E}(\boldsymbol{\tau}) = \mathbf{0}$, $\text{Cov}(\boldsymbol{\tau}) = \sigma^2_\tau \mathbf{R}$, and $\mathbf{R}$ is a matrix that determines the spatial dependence structure in $\mathbf{y}$. The parameter $\sigma^2_\tau$ is called the spatially dependent random error variance or partial sill. The parameter $\sigma^2_\epsilon$ is called the spatially independent random error variance or nugget. These two variance parameters are henceforth more intuitively written as $\sigma^2_{de}$ and $\sigma^2_{ie}$, respectively. The covariance of $\mathbf{y}$ is denoted $\boldsymbol{\Sigma}$ and given by $\sigma^2_{de} \mathbf{R} + \sigma^2_{ie} \mathbf{I}$. The parameters that compose this covariance are typically referenced by the vector $\boldsymbol{\theta}$, which is called the covariance parameter vector.
 
-Equation$~$\ref{eq:splm} is called the spatial linear model. The spatial linear model applies to both point-referenced and areal data. For point-referenced data, the elements in $\mathbf{y}$ are observed at point-locations indexed by x-coordinates and y-coordinates. Spatial linear models for point-referenced data are fit using the `splm()` function. The exponential spatial covariance, for example, has an $\mathbf{R}$ matrix given by
+Equation$~$\ref{eq:splm} is called the spatial linear model. The spatial linear model applies to both point-referenced and areal data. For point-referenced data, the elements in $\mathbf{y}$ are observed at point-locations indexed by x-coordinates and y-coordinates. The exponential spatial covariance, for example, has an $\mathbf{R}$ matrix given by
 \begin{equation*}
   \mathbf{R} = \exp(-\mathbf{h} / \phi),
 \end{equation*}
-where $\mathbf{h}$ is a matrix of Euclidean distances among observations and $\phi$ is a range parameter that controls the behavior of the correlation as a function of distance. For areal data, the elements in $\mathbf{y}$ are observed as part of a network indexed by a neighborhood structure. Spatial linear models for areal data are called spatial autoregressive models and are fit using the `spautor()` function. The simultaneous autoregressive spatial covariance, for example, has an $\mathbf{R}$ matrix given by
+where $\mathbf{h}$ is a matrix of Euclidean distances among observations and $\phi$ is a range parameter that controls the behavior of the correlation as a function of distance. Spatial linear models for point-referenced data are fit using the `splm()` function.  For areal data, the elements in $\mathbf{y}$ are observed as part of a network indexed by a neighborhood structure. The simultaneous autoregressive spatial covariance, for example, has an $\mathbf{R}$ matrix given by
 \begin{equation*}
   \mathbf{R} = [(\mathbf{I} - \phi \mathbf{W})(\mathbf{I} - \phi \mathbf{W})^\top]^{-1},
 \end{equation*}
-where $\phi$ is the range parameter and $\mathbf{W}$ is a weight matrix describing the neighborhood structure in $\mathbf{y}$. Additional parameterizations for $\mathbf{R}$ are given in the technical details vignette for both point-referenced and areal data. 
+where $\phi$ is the range parameter and $\mathbf{W}$ is a weight matrix describing the neighborhood structure in $\mathbf{y}$. Spatial linear models for areal data are called spatial autoregressive models and are fit using the `spautor()` function. Additional parameterizations for $\mathbf{R}$ are given in the technical details vignette for both point-referenced and areal data. 
 
 # Model Fitting {#sec:modelfit}
 
@@ -83,10 +83,10 @@ In this section, we show how to use the `splm()` and `spautor()` functions to es
 
 * `formula`: a formula that describes the relationship between the response variable ($\mathbf{y}$) and explanatory variables ($\mathbf{X}$)
     * `formula` in `splm()` is the same as `formula` in `lm()`
-* `data`: a `data.frame` or `sf`object that contains the response variable, explanatory variables, and spatial information
+* `data`: a `data.frame` or `sf` object that contains the response variable, explanatory variables, and spatial information
 * `spcov_type`: the spatial covariance type (`"exponential"`, `"matern"`, `"car"`, etc)
 
-If `data` are an `sf` [@pebesma2018sf] or object [@bivand2013sp], spatial information is stored in the object's geometry. If `data` are a `data.frame`, then for point-referenced data the x-coordinates and y-coordinates must be provided via the `xcoord` and `ycoord` arguments, and for areal data, the weight matrix must be provided via the `W` argument. Appendix$~$\ref{app:caribou} uses the `caribou` data, a `data.frame`, to show how to explicitly provide spatial information via `xcoord`, `ycoord` (in `splm()`) or `W` (in `spautor()`).
+If `data` is an `sf` [@pebesma2018sf] object spatial information is stored in the object's geometry. If `data` is a `data.frame`, then for point-referenced data the x-coordinates and y-coordinates must be provided via the `xcoord` and `ycoord` arguments, and for areal data, the weight matrix must be provided via the `W` argument. Appendix$~$\ref{app:caribou} uses the `caribou` data, a `tibble` (a special `data.frame`), to show how to explicitly provide spatial information via `xcoord`, `ycoord` (in `splm()`) or `W` (in `spautor()`).
 
 In the following subsections, we use the point-referenced `moss` data, an `sf` object that contains data on heavy metals in mosses near a mining road in Alaska. We view the first few rows of `moss` by running
 ```{r}
@@ -134,7 +134,7 @@ The model summary also contains the exponential spatial covariance parameter est
 coef(spmod, type = "spcov")
 ```
 
-The dependent random error variance ($\sigma^2_{de}$) is estimated to be approximately `r de_val` and the independent random error variance ($\sigma^2_{ie}$) is estimated to be approximately `r ie_val`. The range ($\phi$) is estimated to be approximately `r format(range_val, big.mark = ",")`. The effective range is the distance at which the spatial covariance is approximately zero. For the exponential covariance, the effective range is $3\phi$. This means that observations whose distance is greater than `r format(eff_range_val, big.mark = ",")` meters are approximately uncorrelated. The `rotate` and `scale` parameters affect the modeling of anisotropy (Section$~$\ref{sec:anisotropy}). By default, they are assumed to be zero and one, respectively, which means that anisotropy is modeled (i.e., the spatial covariance is assumed isotropic, or independent of direction). We plot the empirical spatial covariance of the fitted model shown in Figure$~$\ref{fig:emp_spcov} by running
+The dependent random error variance ($\sigma^2_{de}$) is estimated to be approximately `r de_val` and the independent random error variance ($\sigma^2_{ie}$) is estimated to be approximately `r ie_val`. The range ($\phi$) is estimated to be approximately `r format(range_val, big.mark = ",")`. The effective range is the distance at which the spatial covariance is approximately zero. For the exponential covariance, the effective range is $3\phi$. This means that observations whose distance is greater than `r format(eff_range_val, big.mark = ",")` meters are approximately uncorrelated. The `rotate` and `scale` parameters affect the modeling of anisotropy (Section$~$\ref{sec:anisotropy}). By default, they are assumed to be zero and one, respectively, which means that anisotropy is not modeled (i.e., the spatial covariance is assumed isotropic, or independent of direction). We plot the empirical spatial covariance of the fitted model shown in Figure$~$\ref{fig:emp_spcov} by running
 ```{r emp_spcov, fig.cap="Empirical spatial covariance of fitted model.", out.width="75%", fig.align="center"}
 plot(spmod, which = 7)
 ```
@@ -221,7 +221,7 @@ The raw residuals are typically not directly checked for linear model assumption
 \begin{equation*}
   \mathbf{e}_{p} = \boldsymbol{\hat{\Sigma}}^{-1/2}\mathbf{e}_{r}.
 \end{equation*}
-We compute the Pearson residuals of the spatial model by running
+When the model is correct, the Pearson residuals have mean zero, variance approximately one, and are uncorrelated. We compute the Pearson residuals of the spatial model by running
 ```{r, results = "hide"}
 residuals(spmod, type = "pearson")
 ```
@@ -734,7 +734,7 @@ For areal data, no local neighborhood approximation exists because of the data's
 predict(sealmod, local = list(parallel = TRUE, ncores = 2))
 ```
 
-# Discussion
+# Discussion {#sec:discussion}
 
 Throughout this vignette, we have shown how to use `spmodel` to fit, summarize, and predict for a variety of spatial statistical models. Spatial linear models for point-referenced data are fit using the `splm()` function. Spatial linear models for areal data (i.e., spatial autoregressive models) are fit using the `spautor()` function. Several model-fit statistics and diagnostics are available. The broom functions `tidy()`, `glance()`, and `augment()` are useful to tidy, glance at, and augment a fitted model. `augment()` is also used to augment new data requiring predictions. Several advanced features are available to accommodate fixed covariance parameter values, random effects, partition factors, anisotropy, simulated data, and big data approximations for model-fitting and prediction.
 

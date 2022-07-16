@@ -41,7 +41,7 @@ citation(package = "spmodel")
 In addition to this document on the technical details of `spmodel`, there are three other vignettes:
 
 * An overview of basic features: `vignette("basics", "spmodel")`
-* A detailed guide with relevant methodological background: `vignette("guide", "spmodel")`
+* A detailed guide to `spmodel`: `vignette("guide", "spmodel")`
 
 # Notation Guide
 

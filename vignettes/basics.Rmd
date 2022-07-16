@@ -43,7 +43,7 @@ citation(package = "spmodel")
 
 There are two additional `spmodel` vignettes:
 
-* A detailed guide with relevant methodological background: `vignette("guide", "spmodel")`
+* A detailed guide to `spmodel`: `vignette("guide", "spmodel")`
 * Technical details regarding many functions: `vignette("technical", "spmodel")`
 
 # The Data
@@ -140,7 +140,7 @@ The columns of this `tibble` represent:
 * `AIC`: The Akaike Information Criterion (AIC)
 * `AICc`: The AIC with a small sample size correction
 * `logLik`: The log-likelihood
-* `deviance`: The model deviance
+* `deviance`: The deviance
 * `pseudo.r.squared`: The pseudo r-squared
 
 The `glances()` function can be used to glance at multiple models at once. Suppose we wanted to compare the current model with an exponential spatial covariance to a new model without spatial covariance (equivalent to a model fit using `lm()`). We do this using `glances()` by running
@@ -219,7 +219,7 @@ While the fitted model in this example only used an intercept, the same code is 
 
 ## An Additional Example
 
-We now use the `caribou` data from a foraging experiment conducted in Alaska to show an application of `splm()` to data stored in a `data.frame` instead of an `sf` object. In `caribou`, the x-coordinates are stored in the `x` column and the y-coordinates are stored in the `y` column. We view the first few rows of `caribou` by running
+We now use the `caribou` data from a foraging experiment conducted in Alaska to show an application of `splm()` to data stored in a `tibble` (`data.frame`) instead of an `sf` object. In `caribou`, the x-coordinates are stored in the `x` column and the y-coordinates are stored in the `y` column. We view the first few rows of `caribou` by running
 ```{r}
 caribou
 ```

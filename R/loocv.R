@@ -13,7 +13,7 @@
 #'   which performs exact computations.
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
-#' @details Each observation is held-out from the dataset and the remaining data
+#' @details Each observation is held-out from the data set and the remaining data
 #'   are used to make a prediction for the held-out observation. This is compared
 #'   to the true value of the observation and a mean-squared error is computed
 #'   across all observations. The lower the mean squared error, the better the

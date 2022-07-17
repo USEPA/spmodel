@@ -133,9 +133,9 @@ get_model_stats_splm <- function(cov_est_object, data_object, estmethod) {
 
 
   # npar
-    p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
-    p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
-    npar <- p_theta_spcov + p_theta_randcov
+  p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
+  p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
+  npar <- p_theta_spcov + p_theta_randcov
   # if (estmethod == "ml") {
   #   p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
   #   p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)

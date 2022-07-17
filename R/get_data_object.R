@@ -288,7 +288,7 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
   ## convert sp to sf object
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
-  # if (inherits(data, "SpatialPolygonsDataFrame")) {
+    # if (inherits(data, "SpatialPolygonsDataFrame")) {
     # if (!requireNamespace("sf", quietly = TRUE)) { # requireNamespace checks if sf is installed
     #   stop("Install the sf R package to use an sp object with spautor()", call. = FALSE)
     # } else {

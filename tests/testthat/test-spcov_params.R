@@ -58,4 +58,3 @@ test_that("defaults are applied", {
   expect_error(spcov_params("exponential", de = 1, ie = 1, range = 1), NA)
   expect_error(spcov_params("car", de = 1, range = 1, extra = 1), NA)
 })
-

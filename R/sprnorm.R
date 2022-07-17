@@ -289,7 +289,7 @@ sprnorm.car <- function(spcov_params, mean = 0, samples = 1, data, randcov_param
     ## convert sp to sf object
     attr_sp <- attr(class(data), "package")
     if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
-    # if (inherits(data, "SpatialPolygonsDataFrame")) {
+      # if (inherits(data, "SpatialPolygonsDataFrame")) {
       # data <- sf::st_as_sf(data)
       stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
     }

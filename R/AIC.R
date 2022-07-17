@@ -43,8 +43,10 @@
 #' @export
 #'
 #' @examples
-#' spmod <- splm(z ~ water + tarp, data = caribou,
-#'   spcov_type = "exponential", xcoord = x, ycoord = y)
+#' spmod <- splm(z ~ water + tarp,
+#'   data = caribou,
+#'   spcov_type = "exponential", xcoord = x, ycoord = y
+#' )
 #' AIC(spmod)
 #' AICc(spmod)
 #' @references

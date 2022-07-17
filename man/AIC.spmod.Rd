@@ -56,8 +56,10 @@ fixed effects. For \code{"reml"}, \eqn{npar} is the number of estimated covarian
 parameters.
 }
 \examples{
-spmod <- splm(z ~ water + tarp, data = caribou,
-  spcov_type = "exponential", xcoord = x, ycoord = y)
+spmod <- splm(z ~ water + tarp,
+  data = caribou,
+  spcov_type = "exponential", xcoord = x, ycoord = y
+)
 AIC(spmod)
 AICc(spmod)
 }

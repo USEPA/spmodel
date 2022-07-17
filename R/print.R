@@ -163,7 +163,7 @@ print.anova.spmod <- function(x, digits = max(getOption("digits") - 2L, 3L),
   cat("\n")
   cat(attr(x, "heading")[2])
   cat("\n")
-  if ("Pr(>X2)" %in% colnames(x)) {
+  if ("Pr(>Chi2)" %in% colnames(x)) {
     P.values <- TRUE
     has.Pvalue <- TRUE
   } else {

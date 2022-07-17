@@ -166,7 +166,7 @@ plot.spmod <- function(x, which, ...) {
       y = spcov_vector_val[-1],
       xlab = "Distance",
       ylab = paste("Covariance:", class(coef(x, type = "spcov"))),
-      main = "Empirical spatial covariance",
+      main = "Fitted spatial covariance function",
       ylim = c(x = h[1], y = sum(spcoef[c("de", "ie")])),
       type = "l",
       ...

@@ -3,7 +3,7 @@
 \docType{data}
 \name{moss}
 \alias{moss}
-\title{Data on heavy metals in mosses near a mining road in Alaska, USA}
+\title{Heavy metals in mosses near a mining road in Alaska, USA}
 \format{
 An \code{sf} object with 365 rows and 10 columns:
 
@@ -21,7 +21,7 @@ Takes values \code{N} (north of the haul road) and \code{S} (south
 of the haul road).}
 \item{log_dist2road: }{The log of distance (in meters) to the haul road.}
 \item{log_Zn: }{The log of zinc concentration in moss tissue (mg/kg).}
-\item{geometry: }{\code{POINT} geometry representing coordinates in an Alaksa
+\item{geometry: }{\code{POINT} geometry representing coordinates in an Alaska
 Albers projection (EPSG: 3338).}
 }
 }
@@ -33,7 +33,7 @@ Park Service.  Data were used in the publications listed in References.
 moss
 }
 \description{
-Data on heavy metals in mosses near a mining road in Alaska, USA.
+Heavy metals in mosses near a mining road in Alaska, USA.
 }
 \references{
 Neitlich, P.N., Ver Hoef, J.M., Berryman, S. D., Mines, A., Geiser, L.H.,

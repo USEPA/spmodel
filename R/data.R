@@ -1,6 +1,6 @@
-#' Data on heavy metals in mosses near a mining road in Alaska, USA
+#' Heavy metals in mosses near a mining road in Alaska, USA
 #'
-#' @description Data on heavy metals in mosses near a mining road in Alaska, USA.
+#' @description Heavy metals in mosses near a mining road in Alaska, USA.
 #'
 #' @format An \code{sf} object with 365 rows and 10 columns:
 #'
@@ -18,7 +18,7 @@
 #'     of the haul road).}
 #'   \item{log_dist2road: }{The log of distance (in meters) to the haul road.}
 #'   \item{log_Zn: }{The log of zinc concentration in moss tissue (mg/kg).}
-#'   \item{geometry: }{\code{POINT} geometry representing coordinates in an Alaksa
+#'   \item{geometry: }{\code{POINT} geometry representing coordinates in an Alaska
 #'     Albers projection (EPSG: 3338).}
 #' }
 #' @source Data were obtained from Peter Neitlich and Linda Hasselbach of the National
@@ -43,9 +43,9 @@
 
 
 
-#' Data for a caribou forage experiment
+#' A caribou forage experiment
 #'
-#' @description Data for a caribou forage experiment.
+#' @description A caribou forage experiment.
 #'
 #' @format A \code{tibble} with 30 rows and 5 columns:
 #' \itemize{
@@ -66,9 +66,9 @@
 #'   to: Climate Change and Caribou: Effects of Summer Weather on Forage})
 "caribou"
 
-#' Data on estimated harbor seal trends in southeast Alaska, USA
+#' Estimated harbor-seal trends from abundance data in southeast Alaska, USA
 #'
-#' @description Data on estimated harbor seal abundance trends in southeast Alaska, USA.
+#' @description Estimated harbor seal abundance trends in southeast Alaska, USA.
 #'
 #' @format A \code{sf} object with 62 rows and 2 columns:
 #' \describe{
@@ -87,9 +87,9 @@
 #'   to: Spatial Autoregressive Models for Statistical Inference from Ecological Data.}.
 "seal"
 
-#' Data on sulfate atmospheric deposition in the conterminous USA
+#' Sulfate atmospheric deposition in the conterminous USA
 #'
-#' @description Data on sulfate atmospheric deposition in the conterminous USA.
+#' @description Sulfate atmospheric deposition in the conterminous USA.
 #'
 #' @format An \code{sf} object with 197 rows and 2 columns.
 #' \describe{
@@ -108,9 +108,9 @@
 #'   to: Statistical analysis of spatial data}.
 "sulfate"
 
-#' Prediction locations for sulfate atmospheric deposition in the conterminous USA
+#' Locations to predict sulfate atmospheric deposition in the conterminous USA
 #'
-#' @description Prediction locations for sulfate atmospheric deposition in the conterminous USA.
+#' @description Locations to predict sulfate atmospheric deposition in the conterminous USA.
 #'
 #' @format An \code{sf} object with 197 rows and 1 column.
 #' \describe{

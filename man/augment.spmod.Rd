@@ -70,10 +70,10 @@ row in the new data set.
 }
 \details{
 \code{augment()} returns a tibble with the same class as
-the fitted model object \code{x}. That is, if the model object \code{x} is
+\code{data}. That is, if \code{data} is
 an \code{sf} object, then the augmented object (obtained via \code{augment(x)})
 will be an \code{sf} object as well. When augmenting \code{newdata}, the
-augmented object has the same class as \code{x}.
+augmented object has the same class as \code{data}.
 
 Missing response values from the original data can be augmented as if
 they were a \code{newdata} object by providing \code{x$newdata} to the

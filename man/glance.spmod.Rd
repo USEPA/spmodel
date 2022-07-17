@@ -16,7 +16,7 @@ A single-row tibble with columns
 \itemize{
 \item{\code{n}}{ The sample size.}
 \item{\code{p}}{ The number of fixed effects.}
-\item{\code{npar}}{ The number of parameters requiring explicit estimation.}
+\item{\code{npar}}{ The number of estimated covariance parameters.}
 \item{\code{value}}{ The optimized value of the fitting function}
 \item{\code{AIC}}{ The AIC.}
 \item{\code{AICc}}{ The AICc.}

@@ -56,6 +56,13 @@ AIC.spmod <- function(object, ..., k = 2) {
   # set k as 2
   k <- 2
 
+  # number of estimated parameters
+  if (object$estmethod == "ml") {
+    n_est_param <- object$npar + object$p
+  } else {
+    n_est_param <- object$npar
+  }
+
   # store object and ...
   object_list <- list(object, ...)
 
@@ -66,7 +73,7 @@ AIC.spmod <- function(object, ..., k = 2) {
       stop("AIC is only defined is estmethod is \"ml\" or \"reml\".", call. = FALSE)
     }
     # compute AIC
-    AIC_val <- -2 * logLik(object) + k * (object$npar + 1)
+    AIC_val <- -2 * logLik(object) + k * (n_est_param + 1)
   } else {
 
 
@@ -128,6 +135,13 @@ AICc.spmod <- function(object, ..., k = 2) {
   # set k as 2
   k <- 2
 
+  # number of estimated parameters
+  if (object$estmethod == "ml") {
+    n_est_param <- object$npar + object$p
+  } else {
+    n_est_param <- object$npar
+  }
+
   # store object and ...
   object_list <- list(object, ...)
 
@@ -138,7 +152,7 @@ AICc.spmod <- function(object, ..., k = 2) {
       stop("AICc is only defined is estmethod is \"ml\" or \"reml\".", call. = FALSE)
     }
     # compute AICc
-    AICc_val <- -2 * logLik(object) + 2 * object$n * (object$npar + 1) / (object$n - object$npar - 2)
+    AICc_val <- -2 * logLik(object) + 2 * object$n * (n_est_param + 1) / (object$n - n_est_param - 2)
   } else {
 
     # warning if ml and reml in same call

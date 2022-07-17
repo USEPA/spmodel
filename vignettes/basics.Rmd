@@ -135,7 +135,7 @@ The columns of this `tibble` represent:
 
 * `n`: The sample size
 * `p`: The number of fixed effects (linearly independent columns in $\mathbf{X}$)
-* `npar`: The number of estimated parameters (this depends on the estimation method)
+* `npar`: The number of estimated covariance parameters
 * `value`: The value of the minimized objective function used when fitting the model
 * `AIC`: The Akaike Information Criterion (AIC)
 * `AICc`: The AIC with a small sample size correction
@@ -143,7 +143,7 @@ The columns of this `tibble` represent:
 * `deviance`: The deviance
 * `pseudo.r.squared`: The pseudo r-squared
 
-The `glances()` function can be used to glance at multiple models at once. Suppose we wanted to compare the current model with an exponential spatial covariance to a new model without spatial covariance (equivalent to a model fit using `lm()`). We do this using `glances()` by running
+The `glances()` function can be used to glance at multiple models at once. Suppose we wanted to compare the current model, which uses an exponential spatial covariance, to a new model without spatial covariance (equivalent to a model fit using `lm()`). We do this using `glances()` by running
 ```{r}
 lmod <- splm(log_Zn ~ log_dist2road, data = moss, spcov_type = "none")
 glances(spmod, lmod)
@@ -187,7 +187,7 @@ We fit a spatial linear model regressing sulfate on an intercept using a spheric
 sulfmod <- splm(sulfate ~ 1, data = sulfate, spcov_type =  "spherical")
 ```
 
-We make predictions at the locations in `sulfate_preds` and store them as a new variable in the `sulfate_preds` data set called `preds` by running
+We make predictions at the locations in `sulfate_preds` and store them as a new variable called `preds` in the `sulfate_preds` data set by running
 ```{r}
 sulfate_preds$preds <- predict(sulfmod, newdata = sulfate_preds)
 ```
@@ -214,6 +214,7 @@ Confidence intervals for the mean response or prediction intervals for the predi
 ```{r}
 augment(sulfmod, newdata = sulfate_preds, interval = "prediction")
 ```
+By default, `predict()` and `augment()` compute 95% intervals, though this can be changed using the `level` argument.
 
 While the fitted model in this example only used an intercept, the same code is used for prediction with fitted models having explanatory variables. If explanatory variables were used to fit the model, the same explanatory variables must be included in `newdata` with the same names they have in `data`. If the data are a `data.frame`, coordinates must be included in `newdata` with the same names as they have in `data`. If the data are an `sf` object, coordinates must be included in `newdata` with the same geometry name as they have in `data`. When using projected coordinates, the projection for `newdata` should be the same as the projection for `data`.
 

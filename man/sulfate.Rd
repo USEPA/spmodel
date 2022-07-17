@@ -3,7 +3,7 @@
 \docType{data}
 \name{sulfate}
 \alias{sulfate}
-\title{Data on sulfate atmospheric deposition in the conterminous USA}
+\title{Sulfate atmospheric deposition in the conterminous USA}
 \format{
 An \code{sf} object with 197 rows and 2 columns.
 \describe{
@@ -20,7 +20,7 @@ These data were used in the publication listed in References. Data were download
 sulfate
 }
 \description{
-Data on sulfate atmospheric deposition in the conterminous USA.
+Sulfate atmospheric deposition in the conterminous USA.
 }
 \references{
 Zimmerman, D.L. (1994). Statistical analysis of spatial data. Pages 375-402 in

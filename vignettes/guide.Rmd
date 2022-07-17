@@ -286,7 +286,7 @@ By default, only the columns of `data` used to fit the model are returned alongs
 
 ## An Areal Data Example
 
-Next we use the areal `seal` data, an `sf` object that contains the log of estimated harbor seal abundance trends across polygons in Alaska. We view the first few rows of `seal` by running
+Next we use the areal `seal` data, an `sf` object that contains the log of the estimated harbor-seal trends from abundance data across polygons in Alaska. We view the first few rows of `seal` by running
 ```{r}
 seal
 ```
@@ -407,7 +407,7 @@ augment(sulfmod_with_NA, newdata = sulfmod_with_NA$newdata)
 ```
 The explicit specification of `newdata` is required because `augment()` works differently whether or not there is a `newdata` object specified. Recall that when `newdata` is not specified, only model diagnostics are returned. Thus running `augment(sulfmod_with_NA)` only returns model diagnostics, not predictions.
 
-For areal data, predictions cannot be computed at locations that were not incorporated in the neighborhood structure used to fit the model. Thus predictions are possible only possible for observations in `data` whose response values are missing (`NA`), as their locations are incorporated into the neighborhood structure. For example, we make predictions of log trends at the missing polygons from Figure$~$\ref{fig:log_trend} by running
+For areal data, predictions cannot be computed at locations that were not incorporated in the neighborhood structure used to fit the model. Thus predictions are only possible for observations in `data` whose response values are missing (`NA`), as their locations are incorporated into the neighborhood structure. For example, we make predictions of log trends at the missing polygons from Figure$~$\ref{fig:log_trend} by running
 ```{r, results = "hide"}
 predict(sealmod)
 ```
@@ -449,7 +449,7 @@ rand1 <- splm(
   log_Zn ~ log_dist2road,
   moss,
   spcov_type = "exponential",
-  random = ~ lab_rep
+  random = ~ sample
 )
 ```
 Note that `sample` is shorthand for `(1 | sample)`, which is more explicit notation that indicates random intercepts for each level of `sample`.
@@ -533,11 +533,9 @@ spmod_anis <- splm(
   spcov_type = "exponential",
   anisotropy = TRUE
 )
+summary(spmod_anis)
 ```
-We see the spatial covariance parameter estimates by running
-```{r}
-coef(spmod_anis, type = "spcov")
-```
+
 The `rotate` parameter is between zero and $\pi$ radians and represents the angle of a clockwise rotation of the ellipse. The `scale` parameter is between zero and one and represents the ratio of the distance between the origin and the edge of the ellipse along the minor axis to the distance between the origin and the edge of the ellipse along the major axis. Figure$~$\ref{fig:anisotropy_fit} shows the transformation that turns an anisotropic ellipse into an isotropic one (i.e., a circle). This transformation requires rotating the the coordinates clockwise by `rotate` and then scaling them the reciprocal of `scale`.  The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances.
 
 ```{r, anisotropy_fit, echo = FALSE, out.width = "33%", fig.show = "hold", fig.cap = "A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the rotate parameter. In the middle figure, the second step is to scale the minor axis by the reciprocal of the scale parameter. In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances."}
@@ -791,7 +789,7 @@ cariboumod <- spautor(z ~ water + tarp,
                  data = caribou, spcov_type = "car", W = W)
 ```
 
-We perform an analysis of variance and tidy the reslults by running
+We perform an analysis of variance and tidy the results by running
 ```{r}
 tidy(anova(cariboumod))
 ```

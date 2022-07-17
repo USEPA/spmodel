@@ -3,10 +3,10 @@ citHeader("To cite spmodel in publications use:")
 citEntry(
    entry="Manual",
    title="spmodel: Spatial statistical models",
-   author="Michael Dumelle, Matt Higham, Jay M. Ver Hoef",
+   author="Michael Dumelle and Matt Higham and Jay M. {Ver Hoef}",
    year=2022,
    note="R package version 0.1.0",
-   textVersion=paste("Michael Dumelle, Matt Higham, and Jay M. Ver Hoef. (2022).",
+   textVersion=paste("Dumelle, Michael., Higham, Matt., and Ver Hoef, Jay M. (2022).",
                      "spmodel: Spatial statistical models.",
                      "R package version 0.1.0.")
 )

@@ -328,7 +328,7 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
     esv = cov_est_object$esv,
     p = data_object$p, # number of fixed effects
     n = data_object$n,
-    npar = model_stats$npar, # number of estimated parameters
+    npar = model_stats$npar, # number of estimated covariance parameters
     formula = formula,
     terms = terms(formula),
     call = match.call(),

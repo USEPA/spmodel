@@ -477,7 +477,7 @@ where $\sigma^2_{de} (\geq 0)$ is the spatially dependent (correlated) variance,
   \texttt{"magnetic"} & $(1 + \eta^2)^{-3/2}$ \\
   \texttt{"matern"} & $\frac{2^{(1 - \xi)}}{\Gamma(\xi)} \alpha^\xi B_k(\alpha, \xi), \alpha = \sqrt{2\xi \eta}, B_k$ is Bessel-K with order $\xi$, $\xi \in [1/5, 5]$ \\
   \texttt{"cauchy"} & $(1 + \eta^2)^{-\xi}$, $\xi > 0$ \\
-  \texttt{"pexonential"} & $exp(-h^\xi / \phi)$, $\xi \in (0, 2]$ \\
+  \texttt{"pexponential"} & $exp(-h^\xi / \phi)$, $\xi \in (0, 2]$ \\
   \texttt{"none"} & $0$ \\
   \hline
   \end{tabular}

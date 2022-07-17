@@ -33,14 +33,13 @@ library(spmodel)
 Install the most recent development version of `spmodel` from GitHub with package vignettes by running
 ```r
 install the most recent development version from GitHub with package vignettes
-devtools::install_github("USEPA/spmodel", build_vignettes=TRUE)
+devtools::install_github("USEPA/spmodel", ref = "main", build_vignettes=TRUE)
 ```
 
 View the vignettes in RStudio by running
 ```r
 vignette("basics", "spmodel") # an overview of basic features
-vignette("advanced", "spmodel") # an overview of advanced features
-vignette("guide", "spmodel") # a detailed guide with relevant methodological background
+vignette("guide", "spmodel") # a detailed guide with to spmodel
 vignette("technical", "spmodel") # technical details regarding many functions
 ```
 
@@ -59,14 +58,14 @@ citation(package = "spmodel")
 #> 
 #> To cite spmodel in publications use:
 #> 
-#>   Dumelle, Michael, Higham, Matt, and Ver Hoef, Jay M.. (2022).
+#>   Dumelle, Michael., Higham, Matt., and Ver Hoef, Jay M. (2022).
 #>   spmodel: Spatial statistical models. R package version 0.1.0.
 #> 
 #> A BibTeX entry for LaTeX users is
 #> 
 #>   @Manual{,
 #>     title = {spmodel: Spatial statistical models},
-#>     author = {Michael Dumelle and Matt Higham and Jay M. Ver Hoef},
+#>     author = {Michael Dumelle and Matt Higham and Jay M. {Ver Hoef}},
 #>     year = {2022},
 #>     note = {R package version 0.1.0},
 #>   }
@@ -74,7 +73,7 @@ citation(package = "spmodel")
 
 ## Code Coverage
 
-The [covr](https://cran.r-project.org/package=covr) package measures the percentage of code being exercised by a set of tests as an indirect measure of test quality and completeness. spmodel's code coverage is 95.51%.
+The [covr](https://cran.r-project.org/package=covr) package measures the percentage of code being exercised by a set of tests as an indirect measure of test quality and completeness. spmodel's code coverage is 95.66%.
 
 ## Package Contributions
 

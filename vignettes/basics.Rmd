@@ -48,19 +48,19 @@ There are two additional `spmodel` vignettes:
 
 # The Data
 
-Many of the data sets we use in this vignette are `sf` objects. `sf` objects are data frames (or tibbles) with a special structure that store spatial information. They are built using the sf [@pebesma2018sf] package, which is installed alongside `spmodel`. We will use four data sets throughout this vignette:
+Many of the data sets we use in this vignette are `sf` objects. `sf` objects are data frames (or tibbles) with a special structure that stores spatial information. They are built using the sf [@pebesma2018sf] package, which is installed alongside `spmodel`. We will use four data sets throughout this vignette:
 
 * `moss`: An `sf` object with heavy metal concentrations in Alaska.
 * `sulfate`: An `sf` object with sulfate measurements in the conterminous United States.
-* `sulfate_preds`: An `sf` object with locations at which sulfate predictions in the conterminous United States are desired.
-* `caribou`: A `tibble` (a special `data.frame`) with data on a caribou foraging experiment in Alaska.
+* `sulfate_preds`: An `sf` object with locations to predict sulfate measurements in the conterminous United States.
+* `caribou`: A `tibble` (a special `data.frame`) for a caribou foraging experiment in Alaska.
 
 We will create visualizations using ggplot2 [@wickham2016ggplot2], which we load by running
 ```{r, eval = FALSE}
 library(ggplot2)
 ```
 
-ggplot2 is only installed alongside `spmodel` when `dependencies = TRUE` in `install.packages()`, so check that it is installed before proceeding.
+ggplot2 is only installed alongside `spmodel` when `dependencies = TRUE` in `install.packages()`, so check that it is installed before reproducing any visualizations in this vignette.
 
 # Spatial Linear Models
 

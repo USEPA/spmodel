@@ -51,7 +51,7 @@ We will create visualizations using ggplot2 [@wickham2016ggplot2], which we load
 library(ggplot2)
 ```
 
-ggplot2 is only installed alongside `spmodel` when `dependencies = TRUE` in `install.packages()`, so check that it is installed before proceeding.
+ggplot2 is only installed alongside `spmodel` when `dependencies = TRUE` in `install.packages()`, so check that it is installed before reproducing any visualizations in this vignette.
 
 # The Spatial Linear Model {#sec:theomodel}
 

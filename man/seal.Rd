@@ -7,7 +7,7 @@
 \format{
 A \code{sf} object with 62 rows and 2 columns:
 \describe{
-\item{log_trend: }{The log of the estimated harbor seal abundance trends.}
+\item{log_trend: }{The log of the estimated harbor-seal trends from abundance data.}
 \item{geometry: }{\code{POLYGON} geometry representing polygons in an Alaska
 Albers projection (EPSG: 3338).}
 }
@@ -21,7 +21,7 @@ The data were used in the publication listed in References.
 seal
 }
 \description{
-Estimated harbor seal abundance trends in southeast Alaska, USA.
+Estimated harbor-seal trends from abundance data in southeast Alaska, USA.
 }
 \references{
 Ver Hoef, J.M., Peterson, E. E., Hooten, M. B., Hanks, E. M., and Fortin, M.-J. 2018.

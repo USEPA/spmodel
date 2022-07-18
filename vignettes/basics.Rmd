@@ -52,7 +52,7 @@ Many of the data sets we use in this vignette are `sf` objects. `sf` objects are
 
 * `moss`: An `sf` object with heavy metal concentrations in Alaska.
 * `sulfate`: An `sf` object with sulfate measurements in the conterminous United States.
-* `sulfate_preds`: An `sf` object with locations to predict sulfate measurements in the conterminous United States.
+* `sulfate_preds`: An `sf` object with locations at which to predict sulfate measurements in the conterminous United States.
 * `caribou`: A `tibble` (a special `data.frame`) for a caribou foraging experiment in Alaska.
 
 We will create visualizations using ggplot2 [@wickham2016ggplot2], which we load by running
@@ -95,7 +95,7 @@ ggplot(moss, aes(color = log_Zn)) +
   scale_color_viridis_c()
 ```
 
-Log zinc concentration appears highest in the middle of the spatial domain, which has a road running through it. We fit a spatial linear model regressing log zinc concentration on the log distance to the road using an exponential spatial covariance function by running
+Log zinc concentration appears highest in the middle of the spatial domain, which has a road running through it. We fit a spatial linear model regressing log zinc concentration on log distance to the road using an exponential spatial covariance function by running
 ```{r}
 spmod <- splm(log_Zn ~ log_dist2road, data = moss, spcov_type = "exponential")
 ```
@@ -117,7 +117,7 @@ We summarize the fitted model by running
 summary(spmod)
 ```
 
-Similar to summaries of `lm()` objects, summaries of `splm()` objects include the original function call, residuals, and a coefficients table of fixed effects. The log zinc concentration appears to significantly decrease with log distance from the road, as evidenced by the small p-value associated with the asymptotic z-test. A pseudo r-squared is also returned, which quantifies the proportion of variability explained by the fixed effects.
+Similar to summaries of `lm()` objects, summaries of `splm()` objects include the original function call, residuals, and a coefficients table of fixed effects. Log zinc concentration appears to significantly decrease with log distance from the road, as evidenced by the small p-value associated with the asymptotic z-test. A pseudo r-squared is also returned, which quantifies the proportion of variability explained by the fixed effects.
 
 In the remainder of this subsection, we describe the broom [@robinson2021broom] functions `tidy()`, `glance()` and `augment()`. `tidy()` tidies coefficient output in a convenient `tibble`, `glance()` glances at model-fit statistics, and `augment()` augments the data with fitted model diagnostics.
 
@@ -244,7 +244,7 @@ Here we list some commonly used `spmodel` functions.
 * `AIC()`: Compute the AIC.
 * `AICc()`: Compute the AICc.
 * `anova()`: Perform an analysis of variance.
-* `augment()`: Augment data with diagnostics or predictions.
+* `augment()`: Augment data with diagnostics or new data with predictions.
 * `coef()`: Return coefficients.
 * `confint()`: Compute confidence intervals.
 * `deviance()`: Compute the deviance.
@@ -255,8 +255,8 @@ Here we list some commonly used `spmodel` functions.
 * `hatvalues()`: Compute leverage (hat) values.
 * `logLik()`: Compute the log-likelihood.
 * `loocv()`: Perform leave-one-out cross validation.
-* `plot()`: Create plots.
-* `predict()`: Compute predictions and confidence / prediction intervals.
+* `plot()`: Create fitted model plots.
+* `predict()`: Compute predictions and prediction intervals.
 * `pseudoR2()`: Compute the pseudo r-squared.
 * `residuals()`: Compute residuals.
 * `spautor()`: Fit a spatial autoregressive model for areal data.

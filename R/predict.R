@@ -209,8 +209,13 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
   attr(newdata_model, "contrasts") <- attr_contrasts
 
   # storing newdata as a list
-  newdata_list <- split(newdata, seq_len(NROW(newdata)))
+  newdata_rows_list <- split(newdata, seq_len(NROW(newdata)))
 
+  # storing newdata as a list
+  newdata_model_list <- split(newdata_model, seq_len(NROW(newdata)))
+
+  # storing newdata as a list
+  newdata_list <- mapply(x = newdata_rows_list, y = newdata_model_list, FUN = function(x, y) list(row = x, x0 = y), SIMPLIFY = FALSE)
 
 
   if (interval %in% c("none", "prediction")) {
@@ -797,7 +802,7 @@ predict_spautor <- function(object, se.fit = FALSE, interval,
 
 
 
-get_pred_splm <- function(newdata_row, se.fit, interval, formula, obdata, xcoord, ycoord,
+get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoord, ycoord,
                           spcov_params_val, random, randcov_params_val, reform_bar2_list,
                           Z_index_obdata_list, reform_bar1_list, Z_val_obdata_list, partition_factor,
                           reform_bar2, partition_index_obdata, cov_lowchol,
@@ -808,7 +813,7 @@ get_pred_splm <- function(newdata_row, se.fit, interval, formula, obdata, xcoord
   # storing partition vector
   partition_vector <- partition_vector(partition_factor,
     data = obdata,
-    newdata = newdata_row, reform_bar2 = reform_bar2,
+    newdata = newdata_list$row, reform_bar2 = reform_bar2,
     partition_index_data = partition_index_obdata
   )
 
@@ -819,12 +824,12 @@ get_pred_splm <- function(newdata_row, se.fit, interval, formula, obdata, xcoord
     partition_vector <- Matrix(1, nrow = 1, ncol = NROW(obdata))
   }
 
-  dist_vector <- spdist_vectors(newdata_row, obdata, xcoord, ycoord, dim_coords)
+  dist_vector <- spdist_vectors(newdata_list$row, obdata, xcoord, ycoord, dim_coords)
 
   # subsetting data if method distance
   if (local$method == "distance") {
     # nn_list <- nabor::knn(cbind(obdata[[xcoord]], obdata[[ycoord]]),
-    #                             cbind(newdata_row[[xcoord]], newdata_row[[ycoord]]), k = max(local$size, NROW(data)))
+    #                             cbind(newdata_list$row[[xcoord]], newdata_list$row[[ycoord]]), k = max(local$size, NROW(data)))
     # dist_vector <- nn_list$nn.dists
     # nn_index <- as.vector(nn_list$nn.idx)
     # obdata <- obdata[nn_index, , drop = FALSE]
@@ -836,7 +841,7 @@ get_pred_splm <- function(newdata_row, se.fit, interval, formula, obdata, xcoord
 
   # making random vector if necessary
   if (!is.null(randcov_params_val)) {
-    randcov_vector_val <- randcov_vector(randcov_params_val, obdata, newdata_row, reform_bar2_list, Z_index_obdata_list)
+    randcov_vector_val <- randcov_vector(randcov_params_val, obdata, newdata_list$row, reform_bar2_list, Z_index_obdata_list)
   } else {
     randcov_vector_val <- NULL
   }
@@ -875,7 +880,7 @@ get_pred_splm <- function(newdata_row, se.fit, interval, formula, obdata, xcoord
   SqrtSigInv_y <- forwardsolve(cov_lowchol, y)
   residuals_pearson <- SqrtSigInv_y - SqrtSigInv_X %*% betahat
   SqrtSigInv_c0 <- forwardsolve(cov_lowchol, c0)
-  x0 <- model.matrix(formula(delete.response(terms(formula))), newdata_row, contrasts = contrasts)
+  x0 <- newdata_list$x0 # model.matrix(formula(delete.response(terms(formula))), newdata_list$row, contrasts = contrasts)
 
   fit <- as.numeric(x0 %*% betahat + Matrix::crossprod(SqrtSigInv_c0, residuals_pearson))
   H <- x0 - Matrix::crossprod(SqrtSigInv_c0, SqrtSigInv_X)

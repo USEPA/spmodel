@@ -19,13 +19,16 @@ use_gloglik_iid <- function(spcov_initial, estmethod, data_object, dist_matrix_l
     X <- do.call("rbind", data_object$X_list)
     y <- do.call("rbind", data_object$y_list)
   }
-  X_qr <- qr(X)
-  R <- qr.R(X_qr)
-  R_Inv <- solve(R)
-  betahat <- R_Inv %*% crossprod(qr.Q(X_qr), y)
-  r <- y - X %*% betahat
-  rt_r <- r^2
-  sse <- sum(rt_r)
+  # X_qr <- qr(X)
+  # R <- qr.R(X_qr)
+  # R_Inv <- solve(R)
+  # betahat <- R_Inv %*% crossprod(qr.Q(X_qr), y)
+  # r <- y - X %*% betahat
+  # rt_r <- r^2
+  # sse <- sum(rt_r)
+  lmod <- lm(data_object$formula, data = data_object$obdata)
+  sse <- sum(residuals(lmod)^2)
+  RX <- crossprod(X, X)
 
   # interesting discussion here -- should we return the ml likelihood
   # separate from the reml likelihood? We don't have to, as the
@@ -36,13 +39,14 @@ use_gloglik_iid <- function(spcov_initial, estmethod, data_object, dist_matrix_l
 
   l1 <- 0 # sum of the logs of the identity (all ones)
   l2 <- sse
-  l3 <- 2 * sum(log(diag(abs(R))))
+  # l3 <- 2 * sum(log(diag(abs(R))))
+  l3 <- sum(log(diag(abs(RX))))
 
   if (estmethod == "reml") {
     minustwologlik <- as.numeric(l1 + (data_object$n - data_object$p) * log(l2) + l3 + (data_object$n - data_object$p) * (1 + log(2 * pi / (data_object$n - data_object$p))))
     sigma2 <- sse / (data_object$n - data_object$p)
   } else if (estmethod == "ml") {
-    minustwologlik <- as.numeric(l1 + data_object$n * log(l2) + l3 + data_object$n * (1 + log(2 * pi / data_object$n)))
+    minustwologlik <- as.numeric(l1 + data_object$n * log(l2) + data_object$n * (1 + log(2 * pi / data_object$n)))
     sigma2 <- sse / data_object$n
   }
   spcov_params_val <- spcov_initial$initial

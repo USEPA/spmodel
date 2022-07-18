@@ -90,8 +90,8 @@ Additional notation is used in Section$~$\ref{sec:predict} (`predict()`):
 The `AIC()` and `AICc()` functions in `spmodel` are defined for restricted maximum likelihood and maximum likelihood estimation, which maximize a likelihood. They follow @hoeting2006model, defining spatial AIC and AICc as
 \begin{equation*}\label{eq:sp_aic}
   \begin{split}
-    \text{AIC} & = -2\ell(\hat{\boldsymbol{\Theta}}) + 2(|\hat{\boldsymbol{\Theta}}| + 1) \\
-    \text{AICc} & = -2\ell(\hat{\boldsymbol{\Theta}}) + 2n(|\hat{\boldsymbol{\Theta}}| + 1) / (n - |\hat{\boldsymbol{\Theta}}| - 2),
+    \text{AIC} & = -2\ell(\hat{\boldsymbol{\Theta}}) + 2(|\hat{\boldsymbol{\Theta}}|) \\
+    \text{AICc} & = -2\ell(\hat{\boldsymbol{\Theta}}) + 2n(|\hat{\boldsymbol{\Theta}}|) / (n - |\hat{\boldsymbol{\Theta}}| - 1),
   \end{split}
 \end{equation*}
 where $|\hat{\boldsymbol{\Theta}}|$ is the cardinality of $\hat{\boldsymbol{\Theta}}$.  For restricted maximum likelihood, $\hat{\boldsymbol{\Theta}} \equiv \{\hat{\boldsymbol{\theta}}\}$. For maximum likelihood, $\hat{\boldsymbol{\Theta}} \equiv \{\hat{\boldsymbol{\theta}}, \hat{\boldsymbol{\beta}}\}$ The discrepancy arises because restricted maximum likelihood integrates the fixed effects out of the likelihood, and so the likelihood does not depend on $\boldsymbol{\beta}$. 

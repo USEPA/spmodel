@@ -48,9 +48,9 @@ use the same fixed effects. To vary the covariance parameters and
 fixed effects simultaneously, use \code{"ml"}.
 
 Hoeting et al. (2006) defines that spatial AIC as
-\eqn{-2loglik + 2(npar + 1)} and the spatial AICc as
-\eqn{-2loglik + 2n(npar + 1) / (n - npar - 2)}, where \eqn{n} is the sample size
-and \eqn{npar} is the number of estimated parameters. For \code{"ml"}, \eqn{npar} is
+\eqn{-2loglik + 2(estparams)} and the spatial AICc as
+\eqn{-2loglik + 2n(estparams) / (n - estparams - 1)}, where \eqn{n} is the sample size
+and \eqn{estparams} is the number of estimated parameters. For \code{"ml"}, \eqn{estparams} is
 the number of estimated covariance parameters plus the number of estimated
 fixed effects. For \code{"reml"}, \eqn{npar} is the number of estimated covariance
 parameters.

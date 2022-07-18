@@ -68,3 +68,9 @@ test_that("Warnings appropriately return", {
   expect_warning(AICc(spmod0, spmod1))
   expect_warning(AICc(spmod1, spmod2))
 })
+
+test_that("Matches for lm", {
+  spmod <- splm(y ~ x, exdata, "none", estmethod = "ml")
+  lmod <- lm(y ~ x, exdata)
+  expect_equal(AIC(spmod), AIC(lmod))
+})

@@ -48,7 +48,7 @@ spcov_vector.triangular <- function(spcov_params, dist_vector) {
 #' @export
 spcov_vector.circular <- function(spcov_params, dist_vector) {
   min_val <- pmin(dist_vector / spcov_params[["range"]], 1)
-  spcov_vector_val <- spcov_params[["de"]] * (1 - (2 / pi * (min_val * sqrt(1 - min_val^2) + asin(sqrt(min_val))))) * (dist_vector <= spcov_params[["range"]])
+  spcov_vector_val <- spcov_params[["de"]] * (1 - (2 / pi * (min_val * sqrt(1 - min_val^2) + asin(min_val)))) * (dist_vector <= spcov_params[["range"]])
   # spcov_vector_val <- ifelse(dist_vector == 0, spcov_vector_val + spcov_params[["ie"]], spcov_vector_val)
   spcov_vector_val
 }

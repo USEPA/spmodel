@@ -329,7 +329,7 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
     n = data_object$n,
     npar = model_stats$npar, # number of estimated covariance parameters
     formula = formula,
-    terms = terms(formula),
+    terms = data_object$terms,
     call = match.call(),
     fn = as.character(as.list(match.call())[[1]]),
     estmethod = estmethod,

@@ -245,3 +245,87 @@ test_that("prediction values match for both approaches", {
   expect_equal(pred2, pred3)
 
 })
+
+test_that("prediction values match for both and lm comparison", {
+
+  # no poly
+  spmod1 <- splm(y ~ x, exdata, "none")
+  pred1 <- predict(spmod1, newdata = newexdata)
+  newexdata$y <- NA
+  exdata_with_NA <- rbind(exdata, newexdata)
+  spmod2 <- splm(y ~ x, exdata_with_NA, "none")
+  pred2 <- predict(spmod2)
+  pred3 <- predict(spmod2, newdata = spmod2$newdata)
+
+  spmod1$call <- NULL # calls are different among two splm() calls
+  spmod2$call <- NULL
+  names(pred1) <- NULL # names start at 1
+  names(pred2) <- NULL # names start at index in data
+  names(pred3) <- NULL # names start at 1
+  expect_equal(summary(spmod1), summary(spmod2))
+  expect_equal(pred1, pred2)
+  expect_equal(pred2, pred3)
+
+  ## compare lm
+  lmod1 <- lm(y ~ x, exdata)
+  lmpred1 <- predict(lmod1, newexdata)
+  expect_equal(unname(pred1), unname(lmpred1))
+
+  # poly raw
+  spmod1 <- splm(y ~ poly(x, degree = 2, raw = TRUE), exdata, "none")
+  pred1 <- predict(spmod1, newdata = newexdata)
+  newexdata$y <- NA
+  exdata_with_NA <- rbind(exdata, newexdata)
+  spmod2 <- splm(y ~ poly(x, degree = 2, raw = TRUE), exdata_with_NA, "none")
+  pred2 <- predict(spmod2)
+  pred3 <- predict(spmod2, newdata = spmod2$newdata)
+
+  spmod1$call <- NULL # calls are different among two splm() calls
+  spmod2$call <- NULL
+  names(pred1) <- NULL # names start at 1
+  names(pred2) <- NULL # names start at index in data
+  names(pred3) <- NULL # names start at 1
+  expect_equal(summary(spmod1), summary(spmod2))
+  expect_equal(pred1, pred2)
+  expect_equal(pred2, pred3)
+
+  ## compare lm
+  lmod1 <- lm(y ~ poly(x, degree = 2, raw = TRUE), exdata)
+  lmpred1 <- predict(lmod1, newexdata)
+  expect_equal(unname(pred1), unname(lmpred1))
+
+  # poly no raw
+  spmod1 <- splm(y ~ poly(x, degree = 2, raw = FALSE), exdata, "none")
+  pred1 <- predict(spmod1, newdata = newexdata)
+  newexdata$y <- NA
+  exdata_with_NA <- rbind(exdata, newexdata)
+  spmod2 <- splm(y ~ poly(x, degree = 2, raw = FALSE), exdata_with_NA, "none")
+  pred2 <- predict(spmod2)
+  pred3 <- predict(spmod2, newdata = spmod2$newdata)
+
+  spmod1$call <- NULL # calls are different among two splm() calls
+  spmod2$call <- NULL
+  names(pred1) <- NULL # names start at 1
+  names(pred2) <- NULL # names start at index in data
+  names(pred3) <- NULL # names start at 1
+  expect_equal(summary(spmod1), summary(spmod2))
+  expect_equal(pred1, pred2)
+  expect_equal(pred2, pred3)
+
+  ## compare lm
+  lmod1 <- lm(y ~ poly(x, degree = 2, raw = FALSE), exdata)
+  lmpred1 <- predict(lmod1, newexdata)
+  expect_equal(unname(pred1), unname(lmpred1))
+
+})
+
+test_that("prediction values match for both approaches autoregressive", {
+
+  spmod1 <- spautor(y ~ poly(x, degree = 2, raw = TRUE), exdata_Mpoly, "car")
+  expect_error(predict(spmod1), NA)
+
+  spmod1 <- spautor(y ~ poly(x, degree = 2, raw = FALSE), exdata_Mpoly, "car")
+  expect_error(predict(spmod1), NA)
+
+})
+

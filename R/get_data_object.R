@@ -167,6 +167,8 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
 
   # new model frame
   obdata_model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.omit)
+  # find terms
+  terms_val <- terms(obdata_model_frame)
   # find X
   X <- model.matrix(formula, obdata_model_frame, contrasts = dots$contrasts)
   # find p
@@ -273,7 +275,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     partition_factor_initial = partition_factor, partition_factor = local$partition_factor,
     partition_list = partition_list, randcov_initial = randcov_initial,
     randcov_list = randcov_list, randcov_names = randcov_names,
-    sf_column_name = sf_column_name, var_adjust = local$var_adjust,
+    sf_column_name = sf_column_name, terms = terms_val, var_adjust = local$var_adjust,
     X_list = X_list, xcoord = xcoord, y_list = y_list, ycoord = ycoord,
     ycoord_orig_name = ycoord_orig_name, ycoord_orig_val = ycoord_orig_val
   )
@@ -403,6 +405,8 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
 
   # store X and y
   obdata_model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.omit)
+  # store terms
+  terms_val <- terms(obdata_model_frame)
   dots <- list(...)
   if (!"contrasts" %in% names(dots)) {
     dots$contrasts <- NULL
@@ -474,7 +478,7 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
     obdata = obdata, observed_index = observed_index, ones = ones, newdata = newdata, p = p,
     partition_factor = partition_factor, partition_matrix = partition_matrix,
     randcov_initial = randcov_initial, randcov_names = randcov_names, randcov_Zs = randcov_Zs,
-    sf_column_name = sf_column_name, W = W, W_rowsums = W_rowsums, M = M,
+    sf_column_name = sf_column_name, terms = terms_val, W = W, W_rowsums = W_rowsums, M = M,
     rho_lb = rho_lb, rho_ub = rho_ub,
     X = X, y = y
   )

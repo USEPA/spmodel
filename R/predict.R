@@ -197,7 +197,8 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
   #   labels_newdata <- "1"
   # }
   # formula_newdata <- reformulate(labels_newdata)
-  formula_newdata <- update(formula(object), NULL ~ .)
+  # formula_newdata <- update(formula(object), NULL ~ .) # old method poly breaking
+  formula_newdata <- delete.response(terms(object))
   newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
   # assumes that predicted observations are not outside the factor levels
   newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
@@ -637,7 +638,8 @@ predict_spautor <- function(object, se.fit = FALSE, interval,
   #   labels_newdata <- "1"
   # }
   # formula_newdata <- reformulate(labels_newdata)
-  formula_newdata <- update(formula(object), NULL ~ .)
+  # formula_newdata <- update(formula(object), NULL ~ .) # old method poly breaking
+  formula_newdata <- delete.response(terms(object))
   newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
   # note that this will return an error if value of factor used to predict that was not used to fit
   newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)

@@ -11,7 +11,7 @@ output:
       number_sections: true
       toc: false
 vignette: >
-  %\VignetteIndexEntry{An Overview of Basic Features}
+  %\VignetteIndexEntry{An Overview of Basic Features in spmodel}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

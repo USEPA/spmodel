@@ -13,8 +13,8 @@ Conus Albers projection (EPSG: 5070).}
 }
 }
 \source{
-These data were used in the publication listed in References. Data were downloaded from the website
-(\href{http://nadp.slh.wisc.edu/NTN/}{links to: National Atmospheric Deposition Program}).
+These data were used in the publication listed in References. Data were downloaded from the
+National Atmospheric Deposition Program National Trends Network.
 }
 \usage{
 sulfate
@@ -26,7 +26,5 @@ Sulfate atmospheric deposition in the conterminous USA.
 Zimmerman, D.L. (1994). Statistical analysis of spatial data. Pages 375-402 in
 \emph{ Statistical Methods for Physical Science}, J. Stanford and
 S. Vardeman (eds.), Academic Press: New York.
-\href{https://www.elsevier.com/books/statistical-methods-for-physical-science/stanford/978-0-12-475973-2}{links
-to: Statistical analysis of spatial data}.
 }
 \keyword{datasets}

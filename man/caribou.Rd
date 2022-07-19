@@ -30,7 +30,5 @@ A caribou forage experiment.
 Lenart, E.A., Bowyer, R.T., Ver Hoef, J.M. and Ruess, R.W. 2002.
 Climate Change and Caribou: Effects of Summer Weather on Forage. Canadian
 Journal of Zoology 80: 664-678.
-(\href{https://www.nrcresearchpress.com/doi/abs/10.1139/z02-034#.XvweB3VKjmF}{links
-to: Climate Change and Caribou: Effects of Summer Weather on Forage})
 }
 \keyword{datasets}

@@ -28,17 +28,11 @@
 #'   Hasselbach, L.M., and Shiel, A. E. 2017. Trends in Spatial Patterns of Heavy
 #'   Metal Deposition on National Park Service Lands Along the Red Dog Mine Haul
 #'   Road, Alaska, 2001-2006. PLOS ONE 12(5):e0177936 DOI:10.1371/journal.pone.0177936
-#'   (\href{https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0177936}{links
-#'   to: Trends in Spatial Patterns of Heavy Metal Deposition on National
-#'   Park Service Lands Along the Red Dog Mine Haul Road, Alaska, 2001-2006.})
 #'
 #' Hasselbach, L., Ver Hoef, J.M., Ford, J., Neitlich, P., Berryman, S., Wolk B.
 #'   and Bohle, T. 2005. Spatial Patterns of Cadmium, Lead and Zinc Deposition
 #'   on National Park Service Lands in the Vicinity of Red Dog Mine, Alaska.
 #'   Science of the Total Environment 348: 211-230.
-#'   (\href{https://www.sciencedirect.com/science/article/pii/S0048969705000082}{links
-#'   to: Spatial Patterns of Cadmium, Lead and Zinc Deposition on National
-#'   Park Service Lands in the Vicinity of Red Dog Mine, Alaska.})
 "moss"
 
 
@@ -62,8 +56,6 @@
 #' @references Lenart, E.A., Bowyer, R.T., Ver Hoef, J.M. and Ruess, R.W. 2002.
 #'   Climate Change and Caribou: Effects of Summer Weather on Forage. Canadian
 #'   Journal of Zoology 80: 664-678.
-#'   (\href{https://www.nrcresearchpress.com/doi/abs/10.1139/z02-034#.XvweB3VKjmF}{links
-#'   to: Climate Change and Caribou: Effects of Summer Weather on Forage})
 "caribou"
 
 #' Estimated harbor-seal trends from abundance data in southeast Alaska, USA
@@ -83,8 +75,6 @@
 #' Ver Hoef, J.M., Peterson, E. E., Hooten, M. B., Hanks, E. M., and Fortin, M.-J. 2018.
 #'   Spatial Autoregressive Models for Statistical Inference from Ecological Data.
 #'   Ecological Monographs, 88: 36-59. DOI: 10.1002/ecm.1283.
-#'   \href{https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecm.1283}{links
-#'   to: Spatial Autoregressive Models for Statistical Inference from Ecological Data.}.
 "seal"
 
 #' Sulfate atmospheric deposition in the conterminous USA
@@ -98,14 +88,12 @@
 #'     Conus Albers projection (EPSG: 5070).}
 #' }
 #' @source
-#' These data were used in the publication listed in References. Data were downloaded from the website
-#' (\href{http://nadp.slh.wisc.edu/NTN/}{links to: National Atmospheric Deposition Program}).
+#' These data were used in the publication listed in References. Data were downloaded from the
+#' National Atmospheric Deposition Program National Trends Network.
 #' @references
 #' Zimmerman, D.L. (1994). Statistical analysis of spatial data. Pages 375-402 in
 #'   \emph{ Statistical Methods for Physical Science}, J. Stanford and
 #'   S. Vardeman (eds.), Academic Press: New York.
-#'   \href{https://www.elsevier.com/books/statistical-methods-for-physical-science/stanford/978-0-12-475973-2}{links
-#'   to: Statistical analysis of spatial data}.
 "sulfate"
 
 #' Locations at which to predict sulfate atmospheric deposition in the conterminous USA
@@ -118,12 +106,10 @@
 #'     Conus Albers projection (EPSG: 5070).}
 #' }
 #' @source
-#' These data were used in the publication listed in References. Data were downloaded from the website
-#' (\href{http://nadp.slh.wisc.edu/NTN/}{links to: National Atmospheric Deposition Program}).
+#' These data were used in the publication listed in References. Data were downloaded from
+#' the National Atmospheric Deposition Program National Trends Network.
 #' @references
 #' Zimmerman, D.L. (1994). Statistical analysis of spatial data. Pages 375-402 in
 #'   \emph{ Statistical Methods for Physical Science}, J. Stanford and
 #'   S. Vardeman (eds.), Academic Press: New York.
-#'   \href{https://www.elsevier.com/books/statistical-methods-for-physical-science/stanford/978-0-12-475973-2}{links
-#'   to: Statistical analysis of spatial data}.
 "sulfate_preds"

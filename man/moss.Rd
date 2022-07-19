@@ -40,16 +40,10 @@ Neitlich, P.N., Ver Hoef, J.M., Berryman, S. D., Mines, A., Geiser, L.H.,
 Hasselbach, L.M., and Shiel, A. E. 2017. Trends in Spatial Patterns of Heavy
 Metal Deposition on National Park Service Lands Along the Red Dog Mine Haul
 Road, Alaska, 2001-2006. PLOS ONE 12(5):e0177936 DOI:10.1371/journal.pone.0177936
-(\href{https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0177936}{links
-to: Trends in Spatial Patterns of Heavy Metal Deposition on National
-Park Service Lands Along the Red Dog Mine Haul Road, Alaska, 2001-2006.})
 
 Hasselbach, L., Ver Hoef, J.M., Ford, J., Neitlich, P., Berryman, S., Wolk B.
 and Bohle, T. 2005. Spatial Patterns of Cadmium, Lead and Zinc Deposition
 on National Park Service Lands in the Vicinity of Red Dog Mine, Alaska.
 Science of the Total Environment 348: 211-230.
-(\href{https://www.sciencedirect.com/science/article/pii/S0048969705000082}{links
-to: Spatial Patterns of Cadmium, Lead and Zinc Deposition on National
-Park Service Lands in the Vicinity of Red Dog Mine, Alaska.})
 }
 \keyword{datasets}

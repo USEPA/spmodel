@@ -4,7 +4,7 @@
 \name{spmodel-package}
 \alias{spmodel}
 \alias{spmodel-package}
-\title{spmodel: Spatial statistical models}
+\title{spmodel: Spatial Statistical Modeling and Prediction}
 \description{
 Fit, summarize, and predict for a variety spatial statistical models. Parameters
     are estimated using various methods. Additional modeling features include anisotropy,

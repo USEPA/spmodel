@@ -27,7 +27,5 @@ Estimated harbor-seal trends from abundance data in southeast Alaska, USA.
 Ver Hoef, J.M., Peterson, E. E., Hooten, M. B., Hanks, E. M., and Fortin, M.-J. 2018.
 Spatial Autoregressive Models for Statistical Inference from Ecological Data.
 Ecological Monographs, 88: 36-59. DOI: 10.1002/ecm.1283.
-\href{https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecm.1283}{links
-to: Spatial Autoregressive Models for Statistical Inference from Ecological Data.}.
 }
 \keyword{datasets}

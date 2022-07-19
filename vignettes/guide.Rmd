@@ -43,7 +43,7 @@ If you use `spmodel` in a formal publication or report, please cite it. Citing `
 citation(package = "spmodel")
 ```
 
-* An overview of basic features: `vignette("basics", "spmodel")`
+* An overview of basic features in `spmodel`: `vignette("basics", "spmodel")`
 * Technical details regarding many functions: `vignette("technical", "spmodel")`
 
 We will create visualizations using ggplot2 [@wickham2016ggplot2], which we load by running
@@ -488,7 +488,7 @@ part <- splm(
 
 ## Anisotropy {#sec:anisotropy}
 
-A spatial covariance function for point-referenced data is isotropic if it behaves similarly in all directions (i.e., is independent of direction) as a function of distance. An anisotropic covariance function does not behave similarly in all directions. Consider the spatial covariance imposed by an eastward-moving wind pattern. A one-unit distance in the x-direction likely means something different than a one-unit distance in the y-direction. Figure$~$\ref{fig:anisotropy} shows ellipses for an isotropic and anisotropic covariance function centered at the origin (a distance of zero).
+A spatial covariance function for point-referenced data is isotropic if it behaves similarly in all directions (i.e., is independent of direction) as a function of distance. An anisotropic covariance function does not behave similarly in all directions as a function of distance. Consider the spatial covariance imposed by an eastward-moving wind pattern. A one-unit distance in the x-direction likely means something different than a one-unit distance in the y-direction. Figure$~$\ref{fig:anisotropy} shows ellipses for an isotropic and anisotropic covariance function centered at the origin (a distance of zero).
 ```{r anisotropy, echo = FALSE, out.width = "49%", fig.show = "hold", fig.cap = "Ellipses for an isotropic (left) and anisotropic (right) covariance function centered at the origin. The black outline of each ellipse is a level curve of equal correlation."}
 # PRELIMINARIES 
 r <- 1

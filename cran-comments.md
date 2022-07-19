@@ -8,23 +8,39 @@ This is a new release.
 
 ## Test environments
 
-* GitHub actions [here](https://github.com/USEPA/spmodel/actions/workflows/check-standard.yaml)
-    * Status: Passing on macOS-latest (release), windows-latest (release),
-      ubuntu-latest (devel), ubuntu-latest (release), ubuntu-latest (oldrel-1)
+Several tests were run using rhub. Below are the results for windows, linux, and mac os builds.
+
+* `rhub::check_on_windows()`
+    * Platform: Windows Server 2022, R-release, 32/64 bit
+        * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-99017dcb99244033a618a51d6bd6d703
+        
+* `rhub::check_on_linux()`
+    * Platform: Ubuntu Linux 20.04 1 LTS, R-release, GCC
+        * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-0303d6e06eb14118addb3d67f64ccfa6
+        
+* `rhub::check(platform = "debian-gcc-release")`
+    * Platform: Debian Linux, R-release, GCC
+        * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-6337d208bae64f759b59f12849a9a95a
 
 * `rhub::check(platform = "macos-highsierra-release-cran")`
-* Platform: macOS 10.13.6 High Sierra, R-release, CRAN's setup
-        * Status: SUCCESS
-        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-7d4a601dba9a4727b5a1831d52374525
+    * Platform: macOS 10.13.6 High Sierra, R-release, CRAN's setup
+        * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-32149b52702848dd8b68840f963e8096
         
 * rhub tests were available on Solaris but not tested, as CRAN does not appear to
   perform Solaris checks anymore
   
-* Because rhub has temporariliy stopped Windows and Linux builders to sort out
-  billing issues, no rhub builds were tested on Windows or Linux. See 
-  [here](https://twitter.com/rhub_/status/1542039387369885698) for more
-  information.
-
+* The CRAN check may find the following `NOTE`s
+    * Possibly misspelled words in `DESCRIPTION`:
+        * anisotropy
+        * This word is spelled correctly.
+    * Problems when formatting `CITATION` entries:
+        * x:1: unexpected '}'
+        * An author has a two-word last name, so the `{}` are used in the `CITATION` file to help ensure proper BibTeX formatting.
+        
 ## R CMD check results
 
 Here is the output from `devtools::check(manual = TRUE)` on

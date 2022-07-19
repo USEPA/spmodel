@@ -53,8 +53,9 @@ spcov_matrix.triangular <- function(spcov_params, dist_matrix) {
 # spcov_matrix circular
 #' @export
 spcov_matrix.circular <- function(spcov_params, dist_matrix) {
-  min_val <- pmin(dist_matrix / spcov_params[["range"]], 1)
-  spcov_matrix_val <- spcov_params[["de"]] * (1 - (2 / pi * (min_val * sqrt(1 - min_val^2) + asin(sqrt(min_val))))) * (dist_matrix <= spcov_params[["range"]])
+  min_val <- pmin(dist_matrix / spcov_params[["range"]], 1) # equivalent to below but computationally simpler -- no NaN
+  # min_val <- dist_matrix / spcov_params[["range"]]
+  spcov_matrix_val <- spcov_params[["de"]] * (1 - (2 / pi * (min_val * sqrt(1 - min_val^2) + asin(min_val)))) * (dist_matrix <= spcov_params[["range"]])
   spcov_params[["ie"]] <- max(spcov_params[["ie"]], 1e-4 * spcov_params[["de"]])
   diag(spcov_matrix_val) <- diag(spcov_matrix_val) + spcov_params[["ie"]]
   spcov_matrix_val

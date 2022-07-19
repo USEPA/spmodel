@@ -38,7 +38,7 @@ get_initial_range.cubic <- function(spcov_type, max_halfdist) {
   max_halfdist
 }
 #' @export
-get_initial_range.penta <- function(spcov_type, max_halfdist) {
+get_initial_range.pentaspherical <- function(spcov_type, max_halfdist) {
   max_halfdist
 }
 #' @export

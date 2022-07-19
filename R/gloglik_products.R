@@ -84,7 +84,7 @@ gloglik_products.none <- gloglik_products.exponential
 #' @export
 gloglik_products.cubic <- gloglik_products.exponential
 #' @export
-gloglik_products.penta <- gloglik_products.exponential
+gloglik_products.pentaspherical <- gloglik_products.exponential
 #' @export
 gloglik_products.cosine <- gloglik_products.exponential
 #' @export

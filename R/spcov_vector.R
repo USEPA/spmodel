@@ -72,9 +72,9 @@ spcov_vector.cubic <- function(spcov_params, dist_vector) {
   spcov_vector_val
 }
 
-# spcov_vector penta
+# spcov_vector pentaspherical
 #' @export
-spcov_vector.penta <- function(spcov_params, dist_vector) {
+spcov_vector.pentaspherical <- function(spcov_params, dist_vector) {
   dist_ratio <- dist_vector / spcov_params[["range"]]
   spcov_vector_val <- spcov_params[["de"]] * (1 - (15 / 8 * dist_ratio) + (5 / 4 * dist_ratio^3) - (3 / 8 * dist_ratio^5)) * (dist_vector <= spcov_params[["range"]])
   # spcov_vector_val <- ifelse(dist_vector == 0, spcov_vector_val + spcov_params[["ie"]], spcov_vector_val)

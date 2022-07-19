@@ -12,10 +12,10 @@ splm_checks <- function(spcov_initial, xcoord_given, ycoord_given, estmethod, an
     stop("Invalid spatial covariance type for splm(). To fit models for autoregressive data, use spautor().", call. = FALSE)
   }
   # } else if (!spcov_type %in% c("exponential", "spherical", "gaussian", "triangular",
-  #                               "circular", "cubic", "penta", "cosine", "wave",
+  #                               "circular", "cubic", "pentaspherical", "cosine", "wave",
   #                               "jbessel", "gravity", "rquad", "magnetic",
   #                               "matern", "cauchy", "pexponential", "none")) {
-  #   stop("Invalid spatial covariance type. Valid spatial covariance types include \"exponential\", \"spherical\", \"gaussian\", \"triangular\", \"circular\", \"cubic\", \"penta\", \"cosine\", \"wave\", \"jbessel\", \"gravity\", \"rquad\", \"magnetic\", \"matern\", \"cauchy\", \"pexponential\", and \"none\".")
+  #   stop("Invalid spatial covariance type. Valid spatial covariance types include \"exponential\", \"spherical\", \"gaussian\", \"triangular\", \"circular\", \"cubic\", \"pentaspherical\", \"cosine\", \"wave\", \"jbessel\", \"gravity\", \"rquad\", \"magnetic\", \"matern\", \"cauchy\", \"pexponential\", and \"none\".")
   # }
 
   if (spcov_type %in% c("triangular", "cosine") && ycoord_given) {

@@ -95,8 +95,8 @@ test_that("the simulation runs for cubic", {
   expect_vector(sprnorm(spcov_params_val, data = exdata, mean = 4, xcoord = xcoord, ycoord = ycoord))
 })
 
-test_that("the simulation runs for penta", {
-  spcov_params_val <- spcov_params("penta", de = 1, ie = 1, range = 1)
+test_that("the simulation runs for pentaspherical", {
+  spcov_params_val <- spcov_params("pentaspherical", de = 1, ie = 1, range = 1)
   expect_vector(sprnorm(spcov_params_val, data = exdata, mean = 4, xcoord = xcoord, ycoord = ycoord))
 })
 

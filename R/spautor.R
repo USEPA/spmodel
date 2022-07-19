@@ -58,14 +58,15 @@
 #'   is required, the default is the identity matrix.
 #' @param ... Other arguments to \code{stats::optim()}.
 #'
-#' @details The spatial autoregressive model can be written as
+#' @details The spatial linear model for areal data (i.e., spatial autoregressive model)
+#'   can be written as
 #'   \eqn{y = X \beta + \tau + \epsilon}, where X is the fixed effects design
 #'   matrix, \eqn{\beta} are the fixed effects, \eqn{\tau} is random error that is
 #'   spatially dependent, and \eqn{\epsilon} is random error that is spatially
 #'   independent. Together, \eqn{\tau} and \eqn{\epsilon} are modeled using
 #'   a spatial covariance function, expressed as
 #'   \eqn{de * R + ie * I}, where \eqn{de} is the dependent error variance, \eqn{R}
-#'   is a correlation matrix that depends the neighboring structure among observations,
+#'   is a matrix that controls the dependence structure among observations,
 #'   \eqn{ie} is the independent error variance, and \eqn{I} is
 #'   an identity matrix. Note that \eqn{de} and \eqn{ie} must be non-negative while \eqn{range}
 #'   must be between the reciprocal of the maximum

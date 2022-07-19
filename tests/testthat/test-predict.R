@@ -144,7 +144,7 @@ test_that("Prediction works for other covariances", {
   smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "cubic", estmethod = "reml")
   expect_equal(length(predict(smod, newexdata)), NROW(newexdata))
 
-  smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "penta", estmethod = "reml")
+  smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "pentaspherical", estmethod = "reml")
   expect_equal(length(predict(smod, newexdata)), NROW(newexdata))
 
   smod <- splm(y ~ x, exdata, xcoord = xcoord, spcov_type = "cosine", estmethod = "reml")

@@ -87,7 +87,7 @@ spcov_orig2optim.none <- spcov_orig2optim.exponential
 #' @export
 spcov_orig2optim.cubic <- spcov_orig2optim.exponential
 #' @export
-spcov_orig2optim.penta <- spcov_orig2optim.exponential
+spcov_orig2optim.pentaspherical <- spcov_orig2optim.exponential
 #' @export
 spcov_orig2optim.cosine <- spcov_orig2optim.exponential
 #' @export

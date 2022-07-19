@@ -6,7 +6,7 @@
 #' @param spcov_type The spatial covariance function type. Available options include
 #'   \code{"exponential"}, \code{"spherical"}, \code{"gaussian"},
 #'   \code{"triangular"}, \code{"circular"}, \code{"cubic"},
-#'   \code{"penta"}, \code{"cosine"}, \code{"wave"},
+#'   \code{"pentaspherical"}, \code{"cosine"}, \code{"wave"},
 #'   \code{"jbessel"}, \code{"gravity"}, \code{"rquad"},
 #'   \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 #'   \code{"car"}, \code{"sar"}, and \code{"none"}.
@@ -44,7 +44,7 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     stop("spcov_type must be specified", call. = FALSE)
   } else if (!spcov_type %in% c(
     "exponential", "spherical", "gaussian", "triangular", "circular",
-    "none", "cubic", "penta", "cosine", "wave", "matern", "car", "sar", "jbessel",
+    "none", "cubic", "pentaspherical", "cosine", "wave", "matern", "car", "sar", "jbessel",
     "gravity", "rquad", "magnetic", "cauchy", "pexponential"
   )) {
     stop(paste(spcov_type), "is not a valid spatial covariance function.")
@@ -130,7 +130,7 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
   # spcov_params_val_remove <- c(1, which(names(spcov_params_val) == "spcov_type"))
   # spcov_params_val <- spcov_params_val[-spcov_params_val_remove]
   # spcov_params_val <- lapply(spcov_params_val, eval)
-  if (spcov_type %in% c("exponential", "spherical", "gaussian", "triangular", "circular", "none", "cubic", "penta", "cosine", "wave", "jbessel", "gravity", "rquad", "magnetic")) {
+  if (spcov_type %in% c("exponential", "spherical", "gaussian", "triangular", "circular", "none", "cubic", "pentaspherical", "cosine", "wave", "jbessel", "gravity", "rquad", "magnetic")) {
     extra <- NULL
   }
   if (spcov_type %in% c("car", "sar")) {

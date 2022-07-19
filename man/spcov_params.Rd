@@ -10,7 +10,7 @@ spcov_params(spcov_type, de, ie, range, extra, rotate = 0, scale = 1)
 \item{spcov_type}{The spatial covariance function type. Available options include
 \code{"exponential"}, \code{"spherical"}, \code{"gaussian"},
 \code{"triangular"}, \code{"circular"}, \code{"cubic"},
-\code{"penta"}, \code{"cosine"}, \code{"wave"},
+\code{"pentaspherical"}, \code{"cosine"}, \code{"wave"},
 \code{"jbessel"}, \code{"gravity"}, \code{"rquad"},
 \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 \code{"car"}, \code{"sar"}, and \code{"none"}.}

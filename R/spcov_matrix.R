@@ -79,9 +79,9 @@ spcov_matrix.cubic <- function(spcov_params, dist_matrix) {
   spcov_matrix_val
 }
 
-# spcov_matrix penta
+# spcov_matrix pentaspherical
 #' @export
-spcov_matrix.penta <- function(spcov_params, dist_matrix) {
+spcov_matrix.pentaspherical <- function(spcov_params, dist_matrix) {
   dist_ratio <- dist_matrix / spcov_params[["range"]]
   spcov_matrix_val <- spcov_params[["de"]] * (1 - (15 / 8 * dist_ratio) + (5 / 4 * dist_ratio^3) - (3 / 8 * dist_ratio^5)) * (dist_matrix <= spcov_params[["range"]])
   spcov_params[["ie"]] <- max(spcov_params[["ie"]], 1e-4 * spcov_params[["de"]])

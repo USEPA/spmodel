@@ -72,7 +72,7 @@ Spatial linear models for a quantitative response vector $\mathbf{y}$ have spati
 
 where $\mathbf{X}$ is a matrix of explanatory variables (usually including a column of 1's for an intercept), $\boldsymbol{\beta}$ is a vector of fixed effects that describe the average impact of $\mathbf{X}$ on $\mathbf{y}$, $\boldsymbol{\tau}$ is a vector of spatially dependent (correlated) random errors, and $\boldsymbol{\epsilon}$ is a vector of spatially independent (uncorrelated) random errors. The spatial dependence of $\boldsymbol{\tau}$ is explicitly specified using a spatial covariance function that incorporates the variance of $\boldsymbol{\tau}$, often called the partial sill, and a range parameter that controls the behavior of the spatial covariance. The variance of $\boldsymbol{\epsilon}$ is often called the nugget. 
 
-Spatial linear models are fit in `spmodel` for point-referenced and areal data. Data are point-referenced when the elements in $\mathbf{y}$ are observed at point-locations indexed by x-coordinates and y-coordinates on a spatially continuous surface with an infinite number of locations. The `splm()` function is used to fit spatial linear models for point-referenced data. Data are areal when the elements in $\mathbf{y}$ are observed as part of a finite network of polygons whose connections are indexed by a neighborhood structure. For example, the polygons may represent counties in a state who are neighbors if they share at least one boundary. The `spautor()` function is used to fit spatial linear models for areal data (these are often called spatial autoregressive models). This vignette focuses on spatial linear models for point-referenced data, though `spmodel`'s other vignettes discuss spatial linear models for areal data.
+Spatial linear models are fit in `spmodel` for point-referenced and areal data. Data are point-referenced when the elements in $\mathbf{y}$ are observed at point-locations indexed by x-coordinates and y-coordinates on a spatially continuous surface with an infinite number of locations. The `splm()` function is used to fit spatial linear models for point-referenced data (these are often called geostatistical models). Data are areal when the elements in $\mathbf{y}$ are observed as part of a finite network of polygons whose connections are indexed by a neighborhood structure. For example, the polygons may represent counties in a state who are neighbors if they share at least one boundary. The `spautor()` function is used to fit spatial linear models for areal data (these are often called spatial autoregressive models). This vignette focuses on spatial linear models for point-referenced data, though `spmodel`'s other vignettes discuss spatial linear models for areal data.
 
 The `splm()` function has similar syntax and output as the commonly used `lm()` function used to fit non-spatial linear models. `splm()` generally requires at least three arguments:
 
@@ -259,8 +259,8 @@ Here we list some commonly used `spmodel` functions.
 * `predict()`: Compute predictions and prediction intervals.
 * `pseudoR2()`: Compute the pseudo r-squared.
 * `residuals()`: Compute residuals.
-* `spautor()`: Fit a spatial autoregressive model for areal data.
-* `splm()`: Fit a spatial linear model for point-referenced data.
+* `spautor()`: Fit a spatial linear model for areal data (i.e., spatial autoregressive model).
+* `splm()`: Fit a spatial linear model for point-referenced data (i.e., geostatistical model).
 * `sprnorm()`: Simulate spatially correlated normal (Gaussian) random variables.
 * `summary()`: Summarize fitted models.
 * `tidy()`: Tidy fitted models.

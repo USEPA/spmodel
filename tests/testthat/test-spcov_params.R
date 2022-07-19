@@ -16,7 +16,7 @@ test_that("spcov_params works", {
   expect_error(spcov_params("triangular", de = 1, ie = 1, range = 1), NA)
   expect_error(spcov_params("circular", de = 1, ie = 1, range = 1), NA)
   expect_error(spcov_params("cubic", de = 1, ie = 1, range = 1), NA)
-  expect_error(spcov_params("penta", de = 1, ie = 1, range = 1), NA)
+  expect_error(spcov_params("pentaspherical", de = 1, ie = 1, range = 1), NA)
   expect_error(spcov_params("cosine", de = 1, ie = 1, range = 1), NA)
   expect_error(spcov_params("wave", de = 1, ie = 1, range = 1), NA)
   expect_error(spcov_params("jbessel", de = 1, ie = 1, range = 1), NA)

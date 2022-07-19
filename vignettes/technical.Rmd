@@ -416,7 +416,7 @@ because $(\mathbf{I} - \mathbf{H}^*)$ is symmetric and idempotent. Note that the
 
 # `spautor()` and `splm()` {#sec:spmod}
 
-Next we discuss technical details for the `spautor()` and `splm()` functions. Many of the details for the two functions are the same, though occasional differences are noted in the following subsection headers. Specifically, `spautor()` and `splm()` are for different data types and use different covariance functions. `spautor()` is for spatial linear models with areal data (i.e., spatial autoregressive models) and `splm()` is for spatial linear models with point-referenced data. There are also a few features `splm()` has that `spautor()` does not: semivariogram-based estimation, random effects, anisotropy, and big data approximations.
+Next we discuss technical details for the `spautor()` and `splm()` functions. Many of the details for the two functions are the same, though occasional differences are noted in the following subsection headers. Specifically, `spautor()` and `splm()` are for different data types and use different covariance functions. `spautor()` is for spatial linear models with areal data (i.e., spatial autoregressive models) and `splm()` is for spatial linear models with point-referenced data (i.e., geostatistical models). There are also a few features `splm()` has that `spautor()` does not: semivariogram-based estimation, random effects, anisotropy, and big data approximations.
 
 ## `spautor()` Spatial Covariance Functions
 
@@ -470,7 +470,7 @@ where $\sigma^2_{de}$ $(\geq 0)$ is the spatially dependent (correlated) varianc
   \texttt{"triangular"} & $(1 - \eta)\mathbbm{1}\{h \leq \phi \}$ \\
   \texttt{"circular"} & $(1 - \frac{2}{\pi}[m\sqrt{1 - m^2} + sin^{-1}\{\sqrt{m}\}])\mathbbm{1}\{h \leq \phi \}, m = min(\eta, 1)$ \\
   \texttt{"cubic"} & $(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75 \eta^7)\mathbbm{1}\{h \leq \phi \}$ \\
-  \texttt{"penta"} & $(1 - 1.875\eta + 1.250\eta^3 - 0.375\eta^5)\mathbbm{1}\{h \leq \phi \}$ \\
+  \texttt{"pentaspherical"} & $(1 - 1.875\eta + 1.250\eta^3 - 0.375\eta^5)\mathbbm{1}\{h \leq \phi \}$ \\
   \texttt{"cosine"} & $ cos(\eta) $ \\
   \texttt{"wave"} & $\frac{sin(\eta)}{\eta}\mathbbm{1}\{h > 0 \} + \mathbbm{1}\{h = 0 \}$ \\
   \texttt{"jbessel"} & $B_j(h\phi), B_j$ is Bessel-J \\

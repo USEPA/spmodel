@@ -294,7 +294,7 @@ cov_initial_search.circular <- cov_initial_search.exponential
 #' @export
 cov_initial_search.cubic <- cov_initial_search.exponential
 #' @export
-cov_initial_search.penta <- cov_initial_search.exponential
+cov_initial_search.pentaspherical <- cov_initial_search.exponential
 #' @export
 cov_initial_search.cosine <- cov_initial_search.exponential
 #' @export

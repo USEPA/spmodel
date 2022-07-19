@@ -17,7 +17,7 @@ spautor_checks <- function(spcov_type, W_given, data, estmethod) {
 
   if (spcov_type %in% c(
     "exponential", "spherical", "gaussian", "triangular",
-    "circular", "cubic", "penta", "cosine", "wave",
+    "circular", "cubic", "pentaspherical", "cosine", "wave",
     "jbessel", "gravity", "rquad", "magnetic",
     "matern", "cauchy", "pexponential", "none"
   )) {

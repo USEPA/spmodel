@@ -118,7 +118,7 @@ covariance functions are documented here,
 but methods exist for all other spatial covariance functions defined in
 \code{\link[=spcov_initial]{spcov_initial()}}. Syntax for the \code{exponential} method is the same
 as syntax for \code{spherical}, \code{gaussian}, \code{triangular},
-\code{circular}, \code{cubic}, \code{penta}, \code{cosine}, \code{wave},
+\code{circular}, \code{cubic}, \code{pentaspherical}, \code{cosine}, \code{wave},
 \code{jbessel}, \code{gravity}, \code{rquad}, \code{magnetic}, \code{matern},
 \code{cauchy}, and \code{pexponential} methods. Syntax for
 the \code{car} method is the same as syntax for the \code{sar} method. The

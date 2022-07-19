@@ -10,7 +10,7 @@ spcov_initial(spcov_type, de, ie, range, extra, rotate, scale, known)
 \item{spcov_type}{The spatial covariance function type. Available options include
 \code{"exponential"}, \code{"spherical"}, \code{"gaussian"},
 \code{"triangular"}, \code{"circular"}, \code{"cubic"},
-\code{"penta"}, \code{"cosine"}, \code{"wave"},
+\code{"pentaspherical"}, \code{"cosine"}, \code{"wave"},
 \code{"jbessel"}, \code{"gravity"}, \code{"rquad"},
 \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 \code{"car"}, \code{"sar"}, and \code{"none"}.}
@@ -72,7 +72,7 @@ eigenvalue of \code{W} and the reciprocal of the minimum eigenvalue of
 \item{triangular: }{\eqn{(1 - \eta) * I(h <= range)}}
 \item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(sqrt(m)))) * I(h <= range), m = min(\eta, 1)}}
 \item{cubic: }{\eqn{(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75\eta^7) * I(h <= range)}}
-\item{penta: }{\eqn{(1 - 1.875\eta + 1.25\eta^3 - 0.375\eta^5) * I(h <= range)}}
+\item{pentaspherical: }{\eqn{(1 - 1.875\eta + 1.25\eta^3 - 0.375\eta^5) * I(h <= range)}}
 \item{cosine: }{\eqn{cos(\eta)}}
 \item{wave: }{\eqn{sin(\eta) / \eta * I(h > 0) + I(h = 0)}}
 \item{jbessel: }{\eqn{Bj(h * range)}, Bj is Bessel-J function}

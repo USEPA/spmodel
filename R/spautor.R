@@ -45,7 +45,7 @@
 #' @param W Weight matrix specifying the neighboring structure used.
 #'   Not required if \code{data} is an \code{sf} polygon object,
 #'   as \code{W} is calculated internally. If calculated internally,
-#'   \code{W} is computed using [sf::st_intersects()].
+#'   \code{W} is computed using \code{sf::st_intersects()}.
 #' @param row_st A logical indicating whether row standardization be performed on
 #'   \code{W}. The default is \code{TRUE}.
 #' @param M M matrix satisfying the car symmetry condition. The car
@@ -56,7 +56,7 @@
 #'   \code{M} is required for car models
 #'   when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M},
 #'   is required, the default is the identity matrix.
-#' @param ... Other arguments to [stats::optim()].
+#' @param ... Other arguments to \code{stats::optim()}.
 #'
 #' @details The spatial autoregressive model can be written as
 #'   \eqn{y = X \beta + \tau + \epsilon}, where X is the fixed effects design

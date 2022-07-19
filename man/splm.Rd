@@ -54,8 +54,7 @@ Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 
 \item{spcov_initial}{An object from \code{\link[=spcov_initial]{spcov_initial()}} specifying initial and/or
-known values for the spatial covariance parameters.
-Not required if \code{spcov_type} is provided.}
+known values for the spatial covariance parameters.}
 
 \item{estmethod}{The estimation method. Available options include
 \code{"reml"} for restricted maximum likelihood, \code{"ml"} for maximum
@@ -79,7 +78,7 @@ computational times can significantly increase. The default is \code{FALSE}.}
 of the model. Terms are specified to the right of the \code{~ operator}.
 Each term has the structure \code{x1 + ... + xn | g1/.../gm}, where \code{x1 + ... + xn}
 specifies the model for the random effects and \code{g1/.../gm} is the grouping
-structure. Separate terms are separated by \code{+} and \strong{must} generally
+structure. Separate terms are separated by \code{+} and must generally
 be wrapped in parentheses. Random intercepts are added to each model
 implicitly when at least  one other variable is defined.
 If a random intercept is not desired, this must be explicitly
@@ -105,8 +104,8 @@ If \code{FALSE}, no big data approximation is implemented.
 If a list is provided, the following arguments detail the big
 data approximation:
 \itemize{
-\item{\code{index: }}{The grouping variable. Observations in different
-levels of \code{index} are assumed to have zero covariance for the
+\item{\code{index: }}{The group indexes. Observations in different
+levels of \code{index} are assumed to be uncorrelated for the
 purposes of estimation. If \code{index} is not provided, it is
 determined by specifying \code{method} and either \code{size} or \code{groups}.}
 \item{\code{method}: }{The big data approximation method used to determine \code{index}. Ignored
@@ -117,7 +116,7 @@ based on k-means clustering on the coordinates with \code{groups} clusters. The 
 is \code{"random"}. Note that both methods have a random component, which
 means that you may get different results from separate model fitting calls.
 To ensure consistent results, specify \code{index} or set a seed via
-\code{\link[base:Random]{base::set.seed()}}.}
+\code{base::set.seed()}.}
 \item{\code{size}: }{The number of observations in each \code{index} group
 when \code{method} is \code{"random"}. If the number of observations
 is not divisible by \code{size}, some levels get \code{size - 1} observations.
@@ -129,9 +128,9 @@ is specified. If \code{method} is \code{"kmeans"}, \code{groups}
 is the number of clusters.}
 \item{\code{var_adjust: }}{The approach for adjusting the variance-covariance
 matrix of the fixed effects. \code{"none"} for no adjustment, \code{"theoretical"}
-for the theoretically-correct (and computationally intensive) adjustment,
+for the theoretically-correct adjustment,
 \code{"pooled"} for the pooled adjustment, and \code{"empirical"} for the
-empirical adjustment.}
+empirical adjustment.} The default is \code{"theoretical"}.
 \item{\code{parallel}: }{If \code{TRUE}, parallel processing via the
 parallel package is automatically used. The default is \code{FALSE}.}
 \item{\code{ncores}: }{If \code{parallel = TRUE}, the number of cores to
@@ -143,7 +142,7 @@ If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 that \code{local} is transformed into
 \code{list(size = 50, method = "random", var_adjust = "theoretical", parallel = FALSE)}.}
 
-\item{...}{Other arguments to \code{\link[=esv]{esv()}} or \code{\link[stats:optim]{stats::optim()}}.}
+\item{...}{Other arguments to \code{\link[=esv]{esv()}} or \code{stats::optim()}.}
 }
 \value{
 A list with many components used to return information about
@@ -174,24 +173,24 @@ is a correlation matrix that depends on the distance between observations,
 \eqn{ie} is the independent error variance, and \eqn{I} is
 an identity matrix.
 
-\code{spcov_type} Details: Parametric forms for \eqn{R} are given below, where \eqn{distr = h / range}
+\code{spcov_type} Details: Parametric forms for \eqn{R} are given below, where \eqn{\eta = h / range}
 for \eqn{h} distance between observations:
 \itemize{
-\item{exponential: }{\eqn{exp(- distr )}}
-\item{spherical: }{\eqn{(1 - 1.5distr + 0.5distr^3) * I(h <= range)}}
-\item{gaussian: }{\eqn{exp(- distr^2 )}}
-\item{triangular: }{\eqn{(1 - distr) * I(h <= range)}}
-\item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(sqrt(m)))) * I(h <= range), m = min(distr, 1)}}
-\item{cubic: }{\eqn{(1 - 7distr^2 + 8.75distr^3 - 3.5distr^5 + 0.75distr^7) * I(h <= range)}}
-\item{penta: }{\eqn{(1 - 1.875distr + 1.25distr^3 - 0.375distr^5) * I(h <= range)}}
-\item{cosine: }{\eqn{cos(distr)}}
-\item{wave: }{\eqn{sin(distr) / distr * I(h > 0) + I(h = 0)}}
+\item{exponential: }{\eqn{exp(- \eta )}}
+\item{spherical: }{\eqn{(1 - 1.5\eta + 0.5\eta^3) * I(h <= range)}}
+\item{gaussian: }{\eqn{exp(- \eta^2 )}}
+\item{triangular: }{\eqn{(1 - \eta) * I(h <= range)}}
+\item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(sqrt(m)))) * I(h <= range), m = min(\eta, 1)}}
+\item{cubic: }{\eqn{(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75\eta^7) * I(h <= range)}}
+\item{penta: }{\eqn{(1 - 1.875\eta + 1.25\eta^3 - 0.375\eta^5) * I(h <= range)}}
+\item{cosine: }{\eqn{cos(\eta)}}
+\item{wave: }{\eqn{sin(\eta) / \eta * I(h > 0) + I(h = 0)}}
 \item{jbessel: }{\eqn{Bj(h * range)}, Bj is Bessel-J function}
-\item{gravity: }{\eqn{(1 + distr^2)^{-0.5}}}
-\item{rquad: }{\eqn{(1 + distr^2)^{-1}}}
-\item{magnetic: }{\eqn{(1 + distr^2)^{-1.5}}}
-\item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * distr)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
-\item{cauchy: }{\eqn{(1 + distr^2)^{-extra}}, \eqn{extra > 0}}
+\item{gravity: }{\eqn{(1 + \eta^2)^{-0.5}}}
+\item{rquad: }{\eqn{(1 + \eta^2)^{-1}}}
+\item{magnetic: }{\eqn{(1 + \eta^2)^{-1.5}}}
+\item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
+\item{cauchy: }{\eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}}
 \item{pexponential: }{\eqn{exp(h^{extra/range)}}, \eqn{0 < extra \le 2}}
 \item{none: }{\eqn{0}}
 }
@@ -240,7 +239,7 @@ for significant computational gains. Parallelization further speeds up
 computations. Both the \code{"random"} and \code{"kmeans"} values of \code{method}
 in \code{local} have random components. That means you may get slightly different
 results when using the big data approximation and rerunning \code{splm()} with the same code. For consistent results,
-either set a seed via \code{\link[base:Random]{base::set.seed()}} or specify \code{index} to \code{local}.
+either set a seed via \code{base::set.seed()} or specify \code{index} to \code{local}.
 
 Observations with \code{NA} response values are removed for model
 fitting, but their values can be predicted afterwards by running

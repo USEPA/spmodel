@@ -21,7 +21,7 @@ is \code{which = c(1, 2)}.}
 \description{
 Plot fitted model diagnostics such as residuals vs fitted values,
 quantile-quantile, scale-location, Cook's distance, residuals vs leverage,
-Cook's distance vs leverage, and empirical spatial covariance.
+Cook's distance vs leverage, and a fitted spatial covariance function.
 }
 \details{
 For \code{\link[=splm]{splm()}} and \code{\link[=spautor]{spautor()}}, the values of \code{which} make the
@@ -36,7 +36,7 @@ corresponding plot:
 }
 For \code{\link[=splm]{splm()}}, there is an additional value of \code{which}:
 \itemize{
-\item{7:}{ Empirical spatial covariance vs distance}
+\item{7:}{ Fitted spatial covariance function vs distance}
 }
 }
 \examples{

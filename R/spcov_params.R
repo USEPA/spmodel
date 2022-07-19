@@ -19,15 +19,16 @@
 #'   \code{"matern"}, \code{"cauchy"}, \code{"pexponential"}, \code{"car"}, or
 #'   \code{"sar"}.
 #' @param rotate Anisotropy rotation parameter (from 0 to \eqn{\pi} radians).
+#'   A value of 0 (the default) implies no rotation.
 #'   Not used if \code{spcov_type} is \code{"car"} or \code{"sar"}.
 #' @param scale Anisotropy scale parameter (from 0 to 1).
+#'   A value of 1 (the default) implies no scaling.
 #'   Not used if \code{spcov_type} is \code{"car"} or \code{"sar"}.
 #'
 #' @details
 #'   Generally, all arguments to \code{spcov_params} must be specified, though
 #'   default arguments are often chosen based on \code{spcov_type}.
-#'   For example, \code{rotate} and \code{scale} are assumed to be 0 and 1, respectively,
-#'   unless specified otherwise. When \code{spcov_type} is \code{car} or
+#'   When \code{spcov_type} is \code{car} or
 #'   \code{sar}, \code{ie} is assumed to be 0 unless specified otherwise.
 #'   For full parameterizations of all spatial covariance
 #'   functions, see [spcov_initial()].

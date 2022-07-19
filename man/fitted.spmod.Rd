@@ -33,8 +33,8 @@ are (generally) the best linear unbiased predictors of the spatial dependent and
 independent random error. When \code{type} is \code{"randcov"}, the fitted
 values for each level of each random effect are (generally) the best linear unbiased
 predictors of the corresponding random effect. The fitted values for \code{type}
-\code{"spcov"} and \code{"randcov"} can be used to assess assumptions
-for each component of the fitted model object (e.g., assess a Gaussian assumption).
+\code{"spcov"} and \code{"randcov"} can generally be used to check assumptions
+for each component of the fitted model object (e.g., check a Gaussian assumption).
 }
 \examples{
 spmod <- splm(z ~ water + tarp,

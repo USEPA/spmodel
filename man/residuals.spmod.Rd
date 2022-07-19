@@ -36,7 +36,7 @@ for the response: \eqn{y - X \hat{\beta}}. The Pearson residuals are the
 raw residuals pre-multiplied by their square (Cholesky) root.
 The standardized residuals are Pearson residuals divided by the square
 root of one minus the leverage (hat) value. The standardized residuals are often used to
-check model assumptions, as they mean zero and variance approximately one.
+check model assumptions, as they have mean zero and variance approximately one.
 
 \code{rstandard()} is an alias for \code{residuals(model, type = "standardized")}.
 }

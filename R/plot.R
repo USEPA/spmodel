@@ -2,7 +2,7 @@
 #'
 #' @description Plot fitted model diagnostics such as residuals vs fitted values,
 #'   quantile-quantile, scale-location, Cook's distance, residuals vs leverage,
-#'   Cook's distance vs leverage, and empirical spatial covariance.
+#'   Cook's distance vs leverage, and a fitted spatial covariance function.
 #'
 #' @param x A fitted model object from [splm()] or [spautor()].
 #' @param which An integer vector taking on values between 1 and 7, which indicates
@@ -25,7 +25,7 @@
 #'   }
 #'   For [splm()], there is an additional value of \code{which}:
 #'   \itemize{
-#'     \item{7:}{ Empirical spatial covariance vs distance}
+#'     \item{7:}{ Fitted spatial covariance function vs distance}
 #'   }
 #'
 #' @method plot spmod

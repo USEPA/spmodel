@@ -69,7 +69,7 @@ from different levels of the partition factor are uncorrelated.}
 \item{W}{Weight matrix specifying the neighboring structure used.
 Not required if \code{data} is an \code{sf} polygon object,
 as \code{W} is calculated internally. If calculated internally,
-\code{W} is computed using \code{\link[sf:geos_binary_pred]{sf::st_intersects()}}.}
+\code{W} is computed using \code{sf::st_intersects()}.}
 
 \item{row_st}{A logical indicating whether row standardization be performed on
 \code{W}. The default is \code{TRUE}.}
@@ -83,7 +83,7 @@ and \eqn{^{-1}} represents the inverse operator.
 when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M},
 is required, the default is the identity matrix.}
 
-\item{...}{Other arguments to \code{\link[stats:optim]{stats::optim()}}.}
+\item{...}{Other arguments to \code{stats::optim()}.}
 }
 \value{
 A list with many components used to return information about

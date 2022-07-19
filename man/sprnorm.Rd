@@ -122,7 +122,7 @@ as syntax for \code{spherical}, \code{gaussian}, \code{triangular},
 \code{jbessel}, \code{gravity}, \code{rquad}, \code{magnetic}, \code{matern},
 \code{cauchy}, and \code{pexponential} methods. Syntax for
 the \code{car} method is the same as syntax for the \code{sar} method. The
-\code{extra} parameter for car and sar models is ignored all observations have
+\code{extra} parameter for car and sar models is ignored when all observations have
 neighbors.
 }
 \examples{

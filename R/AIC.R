@@ -27,7 +27,7 @@
 #'   \eqn{-2loglik + 2n(estparams) / (n - estparams - 1)}, where \eqn{n} is the sample size
 #'   and \eqn{estparams} is the number of estimated parameters. For \code{"ml"}, \eqn{estparams} is
 #'   the number of estimated covariance parameters plus the number of estimated
-#'   fixed effects. For \code{"reml"}, \eqn{npar} is the number of estimated covariance
+#'   fixed effects. For \code{"reml"}, \eqn{estparams} is the number of estimated covariance
 #'   parameters.
 #'
 #' @return If just one object is provided, a numeric value with the corresponding
@@ -119,7 +119,7 @@ AIC.spmod <- function(object, ..., k = 2) {
       }
 
       # store degrees of freedom (parames estimated) and AIC
-      data.frame(df = x$npar, AIC = -2 * logLik(x) + k * (n_est_param))
+      data.frame(df = n_est_param, AIC = -2 * logLik(x) + k * (n_est_param))
     })
     # put all AIC data frames together
     AIC_val <- do.call("rbind", object_AIC)
@@ -205,7 +205,7 @@ AICc.spmod <- function(object, ..., k = 2) {
       }
 
       # store degrees of freedom (parames estimated) and AICc
-      data.frame(df = x$npar, AICc = -2 * logLik(x) + 2 * x$n * (n_est_param) / (x$n - n_est_param - 1))
+      data.frame(df = n_est_param, AICc = -2 * logLik(x) + 2 * x$n * (n_est_param) / (x$n - n_est_param - 1))
     })
     # put all AICc data frames together
     AICc_val <- do.call("rbind", object_AICc)

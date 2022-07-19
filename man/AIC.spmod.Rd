@@ -52,7 +52,7 @@ Hoeting et al. (2006) defines that spatial AIC as
 \eqn{-2loglik + 2n(estparams) / (n - estparams - 1)}, where \eqn{n} is the sample size
 and \eqn{estparams} is the number of estimated parameters. For \code{"ml"}, \eqn{estparams} is
 the number of estimated covariance parameters plus the number of estimated
-fixed effects. For \code{"reml"}, \eqn{npar} is the number of estimated covariance
+fixed effects. For \code{"reml"}, \eqn{estparams} is the number of estimated covariance
 parameters.
 }
 \examples{

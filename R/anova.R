@@ -44,12 +44,14 @@
 #'
 #' @return When one fitted model object is present, \code{anova()}
 #'   returns a data frame with degrees of
-#'   freedom, test statistics, and p-values (if \code{test = TRUE}) corresponding
+#'   freedom (\code{Df}), test statistics (\code{Chi2}), and p-values
+#'   (\code{Pr(>Chi2)} if \code{test = TRUE}) corresponding
 #'   to asymptotic Chi-squared hypothesis tests for each model term.
 #'
 #'   When two fitted model objects are present, \code{anova()} returns a data frame
-#'   with the difference in degrees of freedom between the full and reduced model, a test
-#'   statistic, and a p-value corresponding to the likelihood ratio test.
+#'   with the difference in degrees of freedom between the full and reduced model (\code{Df}), a test
+#'   statistic (\code{Chi2}), and a p-value corresponding to the likelihood ratio test
+#'   (\code{Pr(>Chi2)} if \code{test = TRUE}).
 #'
 #'   Whether one or two fitted model objects are provided,
 #'   \code{tidy()} can be used

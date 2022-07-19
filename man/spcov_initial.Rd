@@ -64,23 +64,23 @@ Note that \eqn{de} and \eqn{ie} must be non-negative while \eqn{range}
 must be positive, except when \code{spcov_type} is \code{car} or \code{sar},
 in which case \eqn{range} must be between the reciprocal of the maximum
 eigenvalue of \code{W} and the reciprocal of the minimum eigenvalue of
-\code{W}. Parameteric forms for \eqn{R} are given below, where \eqn{distr = h / range}:
+\code{W}. Parameteric forms for \eqn{R} are given below, where \eqn{\eta = h / range}:
 \itemize{
-\item{exponential: }{\eqn{exp(- distr )}}
-\item{spherical: }{\eqn{(1 - 1.5distr + 0.5distr^3) * I(h <= range)}}
-\item{gaussian: }{\eqn{exp(- distr^2 )}}
-\item{triangular: }{\eqn{(1 - distr) * I(h <= range)}}
-\item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(sqrt(m)))) * I(h <= range)}, m = min(distr, 1)}
-\item{cubic: }{\eqn{(1 - 7distr^2 + 8.75distr^3 - 3.5distr^5 + 0.75distr^7) * I(h <= range)}}
-\item{penta: }{\eqn{(1 - 1.875distr + 1.25distr^3 - 0.375distr^5) * I(h <= range)}}
-\item{cosine: }{\eqn{cos(distr)}}
-\item{wave: }{\eqn{sin(distr) / distr * I(h > 0) + I(h = 0)}}
+\item{exponential: }{\eqn{exp(- \eta )}}
+\item{spherical: }{\eqn{(1 - 1.5\eta + 0.5\eta^3) * I(h <= range)}}
+\item{gaussian: }{\eqn{exp(- \eta^2 )}}
+\item{triangular: }{\eqn{(1 - \eta) * I(h <= range)}}
+\item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(sqrt(m)))) * I(h <= range), m = min(\eta, 1)}}
+\item{cubic: }{\eqn{(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75\eta^7) * I(h <= range)}}
+\item{penta: }{\eqn{(1 - 1.875\eta + 1.25\eta^3 - 0.375\eta^5) * I(h <= range)}}
+\item{cosine: }{\eqn{cos(\eta)}}
+\item{wave: }{\eqn{sin(\eta) / \eta * I(h > 0) + I(h = 0)}}
 \item{jbessel: }{\eqn{Bj(h * range)}, Bj is Bessel-J function}
-\item{gravity: }{\eqn{(1 + distr^2)^(-0.5)}}
-\item{rquad: }{\eqn{(1 + distr^2)^-1}}
-\item{magnetic: }{\eqn{(1 + distr^2)^-1.5}}
-\item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * distr)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
-\item{cauchy: }{\eqn{(1 + distr^2)^{-extra}}, \eqn{extra > 0}}
+\item{gravity: }{\eqn{(1 + \eta^2)^(-0.5)}}
+\item{rquad: }{\eqn{(1 + \eta^2)^-1}}
+\item{magnetic: }{\eqn{(1 + \eta^2)^-1.5}}
+\item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
+\item{cauchy: }{\eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}}
 \item{pexponential: }{\eqn{exp(h^{extra/range)}}, \eqn{0 < extra \leq 2}}
 \item{car: }{\eqn{(I - range * W)^{-1} * M}, weights matrix \eqn{W},
 symmetry condition matrix \eqn{M}, observations with no neighbors

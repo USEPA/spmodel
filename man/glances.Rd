@@ -4,12 +4,12 @@
 \alias{glances}
 \title{Glance at many fitted model objects}
 \usage{
-glances(..., sort_by = "AIC", decreasing = FALSE)
+glances(..., sort_by = "AICc", decreasing = FALSE)
 }
 \arguments{
 \item{...}{Fitted model objects from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
 
-\item{sort_by}{Sort by a \code{glance} statistic. The default is \code{AIC}.}
+\item{sort_by}{Sort by a \code{glance} statistic. The default is \code{AICc}.}
 
 \item{decreasing}{Should \code{sort_by} be decreasing or not? The default is \code{FALSE}.}
 }
@@ -19,7 +19,7 @@ each fitted model object.
 }
 \description{
 \code{glances()} repeatedly calls \code{glance()} on several
-fitted model objects the output together, sorted by a column of interest.
+fitted model objects and binds the output together, sorted by a column of interest.
 }
 \examples{
 lmod <- splm(z ~ water + tarp,

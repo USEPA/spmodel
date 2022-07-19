@@ -23,8 +23,8 @@
 #' @export
 #'
 #' @examples
-#' print(randcov_initial(group = 1))
-#' print(randcov_initial(group = 1, known = "group"))
+#' randcov_initial(group = 1)
+#' randcov_initial(group = 1, known = "group")
 randcov_initial <- function(..., known) {
   randcov_params_given <- randcov_params(...)
   if (missing(known)) {

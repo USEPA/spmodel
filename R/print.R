@@ -140,11 +140,6 @@ print.summary.spmod <- function(x,
   cat(paste("\nCoefficients (", x$covariance_type, " spatial covariance):\n", sep = ""))
   print(spcoef, digits = digits)
 
-  # pasting the covariance type
-  # cat("\nSpatial covariance type: ")
-  # cat(formatC(x$covariance_type, digits = digits))
-  # cat("\n")
-
   if (length(x$coefficients$randcov)) {
     cat("\nCoefficients (random effects):\n")
     print(x$coefficients$randcov, digits = digits)

@@ -77,11 +77,3 @@ get_initial_range.cauchy <- function(spcov_type, max_halfdist) {
 get_initial_range.pexponential <- function(spcov_type, max_halfdist) {
   max_halfdist / 3
 }
-
-# get_initial_range.car <- function(spcov_type) {
-#   1 / 2
-# }
-#
-# get_initial_range.sar <- function(spcov_type) {
-#   1 / 2
-# }

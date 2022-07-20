@@ -135,12 +135,6 @@
 #' spmod <- spautor(log_trend ~ 1, data = seal, spcov_type = "car")
 #' summary(spmod)
 spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml", random, randcov_initial, partition_factor, W, row_st = TRUE, M, ...) {
-  # browser()
-  # check if sf is installed (NOTE MUST ALWAYS USE sf:: prefix before function
-  # calls)
-
-  # save full data
-  # fulldata <- data
 
   # set car as default if nothing specified
   if (missing(spcov_type) && missing(spcov_initial)) {

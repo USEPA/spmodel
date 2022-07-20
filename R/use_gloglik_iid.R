@@ -19,23 +19,10 @@ use_gloglik_iid <- function(spcov_initial, estmethod, data_object, dist_matrix_l
     X <- do.call("rbind", data_object$X_list)
     y <- do.call("rbind", data_object$y_list)
   }
-  # X_qr <- qr(X)
-  # R <- qr.R(X_qr)
-  # R_Inv <- solve(R)
-  # betahat <- R_Inv %*% crossprod(qr.Q(X_qr), y)
-  # r <- y - X %*% betahat
-  # rt_r <- r^2
-  # sse <- sum(rt_r)
+
   lmod <- lm(data_object$formula, data = data_object$obdata)
   sse <- sum(residuals(lmod)^2)
   RX <- crossprod(X, X)
-
-  # interesting discussion here -- should we return the ml likelihood
-  # separate from the reml likelihood? We don't have to, as the
-  # beta estimates are the same for all values of sigma2, and using the reml
-  # likelihood makes it impossible to compare across fixed effects.
-  # But what if we want to compare reml models to an iid reml model? I
-  # proceed with separate likelihood here, though I am open to changing this.
 
   l1 <- 0 # sum of the logs of the identity (all ones)
   l2 <- sse

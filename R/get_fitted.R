@@ -31,9 +31,6 @@ get_fitted_splm <- function(betahat, spcov_params, data_object, cholprods_list,
     function(x) spcov_matrix(spcov_params = spcov_params_de_only, dist_matrix = x)
   )
 
-  # this new version is correct because it appropriately partitions the spatial only covariance matrix
-  # old approches did not match when partitioning was used because the old approach let there be spatial
-  # covariance in spcov_matrix_de even when partitioning was used
 
   ### cov(dependent error) * Z (identity) * siginv (y - x beta)
   fitted_de <- as.numeric(do.call("rbind", mapply(
@@ -57,8 +54,6 @@ get_fitted_splm <- function(betahat, spcov_params, data_object, cholprods_list,
           crossprod(z[[x]][["Z"]], r)
         }
       ))
-      # browser()
-      # fitted_val <- tapply(fitted_val, rownames(fitted_val), mean)
       fitted_val <- tapply(fitted_val, rownames(fitted_val), function(x) {
         val <- mean(x[x != 0])
         if (length(val) == 0) { # replace if all zeros somehow
@@ -167,53 +162,3 @@ get_fitted_spautor <- function(betahat, spcov_params, data_object, cholprods,
     randcov = fitted_randcov
   )
 }
-
-# get_fitted_spautor <- function(betahat, spcov_params, data_object, cholprods,
-#                                randcov_params = NULL) {
-#   dist_matrix <- data_object$W[data_object$observed_index, data_object$observed_index, drop = FALSE]
-#   M <- data_object$M[data_object$observed_index]
-#
-#   fitted_response <- data_object$X %*% betahat
-#
-#   ## fitted values
-#   ### resid pearson is siginv^(-1/2)(y - x beta)
-#   ### so upchol is from siginv^(-1/2)uptri * siginv^(-1/2)(y - x beta)
-#   ### packsolve used because upper triangluar
-#   ### this gives siginv (y - x beta)
-#   SqrtSigInv_r <- cholprods$SqrtSigInv_y - cholprods$SqrtSigInv_X %*% betahat
-#   SigInv_r <- backsolve(t(cholprods$Sig_lowchol), SqrtSigInv_r)
-#
-#   # cov params no de   (set ie portion to zero because BLUP only uses cov(dependent error))
-#   spcov_params_de_only <- spcov_params
-#   spcov_params_de_only[["ie"]] <- 0
-#   spcov_matrix_de_only <- spcov_matrix(spcov_params = spcov_params_de_only, dist_matrix = dist_matrix, M = M)
-#
-#   ### cov(dependent error) * Z (identity) * siginv (y - x beta)
-#   fitted_de <- spcov_matrix_de_only %*% SigInv_r
-#
-#   ### cov(independent error) is zero so this gives
-#   ### sigma^2(independent) * Identity * Z (identity) * siginv (y - x beta)
-#   fitted_ie <- spcov_params[["ie"]] * SigInv_r
-#
-#   ## fitted random effects
-#   if (is.null(names(randcov_params))) {
-#     fitted_randcov <- NULL
-#   } else {
-#     ob_randcov_Zs <- get_randcov_Zs(data_object$obdata, names(randcov_params), ZZt = FALSE)
-#     fitted_randcov <- lapply(names(randcov_params), function(x) {
-#       fitted_val <- randcov_params[[x]] * crossprod(ob_randcov_Zs[[x]][["Z"]], SigInv_r)
-#       names_fitted_val <- rownames(fitted_val)
-#       fitted_val <- as.vector(fitted_val)
-#       names(fitted_val) <- names_fitted_val
-#       fitted_val
-#     })
-#     names(fitted_randcov) <- names(randcov_params)
-#   }
-#
-#
-#   fitted_values <- list(
-#     response = as.numeric(fitted_response),
-#     spcov = list(de = as.numeric(fitted_de), ie = as.numeric(fitted_ie)),
-#     randcov = fitted_randcov
-#   )
-# }

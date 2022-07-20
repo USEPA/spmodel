@@ -21,7 +21,6 @@ cov_betahat_adjust <- function(invcov_betahat_list, betahat_list,
   if (P == 1 || inherits(spcov_params, "none")) {
     var_adjust <- "none"
   }
-  # browser()
   # reset var_adjust if partitioning used but no local option used
   if (!is.null(data_object$partition_factor_initial) && is.null(data_object$partition_factor)) {
     var_adjust <- "none"
@@ -75,39 +74,11 @@ cov_betahat_adjust <- function(invcov_betahat_list, betahat_list,
   }
 
   cov_betahat_adjust_val
-
-  # if (var_adjust == "none") {
-  #   cov_betahat_adjust_val <- cov_betahat_noadjust
-  # } else if (var_adjust == "theoretical") {
-  #   index_grid <- expand.grid(d1 = seq_len(P), d2 = seq_len(P))
-  #   index_grid <- index_grid[index_grid$d2 > index_grid$d1, , drop = FALSE]
-  #   index_list <- split(index_grid, seq_len(NROW(index_grid)))
-  #   W_adjust_list <- lapply(index_list, function(x) {
-  #     get_W_ij(
-  #       x$d1, x$d2, cholprods_list,
-  #       spcov_params, randcov_params,
-  #       names(randcov_params), data_object
-  #     )
-  #   })
-  #   W_adjust <- Reduce("+", W_adjust_list)
-  #   cov_betahat_adjust_val <- cov_betahat_noadjust + cov_betahat_noadjust %*% W_adjust %*% cov_betahat_noadjust
-  # } else if (var_adjust == "empirical") {
-  #   cov_betahat_adjust_list <- lapply(betahat_list, function(x) {
-  #     betahat_diff <- x - betahat
-  #     tcrossprod(betahat_diff, betahat_diff)
-  #   })
-  #   cov_betahat_adjust_val <- Reduce("+", cov_betahat_adjust_list) / (P * (P - 1))
-  # } else if (var_adjust == "pooled") {
-  #   cov_betahat_adjust_val <- Reduce("+", cov_betahat_list) / P^2
-  # }
-  # cov_betahat_adjust_val
 }
 
 get_W_ij <- function(d1_index, d2_index, cholprods_list, spcov_params,
                      randcov_params, randcov_names, data_object) {
 
-  # thought would need spmodel:: but apparently don't
-  # may need to use clusterEvalQ at some point for Matrix and/or spmodel
   d1 <- data_object$obdata_list[[d1_index]]
   d2 <- data_object$obdata_list[[d2_index]]
 
@@ -154,7 +125,6 @@ get_W_ij <- function(d1_index, d2_index, cholprods_list, spcov_params,
 
 
   # partition matrix
-  # browser()
   if (!is.null(data_object$partition_factor)) {
     # finding the formula
     partition_formula <- reformulate(labels(terms(data_object$partition_factor)), intercept = FALSE)
@@ -162,10 +132,6 @@ get_W_ij <- function(d1_index, d2_index, cholprods_list, spcov_params,
     d1_partition <- Matrix::Matrix(model.matrix(partition_formula, d1), sparse = TRUE)
     d2_partition <- Matrix::Matrix(model.matrix(partition_formula, d2), sparse = TRUE)
     partition_matrix_cross_val <- Matrix::tcrossprod(d1_partition, d2_partition)
-    # could save space by having partition_list mirror randcov_list and output design matrices Z
-    # for partition indexes as well
-    # partition_matrix_cross_val <- tcrossprod(data_object$randcov_list[[d1_index]]$Z,
-    # data_object$randcov_list[[d2_index]]$Z)
   } else {
     partition_matrix_cross_val <- NULL
   }

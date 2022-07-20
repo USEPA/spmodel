@@ -27,5 +27,5 @@
 #' )
 #' hatvalues(spmod)
 hatvalues.spmod <- function(model, ...) {
-  model$hatvalues # 2p / n or 3p / n
+  model$hatvalues
 }

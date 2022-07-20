@@ -31,9 +31,6 @@ get_randcov_name <- function(label) {
     front <- bar_split[[1]]
     backs <- dash_split
     new_label <- lapply(seq_along(backs), function(x) paste(front, paste(backs[seq(from = 1, to = x, by = 1)], collapse = ":"), sep = " | "))
-    # fronts <- labels(terms(reformulate(bar_split[[1]])))
-    # backs <- labels(terms(reformulate(bar_split[[2]])))
-    # new_label <- unlist(lapply(backs, function(x) paste(front, x, sep = " | ")))
   }
   new_label <- unlist(lapply(new_label, function(x) get_randcov_label(x)))
   new_label
@@ -68,11 +65,5 @@ get_partition_name <- function(label) {
   } else {
     new_label <- paste("1", label, sep = " | ")
   }
-  # if (grepl("/", new_label, fixed = TRUE)) { # patition factor can't have / here so comment out
-  #   bar_split <- unlist(strsplit(new_label, " | ", fixed = TRUE))
-  #   fronts <- labels(terms(reformulate(bar_split[[1]])))
-  #   backs <- labels(terms(reformulate(bar_split[[2]])))
-  #   new_label <- unlist(lapply(fronts, function(x) paste(x, backs, sep = " | ")))
-  # }
   new_label
 }

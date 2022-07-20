@@ -81,14 +81,7 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
   ## convert sp to data frame (point geometry)
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
-    # if (inherits(data, c("SpatialPointsDataFrame", "SpatialPolygonsDataFrame"))) {
-    # data <- sf::st_as_sf(data)
     stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
-    # data <- sp_to_df(data)
-    # ### name xcoord "xcoord" to be used later
-    # xcoord <- "xcoord"
-    # ### name ycoord "ycoord" to be used later
-    # ycoord <- "ycoord"
   }
 
   ## convert sf to data frame (point geometry) (1d objects obsolete)
@@ -289,8 +282,6 @@ sprnorm.car <- function(spcov_params, mean = 0, samples = 1, data, randcov_param
     ## convert sp to sf object
     attr_sp <- attr(class(data), "package")
     if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
-      # if (inherits(data, "SpatialPolygonsDataFrame")) {
-      # data <- sf::st_as_sf(data)
       stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
     }
     W <- sf::st_intersects(data, sparse = FALSE)

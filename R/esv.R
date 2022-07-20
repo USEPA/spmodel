@@ -53,13 +53,6 @@ esv <- function(formula, data, xcoord, ycoord, dist_matrix, bins = 15, cutoff, p
   # covert sp to sf
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
-    # if (inherits(data, c("SpatialPointsDataFrame", "SpatialPolygonsDataFrame"))) {
-    # if (!requireNamespace("sf", quietly = TRUE)) { # requireNamespace checks if sf is installed
-    #   stop("Install the sf R package to use sp objects in splm()", call. = FALSE)
-    # } else {
-    #   data <- sf::st_as_sf(data)
-    # }
-    # data <- sf::st_as_sf(data)
     stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
   }
 
@@ -110,9 +103,8 @@ esv <- function(formula, data, xcoord, ycoord, dist_matrix, bins = 15, cutoff, p
   if (is.null(cutoff)) {
     cutoff <- max(dist_matrix) / 2
   }
-  # dist_vector <- dist_matrix@x # store as a vector
+
   dist_vector <- dist_matrix
-  # dist_index <- dist_vector <= cutoff
   if (any(dist_vector == 0)) {
     dist_index <- dist_vector > 0 & dist_vector <= cutoff
   } else {
@@ -124,13 +116,12 @@ esv <- function(formula, data, xcoord, ycoord, dist_matrix, bins = 15, cutoff, p
   # compute squared differences in the residuals
   lmod <- lm(formula = formula, data = data)
   residuals <- residuals(lmod)
-  # residual_matrix <- triu(spdist(xcoord_val = residuals), k = 1)
   residual_matrix <- as.matrix(spdist(xcoord_val = residuals))
   residual_matrix <- residual_matrix[upper.tri(residual_matrix)]
   if (!is.null(partition_factor)) {
     residual_matrix <- residual_matrix * partition_matrix_val
   }
-  # residual_vector <- residual_matrix@x # store as a vector
+
   residual_vector <- residual_matrix
   residual_vector <- residual_vector[dist_index]
   residual_vector2 <- residual_vector^2
@@ -138,7 +129,6 @@ esv <- function(formula, data, xcoord, ycoord, dist_matrix, bins = 15, cutoff, p
   # compute semivariogram classes
   dist_classes <- cut(dist_vector, breaks = seq(0, cutoff, length.out = bins + 1))
 
-  # browser()
   # compute squared differences within each class
   gamma <- tapply(residual_vector2, dist_classes, function(x) mean(x) / 2)
 

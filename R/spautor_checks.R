@@ -9,12 +9,6 @@
 #' @noRd
 spautor_checks <- function(spcov_type, W_given, data, estmethod) {
 
-  # if (!requireNamespace("sf", quietly = TRUE) && !W_given) {
-  #   stop("When W is not provided, package \"sf\" must be installed to use spautor().",
-  #     call. = FALSE
-  #   )
-  # }
-
   if (spcov_type %in% c(
     "exponential", "spherical", "gaussian", "triangular",
     "circular", "cubic", "pentaspherical", "cosine", "wave",

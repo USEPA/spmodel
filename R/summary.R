@@ -31,9 +31,6 @@ summary.spmod <- function(object, ...) {
     Std_Error = sqrt(diag(vcov(object, type = "fixed")))
   )
 
-  # summary_coefficients_fixed$t_value <-  summary_coefficients_fixed$estimates / summary_coefficients_fixed$Std_Error
-  # summary_coefficients_fixed$p <-  2 * (1 - pt(abs(summary_coefficients_fixed$t_value), df = object$n - object$p))
-
   summary_coefficients_fixed$z_value <- summary_coefficients_fixed$estimates / summary_coefficients_fixed$Std_Error
   summary_coefficients_fixed$p <- 2 * (1 - pnorm(abs(summary_coefficients_fixed$z_value)))
 

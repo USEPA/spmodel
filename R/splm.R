@@ -312,7 +312,6 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
     local_index <- data_object$local_index
   }
 
-  # browser()
   if (inherits(spcov_initial, c("triangular", "circular"))) {
     data_object <- replace_data_object_dimcoords1(data_object)
   }
@@ -327,9 +326,9 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
     deviance = model_stats$deviance,
     pseudoR2 = model_stats$pseudoR2,
     esv = cov_est_object$esv,
-    p = data_object$p, # number of fixed effects
+    p = data_object$p,
     n = data_object$n,
-    npar = model_stats$npar, # number of estimated covariance parameters
+    npar = model_stats$npar,
     formula = formula,
     terms = data_object$terms,
     call = match.call(),
@@ -354,7 +353,6 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
     sf_column_name = data_object$sf_column_name,
     crs = data_object$crs
   )
-  # may want to save ob data instead (better handling with sf /sp input returns) could store na index in data object
 
   new_output <- structure(output, class = "spmod")
   new_output

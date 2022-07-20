@@ -26,7 +26,6 @@
 glances <- function(..., sort_by = "AICc", decreasing = FALSE) {
   model_list <- list(...)
   model_list_names <- as.character(as.list(substitute(list(...)))[-1])
-  # model_list_names <- paste0("model", seq_len(length(model_list)))
   model_glance <- lapply(model_list, function(x) glance(x))
   model_bind <- do.call(rbind, model_glance)
   model_bind <- cbind(data.frame(model = model_list_names), model_bind)

@@ -21,7 +21,6 @@ randcov_optim2orig <- function(randcov_orig2optim = NULL, spcov_orig2optim,
       spcov_optim2orig[["de"]] <- (1 - v_r) * spcov_optim2orig[["de"]]
       spcov_optim2orig[["ie"]] <- (1 - v_r) * spcov_optim2orig[["ie"]]
       n_randcov <- length(fill_orig_val)
-      # browser()
       if (n_randcov > 1) {
         if (n_randcov > 2) {
           fill_orig_val[n_randcov] <- prod(fill_orig_val[-1])
@@ -31,14 +30,6 @@ randcov_optim2orig <- function(randcov_orig2optim = NULL, spcov_orig2optim,
           }
         }
         fill_orig_val[1] <- 1 - sum(fill_orig_val[-1])
-        # fill_orig_val[1] <- 1 - fill_orig_val[-1]
-        # fill_orig_val[1] <- max(0, 1 - sum(fill_orig_val[-1]))
-        # # if (fill_orig_val[1] < 0) {
-        # #   neg_sub <- fill_orig_val[1]
-        # #   fill_orig_val[1] <- 0
-        # #   fill_orig_val[-1] <- fill_orig_val[-1] - neg_sub / length(fill_orig_val[-1])
-        # # }
-        # fill_orig_val <- fill_orig_val / sum(fill_orig_val)
         fill_orig_val <- v_r * fill_orig_val
       }
       names(fill_orig_val) <- names(randcov_orig2optim$is_known)

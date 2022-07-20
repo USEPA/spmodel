@@ -37,10 +37,8 @@ get_randcov_vectors <- function(randcov_name, randcov_params, data, newdata, ref
   } else {
     Z_index_data <- Z_index_data_list[[randcov_name]]
   }
-  # Z_index_newdata <- as.vector(model.matrix(reform_bar2, newdata))
-  # Z_index <- vapply(Z_index_newdata, function(x) ifelse(x == Z_index_data, randcov_param, 0), numeric(length(Z_index_data)))
   Z_index_newdata <- as.vector(model.matrix(reform_bar2, model.frame(reform_bar2, newdata, na.action = na.pass)))
-  Z_index <- vapply(Z_index_newdata, function(x) ifelse(x != Z_index_data | is.na(x), 0, randcov_param), numeric(length(Z_index_data))) # NA | TRUE = TRUE / NA | FALSE = NA
+  Z_index <- vapply(Z_index_newdata, function(x) ifelse(x != Z_index_data | is.na(x), 0, randcov_param), numeric(length(Z_index_data)))
   Z_index <- Matrix(Z_index, sparse = TRUE)
   if (bar_split[[1]] != "1") {
     if (is.null(reform_bar1_list)) {
@@ -57,7 +55,8 @@ get_randcov_vectors <- function(randcov_name, randcov_params, data, newdata, ref
     Z_halfcov <- sweep(Z_index, 2, Z_val_newdata, `*`)
     # above same as Z_index (cov where zero if diff grp) * Z_val_newdata (the value of the covariate in newdata)
     Z_cov <- sweep(Z_halfcov, 1, Z_val_data, `*`)
-    # above same as Z_halfcov * Z_val_data (the value of the covariate ni data)
+    # above same as Z_halfcov * Z_val_data (the value of the covariate in data)
+    # could have just used interaction operator here e.g., x:group
   } else {
     Z_cov <- Z_index
   }

@@ -84,10 +84,6 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     stop("extra must be specified.", call. = FALSE)
   }
 
-  # if (spcov_type %in% c("car", "sar") && (!missing(rotate) | !missing(scale))) {
-  #   stop("rotate and scale cannot be specified for this covariance")
-  # }
-
   if (!is.na(de) && de < 0) {
     stop("de must be positive.", call. = FALSE)
   }
@@ -121,15 +117,6 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     stop("extra must be positive and no larger than 2.", call. = FALSE)
   }
 
-  # this approach captures the arguments, removes the first default list value,
-  # removes the spcov_type list argument, and evaluates the numeric arguments (in
-  # case they are a language e.g. 1 / 2). It is an alternative to the below
-  # approach, which is simpler. This was carried over from stmodel, which
-  # has more arguments.
-  # spcov_params_val <- as.list(match.call())
-  # spcov_params_val_remove <- c(1, which(names(spcov_params_val) == "spcov_type"))
-  # spcov_params_val <- spcov_params_val[-spcov_params_val_remove]
-  # spcov_params_val <- lapply(spcov_params_val, eval)
   if (spcov_type %in% c("exponential", "spherical", "gaussian", "triangular", "circular", "none", "cubic", "pentaspherical", "cosine", "wave", "jbessel", "gravity", "rquad", "magnetic")) {
     extra <- NULL
   }

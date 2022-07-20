@@ -26,5 +26,5 @@
 #' )
 #' cooks.distance(spmod)
 cooks.distance.spmod <- function(model, ...) {
-  model$cooks_distance # suggested cutoffs are 4 / n or 1
+  model$cooks_distance
 }

@@ -13,7 +13,7 @@ gloglik_products <- function(spcov_params_val, ...) {
 gloglik_products.exponential <- function(spcov_params_val, data_object, estmethod,
                                          dist_matrix_list, randcov_params_val) {
 
-  # browser()
+
   # making a covariance matrix
   cov_matrix_list <- get_cov_matrix_list(spcov_params_val, dist_matrix_list, randcov_params_val, data_object$randcov_list, data_object$partition_list)
 

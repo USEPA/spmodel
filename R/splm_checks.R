@@ -11,21 +11,11 @@ splm_checks <- function(spcov_initial, xcoord_given, ycoord_given, estmethod, an
   if (spcov_type %in% c("car", "sar")) {
     stop("Invalid spatial covariance type for splm(). To fit models for autoregressive data, use spautor().", call. = FALSE)
   }
-  # } else if (!spcov_type %in% c("exponential", "spherical", "gaussian", "triangular",
-  #                               "circular", "cubic", "pentaspherical", "cosine", "wave",
-  #                               "jbessel", "gravity", "rquad", "magnetic",
-  #                               "matern", "cauchy", "pexponential", "none")) {
-  #   stop("Invalid spatial covariance type. Valid spatial covariance types include \"exponential\", \"spherical\", \"gaussian\", \"triangular\", \"circular\", \"cubic\", \"pentaspherical\", \"cosine\", \"wave\", \"jbessel\", \"gravity\", \"rquad\", \"magnetic\", \"matern\", \"cauchy\", \"pexponential\", and \"none\".")
-  # }
 
   if (spcov_type %in% c("triangular", "cosine") && ycoord_given) {
     warning(paste0(spcov_type, " covariance can only be used in one dimension. Ignoring y-coordinate."), call. = FALSE)
     # should also be given for sf objects
   }
-
-  # if (!xcoord_given && spcov_type != "none" && ) {
-  #   stop("The xcoord argument must be specified.", call. = FALSE)
-  # }
 
   if (!estmethod %in% c("reml", "ml", "sv-wls", "sv-cl")) {
     stop("Estimation method must be \"reml\", \"ml\", \"sv-wls\", or \"sv-cl\".", call. = FALSE)

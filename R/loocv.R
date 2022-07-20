@@ -55,7 +55,6 @@ loocv.spmod <- function(object, cv_predict = FALSE, local, ...) {
 loocv_splm <- function(object, cv_predict = FALSE, local, ...) {
 
   # local prediction list
-  # browser()
 
   # local stuff
   if (is.null(local)) {
@@ -124,7 +123,6 @@ loocv_splm <- function(object, cv_predict = FALSE, local, ...) {
       cv_predict_val_list <- lapply(seq_len(object$n), loocv_local, object, local_list)
     }
     cv_predict_val <- unlist(cv_predict_val_list)
-    # cv_predict_val <- do.call("rbind", cv_predict_val)
   }
   if (cv_predict) {
     cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val))
@@ -187,7 +185,6 @@ loocv_spautor <- function(object, cv_predict = FALSE, local, ...) {
   cv_output
 }
 
-#   # maybe put cv fitted in fitted?
 loocv_local <- function(row, object, local_list) {
   newdata <- object$obdata[row, , drop = FALSE]
   object$obdata <- object$obdata[-row, , drop = FALSE]

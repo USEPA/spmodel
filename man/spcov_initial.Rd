@@ -58,7 +58,7 @@ otherwise assumed known (e.g., \code{rotate} and \code{scale} with \code{\link[=
 and \code{ie} with \code{\link[=spautor]{spautor()}}).
 The spatial covariance functions can be generally expressed as
 \eqn{de * R + ie * I}, where \eqn{de} is \code{de} above, \eqn{R}
-is a correlation matrix that depends on the distance between observations,
+is a matrix that controls the spatial dependence structure among observations,
 \eqn{h}, \eqn{ie} is \code{ie} above, and \eqn{I} is and identity matrix.
 Note that \eqn{de} and \eqn{ie} must be non-negative while \eqn{range}
 must be positive, except when \code{spcov_type} is \code{car} or \code{sar},

@@ -66,7 +66,7 @@
 #'   independent. Together, \eqn{\tau} and \eqn{\epsilon} are modeled using
 #'   a spatial covariance function, expressed as
 #'   \eqn{de * R + ie * I}, where \eqn{de} is the dependent error variance, \eqn{R}
-#'   is a matrix that controls the dependence structure among observations,
+#'   is a matrix that controls the spatial dependence structure among observations,
 #'   \eqn{ie} is the independent error variance, and \eqn{I} is
 #'   an identity matrix. Note that \eqn{de} and \eqn{ie} must be non-negative while \eqn{range}
 #'   must be between the reciprocal of the maximum
@@ -123,7 +123,7 @@
 #'   \code{anova}, \code{coef}, \code{cooks.distance}, \code{deviance},
 #'   \code{fitted}, \code{formula}, \code{hatvalues}, \code{influence},
 #'   \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},
-#'   \code{predict}, \code{print}, \code{pseudoR2}, \code{update}, and \code{vcov}.
+#'   \code{predict}, \code{print}, \code{pseudoR2}, \code{terms}, \code{update}, and \code{vcov}.
 #'
 #' @note This function does not perform any internal scaling. If optimization is not
 #'   stable due to large extremely large variances, scale relevant variables

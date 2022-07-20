@@ -122,7 +122,7 @@
 #'   independent. Together, \eqn{\tau} and \eqn{\epsilon} are modeled using
 #'   a spatial covariance function, expressed as
 #'   \eqn{de * R + ie * I}, where \eqn{de} is the dependent error variance, \eqn{R}
-#'   is a correlation matrix that depends on the distance between observations,
+#'   is a correlation matrix that controls the spatial dependence structure among observations,
 #'   \eqn{ie} is the independent error variance, and \eqn{I} is
 #'   an identity matrix.
 #'
@@ -133,7 +133,7 @@
 #'     \item{spherical: }{\eqn{(1 - 1.5\eta + 0.5\eta^3) * I(h <= range)}}
 #'     \item{gaussian: }{\eqn{exp(- \eta^2 )}}
 #'     \item{triangular: }{\eqn{(1 - \eta) * I(h <= range)}}
-#'     \item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(sqrt(m)))) * I(h <= range), m = min(\eta, 1)}}
+#'     \item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(m))) * I(h <= range), m = min(\eta, 1)}}
 #'     \item{cubic: }{\eqn{(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75\eta^7) * I(h <= range)}}
 #'     \item{pentaspherical: }{\eqn{(1 - 1.875\eta + 1.25\eta^3 - 0.375\eta^5) * I(h <= range)}}
 #'     \item{cosine: }{\eqn{cos(\eta)}}
@@ -207,7 +207,7 @@
 #'   \code{anova}, \code{coef}, \code{cooks.distance}, \code{deviance},
 #'   \code{fitted}, \code{formula}, \code{hatvalues}, \code{influence},
 #'   \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},
-#'   \code{predict}, \code{print}, \code{pseudoR2}, \code{update}, and \code{vcov}.
+#'   \code{predict}, \code{print}, \code{pseudoR2},\code{terms}, \code{update}, and \code{vcov}.
 #'
 #' @note This function does not perform any internal scaling. If optimization is not
 #'   stable due to large extremely large variances, scale relevant variables

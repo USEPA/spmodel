@@ -146,13 +146,13 @@ where $(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}_{i, i}$ 
 
 Cook's distance measures the influence of an observation [@cook1979influential; @cook1982residuals]. An influential observation has a large impact on the model fit. The vector of Cook's distances for the spatial linear model is given by 
 \begin{equation} \label{eq:cooksd}
-\frac{\hat{\mathbf{e}}_p}{p}\frac{diag(\mathbf{H}_s)}{1 - diag(\mathbf{H}_s)},
+\frac{\mathbf{e}_p^2}{p}\frac{diag(\mathbf{H}_s)}{1 - diag(\mathbf{H}_s)},
 \end{equation}
-where $\hat{\mathbf{e}}_p$ are the Pearson residuals and $diag(\mathbf{H}_s)$ is the diagonal of the spatial hat matrix, $\mathbf{H}_s \equiv \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}$ [@montgomery2021introduction]. The larger the Cook's distance, the larger the influence.
+where $\mathbf{e}_p$ are the Pearson residuals and $diag(\mathbf{H}_s)$ is the diagonal of the spatial hat matrix, $\mathbf{H}_s \equiv \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}$ [@montgomery2021introduction]. The larger the Cook's distance, the larger the influence.
 
 To better understand the form in Equation \ref{eq:cooksd}, recall that the the non-spatial linear model $\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}$ assumes elements of $\boldsymbol{\epsilon}$ are independent and identically distributed (iid) with constant variance. In this context the vector of non-spatial Cook's distances is given by
 \begin{equation*}
-\frac{\hat{\mathbf{e}}_p}{p}\frac{diag(\mathbf{H})}{1 - diag(\mathbf{H})},
+\frac{\mathbf{e}_p^2}{p}\frac{diag(\mathbf{H})}{1 - diag(\mathbf{H})},
 \end{equation*}
 where $diag(\mathbf{H})$ is the diagonal of the non-spatial hat matrix, $\mathbf{H} \equiv \mathbf{X} (\mathbf{X}^{\top} \mathbf{X})^{-1} \mathbf{X}^{\top}$. When the elements of $\boldsymbol{\epsilon}$ are not iid or do not have constant variance or both, the spatial Cook's distance cannot be calculated using $\mathbf{H}$. First the linear model must be whitened according to $\mathbf{y}^* = \mathbf{X}^* \boldsymbol{\beta} + \boldsymbol{\epsilon}^*$, where $\boldsymbol{\epsilon}^*$ is the whitened version of the sum of all random errors in the model. Then the spatial Cook's distance follows using the whitened version of $\mathbf{X}$, $\mathbf{X}^*$.
 
@@ -468,7 +468,7 @@ where $\sigma^2_{de}$ $(\geq 0)$ is the spatially dependent (correlated) varianc
   \texttt{"spherical"} & $(1 - 1.5\eta + 0.5\eta^3)\mathbbm{1}\{h \leq \phi \}$ \\
   \texttt{"gaussian"} & $e^{-\eta^2}$ \\
   \texttt{"triangular"} & $(1 - \eta)\mathbbm{1}\{h \leq \phi \}$ \\
-  \texttt{"circular"} & $(1 - \frac{2}{\pi}[m\sqrt{1 - m^2} + sin^{-1}\{\sqrt{m}\}])\mathbbm{1}\{h \leq \phi \}, m = min(\eta, 1)$ \\
+  \texttt{"circular"} & $(1 - \frac{2}{\pi}[m\sqrt{1 - m^2} + sin^{-1}\{m\}])\mathbbm{1}\{h \leq \phi \}, m = min(\eta, 1)$ \\
   \texttt{"cubic"} & $(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75 \eta^7)\mathbbm{1}\{h \leq \phi \}$ \\
   \texttt{"pentaspherical"} & $(1 - 1.875\eta + 1.250\eta^3 - 0.375\eta^5)\mathbbm{1}\{h \leq \phi \}$ \\
   \texttt{"cosine"} & $ cos(\eta) $ \\

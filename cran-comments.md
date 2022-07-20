@@ -31,7 +31,7 @@ Several tests were run using rhub. Below are the results for windows, linux, and
         * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-32149b52702848dd8b68840f963e8096
         
 * rhub tests were available on Solaris but not tested, as CRAN does not appear to
-  perform Solaris checks anymore
+  perform Solaris checks anymore.
   
 * The CRAN check may find the following `NOTE`s
     * Possibly misspelled words in `DESCRIPTION`:

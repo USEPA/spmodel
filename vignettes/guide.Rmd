@@ -71,7 +71,7 @@ Equation$~$\ref{eq:splm} is called the spatial linear model. The spatial linear 
 \begin{equation*}
   \mathbf{R} = \exp(-\mathbf{h} / \phi),
 \end{equation*}  
-where $\mathbf{h}$ is a matrix of Euclidean distances among observations. Recall $\phi$ is the range parameter, controlling the behavior of $\mathbf{R}$ as a function of distance. Paremertizations for `splm()` spatial covariance types and their $\mathbf{R}$ matrices can be seen by running `help("splm", "spmodel")` or `vignette("technical", "spmodel")`.
+where $\mathbf{h}$ is a matrix of Euclidean distances among observations. Recall $\phi$ is the range parameter, controlling the behavior of $\mathbf{R}$ as a function of distance. Parameterizations for `splm()` spatial covariance types and their $\mathbf{R}$ matrices can be seen by running `help("splm", "spmodel")` or `vignette("technical", "spmodel")`.
 
 Data are areal when the elements in $\mathbf{y}$ are observed as part of a finite network of polygons whose connections are indexed by a neighborhood structure. For example, the polygons may represent counties in a state who are neighbors if they share at least one boundary. The `spautor()` function is used to fit spatial linear models for areal data (these are often called spatial autoregressive models). One spatial autoregressive covariance available in `spautor()` is the simultaneous autoregressive spatial covariance, which has an $\mathbf{R}$ matrix given by
 \begin{equation*}

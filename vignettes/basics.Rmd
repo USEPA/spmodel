@@ -180,7 +180,7 @@ ggplot(sulfate, aes(color = sulfate)) +
   scale_color_viridis_c(limits = c(0, 45))
 ```
 
-Sulfate appears spatially dependent, as measurements are highest in the northeast and lowest in the midwest and west.
+Sulfate appears spatially dependent, as measurements are highest in the Northeast and lowest in the Midwest and West.
 
 We fit a spatial linear model regressing sulfate on an intercept using a spherical spatial covariance function by running
 ```{r}
@@ -199,7 +199,7 @@ ggplot(sulfate_preds, aes(color = preds)) +
   scale_color_viridis_c(limits = c(0, 45))
 ```
 
-These predictions have similar sulfate patterns as in the observed data (predicted values are highest in the northeast and lowest in the midwest and west). Next we remove the model predictions from `sulfate_preds` before showing how `augment()` can be used to obtain the same predictions:
+These predictions have similar sulfate patterns as in the observed data (predicted values are highest in the Northeast and lowest in the Midwest and West). Next we remove the model predictions from `sulfate_preds` before showing how `augment()` can be used to obtain the same predictions:
 ```{r}
 sulfate_preds$preds <- NULL
 ```

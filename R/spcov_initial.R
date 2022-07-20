@@ -40,7 +40,7 @@
 #'   must be positive, except when \code{spcov_type} is \code{car} or \code{sar},
 #'   in which case \eqn{range} must be between the reciprocal of the maximum
 #'   eigenvalue of \code{W} and the reciprocal of the minimum eigenvalue of
-#'   \code{W}. Parameteric forms for \eqn{R} are given below, where \eqn{\eta = h / range}:
+#'   \code{W}. Parametric forms for \eqn{R} are given below, where \eqn{\eta = h / range}:
 #'   \itemize{
 #'     \item{exponential: }{\eqn{exp(- \eta )}}
 #'     \item{spherical: }{\eqn{(1 - 1.5\eta + 0.5\eta^3) * I(h <= range)}}

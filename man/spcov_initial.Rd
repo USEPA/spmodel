@@ -64,13 +64,13 @@ Note that \eqn{de} and \eqn{ie} must be non-negative while \eqn{range}
 must be positive, except when \code{spcov_type} is \code{car} or \code{sar},
 in which case \eqn{range} must be between the reciprocal of the maximum
 eigenvalue of \code{W} and the reciprocal of the minimum eigenvalue of
-\code{W}. Parameteric forms for \eqn{R} are given below, where \eqn{\eta = h / range}:
+\code{W}. Parametric forms for \eqn{R} are given below, where \eqn{\eta = h / range}:
 \itemize{
 \item{exponential: }{\eqn{exp(- \eta )}}
 \item{spherical: }{\eqn{(1 - 1.5\eta + 0.5\eta^3) * I(h <= range)}}
 \item{gaussian: }{\eqn{exp(- \eta^2 )}}
 \item{triangular: }{\eqn{(1 - \eta) * I(h <= range)}}
-\item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(sqrt(m)))) * I(h <= range), m = min(\eta, 1)}}
+\item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(m))) * I(h <= range), m = min(\eta, 1)}}
 \item{cubic: }{\eqn{(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75\eta^7) * I(h <= range)}}
 \item{pentaspherical: }{\eqn{(1 - 1.875\eta + 1.25\eta^3 - 0.375\eta^5) * I(h <= range)}}
 \item{cosine: }{\eqn{cos(\eta)}}

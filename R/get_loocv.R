@@ -10,7 +10,6 @@
 #'
 #' @noRd
 get_loocv <- function(obs, Sig, SigInv, Xmat, y, yX, SigInv_yX) {
-
   SigInv_mm <- SigInv[obs, obs]
   SigInv_om <- SigInv[-obs, obs, drop = FALSE]
 

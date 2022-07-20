@@ -13,22 +13,22 @@ Several tests were run using rhub. Below are the results for windows, linux, and
 * `rhub::check_on_windows()`
     * Platform: Windows Server 2022, R-release, 32/64 bit
         * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
-        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-99017dcb99244033a618a51d6bd6d703
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-7c88621231cf41ffa4f661dd79353b34
         
 * `rhub::check_on_linux()`
     * Platform: Ubuntu Linux 20.04 1 LTS, R-release, GCC
         * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
-        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-0303d6e06eb14118addb3d67f64ccfa6
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-ccfe2a1de93b44b79dc478ec606d315b
         
 * `rhub::check(platform = "debian-gcc-release")`
     * Platform: Debian Linux, R-release, GCC
         * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
-        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-6337d208bae64f759b59f12849a9a95a
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-fd988dd5be0842f3ae5f131297204c4f
 
 * `rhub::check(platform = "macos-highsierra-release-cran")`
     * Platform: macOS 10.13.6 High Sierra, R-release, CRAN's setup
         * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
-        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-32149b52702848dd8b68840f963e8096
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-b7b851d01fb0465abb64fff84255c3b4
         
 * rhub tests were available on Solaris but not tested, as CRAN does not appear to
   perform Solaris checks anymore.
@@ -50,7 +50,7 @@ the Windows 10 x64 operating system
 
 The warning: "WARNING qpdf is needed for checks on size reduction of PDFs". 
 I have received this warning while running `devtools::check()`
-with my other CRAN packages, but compression of some kind seems to happen on
+with my other CRAN packages (spsurvey and sptotal), but compression of some kind seems to happen on
 CRAN's end, as these packages have made it through. I will note that locally 
 installing and inspecting the PDFs, their actual file sizes are significantly
 smaller than what `devtools::check()` says, so compression of some kind

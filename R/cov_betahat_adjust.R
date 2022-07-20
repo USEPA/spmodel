@@ -78,7 +78,6 @@ cov_betahat_adjust <- function(invcov_betahat_list, betahat_list,
 
 get_W_ij <- function(d1_index, d2_index, cholprods_list, spcov_params,
                      randcov_params, randcov_names, data_object) {
-
   d1 <- data_object$obdata_list[[d1_index]]
   d2 <- data_object$obdata_list[[d2_index]]
 

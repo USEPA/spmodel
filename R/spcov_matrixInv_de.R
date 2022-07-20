@@ -55,7 +55,6 @@ spcov_matrixInv_de.car <- function(spcov_params, dist_matrix, M) {
     cor_matrixInv_de <- cor_matrixInv_de * 1 / M
     # else do nothing as M is identity
     spcov_matrixInv_de <- 1 / spcov_params[["de"]] * cor_matrixInv_de
-
   }
   spcov_matrixInv_de
 }

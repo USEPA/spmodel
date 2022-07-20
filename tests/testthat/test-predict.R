@@ -243,7 +243,6 @@ test_that("prediction values match for both approaches", {
   expect_equal(summary(spmod1), summary(spmod2))
   expect_equal(pred1, pred2)
   expect_equal(pred2, pred3)
-
 })
 
 test_that("prediction values match for both and lm comparison", {
@@ -316,16 +315,12 @@ test_that("prediction values match for both and lm comparison", {
   lmod1 <- lm(y ~ poly(x, degree = 2, raw = FALSE), exdata)
   lmpred1 <- predict(lmod1, newexdata)
   expect_equal(unname(pred1), unname(lmpred1))
-
 })
 
 test_that("prediction values match for both approaches autoregressive", {
-
   spmod1 <- spautor(y ~ poly(x, degree = 2, raw = TRUE), exdata_Mpoly, "car")
   expect_error(predict(spmod1), NA)
 
   spmod1 <- spautor(y ~ poly(x, degree = 2, raw = FALSE), exdata_Mpoly, "car")
   expect_error(predict(spmod1), NA)
-
 })
-

@@ -11,7 +11,6 @@
 #'
 #' @noRd
 use_glogclik <- function(spcov_initial, data_object, dist_matrix_list, partition_list = NULL, optim_dotlist) {
-
   dist_vector_list <- lapply(dist_matrix_list, function(x) {
     x <- as.matrix(x)
     x <- x[upper.tri(x)]

@@ -138,7 +138,6 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
   }
 
   if (inherits(newdata, "sf")) {
-
     newdata <- suppressWarnings(sf::st_centroid(newdata))
 
     newdata <- sf_to_df(newdata)

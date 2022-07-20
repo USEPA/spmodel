@@ -399,7 +399,7 @@ and
 
 When `type = "standardized"`, standardized residuals are returned:
 \begin{equation*}
- \mathbf{e}_{s} = \frac{\mathbf{e}_{p}}{1 - diag(\mathbf{H}^*)},
+ \mathbf{e}_{s} = \frac{\mathbf{e}_{p}}{\sqrt{1 - diag(\mathbf{H}^*)}},
 \end{equation*}
 where $diag(\mathbf{H}^*)$ is the diagonal of the spatial hat matrix, $\mathbf{H}_s \equiv \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}$. This residual transformation "standardizes" the Pearson residuals. As such, the standardized residuals should also have mean zero and variance
 \begin{equation*}

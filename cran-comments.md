@@ -41,6 +41,11 @@ Several tests were run using rhub. Below are the results for windows, linux, and
         * x:1: unexpected '}'
         * An author has a two-word last name, so the `{}` are used in the `CITATION` file to help ensure proper BibTeX formatting.
         
+* I did receive two errors running `rhub::check_for_cran()`:
+    * On Windows, the aspell spell checker was not found.
+    * On Fedora Linux, the LaTeX package `framed.sty` was not found.
+    * It is my understanding that these are bugs with rhub, as I was not able to reproduce them anywhere else.
+        
 ## R CMD check results
 
 Here is the output from `devtools::check(manual = TRUE)` on

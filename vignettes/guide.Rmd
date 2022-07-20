@@ -67,13 +67,13 @@ The model in Equation$~$\ref{eq:lm} assumes the elements of $\mathbf{y}$ are unc
 \end{equation}
 where $\text{E}(\boldsymbol{\tau}) = \mathbf{0}$, $\text{Cov}(\boldsymbol{\tau}) = \sigma^2_\tau \mathbf{R}$, and $\mathbf{R}$ is a matrix that determines the spatial dependence structure in $\mathbf{y}$ and depends on a range parameter, $\phi$. The parameter $\sigma^2_\tau$ is called the spatially dependent random error variance or partial sill. The parameter $\sigma^2_\epsilon$ is called the spatially independent random error variance or nugget. These two variance parameters are henceforth more intuitively written as $\sigma^2_{de}$ and $\sigma^2_{ie}$, respectively. The covariance of $\mathbf{y}$ is denoted $\boldsymbol{\Sigma}$ and given by $\sigma^2_{de} \mathbf{R} + \sigma^2_{ie} \mathbf{I}$. The parameters that compose this covariance are typically referenced by the vector $\boldsymbol{\theta}$, which is called the covariance parameter vector.
 
-Equation$~$\ref{eq:splm} is called the spatial linear model. The spatial linear model applies to both point-referenced and areal data. Data are point-referenced when the elements in $\mathbf{y}$ are observed at point-locations indexed by x-coordinates and y-coordinates on a spatially continuous surface with an infinite number of locations. The `splm()` function is used to fit spatial linear models for point-referenced data (these are often called geostatistical models). One spatial covariance available in `splm()` is the exponential spatial covariance, which has an $\mathbf{R}$ matrix given by
+Equation$~$\ref{eq:splm} is called the spatial linear model. The spatial linear model applies to both point-referenced and areal data. Data are point-referenced when the elements in $\mathbf{y}$ are observed at point-locations indexed by x-coordinates and y-coordinates on a spatially continuous surface with an infinite number of locations. The `splm()` function is used to fit spatial linear models for point-referenced data (these are often called geostatistical models). One spatial covariance function available in `splm()` is the exponential spatial covariance function, which has an $\mathbf{R}$ matrix given by
 \begin{equation*}
   \mathbf{R} = \exp(-\mathbf{h} / \phi),
 \end{equation*}  
 where $\mathbf{h}$ is a matrix of Euclidean distances among observations. Recall $\phi$ is the range parameter, controlling the behavior of $\mathbf{R}$ as a function of distance. Parameterizations for `splm()` spatial covariance types and their $\mathbf{R}$ matrices can be seen by running `help("splm", "spmodel")` or `vignette("technical", "spmodel")`.
 
-Data are areal when the elements in $\mathbf{y}$ are observed as part of a finite network of polygons whose connections are indexed by a neighborhood structure. For example, the polygons may represent counties in a state who are neighbors if they share at least one boundary. The `spautor()` function is used to fit spatial linear models for areal data (these are often called spatial autoregressive models). One spatial autoregressive covariance available in `spautor()` is the simultaneous autoregressive spatial covariance, which has an $\mathbf{R}$ matrix given by
+Data are areal when the elements in $\mathbf{y}$ are observed as part of a finite network of polygons whose connections are indexed by a neighborhood structure. For example, the polygons may represent counties in a state who are neighbors if they share at least one boundary. The `spautor()` function is used to fit spatial linear models for areal data (these are often called spatial autoregressive models). One spatial autoregressive covariance function available in `spautor()` is the simultaneous autoregressive spatial covariance function, which has an $\mathbf{R}$ matrix given by
 \begin{equation*}
   \mathbf{R} = [(\mathbf{I} - \phi \mathbf{W})(\mathbf{I} - \phi \mathbf{W})^\top]^{-1},
 \end{equation*}
@@ -108,7 +108,7 @@ ggplot(moss, aes(color = log_Zn)) +
   theme_gray(base_size = 14)
 ```
 
-We estimate parameters of a spatial linear model regressing log zinc concentration (`log_Zn`) on log distance to a haul road (`log_dist2road`) using an exponential spatial covariance by running
+We estimate parameters of a spatial linear model regressing log zinc concentration (`log_Zn`) on log distance to a haul road (`log_dist2road`) using an exponential spatial covariance function by running
 ```{r}
 spmod <- splm(log_Zn ~ log_dist2road, moss, spcov_type = "exponential")
 ```
@@ -229,7 +229,7 @@ residuals(spmod, type = "pearson")
 ```
 The covariance of $\mathbf{e}_{p}$ is $(\mathbf{I} - \mathbf{H}^*)$, which is approximately $\mathbf{I}$ for large sample sizes. Explicitly dividing $\mathbf{e}_{p}$ by the respective diagonal element of $(\mathbf{I} - \mathbf{H}^*)$ yields the standardized residuals:
 \begin{equation*}
-  \mathbf{e}_{s} = \frac{\mathbf{e}_{p}}{(1 - diag(\mathbf{H}^*))},
+  \mathbf{e}_{s} = \frac{\mathbf{e}_{p}}{\sqrt{(1 - diag(\mathbf{H}^*))}},
 \end{equation*}
 where $diag(\mathbf{H}^*)$ denotes the diagonal of $\mathbf{H}^*$.
 
@@ -321,22 +321,21 @@ augment(sealmod)
 
 # Prediction {#sec:prediction}
 
-In this section, we show how to use `predict()` to perform spatial prediction (also called Kriging) in `spmodel`. We fit a model using the point-referenced `sulfate` data, an `sf` object that contains sulfate measurements in the conterminous United States. We make predictions for each location in the point-referenced `sulfate_preds` data, an `sf` object that contains locations in the conterminous United States at which to predict sulfate. Figure$~$\ref{fig:sulfate} shows the distribution of sulfate in the `sulfate` data.
+In this section, we show how to use `predict()` to perform spatial prediction (also called Kriging) in `spmodel`. We fit a model using the point-referenced `sulfate` data, an `sf` object that contains sulfate measurements in the conterminous United States. We make predictions for each location in the point-referenced `sulfate_preds` data, an `sf` object that contains locations in the conterminous United States at which to predict sulfate. We visualize the distribution of the sulfate data (Figure$~$\ref{fig:sulfate}, left) by running
+```{r, eval = FALSE}
+ggplot(sulfate, aes(color = sulfate)) +
+  geom_sf(size = 2.5) +
+  scale_color_viridis_c(limits = c(0, 45)) +
+  theme_gray(base_size = 18)
+```
 
-First we fit a spatial linear model regressing sulfate on an intercept using a spherical<!--Mat$\acute{e}$rn--> spatial covariance by running
+We fit a spatial linear model regressing sulfate on an intercept using a spherical<!--Mat$\acute{e}$rn--> spatial covariance function by running
 ```{r}
 sulfmod <- splm(sulfate ~ 1, sulfate, spcov_type = "spherical")
 ```
 Then we obtain best linear unbiased predictions (Kriging predictions) using `predict()`, where the `newdata` argument contains the locations at which to predict:
 ```{r, results = "hide"}
 predict(sulfmod, newdata = sulfate_preds)
-```
-We visualize the distribution of the sulfate data (Figure$~$\ref{fig:sulfate}, left) by running
-```{r, eval = FALSE}
-ggplot(sulfate, aes(color = sulfate)) +
-  geom_sf(size = 2.5) +
-  scale_color_viridis_c(limits = c(0, 45)) +
-  theme_gray(base_size = 18)
 ```
 
 We make and predictions at the locations in `sulfate_preds` and store them as a new variable called `preds` in the `sulfate_preds` data set and then visualize them (Figure$~$\ref{fig:sulfate}, right) by running
@@ -421,7 +420,7 @@ augment(sealmod, newdata = sealmod$newdata)
 
 # Advanced Features {#sec:advfeatures}
 
-`spmodel` offers several advanced features for fitting spatial linear models. We briefly discuss each next using the `moss` and `sulfate` data, though technical details for each advanced feature can be seen by running `vignette("technical", "spmodel")`.
+`spmodel` offers several advanced features for fitting spatial linear models. We briefly discuss each next using the `moss` data and simulated data, though technical details for each advanced feature can be seen by running `vignette("technical", "spmodel")`.
 
 ## Fixing Spatial Covariance Parameters
 
@@ -606,7 +605,7 @@ ggplot(df, aes(x = x, y = y)) +
         axis.ticks = element_blank())
 ```
 
-Note that specifying an initial value for `rotate` or `scale` or assuming either `rotate` or `scale` are unknown in `spcov_initial` will cause `splm()` to fit a model with anisotropy (and will override `anisotropy = FALSE`). Estimating anisotropy parameters is only possible for maximum likelihood and restricted maximum likelihood estimation, but fixed anisotropy parameters can be accommodated for semivariogram weighted least squares or semivariogram composite likelihood estimation. Also note that anisotropy is not relevant for areal data because the covariance function depends on a neighborhood structure instead of distances between points.
+Note that specifying an initial value for `rotate` that is different from zero, specifying an initial value for `scale` that is different from one, or assuming either `rotate` or `scale` are unknown in `spcov_initial` will cause `splm()` to fit a model with anisotropy (and will override `anisotropy = FALSE`). Estimating anisotropy parameters is only possible for maximum likelihood and restricted maximum likelihood estimation, but fixed anisotropy parameters can be accommodated for semivariogram weighted least squares or semivariogram composite likelihood estimation. Also note that anisotropy is not relevant for areal data because the spatial covariance function depends on a neighborhood structure instead of distances between points.
 
 ## Simulating Spatial Data {#sec:sim_data}
 
@@ -656,7 +655,7 @@ summary(local1)
 ```
 
 
-Instead of using `local = TRUE`, we can explicitly set `local`. For example, we use using k-means clustering [@macqueen1967some]  on the x-coordinates and y-coordinates to create 60 groups (clusters), use the pooled variance adjustment, and use parallel processing with two cores by running
+Instead of using `local = TRUE`, we can explicitly set `local`. For example, we fit a model using using k-means clustering [@macqueen1967some]  on the x-coordinates and y-coordinates to create 60 groups (clusters), the pooled variance adjustment, and parallel processing with two cores by running
 ```{r}
 local2_list <- list(method = "kmeans", groups = 60, var_adjust = "pooled",
                     parallel = TRUE, ncores = 2)
@@ -712,7 +711,7 @@ ggplot(sim_preds, aes(x = x, y = y, color = preds)) +
   theme_gray(base_size = 18)
 ```
 
-Instead of using `local = TRUE`, we can explicitly set `local`. For example, we make predictions using the distance method, subsets of 30 observations, and use parallel processing with 2 cores by running
+Instead of using `local = TRUE`, we can explicitly set `local`. For example, we make predictions using the distance method, subsets of 30 observations, and parallel processing with 2 cores by running
 ```{r, results = "hide"}
 pred_list <- list(method = "distance", size = 30, parallel = TRUE, ncores = 2)
 predict(local1, newdata = sim_preds, local = pred_list)

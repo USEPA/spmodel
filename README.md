@@ -1,7 +1,7 @@
 <!-- badges -->
 [![R-CMD-check](https://github.com/USEPA/spmodel/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/USEPA/spmodel/actions/workflows/check-standard.yaml)
 
-# spmodel: Spatial statistical models in R
+# spmodel: Spatial Statistical Modeling and Prediction
 
 spmodel is an R package used to fit, summarize, and predict for a variety spatial
 statistical models. Parameters are estimated using various methods. Additional
@@ -43,9 +43,7 @@ vignette("guide", "spmodel") # a detailed guide with to spmodel
 vignette("technical", "spmodel") # technical details regarding many functions
 ```
 
-To view the vignettes in a web format, visit [here](https://cran.r-project.org/package=spmodel).
-
-Further detail regarding spmodel is contained in the package's documentation manual available for download [here](https://cran.r-project.org/package=spmodel).
+Further detail regarding spmodel is contained in the package's documentation manual. 
 
 ## Citation
 

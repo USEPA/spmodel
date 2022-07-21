@@ -186,14 +186,14 @@ loocv_spautor <- function(object, cv_predict = FALSE, se.fit, local, ...) {
   if (local_list$parallel) {
     cl <- parallel::makeCluster(local_list$ncores)
     cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv,
-      Sig = cov_matrix_val,
+      Sig = cov_matrix_obs_val,
       SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
       SigInv_yX = SigInv_yX, se.fit = se.fit
     )
     cl <- parallel::stopCluster(cl)
   } else {
     cv_predict_val_list <- lapply(seq_len(object$n), get_loocv,
-      Sig = cov_matrix_val,
+      Sig = cov_matrix_obs_val,
       SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
       SigInv_yX = SigInv_yX, se.fit = se.fit
     )

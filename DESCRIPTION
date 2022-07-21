@@ -21,7 +21,7 @@ Description: Fit, summarize, and predict for a variety spatial statistical model
     random effects, partition factors, big data approaches, and more. Model-fit statistics are
     used to summarize, visualize, and compare models. Predictions at unobserved locations are
     readily obtainable.
-License: GPL-3 + file LICENSE
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

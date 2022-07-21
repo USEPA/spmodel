@@ -7,7 +7,7 @@
 \usage{
 loocv(object, ...)
 
-\method{loocv}{spmod}(object, cv_predict = FALSE, local, ...)
+\method{loocv}{spmod}(object, cv_predict = FALSE, se.fit = FALSE, local, ...)
 }
 \arguments{
 \item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
@@ -17,6 +17,9 @@ loocv(object, ...)
 \item{cv_predict}{A logical indicating whether the leave-one-out fitted values
 should be returned. Defaults to \code{FALSE}.}
 
+\item{se.fit}{A logical indicating whether the leave-one-out
+prediction standard errors should be returned. Defaults to \code{FALSE}.}
+
 \item{local}{A list or logical. If a list, specific list elements described
 in \code{\link[=predict.spmod]{predict.spmod()}} control the big data approximation behavior.
 If a logical, \code{TRUE} chooses default list elements for the list version
@@ -24,11 +27,14 @@ of \code{local} as specified in \code{\link[=predict.spmod]{predict.spmod()}}. D
 which performs exact computations.}
 }
 \value{
-If \code{cv_predict = FALSE}, a numeric vector indicating the mean-squared-prediction
-leave-one-out cross validation error. If \code{cv_predict = TRUE}, a list with
-two elements: \code{mspe}, a numeric vector indicating the mean-squared-prediction
-leave-one-out cross validation error; and \code{cv_predict}, a numeric vector
-with leave-one-out predictions for each observation.
+If \code{cv_predict = FALSE} and \code{se.fit = FALSE},
+a numeric vector indicating the mean-squared-prediction
+leave-one-out cross validation error. If \code{cv_predict = TRUE} or \code{se.fit = TRUE},
+a list with elements: \code{mspe}, a numeric vector indicating the mean-squared-prediction
+leave-one-out cross validation error; \code{cv_predict}, a numeric vector
+with leave-one-out predictions for each observation (if \code{cv_predict = TRUE});
+and \code{se.fit}, a numeric vector with leave-one-out prediction standard
+errors for each observation (if \code{se.fit = TRUE}).
 }
 \description{
 Perform leave-one-out cross validation with options for computationally
@@ -47,5 +53,5 @@ spmod <- splm(z ~ water + tarp,
   spcov_type = "exponential", xcoord = x, ycoord = y
 )
 loocv(spmod)
-loocv(spmod, cv_predict = TRUE)
+loocv(spmod, cv_predict = TRUE, se.fit = TRUE)
 }

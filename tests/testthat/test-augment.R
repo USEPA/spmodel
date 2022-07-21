@@ -95,6 +95,8 @@ test_that("augment works with types", {
   expect_false(inherits(aug_pred, "sf"))
 
   # sf fit df pred
+  newexdata$.xcoord <- newexdata$xcoord
+  newexdata$.ycoord <- newexdata$ycoord
   spmod <- splm(y ~ x, exdata_sf, "exponential", xcoord, ycoord)
   aug_mod <- augment(spmod) # default drop = TRUE
   expect_true(inherits(aug_mod, "tbl"))

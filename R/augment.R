@@ -81,15 +81,6 @@
 augment.spmod <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
                           interval = c("none", "confidence", "prediction"), ...) {
 
-  # set drop
-  # if (missing(drop)) {
-  #   if (is.null(newdata)) {
-  #     drop <- TRUE # match augment.lm only returning model frame for data
-  #   } else {
-  #     drop <- FALSE # match augment.lm returning all columns for newdata
-  #   }
-  # }
-
   interval <- match.arg(interval)
   switch(x$fn,
     "splm" = augment_splm(x, drop, newdata, se_fit, interval, ...),
@@ -109,13 +100,6 @@ augment_splm <- function(x, drop, newdata, se_fit, interval, ...) {
     }
   } else {
     data <- model.frame(x)
-    # if (drop) {
-    #   if (inherits(newdata, "sf")) {
-    #     newdata <- newdata[, c(labels(terms(x))), drop = FALSE]
-    #   } else {
-    #     newdata <- newdata[, c(labels(terms(x)), x$xcoord, x$ycoord), drop = FALSE]
-    #   }
-    # }
   }
 
   if (is.null(newdata)) {
@@ -157,31 +141,17 @@ augment_splm <- function(x, drop, newdata, se_fit, interval, ...) {
     # inheritance for sf or sp objects
     attr_sp <- attr(class(newdata), "package")
     if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
-      # if (inherits(newdata, c("SpatialPointsDataFrame", "SpatialPolygonsDataFrame"))) {
-      # if (!requireNamespace("sf", quietly = TRUE)) { # requireNamespace checks if sf is installed
-      #   stop("Install the sf R package to use sp objects in splm()", call. = FALSE)
-      # } else {
-      #   newdata <- sf::st_as_sf(newdata)
-      # }
-      # newdata <- sf::st_as_sf(newdata)
       stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
     }
 
     if (inherits(newdata, "sf")) {
 
-      # turn polygon into centroid
-      # if (!requireNamespace("sf", quietly = TRUE)) { # requireNamespace checks if sf is installed
-      #   stop("Install the sf R package to use the centroid of sf POLYGON objects in splm()", call. = FALSE)
-      # } else {
-      #   # warning here from sf about assuming attributes are constant over geometries of x
-      #   newdata <- suppressWarnings(sf::st_centroid(newdata))
-      # }
       newdata <- suppressWarnings(sf::st_centroid(newdata))
 
       newdata <- sf_to_df(newdata)
-      names(newdata)[[which(names(newdata) == "xcoord")]] <-
+      names(newdata)[[which(names(newdata) == ".xcoord")]] <-
         as.character(x$xcoord) # only relevant if newdata is sf data is not
-      names(newdata)[[which(names(newdata) == "ycoord")]] <-
+      names(newdata)[[which(names(newdata) == ".ycoord")]] <-
         as.character(x$ycoord) # only relevant if newdata is sf data is not
     }
 
@@ -270,7 +240,7 @@ augment_spautor <- function(x, drop, newdata, se_fit,
     }
     tibble_out <- tibble::tibble(cbind(newdata, augment_newdata))
   }
-  # if (x$is_sf && requireNamespace("sf", quietly = TRUE)) {
+
   if (x$is_sf) {
     # sf installed
     tibble_out <- sf::st_as_sf(tibble_out,

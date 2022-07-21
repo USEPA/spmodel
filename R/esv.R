@@ -60,10 +60,10 @@ esv <- function(formula, data, xcoord, ycoord, dist_matrix, bins = 15, cutoff, p
   ### see if data has sf class
   if (inherits(data, "sf")) {
     data <- sf_to_df(data)
-    ### name xcoord "xcoord" to be used later
-    xcoord <- "xcoord"
-    ### name ycoord "ycoord" to be used later
-    ycoord <- "ycoord"
+    ### name xcoord ".xcoord" to be used later
+    xcoord <- ".xcoord"
+    ### name ycoord ".ycoord" to be used later
+    ycoord <- ".ycoord"
   }
 
   # compute spatial distances
@@ -78,7 +78,7 @@ esv <- function(formula, data, xcoord, ycoord, dist_matrix, bins = 15, cutoff, p
     }
   }
 
-  # dist_matrix <- triu(dist_matrix, k = 1) # strict upper triangle
+
   dist_matrix <- as.matrix(dist_matrix)
   dist_matrix <- dist_matrix[upper.tri(dist_matrix)]
 

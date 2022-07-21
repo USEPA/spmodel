@@ -14,8 +14,8 @@ sf_to_df <- function(data) {
     # save coordinates
     coords <- sf::st_coordinates(data)
     # add coordinates to data
-    data$xcoord <- coords[, "X"]
-    data$ycoord <- coords[, "Y"]
+    data$.xcoord <- coords[, "X"]
+    data$.ycoord <- coords[, "Y"]
     # drop geometry from data
     data <- sf::st_drop_geometry(data)
   } else {

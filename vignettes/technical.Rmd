@@ -271,16 +271,19 @@ and
 where $\boldsymbol{\beta}_i$ is the estimate of $\boldsymbol{\beta}$ constructed without the $i$th observation. 
 
 The loocv prediction of $y_i$ is then given by
-\begin{equation}
-  \hat{y}_i = \mathbf{X}_i \hat{\boldsymbol{\beta}}_{-i} + \hat{\boldsymbol{\Sigma}}_{i, -i}\hat{\boldsymbol{\Sigma}}_{-i, -i}(\mathbf{y}_i - \mathbf{X}_{-i} \hat{\boldsymbol{\beta}}_{-i}),
-\end{equation}
-which is analogous to the formula used to obtain linear unbiased predictions of unobserved data from Equation$~$\ref{eq:blup} in Section$~$\ref{sec:predict}. Model fits are evaluated using mean squared prediction error (mspe), formally defined as
+\begin{equation*}
+  \hat{y}_i = \mathbf{X}_i \hat{\boldsymbol{\beta}}_{-i} + \hat{\boldsymbol{\Sigma}}_{i, -i}\hat{\boldsymbol{\Sigma}}_{-i, -i}(\mathbf{y}_i - \mathbf{X}_{-i} \hat{\boldsymbol{\beta}}_{-i})
+\end{equation*}
+and the prediction variance of the loocv prediction of $y_i$ is given by
+\begin{equation*}
+  \dot{\sigma}^2_i = \hat{\boldsymbol{\Sigma}}_{i, i} - \hat{\boldsymbol{\Sigma}}_{i, - i} \hat{\boldsymbol{\Sigma}}^{-1}_{-i, -i} \hat{\boldsymbol{\Sigma}}_{i, - i}^\top + \mathbf{Q}_i(\mathbf{X}_{-i}^\top \hat{\boldsymbol{\Sigma}}_{-i, -i}^{-1} \mathbf{X}_{-i})^{-1}\mathbf{Q}_i^\top ,
+\end{equation*}
+$\mathbf{Q}_i = \mathbf{X}_i - \hat{\boldsymbol{\Sigma}}_{i, -i} \hat{\boldsymbol{\Sigma}}^{-1}_{-i, -i} \mathbf{X}_{-i}$.
+These formulas are analogous to the formulas used to obtain linear unbiased predictions of unobserved data (Equation$~$\ref{eq:blup}) and prediction variances (Equation$~$\ref{eq:blup_cov}) in Section$~$\ref{sec:predict}. Model fits are evaluated using mean squared prediction error (mspe), formally defined as
 \begin{equation*}
  mspe = \frac{1}{n}\sum_{i = 1}^n(y_i - \hat{y}_i)^2.
 \end{equation*}
 Generally the lower the $mspe$, the better the model fit.
-
-Notice that computing $\boldsymbol{\Sigma}^{-1}$ directly is unnecessary and inefficient, as only the products involving components of $\boldsymbol{\Sigma}^{-1}$ with components of $\mathbf{X}$ and $\mathbf{y}$ are required. Also notice that because $i$ has dimension one, a simpler form for $\boldsymbol{\Sigma}^{-1}_{-i, -i} \mathbf{X}_{-i}$ exists: $\boldsymbol{\Sigma}^{-1}_{-i, -i} \mathbf{X}_{-i} = (\boldsymbol{\Sigma}^{-1} \mathbf{X})_{-i} - \boldsymbol{\Sigma}^{-1}_{-i, i}\mathbf{X}_{i}$ (and similarly for $\boldsymbol{\Sigma}^{-1}_{-i, -i} \mathbf{y}_{-i}$). The intuition is that to obtain $\boldsymbol{\Sigma}^{-1}_{-i, -i} \mathbf{X}_{-i}$, we start with $\boldsymbol{\Sigma}^{-1} \mathbf{X}$, delete the $i$th row, and subtract out the relevant contributions to $(\boldsymbol{\Sigma}^{-1} \mathbf{X})_{-i}$ from $\boldsymbol{\Sigma}^{-1}_{-i, i}\mathbf{X}_{i}$ (and similarly for $\boldsymbol{\Sigma}^{-1}_{-i, -i} \mathbf{y}_{-i}$). This is important because we can pre-compute $\boldsymbol{\Sigma}^{-1} \mathbf{X}$ and $\boldsymbol{\Sigma}^{-1} \mathbf{y}$. Then, for each fold, subset and subtract appropriately. Ignoring this precomputation would require, for each fold, either knowing $\boldsymbol{\Sigma}^{-1}$ and then subsetting and multiplying by $\mathbf{X}_{-i}$ and $\mathbf{y}_{-i}$, or solving $\boldsymbol{\Sigma}^{-1}_{-i, -i}\mathbf{X}_{-i}$ and $\boldsymbol{\Sigma}^{-1}_{-i, -i}\mathbf{y}_{-i}$, which would require finding $\boldsymbol{\Sigma}^{-1}_{-i, -i} \mathbf{X}_{-i}$ and $\boldsymbol{\Sigma}^{-1}_{-i, -i} \mathbf{y}_{-i}$ separately for each fold. Both of these approaches add significant computational burden (though the computational burden from finding $\boldsymbol{\Sigma}^{-1}_{-i, -i} \mathbf{X}_{-i}$ and $\boldsymbol{\Sigma}^{-1}_{-i, -i} \mathbf{y}_{-i}$ separately for each fold is much greater than the computational burden from subsetting and multiplication for each fold).
 
 ## Big Data
 

@@ -9,8 +9,8 @@
 #' @return A loocv residual
 #'
 #' @noRd
-get_loocv <- function(obs, Sig, SigInv, Xmat, y, yX, SigInv_yX) {
-  SigInv_mm <- SigInv[obs, obs]
+get_loocv <- function(obs, Sig, SigInv, Xmat, y, yX, SigInv_yX, se.fit) {
+  SigInv_mm <- SigInv[obs, obs] # a constant
   SigInv_om <- SigInv[-obs, obs, drop = FALSE]
 
   newX <- Xmat[-obs, , drop = FALSE]
@@ -23,7 +23,19 @@ get_loocv <- function(obs, Sig, SigInv, Xmat, y, yX, SigInv_yX) {
   newSigInv_newy <- newSigInv_newyX[, 1, drop = FALSE]
   new_covbetahat <- chol2inv(chol(forceSymmetric(crossprod(newX, newSigInv_newX))))
   new_betahat <- new_covbetahat %*% crossprod(newX, newSigInv_newy)
-  obs_c <- Sig[obs, -obs]
+  obs_c <- Sig[obs, -obs, drop = FALSE]
   new_pred <- Xmat[obs, , drop = FALSE] %*% new_betahat + obs_c %*% (newSigInv_newy - newSigInv_newX %*% new_betahat)
-  as.numeric(new_pred)
+
+  # var
+  if (se.fit) {
+    Q <- Xmat[obs, , drop = FALSE] - obs_c %*% newSigInv_newX
+    new_SigInv_oo_obs_c <- tcrossprod(SigInv[-obs, -obs], obs_c) - SigInv_om %*% (crossprod(SigInv_om, t(obs_c)) / SigInv_mm)
+    var_fit <- Sig[obs, obs] - obs_c %*% new_SigInv_oo_obs_c + Q %*% tcrossprod(new_covbetahat, Q)
+    se_fit <- sqrt(var_fit)
+  } else {
+    se_fit <- NULL
+  }
+
+  # return
+  list(pred = as.numeric(new_pred), se.fit = as.numeric(se_fit))
 }

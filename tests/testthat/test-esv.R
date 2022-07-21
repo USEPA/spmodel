@@ -36,4 +36,8 @@ test_that("esv works", {
   # quoting works
   esv1_2 <- esv(y ~ x, exdata, "xcoord", "ycoord")
   expect_equal(esv1, esv1_2)
+
+  # works with sf object
+  exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"))
+  expect_error(esv(y ~ x, exdata_sf), NA)
 })

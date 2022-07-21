@@ -141,8 +141,8 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
     newdata <- suppressWarnings(sf::st_centroid(newdata))
 
     newdata <- sf_to_df(newdata)
-    names(newdata)[[which(names(newdata) == "xcoord")]] <- as.character(xcoord) # only relevant if newdata is sf data is not
-    names(newdata)[[which(names(newdata) == "ycoord")]] <- as.character(ycoord) # only relevant if newdata is sf data is not
+    names(newdata)[[which(names(newdata) == ".xcoord")]] <- as.character(xcoord) # only relevant if newdata is sf data is not
+    names(newdata)[[which(names(newdata) == ".ycoord")]] <- as.character(ycoord) # only relevant if newdata is sf data is not
   }
 
   # add back in zero column to cover anisotropy (should make anisotropy only available 1-d)
@@ -167,9 +167,19 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
   }
 
   formula_newdata <- delete.response(terms(object))
-  newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
-  # assumes that predicted observations are not outside the factor levels
-  newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
+  # fix model frame bug with degree 2 basic polynomial and one prediction row
+  # e.g. poly(x, y, degree = 2) and newdata has one row
+  if ("nmatrix.2" %in% attributes(formula_newdata)$dataClasses && NROW(newdata) == 1) {
+    newdata <- newdata[c(1, 1), , drop = FALSE]
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
+    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
+    newdata_model <- newdata_model[1, , drop = FALSE]
+    newdata <- newdata[1, , drop = FALSE]
+  } else {
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
+    # assumes that predicted observations are not outside the factor levels
+    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
+  }
   attr_assign <- attr(newdata_model, "assign")
   attr_contrasts <- attr(newdata_model, "contrasts")
   keep_cols <- which(colnames(newdata_model) %in% colnames(model.matrix(object)))
@@ -394,9 +404,19 @@ predict_spautor <- function(object, se.fit = FALSE, interval,
 
 
   formula_newdata <- delete.response(terms(object))
-  newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
-  # note that this will return an error if value of factor used to predict that was not used to fit
-  newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
+  # fix model frame bug with degree 2 basic polynomial and one prediction row
+  # e.g. poly(x, y, degree = 2) and newdata has one row
+  if ("nmatrix.2" %in% attributes(formula_newdata)$dataClasses && NROW(newdata) == 1) {
+    newdata <- newdata[c(1, 1), , drop = FALSE]
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
+    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
+    newdata_model <- newdata_model[1, , drop = FALSE]
+    newdata <- newdata[1, , drop = FALSE]
+  } else {
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
+    # assumes that predicted observations are not outside the factor levels
+    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
+  }
   attr_assign <- attr(newdata_model, "assign")
   attr_contrasts <- attr(newdata_model, "contrasts")
   keep_cols <- which(colnames(newdata_model) %in% colnames(model.matrix(object)))

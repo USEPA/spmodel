@@ -19,10 +19,10 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     data_sf <- suppressWarnings(sf::st_centroid(data))
     # store as data frame
     data <- sf_to_df(data_sf)
-    ## name xcoord "xcoord" to be used later
-    xcoord <- "xcoord"
-    ## name ycoord "ycoord" to be used later
-    ycoord <- "ycoord"
+    ## name xcoord ".xcoord" to be used later
+    xcoord <- ".xcoord"
+    ## name ycoord ".ycoord" to be used later
+    ycoord <- ".ycoord"
   } else {
     is_sf <- FALSE
     sf_column_name <- NULL
@@ -54,13 +54,13 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   if (inherits(spcov_initial, "none") && estmethod %in% c("reml", "ml")) {
     dim_coords <- 0
     if (missing(xcoord)) {
-      xcoord <- "xcoord"
+      xcoord <- ".xcoord"
       data[[xcoord]] <- 0
     }
     if (missing(ycoord)) {
-      ycoord <- "ycoord"
-      if (as.character(xcoord) == "ycoord") {
-        ycoord <- "ycoord2"
+      ycoord <- ".ycoord"
+      if (as.character(xcoord) == ".ycoord") {
+        ycoord <- ".ycoord2"
       }
       data[[ycoord]] <- 0
     }
@@ -70,9 +70,9 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
       ycoord_orig_name <- ycoord
       ycoord_orig_val <- data[[ycoord]]
     }
-    ycoord <- "ycoord"
-    if (as.character(xcoord) == "ycoord") {
-      ycoord <- "ycoord2"
+    ycoord <- ".ycoord"
+    if (as.character(xcoord) == ".ycoord") {
+      ycoord <- ".ycoord2"
     }
     data[[ycoord]] <- 0
   } else {

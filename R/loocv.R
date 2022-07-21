@@ -6,6 +6,8 @@
 #' @param object A fitted model object from [splm()] or [spautor()].
 #' @param cv_predict A logical indicating whether the leave-one-out fitted values
 #'   should be returned. Defaults to \code{FALSE}.
+#' @param se.fit A logical indicating whether the leave-one-out
+#'   prediction standard errors should be returned. Defaults to \code{FALSE}.
 #' @param local A list or logical. If a list, specific list elements described
 #'   in [predict.spmod()] control the big data approximation behavior.
 #'   If a logical, \code{TRUE} chooses default list elements for the list version
@@ -19,11 +21,14 @@
 #'   across all observations. The lower the mean squared error, the better the
 #'   model fit (according to the leave-one-out criterion).
 #'
-#' @return If \code{cv_predict = FALSE}, a numeric vector indicating the mean-squared-prediction
-#'   leave-one-out cross validation error. If \code{cv_predict = TRUE}, a list with
-#'   two elements: \code{mspe}, a numeric vector indicating the mean-squared-prediction
-#'   leave-one-out cross validation error; and \code{cv_predict}, a numeric vector
-#'   with leave-one-out predictions for each observation.
+#' @return If \code{cv_predict = FALSE} and \code{se.fit = FALSE},
+#'   a numeric vector indicating the mean-squared-prediction
+#'   leave-one-out cross validation error. If \code{cv_predict = TRUE} or \code{se.fit = TRUE},
+#'   a list with elements: \code{mspe}, a numeric vector indicating the mean-squared-prediction
+#'   leave-one-out cross validation error; \code{cv_predict}, a numeric vector
+#'   with leave-one-out predictions for each observation (if \code{cv_predict = TRUE});
+#'   and \code{se.fit}, a numeric vector with leave-one-out prediction standard
+#'   errors for each observation (if \code{se.fit = TRUE}).
 #'
 #' @export
 #'
@@ -33,7 +38,7 @@
 #'   spcov_type = "exponential", xcoord = x, ycoord = y
 #' )
 #' loocv(spmod)
-#' loocv(spmod, cv_predict = TRUE)
+#' loocv(spmod, cv_predict = TRUE, se.fit = TRUE)
 loocv <- function(object, ...) {
   UseMethod("loocv", object)
 }
@@ -41,18 +46,18 @@ loocv <- function(object, ...) {
 #' @rdname loocv
 #' @method loocv spmod
 #' @export
-loocv.spmod <- function(object, cv_predict = FALSE, local, ...) {
+loocv.spmod <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
   if (missing(local)) {
     local <- NULL
   }
 
   switch(object$fn,
-    "splm" = loocv_splm(object, cv_predict, local, ...),
-    "spautor" = loocv_spautor(object, cv_predict, local, ...)
+    "splm" = loocv_splm(object, cv_predict, se.fit, local, ...),
+    "spautor" = loocv_spautor(object, cv_predict, se.fit, local, ...)
   )
 }
 
-loocv_splm <- function(object, cv_predict = FALSE, local, ...) {
+loocv_splm <- function(object, cv_predict = FALSE, se.fit, local, ...) {
 
   # local prediction list
 
@@ -98,17 +103,21 @@ loocv_splm <- function(object, cv_predict = FALSE, local, ...) {
       cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv,
         Sig = cov_matrix_val,
         SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
-        SigInv_yX = SigInv_yX
+        SigInv_yX = SigInv_yX, se.fit = se.fit
       )
       cl <- parallel::stopCluster(cl)
     } else {
       cv_predict_val_list <- lapply(seq_len(object$n), get_loocv,
         Sig = cov_matrix_val,
         SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
-        SigInv_yX = SigInv_yX
+        SigInv_yX = SigInv_yX, se.fit = se.fit
       )
     }
-    cv_predict_val <- unlist(cv_predict_val_list)
+    # cv_predict_val <- unlist(cv_predict_val_list)
+    cv_predict_val <- vapply(cv_predict_val_list, function(x) x$pred, numeric(1))
+    if (se.fit) {
+      cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
+    }
   } else {
     model_frame <- model.frame(object)
     y <- model.response(model_frame)
@@ -117,22 +126,35 @@ loocv_splm <- function(object, cv_predict = FALSE, local, ...) {
       # turn of parallel as it is used different in predict
       local_list$parallel <- FALSE
       cl <- parallel::makeCluster(local_list$ncores)
-      cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), loocv_local, object, local_list)
+      cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), loocv_local, object, se.fit, local_list)
       cl <- parallel::stopCluster(cl)
     } else {
-      cv_predict_val_list <- lapply(seq_len(object$n), loocv_local, object, local_list)
+      cv_predict_val_list <- lapply(seq_len(object$n), loocv_local, object, se.fit, local_list)
     }
-    cv_predict_val <- unlist(cv_predict_val_list)
+    if (se.fit) {
+      cv_predict_val <- vapply(cv_predict_val_list, function(x) x$fit, numeric(1))
+      cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
+    } else {
+      cv_predict_val <- unlist(cv_predict_val_list)
+    }
   }
   if (cv_predict) {
-    cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val))
+    if (se.fit) {
+      cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
+    } else {
+      cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val))
+    }
   } else {
-    cv_output <- mean((cv_predict_val - y)^2)
+    if (se.fit) {
+      cv_output <- list(mspe = mean((cv_predict_val - y)^2), se.fit = as.vector(cv_predict_se))
+    } else {
+      cv_output <- mean((cv_predict_val - y)^2)
+    }
   }
   cv_output
 }
 
-loocv_spautor <- function(object, cv_predict = FALSE, local, ...) {
+loocv_spautor <- function(object, cv_predict = FALSE, se.fit, local, ...) {
   local_list <- get_local_list_prediction(local)
 
   # local not used but needed for S3
@@ -166,27 +188,39 @@ loocv_spautor <- function(object, cv_predict = FALSE, local, ...) {
     cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv,
       Sig = cov_matrix_val,
       SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
-      SigInv_yX = SigInv_yX
+      SigInv_yX = SigInv_yX, se.fit = se.fit
     )
     cl <- parallel::stopCluster(cl)
   } else {
     cv_predict_val_list <- lapply(seq_len(object$n), get_loocv,
       Sig = cov_matrix_val,
       SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
-      SigInv_yX = SigInv_yX
+      SigInv_yX = SigInv_yX, se.fit = se.fit
     )
   }
-  cv_predict_val <- unlist(cv_predict_val_list)
+  # cv_predict_val <- unlist(cv_predict_val_list)
+  cv_predict_val <- vapply(cv_predict_val_list, function(x) x$pred, numeric(1))
+  if (se.fit) {
+    cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
+  }
   if (cv_predict) {
-    cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val))
+    if (se.fit) {
+      cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
+    } else {
+      cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val))
+    }
   } else {
-    cv_output <- mean((cv_predict_val - y)^2)
+    if (se.fit) {
+      cv_output <- list(mspe = mean((cv_predict_val - y)^2), se.fit = as.vector(cv_predict_se))
+    } else {
+      cv_output <- mean((cv_predict_val - y)^2)
+    }
   }
   cv_output
 }
 
-loocv_local <- function(row, object, local_list) {
+loocv_local <- function(row, object, se.fit, local_list) {
   newdata <- object$obdata[row, , drop = FALSE]
   object$obdata <- object$obdata[-row, , drop = FALSE]
-  predict(object, newdata = newdata, local = local_list)
+  predict(object, newdata = newdata, se.fit = se.fit, local = local_list)
 }

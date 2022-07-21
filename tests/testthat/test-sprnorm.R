@@ -164,3 +164,9 @@ test_that("quoting works", {
   spcov_params_val <- spcov_params("exponential", de = 1, ie = 1, range = 1)
   expect_vector(sprnorm(spcov_params_val, data = exdata, xcoord = "xcoord", ycoord = "ycoord"))
 })
+
+test_that("sf works", {
+  exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"))
+  spcov_params_val <- spcov_params("exponential", de = 1, ie = 1, range = 1)
+  expect_vector(sprnorm(spcov_params_val, data = exdata_sf))
+})

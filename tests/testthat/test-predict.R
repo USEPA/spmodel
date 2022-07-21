@@ -324,3 +324,22 @@ test_that("prediction values match for both approaches autoregressive", {
   spmod1 <- spautor(y ~ poly(x, degree = 2, raw = FALSE), exdata_Mpoly, "car")
   expect_error(predict(spmod1), NA)
 })
+
+test_that("prediction no error with order 2 polynomial one prediction row", {
+  # there is a bug in lm() trying to do the same thing
+  spmod <- splm(y ~ poly(xcoord, ycoord, degree = 1), exdata, "none")
+  expect_error(predict(spmod, newdata = newexdata), NA)
+  expect_error(predict(spmod, newdata = newexdata[1, , drop = FALSE]), NA)
+  expect_equal(predict(spmod, newdata = newexdata)[[1]], predict(spmod, newdata = newexdata[1, , drop = FALSE])[[1]])
+
+  # there is a bug in lm() trying to do the same thing
+  spmod <- splm(y ~ poly(xcoord, ycoord, degree = 1), exdata, "exponential", xcoord, ycoord)
+  expect_error(predict(spmod, newdata = newexdata), NA)
+  expect_error(predict(spmod, newdata = newexdata[1, , drop = FALSE]), NA)
+  expect_equal(predict(spmod, newdata = newexdata)[[1]], predict(spmod, newdata = newexdata[1, , drop = FALSE])[[1]])
+
+  # there is a bug in lm() trying to do the same thing
+  exdata_Mpoly$x2 <- rnorm(NROW(exdata_Mpoly))
+  spmod <- spautor(y ~ poly(x, x2, degree = 1), exdata_Mpoly, "car")
+  expect_error(predict(spmod), NA)
+})

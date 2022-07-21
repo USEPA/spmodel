@@ -89,17 +89,17 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
   if (inherits(data, "sf")) {
     data <- suppressWarnings(sf::st_centroid(data))
     data <- sf_to_df(data)
-    ### name xcoord "xcoord" to be used later
-    xcoord <- "xcoord"
-    ### name ycoord "ycoord" to be used later
-    ycoord <- "ycoord"
+    ### name xcoord ".xcoord" to be used later
+    xcoord <- ".xcoord"
+    ### name ycoord ".ycoord" to be used later
+    ycoord <- ".ycoord"
   }
 
   # non standard evaluation for the x and y coordinates
   xcoord <- substitute(xcoord)
   # replace null if necessary
   if (missing(ycoord)) {
-    ycoord <- "ycoord"
+    ycoord <- ".ycoord"
     data[[ycoord]] <- 0
   }
   ycoord <- substitute(ycoord)

@@ -37,10 +37,7 @@ Several tests were run using rhub. Below are the results for windows, linux, and
     * Possibly misspelled words in `DESCRIPTION`:
         * anisotropy
         * This word is spelled correctly.
-    * Problems when formatting `CITATION` entries:
-        * x:1: unexpected '}'
-        * An author has a two-word last name, so the `{}` are used in the `CITATION` file to help ensure proper BibTeX formatting.
-        
+
 * I did receive two errors running `rhub::check_for_cran()`:
     * On Windows, the aspell spell checker was not found.
     * On Fedora Linux, the LaTeX package `framed.sty` was not found.

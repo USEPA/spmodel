@@ -4,8 +4,6 @@ set.seed(1)
 
 load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
 load(file = system.file("extdata", "exdata_M.rda", package = "spmodel"))
-# load(file = system.file("extdata", "exdata_sp.rda", package = "spmodel"))
-# load(file = system.file("extdata", "exdata_poly_sp.rda", package = "spmodel"))
 load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
 
 test_that("the model runs for exponential", {

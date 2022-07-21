@@ -169,7 +169,7 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
   formula_newdata <- delete.response(terms(object))
   # fix model frame bug with degree 2 basic polynomial and one prediction row
   # e.g. poly(x, y, degree = 2) and newdata has one row
-  if ("nmatrix.2" %in% attributes(formula_newdata)$dataClasses && NROW(newdata) == 1) {
+  if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses)) && NROW(newdata) == 1) {
     newdata <- newdata[c(1, 1), , drop = FALSE]
     newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
@@ -406,7 +406,7 @@ predict_spautor <- function(object, se.fit = FALSE, interval,
   formula_newdata <- delete.response(terms(object))
   # fix model frame bug with degree 2 basic polynomial and one prediction row
   # e.g. poly(x, y, degree = 2) and newdata has one row
-  if ("nmatrix.2" %in% attributes(formula_newdata)$dataClasses && NROW(newdata) == 1) {
+  if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses)) && NROW(newdata) == 1) {
     newdata <- newdata[c(1, 1), , drop = FALSE]
     newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)

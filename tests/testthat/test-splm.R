@@ -790,44 +790,6 @@ test_that("the model runs for sf and sp objects", {
   expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "ml"), NA)
   expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
   expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
-
-  # exdata_sp <- sf::as_Spatial(exdata_sf) now saved in extdata
-
-  # spcov_type <- "exponential"
-  # expect_error(splm(y ~ x, exdata_sp, spcov_type = spcov_type, estmethod = "reml"), NA)
-  # expect_error(splm(y ~ x, exdata_sp, spcov_type = spcov_type, estmethod = "ml"), NA)
-  # expect_error(splm(y ~ x, exdata_sp, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
-  # expect_error(splm(y ~ x, exdata_sp, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
-  # spcov_type <- "none"
-  # expect_error(splm(y ~ x, exdata_sp, spcov_type = spcov_type, estmethod = "reml"), NA)
-  # expect_error(splm(y ~ x, exdata_sp, spcov_type = spcov_type, estmethod = "ml"), NA)
-  # expect_error(splm(y ~ x, exdata_sp, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
-  # expect_error(splm(y ~ x, exdata_sp, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
-  # spcov_type <- "matern"
-  # expect_error(splm(y ~ x, exdata_sp, spcov_type = spcov_type, estmethod = "reml"), NA)
-  # expect_error(splm(y ~ x, exdata_sp, spcov_type = spcov_type, estmethod = "ml"), NA)
-  # expect_error(splm(y ~ x, exdata_sp, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
-  # expect_error(splm(y ~ x, exdata_sp, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
-  #
-  # # polygon data
-  # # exdata_poly_sp <- sf::as_Spatial(exdata_poly)
-  # spcov_type <- "exponential"
-  # expect_error(splm(y ~ x, exdata_poly_sp, spcov_type = spcov_type, estmethod = "reml"), NA)
-  # expect_error(splm(y ~ x, exdata_poly_sp, spcov_type = spcov_type, estmethod = "ml"), NA)
-  # expect_error(splm(y ~ x, exdata_poly_sp, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
-  # expect_error(splm(y ~ x, exdata_poly_sp, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
-  # spcov_type <- "none"
-  # expect_error(splm(y ~ x, exdata_poly_sp, spcov_type = spcov_type, estmethod = "reml"), NA)
-  # expect_error(splm(y ~ x, exdata_poly_sp, spcov_type = spcov_type, estmethod = "ml"), NA)
-  # expect_error(splm(y ~ x, exdata_poly_sp, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
-  # expect_error(splm(y ~ x, exdata_poly_sp, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
-  # spcov_type <- "matern"
-  # expect_error(splm(y ~ x, exdata_poly_sp, spcov_type = spcov_type, estmethod = "reml"), NA)
-  # expect_error(splm(y ~ x, exdata_poly_sp, spcov_type = spcov_type, estmethod = "ml"), NA)
-  # expect_error(splm(y ~ x, exdata_poly_sp, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
-  # expect_error(splm(y ~ x, exdata_poly_sp, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
-
-  # }
 })
 
 test_that("extra covr checks", {

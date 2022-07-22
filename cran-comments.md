@@ -38,10 +38,9 @@ Several tests were run using rhub. Below are the results for windows, linux, and
         * anisotropy
         * This word is spelled correctly.
 
-* I did receive two errors running `rhub::check_for_cran()`:
-    * On Windows, the aspell spell checker was not found.
+* I did receive an error running `rhub::check_for_cran()`:
     * On Fedora Linux, the LaTeX package `framed.sty` was not found.
-    * It is my understanding that these are bugs with rhub, as I was not able to reproduce them anywhere else.
+    * It is my understanding that this bug is with rhub, as I was not able to reproduce it anywhere else.
         
 ## R CMD check results
 

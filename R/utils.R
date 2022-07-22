@@ -13,7 +13,7 @@ generics::augment
 # CRAN release questions
 release_questions <- function() {
   c(
-    "Have you turned off local tests in test-loocv, test-spautor, and test-splm?",
+    "Have you turned off local tests in test-loocv, test-predict, test-spautor, and test-splm?",
     "Have you changed version numbers in DESCRIPTION, CITATION, and README?"
   )
 }

@@ -4,6 +4,18 @@ load(system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
 
 test_local <- FALSE # FALSE for CRAN
 
+#### CRAN tests
+test_that("loocv works geo", {
+  spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
+  expect_vector(loocv(spmod))
+  expect_vector(loocv(spmod, local = TRUE))
+  # cores 2 for cran check
+  spmod <- spautor(y ~ x, exdata_poly, "car")
+  expect_vector(loocv(spmod))
+})
+
+if (test_local) {
+
 test_that("loocv works geo", {
   spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
   expect_vector(loocv(spmod))
@@ -79,4 +91,4 @@ test_that("loocv works auto", {
 
 })
 
-
+}

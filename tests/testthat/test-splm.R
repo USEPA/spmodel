@@ -8,6 +8,25 @@ load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
 
 test_local <- FALSE # FALSE for CRAN
 
+#### CRAN checks
+test_that("the model runs for exponential", {
+  spcov_type <- "exponential"
+  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"), NA)
+  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml"), NA)
+  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
+  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
+})
+
+test_that("the model runs for exponential (random group)", {
+  spcov_type <- "exponential"
+  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group), NA)
+  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", partition_factor = ~group), NA)
+  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", anisotropy = TRUE), NA)
+  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", local = TRUE), NA)
+})
+
+if (test_local) {
+
 test_that("the model runs for exponential", {
   spcov_type <- "exponential"
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"), NA)
@@ -997,3 +1016,5 @@ test_that("quoting arguments works", {
   spmod2$call <- NULL
   expect_equal(spmod1, spmod2)
 })
+
+}

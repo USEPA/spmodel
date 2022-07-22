@@ -5,6 +5,21 @@ load(file = system.file("extdata", "exdata_Upoly.rda", package = "spmodel"))
 
 test_local <- FALSE # FALSE for CRAN
 
+#### CRAN check
+test_that("the model runs for connected sites", {
+  spcov_type <- "car"
+  expect_error(spautor(y ~ x, exdata_poly, spcov_type), NA)
+  expect_error(spautor(y ~ x, exdata_poly, spcov_type, random = ~ group), NA)
+  expect_error(spautor(y ~ x, exdata_poly, spcov_type, partition_factor = ~ group), NA)
+})
+
+test_that("the model runs for unconnected sites", {
+  spcov_type <- "sar"
+  expect_error(spautor(y ~ x, exdata_Upoly, spcov_type), NA)
+})
+
+if (test_local) {
+
 ################################
 ########### row standardized
 ################################
@@ -606,3 +621,5 @@ test_that("messages occur", {
   spcov_initial_val <- spcov_initial("car")
   expect_message(spautor(y ~ x, exdata_poly, "car", spcov_initial = spcov_initial_val))
 })
+
+}

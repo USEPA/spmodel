@@ -6,6 +6,33 @@ load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
 load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
 load(system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
 
+test_local <- FALSE # FALSE for CRAN
+
+##### CRAN test
+test_that("Prediction for splm works", {
+  spcov_type <- "exponential"
+  smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+  expect_error(predict(smod, newexdata), NA)
+  expect_error(predict(smod, newexdata, interval = "prediction"), NA)
+  expect_error(predict(smod, newexdata, interval = "confidence"), NA)
+  expect_equal(length(predict(smod, newexdata)), NROW(newexdata))
+  expect_true(all(predict(smod, newexdata, se.fit = TRUE)$se.fit >= 0))
+})
+
+test_that("Prediction for splm works with random effects", {
+  spcov_type <- "exponential"
+  smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group)
+  expect_error(predict(smod, newexdata), NA)
+  expect_error(predict(smod, newexdata, interval = "prediction"), NA)
+  expect_error(predict(smod, newexdata, interval = "confidence"), NA)
+  expect_equal(length(predict(smod, newexdata)), NROW(newexdata))
+  expect_true(all(predict(smod, newexdata, se.fit = TRUE)$se.fit >= 0))
+})
+
+if (test_local) {
+
+
+
 test_that("Prediction for splm works", {
   spcov_type <- "exponential"
   smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
@@ -343,3 +370,5 @@ test_that("prediction no error with order 2 polynomial one prediction row", {
   spmod <- spautor(y ~ poly(x, x2, degree = 1), exdata_Mpoly, "car")
   expect_error(predict(spmod), NA)
 })
+
+}

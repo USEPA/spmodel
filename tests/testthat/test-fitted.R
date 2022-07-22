@@ -1,6 +1,18 @@
 load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
 load(system.file("extdata", "exdata_poly.rda", package = "spmodel"))
 
+test_local <- FALSE # FALSE for CRAN
+
+##### CRAN test
+test_that("fitted distance works geostatistical", {
+
+  # no random effect
+  spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
+  expect_vector(fitted(spmod))
+})
+
+#### local tests
+if (test_local) {
 test_that("fitted distance works geostatistical", {
 
   # no random effect
@@ -48,3 +60,4 @@ test_that("errors return", {
   expect_error(fitted(spmod, type = "xyz"))
   expect_error(fitted.values(spmod, type = "xyz"))
 })
+}

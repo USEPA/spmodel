@@ -81,7 +81,10 @@ spcov_vector.cosine <- function(spcov_params, dist_vector) {
 # spcov_vector wave
 #' @export
 spcov_vector.wave <- function(spcov_params, dist_vector) {
-  spcov_vector_val <- spcov_params[["de"]] * spcov_params[["range"]] * sin(pi * dist_vector / spcov_params[["range"]]) / (pi * dist_vector)
+  dist_ratio <- dist_vector / spcov_params[["range"]]
+  spcov_vector_val <- spcov_params[["de"]] * sin(dist_ratio) / (dist_ratio)
+  dist_vector_zero <- which(dist_vector == 0)
+  spcov_vector_val[dist_vector_zero] <- spcov_params[["de"]]
   spcov_vector_val
 }
 
@@ -113,7 +116,7 @@ spcov_vector.rquad <- function(spcov_params, dist_vector) {
 #' @export
 spcov_vector.magnetic <- function(spcov_params, dist_vector) {
   dist_ratio <- dist_vector / spcov_params[["range"]]
-  spcov_vector_val <- spcov_params[["de"]] * (1 + dist_ratio^2)^(-1 / 2)
+  spcov_vector_val <- spcov_params[["de"]] * (1 + dist_ratio^2)^(-3 / 2)
   spcov_vector_val
 }
 ########### four parameter geostatistical

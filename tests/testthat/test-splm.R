@@ -6,6 +6,8 @@ load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
 load(file = system.file("extdata", "exdata_M.rda", package = "spmodel"))
 load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
 
+test_local <- FALSE # FALSE for CRAN
+
 test_that("the model runs for exponential", {
   spcov_type <- "exponential"
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"), NA)
@@ -22,19 +24,24 @@ test_that("the model runs for exponential", {
 test_that("the model runs for exponential (partition group)", {
   spcov_type <- "exponential"
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", partition_factor = ~group), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", partition_factor = ~group), NA)
-  spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", partition_factor = ~group), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", partition_factor = ~group), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", partition_factor = ~group), NA)
+    spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", partition_factor = ~group), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", partition_factor = ~group), NA)
+  }
 })
 
 test_that("the model runs for exponential (random group)", {
   spcov_type <- "exponential"
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", random = ~group), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", random = ~group), NA)
+    spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~group), NA)
+  }
   spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~group), NA)
   randcov_initial_val <- randcov_initial(group = 1)
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~group, randcov_initial = randcov_initial_val), NA)
 })
@@ -42,10 +49,13 @@ test_that("the model runs for exponential (random group)", {
 test_that("the model runs for exponential (random and subgroup)", {
   spcov_type <- "exponential"
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~ group + subgroup), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", random = ~ group + subgroup), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", random = ~ group + subgroup), NA)
+    spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~ group + subgroup), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~group), NA)
+  }
   spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~ group + subgroup), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~group), NA)
   randcov_initial_val <- randcov_initial(group = 1)
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~ group + subgroup, randcov_initial = randcov_initial_val), NA)
 })
@@ -53,10 +63,13 @@ test_that("the model runs for exponential (random and subgroup)", {
 test_that("the model runs for exponential (random nested subgroup)", {
   spcov_type <- "exponential"
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~ group / subgroup), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", random = ~ group / subgroup), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", random = ~ group / subgroup), NA)
+    spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~ group / subgroup), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~ group / subgroup), NA)
+  }
   spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~ group / subgroup), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~ group / subgroup), NA)
   randcov_initial_val <- randcov_initial(group = 1)
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~ group / subgroup, randcov_initial = randcov_initial_val), NA)
 })
@@ -64,10 +77,12 @@ test_that("the model runs for exponential (random nested subgroup)", {
 test_that("the model runs for exponential (random and partitioning)", {
   spcov_type <- "exponential"
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group, partition_factor = ~group), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", random = ~group, partition_factor = ~group), NA)
-  spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group, partition_factor = ~group), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~group, partition_factor = ~group), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", random = ~group, partition_factor = ~group), NA)
+    spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group, partition_factor = ~group), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~group, partition_factor = ~group), NA)
+  }
 })
 
 test_that("the model runs for anisotropy", {
@@ -76,19 +91,21 @@ test_that("the model runs for anisotropy", {
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", anisotropy = TRUE
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE
-  ), NA)
-  spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_initial = spcov_initial_val, estmethod = "reml", anisotropy = TRUE
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_initial = spcov_initial_val, estmethod = "ml", anisotropy = TRUE
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE
+    ), NA)
+    spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_initial = spcov_initial_val, estmethod = "reml", anisotropy = TRUE
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_initial = spcov_initial_val, estmethod = "ml", anisotropy = TRUE
+    ), NA)
+  }
 })
 
 test_that("the model runs for and random effects", {
@@ -97,19 +114,21 @@ test_that("the model runs for and random effects", {
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", anisotropy = TRUE, random = ~group
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE, random = ~group
-  ), NA)
-  spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_initial = spcov_initial_val, estmethod = "reml", anisotropy = TRUE, random = ~group
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_initial = spcov_initial_val, estmethod = "ml", anisotropy = TRUE, random = ~group
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE, random = ~group
+    ), NA)
+    spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_initial = spcov_initial_val, estmethod = "reml", anisotropy = TRUE, random = ~group
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_initial = spcov_initial_val, estmethod = "ml", anisotropy = TRUE, random = ~group
+    ), NA)
+  }
 })
 
 test_that("the model runs for and partitioning", {
@@ -118,19 +137,21 @@ test_that("the model runs for and partitioning", {
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", anisotropy = TRUE, partition_factor = ~group
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE, partition_factor = ~group
-  ), NA)
-  spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_initial = spcov_initial_val, estmethod = "reml", anisotropy = TRUE, partition_factor = ~group
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_initial = spcov_initial_val, estmethod = "ml", anisotropy = TRUE, partition_factor = ~group
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE, partition_factor = ~group
+    ), NA)
+    spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_initial = spcov_initial_val, estmethod = "reml", anisotropy = TRUE, partition_factor = ~group
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_initial = spcov_initial_val, estmethod = "ml", anisotropy = TRUE, partition_factor = ~group
+    ), NA)
+  }
 })
 
 test_that("the model runs for and random effects and partitioning", {
@@ -139,44 +160,50 @@ test_that("the model runs for and random effects and partitioning", {
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", anisotropy = TRUE, random = ~group, partition_factor = ~group
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE, random = ~group, partition_factor = ~group
-  ), NA)
-  spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_initial = spcov_initial_val, estmethod = "reml",
-    anisotropy = TRUE, random = ~group, partition_factor = ~group
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_initial = spcov_initial_val, estmethod = "ml",
-    anisotropy = TRUE, random = ~group, partition_factor = ~group
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE, random = ~group, partition_factor = ~group
+    ), NA)
+    spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_initial = spcov_initial_val, estmethod = "reml",
+                      anisotropy = TRUE, random = ~group, partition_factor = ~group
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_initial = spcov_initial_val, estmethod = "ml",
+                      anisotropy = TRUE, random = ~group, partition_factor = ~group
+    ), NA)
+  }
 })
 
 test_that("the model runs for exponential and missing data", {
   spcov_type <- spcov_type <- "exponential"
   expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"), NA)
-  expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml"), NA)
-  expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
-  expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
-  spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml"), NA)
-  expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml"), NA)
-  expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "sv-wls"), NA)
-  expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "sv-cl"), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml"), NA)
+    expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
+    expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
+    spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
+    expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml"), NA)
+    expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml"), NA)
+    expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "sv-wls"), NA)
+    expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "sv-cl"), NA)
+  }
 })
 
 
 test_that("the model runs for exponential (random group) and missing data", {
   spcov_type <- "exponential"
   expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group), NA)
-  expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", random = ~group), NA)
-  spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group), NA)
-  expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~group), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", random = ~group), NA)
+    spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
+    expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group), NA)
+    expect_error(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~group), NA)
+  }
 })
 
 
@@ -193,18 +220,20 @@ test_that("the model runs for big data", {
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", local = list(parallel = TRUE, ncores = 2)
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", local = list(parallel = TRUE, ncores = 2)
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "sv-wls", local = list(parallel = TRUE, ncores = 2)
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "sv-cl", local = list(parallel = TRUE, ncores = 2)
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", local = list(parallel = TRUE, ncores = 2)
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "sv-wls", local = list(parallel = TRUE, ncores = 2)
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "sv-cl", local = list(parallel = TRUE, ncores = 2)
+    ), NA)
+  }
 
   # in case var_adjust default changed to "none"
   expect_error(splm(y ~ x, exdata,
@@ -228,66 +257,74 @@ test_that("the model runs for big data", {
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", local = list(size = 30)
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", local = list(size = 30)
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "sv-wls", local = list(size = 30)
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "sv-cl", local = list(size = 30)
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", local = list(size = 30)
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "sv-wls", local = list(size = 30)
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "sv-cl", local = list(size = 30)
+    ), NA)
+  }
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", local = list(groups = 10)
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", local = list(groups = 10)
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "sv-wls", local = list(groups = 10)
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "sv-cl", local = list(groups = 10)
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", local = list(groups = 10)
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "sv-wls", local = list(groups = 10)
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "sv-cl", local = list(groups = 10)
+    ), NA)
+  }
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", local = list(index = sample(1:4, size = 100, replace = TRUE))
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", local = list(index = sample(1:4, size = 100, replace = TRUE))
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "sv-wls", local = list(index = sample(1:4, size = 100, replace = TRUE))
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "sv-cl", local = list(index = sample(1:4, size = 100, replace = TRUE))
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", local = list(index = sample(1:4, size = 100, replace = TRUE))
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "sv-wls", local = list(index = sample(1:4, size = 100, replace = TRUE))
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "sv-cl", local = list(index = sample(1:4, size = 100, replace = TRUE))
+    ), NA)
+  }
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", local = list(method = "kmeans")
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", local = list(method = "kmeans")
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "sv-wls", local = list(method = "kmeans")
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "sv-cl", local = list(method = "kmeans")
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", local = list(method = "kmeans")
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "sv-wls", local = list(method = "kmeans")
+    ), NA)
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "sv-cl", local = list(method = "kmeans")
+    ), NA)
+  }
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", local = list(var_adjust = "none")
@@ -311,49 +348,62 @@ test_that("the model runs for big data", {
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", random = ~group, local = TRUE
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", random = ~group, local = TRUE
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", random = ~group, local = TRUE
+    ), NA)
+  }
 
   # random effects (nested)
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", random = ~ group / subgroup, local = TRUE
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", random = ~ group / subgroup, local = TRUE
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", random = ~ group / subgroup, local = TRUE
+    ), NA)
+  }
+
 
   # random effects (x2)
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", random = ~ group + subgroup, local = TRUE
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", random = ~ group + subgroup, local = TRUE
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", random = ~ group + subgroup, local = TRUE
+    ), NA)
+  }
+
   # anisotropy
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", anisotropy = TRUE, local = TRUE
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE, local = TRUE
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE, local = TRUE
+    ), NA)
+  }
+
 
   # partitioning
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", partition_factor = ~group, local = TRUE
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", partition_factor = ~group, local = TRUE
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", partition_factor = ~group, local = TRUE
+    ), NA)
+  }
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "sv-wls", partition_factor = ~group, local = TRUE
@@ -368,10 +418,13 @@ test_that("the model runs for big data", {
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", random = ~group, partition_factor = ~group, local = TRUE
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", random = ~group, partition_factor = ~group, local = TRUE
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", random = ~group, partition_factor = ~group, local = TRUE
+    ), NA)
+  }
+
 
 
   # random effects anisotropy
@@ -379,20 +432,24 @@ test_that("the model runs for big data", {
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", random = ~group, anisotropy = TRUE, local = TRUE
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", random = ~group, anisotropy = TRUE, local = TRUE
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", random = ~group, anisotropy = TRUE, local = TRUE
+    ), NA)
+  }
 
   # partitioning anisotropy
   expect_error(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", partition_factor = ~group, anisotropy = TRUE, local = TRUE
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml", partition_factor = ~group, anisotropy = TRUE, local = TRUE
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml", partition_factor = ~group, anisotropy = TRUE, local = TRUE
+    ), NA)
+  }
 
   # random effects partitioning anisotropy
   expect_error(splm(y ~ x, exdata,
@@ -400,11 +457,13 @@ test_that("the model runs for big data", {
     spcov_type = spcov_type, estmethod = "reml",
     random = ~group, partition_factor = ~group, anisotropy = TRUE, local = TRUE
   ), NA)
-  expect_error(splm(y ~ x, exdata,
-    xcoord = xcoord, ycoord = ycoord,
-    spcov_type = spcov_type, estmethod = "ml",
-    random = ~group, partition_factor = ~group, anisotropy = TRUE, local = TRUE
-  ), NA)
+  if (test_local) {
+    expect_error(splm(y ~ x, exdata,
+                      xcoord = xcoord, ycoord = ycoord,
+                      spcov_type = spcov_type, estmethod = "ml",
+                      random = ~group, partition_factor = ~group, anisotropy = TRUE, local = TRUE
+    ), NA)
+  }
 })
 
 test_that("the model runs for spherical", {
@@ -585,7 +644,6 @@ test_that("the model runs for magnetic", {
 })
 
 test_that("the model runs for matern", {
-  # some positive definite issues -- need to figure out how to set zeros appropriately
   spcov_type <- "matern"
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"), NA)
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml"), NA)
@@ -751,10 +809,6 @@ test_that("the model runs for certain known parameter assignments", {
 
 test_that("the model runs for sf and sp objects", {
 
-  # if (!requireNamespace("sf", quietly = TRUE)) { # requireNamespace checks if sf is installed
-  #   # dummy test so Skip test message are not printed
-  #   expect_true(TRUE)
-  # } else {
   # point data
   exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"))
 

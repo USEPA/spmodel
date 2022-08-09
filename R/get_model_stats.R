@@ -216,19 +216,9 @@ get_model_stats_spautor <- function(cov_est_object, data_object, estmethod) {
   }
 
   # npar
-  if (estmethod == "ml") {
-    p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
-    p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
-    p_theta <- p_theta_spcov + p_theta_randcov
-    p_beta <- length(coefficients$fixed)
-    npar <- p_theta + p_beta
-  } else {
-    p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
-    p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
-    p_theta <- p_theta_spcov + p_theta_randcov
-    p_beta <- 0
-    npar <- p_theta + p_beta
-  }
+  p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
+  p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
+  npar <- p_theta_spcov + p_theta_randcov
 
   list(
     coefficients = coefficients,

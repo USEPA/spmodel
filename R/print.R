@@ -39,9 +39,12 @@ print.spmod <- function(x, digits = max(3L, getOption("digits") - 3L),
   cat("\n")
 
   spcoef <- coef(x, type = "spcov")
-  if (x$fn == "splm") {
+   if (x$fn == "splm") {
     if (!x$anisotropy) {
       spcoef <- spcoef[-which(names(spcoef) %in% c("rotate", "scale"))]
+    }
+    if (inherits(coef(x, type = "spcov"), "none")) {
+      spcoef <- spcoef["ie"]
     }
   }
 
@@ -121,6 +124,9 @@ print.summary.spmod <- function(x,
     if (!x$anisotropy) {
       spcoef <- spcoef[-which(names(spcoef) %in% c("rotate", "scale"))]
     }
+    if (inherits(x$coefficients$spcov, "none")) {
+      spcoef <- spcoef["ie"]
+    }
   }
 
   if (x$fn == "spautor") {
@@ -137,7 +143,7 @@ print.summary.spmod <- function(x,
     }
   }
 
-  cat(paste("\nCoefficients (", x$covariance_type, " spatial covariance):\n", sep = ""))
+  cat(paste("\nCoefficients (", x$spcov_type, " spatial covariance):\n", sep = ""))
   print(spcoef, digits = digits)
 
   if (length(x$coefficients$randcov)) {

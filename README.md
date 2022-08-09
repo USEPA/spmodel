@@ -4,7 +4,7 @@
 # spmodel: Spatial Statistical Modeling and Prediction
 
 spmodel is an R package used to fit, summarize, and predict for a variety spatial
-statistical models. Parameters are estimated using various methods. Additional
+of statistical models. Parameters are estimated using various methods. Additional
 modeling features include anisotropy, random effects, partition factors,
 big data approaches, and more. Model-fit statistics are used to summarize, visualize,
 and compare models. Predictions at unobserved locations are readily obtainable.

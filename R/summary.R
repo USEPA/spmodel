@@ -36,13 +36,12 @@ summary.spmod <- function(object, ...) {
 
   spcov_params_val <- coef(object, type = "spcov")
   randcov_params_val <- coef(object, type = "randcov")
-  coefficients <- list(fixed = summary_coefficients_fixed, spcov = unclass(spcov_params_val), randcov = randcov_params_val)
+  coefficients <- list(fixed = summary_coefficients_fixed, spcov = spcov_params_val, randcov = randcov_params_val)
   summary_list <- list(
     call = object$call,
     terms = object$terms,
     residuals = object$residuals,
     coefficients = coefficients,
-    covariance_type = class(spcov_params_val),
     pseudoR2 = object$pseudoR2,
     vcov = object$vcov,
     is_known = object$is_known,

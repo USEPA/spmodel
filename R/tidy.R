@@ -49,7 +49,8 @@ tidy.spmod <- function(x, conf.int = FALSE,
       result <- tibble::as_tibble(base::merge(result, ci, by = "term"))
     }
   } else if (effects == "spcov") {
-    result <- tibble::as_tibble(summary(x)$coefficients$spcov,
+    spcoef <- coefficients(x, type = "spcov")
+    result <- tibble::as_tibble(unclass(spcoef),
       rownames = "term"
     )
     colnames(result) <- c("term", "estimate")
@@ -61,10 +62,13 @@ tidy.spmod <- function(x, conf.int = FALSE,
         which_scale <- which(result$term == "scale")
         result <- result[-c(which_rotate, which_scale), , drop = FALSE]
       }
+      if (inherits(spcoef, "none")) {
+        which_ie <- which(result$term == "ie")
+        result <- result[which_ie, , drop = FALSE]
+      }
     }
 
     if (x$fn == "spautor") {
-      spcoef <- coefficients(x, type = "spcov")
       no_ie <- spcoef[["ie"]] == 0 && x$is_known$spcov[["ie"]]
       if (no_ie) {
         which_ie <- which(result$term == "ie")

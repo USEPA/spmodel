@@ -28,6 +28,8 @@
 #'     \item{7:}{ Fitted spatial covariance function vs distance}
 #'   }
 #'
+#' @return No return value. Function called for plotting side effects.
+#'
 #' @method plot spmod
 #' @export
 #'
@@ -46,7 +48,7 @@ plot.spmod <- function(x, which, ...) {
     }
   }
   # setting old graphical parameter value
-  oldpar <- par()
+  oldpar <- par(no.readonly = TRUE)
   # setting exit handler
   on.exit(par(ask = oldpar$ask), add = TRUE)
   # set ask

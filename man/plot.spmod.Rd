@@ -18,6 +18,9 @@ is \code{which = c(1, 2)}.}
 
 \item{...}{Other arguments passed to other methods.}
 }
+\value{
+No return value. Function called for plotting side effects.
+}
 \description{
 Plot fitted model diagnostics such as residuals vs fitted values,
 quantile-quantile, scale-location, Cook's distance, residuals vs leverage,

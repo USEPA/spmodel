@@ -25,7 +25,7 @@ spcov_optim2orig.exponential <- function(spcov_orig2optim, par, spcov_profiled, 
   }
 
   range <- exp(fill_optim_par_val[["range_log"]])
-  rotate <- (pi) * (1 / (1 + (1 / exp(fill_optim_par_val[["rotate_logodds"]])))) # used to be pi / 2
+  rotate <- (pi) * (1 / (1 + (1 / exp(fill_optim_par_val[["rotate_logodds"]]))))
   scale <- 1 / (1 + (1 / exp(fill_optim_par_val[["scale_logodds"]])))
 
 
@@ -45,7 +45,7 @@ spcov_optim2orig.none <- spcov_optim2orig.exponential
 #' @export
 spcov_optim2orig.cubic <- spcov_optim2orig.exponential
 #' @export
-spcov_optim2orig.penta <- spcov_optim2orig.exponential
+spcov_optim2orig.pentaspherical <- spcov_optim2orig.exponential
 #' @export
 spcov_optim2orig.cosine <- spcov_optim2orig.exponential
 #' @export
@@ -72,7 +72,7 @@ spcov_optim2orig.matern <- function(spcov_orig2optim, par, spcov_profiled, data_
     ie <- exp(fill_optim_par_val[["ie_log"]])
   }
 
-  # extra <- exp(fill_optim_par_val[["extra_log"]])
+
   extra_t <- 1 / (1 + (1 / exp(fill_optim_par_val[["extra_logodds"]])))
   # fix to be in [1/5, 5]
   extra <- extra_t * (5 - 1 / 5) + 1 / 5
@@ -97,7 +97,7 @@ spcov_optim2orig.cauchy <- function(spcov_orig2optim, par, spcov_profiled, data_
     ie <- exp(fill_optim_par_val[["ie_log"]])
   }
 
-  # extra <- exp(fill_optim_par_val[["extra_log"]])
+
   extra <- exp(fill_optim_par_val[["extra_log"]])
   range <- exp(fill_optim_par_val[["range_log"]])
   rotate <- (pi) * (1 / (1 + (1 / exp(fill_optim_par_val[["rotate_logodds"]]))))
@@ -148,15 +148,6 @@ spcov_optim2orig.car <- function(spcov_orig2optim, par, spcov_profiled, data_obj
 
   range <- 1 / (1 + (1 / exp(fill_optim_par_val[["range_logodds"]])))
   range <- range * (data_object$rho_ub - data_object$rho_lb) + data_object$rho_lb # scale to proper value
-  # range <- 2 * range - 1 # from 0, 1 to 0, 2 to -1, 1
-
-  # if (range > 0.99) {
-  #   range <- 0.99
-  # }
-  #
-  # if (range < -0.99) {
-  #   range <- -0.99
-  # }
 
   fill_orig_val <- c(de = de, ie = ie, range = range, extra = extra)
 }

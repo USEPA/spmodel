@@ -1,5 +1,5 @@
 test_that("spcov_params works", {
-  spcov1 <- spcov_params("exponential", de = 1, ie = 2, range = 1)
+  spcov1 <- spcov_params("exponential", de = 1, ie = 2, range = 1, rotate = 2, scale = 0.75)
   expect_s3_class(spcov1, "exponential")
   expect_equal(length(spcov1), 5)
   expect_equal(names(spcov1), c("de", "ie", "range", "rotate", "scale"))
@@ -16,7 +16,7 @@ test_that("spcov_params works", {
   expect_error(spcov_params("triangular", de = 1, ie = 1, range = 1), NA)
   expect_error(spcov_params("circular", de = 1, ie = 1, range = 1), NA)
   expect_error(spcov_params("cubic", de = 1, ie = 1, range = 1), NA)
-  expect_error(spcov_params("penta", de = 1, ie = 1, range = 1), NA)
+  expect_error(spcov_params("pentaspherical", de = 1, ie = 1, range = 1), NA)
   expect_error(spcov_params("cosine", de = 1, ie = 1, range = 1), NA)
   expect_error(spcov_params("wave", de = 1, ie = 1, range = 1), NA)
   expect_error(spcov_params("jbessel", de = 1, ie = 1, range = 1), NA)
@@ -47,8 +47,14 @@ test_that("spcov_params errors", {
   expect_error(spcov_params("pexponential", de = 1, ie = 1, range = 1, extra = 3))
   expect_error(spcov_params("pexponential", de = 1, ie = 1, range = 1, extra = 0))
   expect_error(spcov_params("pexponential", de = 1, ie = 1, range = 1, extra = -3))
+  expect_error(spcov_params("car", de = 1, range = 1, ie = 1))
 
   # spcov type problems
   expect_error(spcov_params(de = 1, ie = 1, range = 1))
   expect_error(spcov_params("xyz", de = 1, ie = 1, range = 1))
+})
+
+test_that("defaults are applied", {
+  expect_error(spcov_params("exponential", de = 1, ie = 1, range = 1), NA)
+  expect_error(spcov_params("car", de = 1, range = 1, extra = 1), NA)
 })

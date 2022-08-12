@@ -3,27 +3,11 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
 
 
   # covert sp to sf
-  # browser()
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
-    # if (inherits(data, c("SpatialPointsDataFrame", "SpatialPolygonsDataFrame"))) {
-    # if (!requireNamespace("sf", quietly = TRUE)) { # requireNamespace checks if sf is installed
-    #   stop("Install the sf R package to use sp objects in splm()", call. = FALSE)
-    # } else {
-    #   data <- sf::st_as_sf(data)
-    # }
-    data <- sf::st_as_sf(data)
+    stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
   }
 
-  # convert sp to data frame (point geometry)
-  #### could keep this in but it loses geometry information on augment and think this is dangerous
-  # if (inherits(data, "SpatialPointsDataFrame")) {
-  #   data <- sp_to_df(data)
-  #   ## name xcoord "xcoord" to be used later
-  #   xcoord <- "xcoord"
-  #   ## name ycoord "ycoord" to be used later
-  #   ycoord <- "ycoord"
-  # }
 
   # convert sf to data frame (point geometry) (1d objects obsolete)
   ## see if data has sf class
@@ -32,24 +16,18 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     is_sf <- TRUE
     sf_column_name <- attributes(data)$sf_column
     crs <- attributes(data[[sf_column_name]])$crs
-    # turn point or polygon into centroid
-    # if (!requireNamespace("sf", quietly = TRUE)) { # requireNamespace checks if sf is installed
-    #   stop("Install the sf R package to use the centroid of sf POLYGON objects in splm()", call. = FALSE)
-    # } else {
-    #   # warning here from sf about assuming attributes are constant over geometries of x
-    #   data <- suppressWarnings(sf::st_centroid(data))
-    # }
-    data <- suppressWarnings(sf::st_centroid(data))
+    data_sf <- suppressWarnings(sf::st_centroid(data))
     # store as data frame
-    data <- sf_to_df(data)
-    ## name xcoord "xcoord" to be used later
-    xcoord <- "xcoord"
-    ## name ycoord "ycoord" to be used later
-    ycoord <- "ycoord"
+    data <- sf_to_df(data_sf)
+    ## name xcoord ".xcoord" to be used later
+    xcoord <- ".xcoord"
+    ## name ycoord ".ycoord" to be used later
+    ycoord <- ".ycoord"
   } else {
     is_sf <- FALSE
     sf_column_name <- NULL
     crs <- NULL
+    data_sf <- NULL
   }
 
   if (!is_sf && missing(xcoord) && !inherits(spcov_initial, "none")) {
@@ -68,7 +46,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     }
   }
 
-  # browser()
+
   # setting ycoord orig val for use with circular or triangular
   ycoord_orig_name <- NULL
   ycoord_orig_val <- NULL
@@ -76,13 +54,13 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   if (inherits(spcov_initial, "none") && estmethod %in% c("reml", "ml")) {
     dim_coords <- 0
     if (missing(xcoord)) {
-      xcoord <- "xcoord"
+      xcoord <- ".xcoord"
       data[[xcoord]] <- 0
     }
     if (missing(ycoord)) {
-      ycoord <- "ycoord"
-      if (as.character(xcoord) == "ycoord") {
-        ycoord <- "ycoord2"
+      ycoord <- ".ycoord"
+      if (as.character(xcoord) == ".ycoord") {
+        ycoord <- ".ycoord2"
       }
       data[[ycoord]] <- 0
     }
@@ -92,9 +70,9 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
       ycoord_orig_name <- ycoord
       ycoord_orig_val <- data[[ycoord]]
     }
-    ycoord <- "ycoord"
-    if (as.character(xcoord) == "ycoord") {
-      ycoord <- "ycoord2"
+    ycoord <- ".ycoord"
+    if (as.character(xcoord) == ".ycoord") {
+      ycoord <- ".ycoord2"
     }
     data[[ycoord]] <- 0
   } else {
@@ -121,7 +99,11 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   # find small and newdata
   if (any(na_index)) {
     ## find newdata to be used in prediction later
-    newdata <- data[na_index, , drop = FALSE]
+    if (is_sf) {
+      newdata <- data_sf[na_index, , drop = FALSE] # keep as sf object is users want that
+    } else {
+      newdata <- data[na_index, , drop = FALSE]
+    }
     ## subset original data
     obdata <- data[!na_index, , drop = FALSE]
   } else {
@@ -129,22 +111,6 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     newdata <- NULL
   }
 
-
-
-  # storing n and p (pre 4/24 version)
-  # n <- NROW(obdata)
-  # obdata_model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.omit)
-  # dots <- list(...)
-  # if (!"contrasts" %in% names(dots)) {
-  #   dots$contrasts <- NULL
-  # }
-  # X <- model.matrix(formula, obdata, contrasts = dots$contrasts)
-  # y <- as.matrix(model.response(obdata_model_frame), ncol = 1)
-  # p <- as.numeric(Matrix::rankMatrix(X))
-
-
-  # storing n and p 4/24 version
-  # browser()
   # finding model frame
   obdata_model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass)
   # finding contrasts as ...
@@ -161,6 +127,8 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
 
   # new model frame
   obdata_model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.omit)
+  # find terms
+  terms_val <- terms(obdata_model_frame)
   # find X
   X <- model.matrix(formula, obdata_model_frame, contrasts = dots$contrasts)
   # find p
@@ -252,11 +220,9 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   }
 
   # store order
-  ## unorder = data[order(data_object$order), , drop = FALSE]
   order <- unlist(split(seq_len(n), local$index), use.names = FALSE)
 
   # return appropriate list
-  # browser()
   list(
     anisotropy = anisotropy, contrasts = dots$contrasts, crs = crs,
     dim_coords = dim_coords, formula = formula, is_sf = is_sf, local_index = local$index,
@@ -267,7 +233,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     partition_factor_initial = partition_factor, partition_factor = local$partition_factor,
     partition_list = partition_list, randcov_initial = randcov_initial,
     randcov_list = randcov_list, randcov_names = randcov_names,
-    sf_column_name = sf_column_name, var_adjust = local$var_adjust,
+    sf_column_name = sf_column_name, terms = terms_val, var_adjust = local$var_adjust,
     X_list = X_list, xcoord = xcoord, y_list = y_list, ycoord = ycoord,
     ycoord_orig_name = ycoord_orig_name, ycoord_orig_val = ycoord_orig_val
   )
@@ -280,13 +246,9 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
                                     estmethod, W, M, random, randcov_initial,
                                     partition_factor, row_st, ...) {
   ## convert sp to sf object
-  if (inherits(data, "SpatialPolygonsDataFrame")) {
-    # if (!requireNamespace("sf", quietly = TRUE)) { # requireNamespace checks if sf is installed
-    #   stop("Install the sf R package to use an sp object with spautor()", call. = FALSE)
-    # } else {
-    #   data <- sf::st_as_sf(data)
-    # }
-    data <- sf::st_as_sf(data)
+  attr_sp <- attr(class(data), "package")
+  if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
+    stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
   }
 
   if (inherits(data, "sf")) {
@@ -303,12 +265,6 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
   # units are nieghbors with themselves, so we need to set the diagonal of the
   # matrix equal to zero
   if (is.null(W)) {
-    # if (!requireNamespace("sf", quietly = TRUE)) { # requireNamespace checks if sf is installed
-    #   stop("Install the sf R package to find W or provide W to use spautor()", call. = FALSE)
-    # } else {
-    #   W <- sf::st_intersects(data, sparse = FALSE)
-    #   diag(W) <- 0
-    # }
     W <- sf::st_intersects(data, sparse = FALSE)
     diag(W) <- 0
   }
@@ -338,20 +294,7 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
       }
     }
   }
-  # if (is.null(M)) {
-  #   if (row_st) {
-  #     M <- 1 / W_rowsums # this has been not been standardized
-  #   } else {
-  #     M <- rep(1, nrow(W)) # assume identity
-  #     # # or
-  #     # M <- 1 / rowSums(W) # this has not been standardized
-  #   }
-  # }
 
-
-
-
-  # browser()
   # row standardize W if necessary
   if (row_st) {
     W_rowsums_val <- W_rowsums # make copy so rowsums are saved later
@@ -366,13 +309,10 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
 
   # find eigenvalues of W for connected sites
   rowsums_nonzero <- which(W_rowsums != 0)
-  # browser()
   W_eigen <- Re(eigen(W[rowsums_nonzero, rowsums_nonzero])$values)
   rho_lb <- 1 / min(W_eigen) + .001 # rho strictly > lb
   rho_ub <- 1 / max(W_eigen) - .001 # rho strictly < ub
 
-  # turn W into dist matrix list
-  # dist_matrix_list <- list(W) move this to cov_estimate_gloglik_spautor
 
   # subsetting by na and not na values
   ## find response variabale name
@@ -394,6 +334,8 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
 
   # store X and y
   obdata_model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.omit)
+  # store terms
+  terms_val <- terms(obdata_model_frame)
   dots <- list(...)
   if (!"contrasts" %in% names(dots)) {
     dots$contrasts <- NULL
@@ -457,7 +399,6 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
     partition_matrix <- NULL
   }
 
-  # browser()
   list(
     anisotropy = FALSE, contrasts = dots$contrasts, crs = crs,
     formula = formula, data = data, is_sf = is_sf, is_W_connected = is_W_connected,
@@ -465,7 +406,7 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
     obdata = obdata, observed_index = observed_index, ones = ones, newdata = newdata, p = p,
     partition_factor = partition_factor, partition_matrix = partition_matrix,
     randcov_initial = randcov_initial, randcov_names = randcov_names, randcov_Zs = randcov_Zs,
-    sf_column_name = sf_column_name, W = W, W_rowsums = W_rowsums, M = M,
+    sf_column_name = sf_column_name, terms = terms_val, W = W, W_rowsums = W_rowsums, M = M,
     rho_lb = rho_lb, rho_ub = rho_ub,
     X = X, y = y
   )

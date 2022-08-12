@@ -62,7 +62,7 @@ to the number of rows in \code{data}. The default is \code{0}.}
 \item{samples}{The number of independent samples to generate. The default
 is \code{1}.}
 
-\item{data}{A data frame, \code{sf}, or \code{sp} object containing spatial information.}
+\item{data}{A data frame or \code{sf} object containing spatial information.}
 
 \item{randcov_params}{A \code{\link[=randcov_params]{randcov_params()}} object.}
 
@@ -72,23 +72,26 @@ is \code{1}.}
 
 \item{xcoord}{Name of the column in \code{data} representing the x-coordinate.
 Can be quoted or unquoted. Not required if \code{data} are an \code{sf}
-or \code{sp} object.}
+object.}
 
 \item{ycoord}{Name of the column in \code{data} representing the y-coordinate.
 Can be quoted or unquoted. Not required if \code{data} are an \code{sf}
-or \code{sp} object.}
+object.}
 
 \item{W}{Weight matrix specifying the neighboring structure used for car and
-sar models. Not required if \code{data} are an \code{sf} or \code{sp}
+sar models. Not required if \code{data} are an \code{sf}
 polygon object and \code{W} should be calculated internally.}
 
 \item{row_st}{A logical indicating whether row standardization be performed on
 \code{W}. The default is \code{TRUE}.}
 
 \item{M}{M matrix satisfying the car symmetry condition. The car
-symmetry condition states that \eqn{(I - range * W)^{-1}M} is symmetric (where
-\eqn{^{-1}} represents the inverse operator). \code{M} is required for car models
-when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M}
+symmetry condition states that \eqn{(I - range * W)^{-1}M} is symmetric, where
+\eqn{I} is an identity matrix, \eqn{range} is a constant that controls the
+spatial dependence, \code{W} is the weights matrix,
+and \eqn{^{-1}} represents the inverse operator.
+\code{M} is required for car models
+when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M},
 is required, the default is the identity matrix.}
 }
 \value{
@@ -115,12 +118,12 @@ covariance functions are documented here,
 but methods exist for all other spatial covariance functions defined in
 \code{\link[=spcov_initial]{spcov_initial()}}. Syntax for the \code{exponential} method is the same
 as syntax for \code{spherical}, \code{gaussian}, \code{triangular},
-\code{circular}, \code{cubic}, \code{penta}, \code{cosine}, \code{wave},
+\code{circular}, \code{cubic}, \code{pentaspherical}, \code{cosine}, \code{wave},
 \code{jbessel}, \code{gravity}, \code{rquad}, \code{magnetic}, \code{matern},
 \code{cauchy}, and \code{pexponential} methods. Syntax for
 the \code{car} method is the same as syntax for the \code{sar} method. The
-\code{extra} parameter for car and sar models is ignored if there are no
-observations without neighbors.
+\code{extra} parameter for car and sar models is ignored when all observations have
+neighbors.
 }
 \examples{
 spcov_params_val <- spcov_params("exponential", de = 1, ie = 1, range = 1)

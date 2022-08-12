@@ -11,10 +11,6 @@ spautor_cov_matrixInv <- function(spcov_params_val, data_object,
   if (is.null(data_object$partition_matrix)) {
     # compute the dependent inverse portion
     SigInv_de <- spcov_matrixInv_de(spcov_params_val, dist_matrix, data_object$M)
-    # using Matrix if loaded
-    # find its cholesky
-    # chol_SigInv_de <- chol(forceSymmetric(SigInv_de))
-    # ldet_Sig_de <- - 2 * sum(log(diag(chol_SigInv_de)))
     ldet_Sig_de <- -as.numeric(Matrix::determinant(SigInv_de)$modulus)
     # if there is no independent random error variance, stop with the inverse
     # and log determinant -- else find inverse and log determinant of
@@ -34,13 +30,10 @@ spautor_cov_matrixInv <- function(spcov_params_val, data_object,
       ldet_smw_mid <- 2 * sum(log(diag(smw_mid_upchol)))
       # finding the inverse (A + B)^-1 = A^-1 - A^-1 (A^-1 + B^-1)^-1 A^-1
       SigInv <- SigInv_de - SigInv_de %*% Inv_smw_mid %*% SigInv_de
-      # finding sample size
-      # n <- length(y)
       # finding ldet (A + B)^-1 = A^-1 - A^-1 (A^-1 + B^-1)^-1 A^-1
       ldet_Sig <- ldet_Sig_de + data_object$n * log(spcov_params_val[["ie"]]) + ldet_smw_mid
     }
 
-    # browser()
     # do random effects
     smwInv_rand_val <- smwInv_rand(SigInv, ldet_Sig, randcov_params_val, data_object$randcov_Zs)
 
@@ -72,7 +65,6 @@ spautor_cov_matrixInv <- function(spcov_params_val, data_object,
   if (ldet) {
     return(list(SigInv = SigInv, Sigldet = Sigldet))
   } else {
-    # need to clean up rest of code to not compute ldet
     return(list(SigInv = SigInv, Sigldet = NULL))
   }
 }

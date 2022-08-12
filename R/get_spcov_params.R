@@ -7,7 +7,7 @@
 #'
 #' @noRd
 get_spcov_params <- function(spcov_type, spcov_orig_val) {
-  if (spcov_type %in% c("exponential", "spherical", "gaussian", "triangular", "circular", "none", "cubic", "penta", "cosine", "wave", "jbessel", "gravity", "rquad", "magnetic")) {
+  if (spcov_type %in% c("exponential", "spherical", "gaussian", "triangular", "circular", "none", "cubic", "pentaspherical", "cosine", "wave", "jbessel", "gravity", "rquad", "magnetic")) {
     spcov_params_val <- spcov_params(
       spcov_type = spcov_type,
       de = spcov_orig_val[["de"]],

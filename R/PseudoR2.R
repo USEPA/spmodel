@@ -4,7 +4,7 @@
 #'
 #' @param object A fitted model object from [splm()] or [spautor()].
 #' @param adjust A logical indicating whether the pseudo r-squared
-#'   should be adjusted to account for additional predictor variables. The
+#'   should be adjusted to account for the number of explanatory variables. The
 #'   default is \code{FALSE}.
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
@@ -42,13 +42,3 @@ pseudoR2.spmod <- function(object, adjust = FALSE, ...) {
     return(object$pseudoR2)
   }
 }
-
-
-
-
-
-# The pseudo r-squared is a goodness-of-fit statistic equal to one minus
-# t(y - x betahat) sigma inverse (y - x betahat) / t(y - x muhat) sigma inverse (y - x muhat),
-# where muhat is the constant mean. For Gaussian data (and reml or ml estimation),
-# this quantity is one minus the ratio of the deviance of the full
-# model (numerator) and the reduced model (denominator)

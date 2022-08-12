@@ -18,16 +18,16 @@
 #'   \code{"ml"} or \code{"reml"}. Additionally, AIC and AICc comparisons between \code{"ml"}
 #'   and \code{"reml"} models are meaningless -- comparisons should only be made
 #'   within a set of models estimated using \code{"ml"} or a set of models estimated
-#'   using \code{"reml"}. Also, AIC and AICc comparisons for \code{"reml"} must
-#'   use the same fixed effects -- to vary the covariance parameters and
+#'   using \code{"reml"}. AIC and AICc comparisons for \code{"reml"} must
+#'   use the same fixed effects. To vary the covariance parameters and
 #'   fixed effects simultaneously, use \code{"ml"}.
 #'
 #'   Hoeting et al. (2006) defines that spatial AIC as
-#'   \eqn{-2loglik + 2(npar + 1)} and the spatial AICc as
-#'   \eqn{-2loglik + 2n(npar + 1) / (n - npar - 2)}, where \eqn{n} is the sample size
-#'   and \eqn{npar} is the number of estimated parameters. For \code{"ml"}, \eqn{npar} is
+#'   \eqn{-2loglik + 2(estparams)} and the spatial AICc as
+#'   \eqn{-2loglik + 2n(estparams) / (n - estparams - 1)}, where \eqn{n} is the sample size
+#'   and \eqn{estparams} is the number of estimated parameters. For \code{"ml"}, \eqn{estparams} is
 #'   the number of estimated covariance parameters plus the number of estimated
-#'   fixed effects. For \code{"reml"}, npar is the number of estimated covariance
+#'   fixed effects. For \code{"reml"}, \eqn{estparams} is the number of estimated covariance
 #'   parameters.
 #'
 #' @return If just one object is provided, a numeric value with the corresponding
@@ -63,12 +63,20 @@ AIC.spmod <- function(object, ..., k = 2) {
 
   # see if ... has any elements
   if (length(object_list) == 1) {
+
+    # number of estimated parameters
+    if (object$estmethod == "ml") {
+      n_est_param <- object$npar + object$p
+    } else {
+      n_est_param <- object$npar
+    }
+
     # error if not ml or reml
     if (!object$estmethod %in% c("ml", "reml")) {
       stop("AIC is only defined is estmethod is \"ml\" or \"reml\".", call. = FALSE)
     }
     # compute AIC
-    AIC_val <- -2 * logLik(object) + k * (object$npar + 1)
+    AIC_val <- -2 * logLik(object) + k * (n_est_param)
   } else {
 
 
@@ -103,8 +111,15 @@ AIC.spmod <- function(object, ..., k = 2) {
       if (!object$estmethod %in% c("ml", "reml")) {
         stop("AIC is only defined is estmethod is \"ml\" or \"reml\".", call. = FALSE)
       }
+
+      if (x$estmethod == "ml") {
+        n_est_param <- x$npar + x$p
+      } else {
+        n_est_param <- x$npar
+      }
+
       # store degrees of freedom (parames estimated) and AIC
-      data.frame(df = x$npar, AIC = -2 * logLik(x) + k * (x$npar + 1))
+      data.frame(df = n_est_param, AIC = -2 * logLik(x) + k * (n_est_param))
     })
     # put all AIC data frames together
     AIC_val <- do.call("rbind", object_AIC)
@@ -135,12 +150,20 @@ AICc.spmod <- function(object, ..., k = 2) {
 
   # see if ... has any elements
   if (length(object_list) == 1) {
+
+    # number of estimated parameters
+    if (object$estmethod == "ml") {
+      n_est_param <- object$npar + object$p
+    } else {
+      n_est_param <- object$npar
+    }
+
     # error if not ml or reml
     if (!object$estmethod %in% c("ml", "reml")) {
       stop("AICc is only defined is estmethod is \"ml\" or \"reml\".", call. = FALSE)
     }
     # compute AICc
-    AICc_val <- -2 * logLik(object) + 2 * object$n * (object$npar + 1) / (object$n - object$npar - 2)
+    AICc_val <- -2 * logLik(object) + 2 * object$n * (n_est_param) / (object$n - n_est_param - 1)
   } else {
 
     # warning if ml and reml in same call
@@ -174,8 +197,15 @@ AICc.spmod <- function(object, ..., k = 2) {
       if (!object$estmethod %in% c("ml", "reml")) {
         stop("AICc is only defined is estmethod is \"ml\" or \"reml\".", call. = FALSE)
       }
+
+      if (x$estmethod == "ml") {
+        n_est_param <- x$npar + x$p
+      } else {
+        n_est_param <- x$npar
+      }
+
       # store degrees of freedom (parames estimated) and AICc
-      data.frame(df = x$npar, AICc = -2 * logLik(x) + 2 * x$n * (x$npar + 1) / (x$n - x$npar - 2))
+      data.frame(df = n_est_param, AICc = -2 * logLik(x) + 2 * x$n * (n_est_param) / (x$n - n_est_param - 1))
     })
     # put all AICc data frames together
     AICc_val <- do.call("rbind", object_AICc)

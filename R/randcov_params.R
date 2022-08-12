@@ -46,7 +46,5 @@ randcov_params <- function(..., nm) {
   if (!missing(nm)) {
     names(randcov_params_val) <- nm
   }
-  # if unnamed, names are set according to the order of ~ random
-  # could build this as an error in the future
   randcov_params_val
 }

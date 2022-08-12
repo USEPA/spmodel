@@ -15,7 +15,7 @@ pseudoR2(object, ...)
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 
 \item{adjust}{A logical indicating whether the pseudo r-squared
-should be adjusted to account for additional predictor variables. The
+should be adjusted to account for the number of explanatory variables. The
 default is \code{FALSE}.}
 }
 \value{

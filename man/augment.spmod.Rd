@@ -21,7 +21,7 @@ fitted model object \code{x} when augmenting. The default for \code{drop} is \co
 \code{drop} is ignored if augmenting \code{newdata}.}
 
 \item{newdata}{A data frame or tibble containing observations requiring prediction.
-All of the original predictors used to create the fitted model object \code{x}
+All of the original explanatory variables used to create the fitted model object \code{x}
 must be present in \code{newdata}. Defaults to \code{NULL}, which indicates
 that nothing has been passed to \code{newdata}.}
 
@@ -36,7 +36,7 @@ to \code{"none"}.}
 \item{...}{Additional arguments to \code{predict()} when augmenting \code{newdata}.}
 }
 \value{
-When augmenting the original dataset, a tibble with additional columns
+When augmenting the original data set, a tibble with additional columns
 \itemize{
 \item{\code{.fitted}}{ Fitted value}
 \item{\code{.resid}}{ Raw residual (the difference between observed and fitted values)}
@@ -46,7 +46,7 @@ When augmenting the original dataset, a tibble with additional columns
 \item{\code{.se.fit}}{ Standard error of the fitted value.}
 }
 
-When augmenting a new dataset, a tibble with additional columns
+When augmenting a new data set, a tibble with additional columns
 \itemize{
 \item{\code{.fitted}}{ Predicted (or fitted) value}
 \item{\code{.lower}}{ Lower bound on interval}
@@ -55,26 +55,25 @@ When augmenting a new dataset, a tibble with additional columns
 }
 }
 \description{
-Augment accepts a fitted model object and a dataset and adds
+Augment accepts a fitted model object and a data set and adds
 information about each observation in the data set. New columns always
 begin with a \code{.} prefix to avoid overwriting columns in the original
-dataset.
+data set.
 
 Augment behaves differently depending on whether the original data or new data
 requires augmenting. Typically, when augmenting the original data, only the fitted
 model object is specified, and when augmenting new data, the fitted model object
-and \code{newdata} is specified. When augmenting the original data, influence
-statistics are augmented to each row in the dataset. When augmenting new data,
+and \code{newdata} is specified. When augmenting the original data, diagnostic
+statistics are augmented to each row in the data set. When augmenting new data,
 predictions and optional intervals or standard errors are augmented to each
-row in the new dataset.
+row in the new data set.
 }
 \details{
 \code{augment()} returns a tibble with the same class as
-the fitted model object \code{x}. That is, if the model object \code{x} is
+\code{data}. That is, if \code{data} is
 an \code{sf} object, then the augmented object (obtained via \code{augment(x)})
 will be an \code{sf} object as well. When augmenting \code{newdata}, the
-augmented object has the same class as \code{x}.
-\code{sp} objects are coerced to \code{sf} objects.
+augmented object has the same class as \code{data}.
 
 Missing response values from the original data can be augmented as if
 they were a \code{newdata} object by providing \code{x$newdata} to the
@@ -92,7 +91,7 @@ spmod_sulf <- splm(sulfate ~ 1, data = sulfate, spcov_type = "exponential")
 augment(spmod_sulf)
 augment(spmod_sulf, newdata = sulfate_preds)
 # missingness in original data
-spmod_seal <- spautor(log_abund ~ 1, data = seal, spcov_type = "car")
+spmod_seal <- spautor(log_trend ~ 1, data = seal, spcov_type = "car")
 augment(spmod_seal)
 augment(spmod_seal, newdata = spmod_seal$newdata)
 }

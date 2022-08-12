@@ -24,7 +24,7 @@ use_gloglik <- function(spcov_initial, data_object, estmethod, dist_matrix_list,
   spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = spcov_profiled, data_object = data_object)
 
 
-  # browser()
+
   # transforming random effect parameters (if they are there else NULL)
   randcov_orig2optim_val <- randcov_orig2optim(
     randcov_initial = randcov_initial,
@@ -38,7 +38,7 @@ use_gloglik <- function(spcov_initial, data_object, estmethod, dist_matrix_list,
 
   # check optim dotlist
   optim_dotlist <- check_optim_method(optim_par, optim_dotlist)
-  # browser()
+
   # performing optimization
   optim_output <- do.call("optim", c(
     list(
@@ -84,7 +84,7 @@ use_gloglik <- function(spcov_initial, data_object, estmethod, dist_matrix_list,
   # making a random effects vector
   randcov_params_val <- randcov_params(randcov_orig_val)
 
-  # browser()
+
   if (spcov_profiled && (is.null(randcov_profiled) ||
     (!is.null(randcov_profiled) && randcov_profiled))) {
     # get the spcov_profiled variance

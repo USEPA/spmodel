@@ -25,7 +25,6 @@ use_gloglik_anis <- function(spcov_initial, data_object, estmethod, spcov_profil
   spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = spcov_profiled)
 
 
-  # browser()
   # transforming random effect parameters (if they are there else NULL)
   randcov_orig2optim_val <- randcov_orig2optim(
     randcov_initial = randcov_initial,
@@ -126,7 +125,7 @@ use_gloglik_anis <- function(spcov_initial, data_object, estmethod, spcov_profil
     dist_matrix_list <- dist_matrix_list_q2
   }
 
-  # browser()
+
   if (spcov_profiled && (is.null(randcov_profiled) ||
     (!is.null(randcov_profiled) && randcov_profiled))) {
     # get the spcov_profiled variance

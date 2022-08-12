@@ -26,9 +26,6 @@ get_model_stats_splm <- function(cov_est_object, data_object, estmethod) {
   invcov_betahat_sum <- Reduce("+", invcov_betahat_list)
   cov_betahat_noadjust <- chol2inv(chol(forceSymmetric(invcov_betahat_sum)))
   cov_betahat_noadjust_list <- rep(list(cov_betahat_noadjust), times = length(invcov_betahat_list))
-  # cov_betahat_noadjust_list <- lapply(invcov_betahat_list, function(x) chol2inv(chol(forceSymmetric(x))))
-  # not PD / wrong answer when partition factor in fixed effects (no variation in fixed effects)
-  # need to figure out what to do with pooled cov adjust
 
   Xt_SigInv_y_list <- lapply(cholprods_list, function(x) crossprod(x$SqrtSigInv_X, x$SqrtSigInv_y))
 
@@ -133,19 +130,9 @@ get_model_stats_splm <- function(cov_est_object, data_object, estmethod) {
 
 
   # npar
-  if (estmethod == "ml") {
-    p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
-    p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
-    p_theta <- p_theta_spcov + p_theta_randcov
-    p_beta <- length(coefficients$fixed)
-    npar <- p_theta + p_beta
-  } else {
-    p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
-    p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
-    p_theta <- p_theta_spcov + p_theta_randcov
-    p_beta <- 0
-    npar <- p_theta + p_beta
-  }
+  p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
+  p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
+  npar <- p_theta_spcov + p_theta_randcov
 
   list(
     coefficients = coefficients,
@@ -165,8 +152,6 @@ get_model_stats_spautor <- function(cov_est_object, data_object, estmethod) {
   # cov_est_object$randcov_params_val is NULL if not added so won't affect downstream calculations
   # when random effects are not used
 
-  # USE GLOGLIK_PRODUCT CODE TO AVOID CHOLESKY IF ABLE (IE = 0, NO RANDOM OR PARTITIONING)
-  # REQUIRES REWRITING DIAGNOSTICS
   cov_matrix_val <- cov_matrix(
     cov_est_object$spcov_params_val, cov_est_object$dist_matrix_list,
     cov_est_object$randcov_params_val, data_object$randcov_Zs, data_object$partition_matrix, data_object$M
@@ -231,19 +216,9 @@ get_model_stats_spautor <- function(cov_est_object, data_object, estmethod) {
   }
 
   # npar
-  if (estmethod == "ml") {
-    p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
-    p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
-    p_theta <- p_theta_spcov + p_theta_randcov
-    p_beta <- length(coefficients$fixed)
-    npar <- p_theta + p_beta
-  } else {
-    p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
-    p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
-    p_theta <- p_theta_spcov + p_theta_randcov
-    p_beta <- 0
-    npar <- p_theta + p_beta
-  }
+  p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
+  p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
+  npar <- p_theta_spcov + p_theta_randcov
 
   list(
     coefficients = coefficients,

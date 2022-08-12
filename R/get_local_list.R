@@ -59,7 +59,7 @@ get_local_list_estimation <- function(local, data, xcoord, ycoord, n, partition_
 
   # setting var adjust
   if (!"var_adjust" %in% names_local) {
-    local$var_adjust <- "none"
+    local$var_adjust <- "theoretical"
   } # "none", "empirical", "theoretical", and "pooled"
 
   # setting partition factor
@@ -71,10 +71,14 @@ get_local_list_estimation <- function(local, data, xcoord, ycoord, n, partition_
   }
 
   if (local$parallel) {
-    if (!"ncores" %in% names_local) {
+    n_index <- length(unique(local$index))
+    if ("ncores" %in% names_local) {
+      cores_available <- parallel::detectCores()
+      local$ncores <- min(n_index, local$ncores, cores_available)
+    } else {
       local$ncores <- parallel::detectCores()
+      local$ncores <- min(n_index, local$ncores)
     }
-    local$ncores <- min(local$groups, local$ncores)
   }
 
   local

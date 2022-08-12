@@ -17,6 +17,5 @@
 #' )
 #' formula(spmod)
 formula.spmod <- function(x, ...) {
-  # formula(x$formula, ...)
   formula(x$formula)
 }

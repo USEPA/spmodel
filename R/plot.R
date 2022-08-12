@@ -2,7 +2,7 @@
 #'
 #' @description Plot fitted model diagnostics such as residuals vs fitted values,
 #'   quantile-quantile, scale-location, Cook's distance, residuals vs leverage,
-#'   Cook's distance vs leverage, and empirical spatial covariance.
+#'   Cook's distance vs leverage, and a fitted spatial covariance function.
 #'
 #' @param x A fitted model object from [splm()] or [spautor()].
 #' @param which An integer vector taking on values between 1 and 7, which indicates
@@ -23,10 +23,12 @@
 #'     \item{5:}{ Standardized residuals vs leverage}
 #'     \item{6:}{ Cook's distance vs leverage}
 #'   }
-#'   For [splm()], there is an additional value of \code{which}
+#'   For [splm()], there is an additional value of \code{which}:
 #'   \itemize{
-#'     \item{7:}{ Empirical spatial covariance vs distance}
+#'     \item{7:}{ Fitted spatial covariance function vs distance}
 #'   }
+#'
+#' @return No return value. Function called for plotting side effects.
 #'
 #' @method plot spmod
 #' @export
@@ -46,7 +48,7 @@ plot.spmod <- function(x, which, ...) {
     }
   }
   # setting old graphical parameter value
-  oldpar <- par()
+  oldpar <- par(no.readonly = TRUE)
   # setting exit handler
   on.exit(par(ask = oldpar$ask), add = TRUE)
   # set ask
@@ -166,7 +168,7 @@ plot.spmod <- function(x, which, ...) {
       y = spcov_vector_val[-1],
       xlab = "Distance",
       ylab = paste("Covariance:", class(coef(x, type = "spcov"))),
-      main = "Empirical spatial covariance",
+      main = "Fitted spatial covariance function",
       ylim = c(x = h[1], y = sum(spcoef[c("de", "ie")])),
       type = "l",
       ...

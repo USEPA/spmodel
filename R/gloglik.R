@@ -35,7 +35,6 @@ gloglik <- function(par, spcov_orig2optim, data_object, estmethod, dist_matrix_l
     spcov_optim2orig = spcov_params_val
   )
 
-  # browser()
   # need to deal with list if randcov_profiled as sp variance changes
   if (!is.null(randcov_profiled) && randcov_profiled) {
     spcov_params_val <- randcov_orig_val$spcov_optim2orig

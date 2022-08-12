@@ -18,10 +18,13 @@ is \code{which = c(1, 2)}.}
 
 \item{...}{Other arguments passed to other methods.}
 }
+\value{
+No return value. Function called for plotting side effects.
+}
 \description{
 Plot fitted model diagnostics such as residuals vs fitted values,
 quantile-quantile, scale-location, Cook's distance, residuals vs leverage,
-Cook's distance vs leverage, and empirical spatial covariance.
+Cook's distance vs leverage, and a fitted spatial covariance function.
 }
 \details{
 For \code{\link[=splm]{splm()}} and \code{\link[=spautor]{spautor()}}, the values of \code{which} make the
@@ -34,9 +37,9 @@ corresponding plot:
 \item{5:}{ Standardized residuals vs leverage}
 \item{6:}{ Cook's distance vs leverage}
 }
-For \code{\link[=splm]{splm()}}, there is an additional value of \code{which}
+For \code{\link[=splm]{splm()}}, there is an additional value of \code{which}:
 \itemize{
-\item{7:}{ Empirical spatial covariance vs distance}
+\item{7:}{ Fitted spatial covariance function vs distance}
 }
 }
 \examples{

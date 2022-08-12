@@ -9,25 +9,28 @@
 #'   to the number of rows in \code{data}. The default is \code{0}.
 #' @param samples The number of independent samples to generate. The default
 #'   is \code{1}.
-#' @param data A data frame, \code{sf}, or \code{sp} object containing spatial information.
+#' @param data A data frame or \code{sf} object containing spatial information.
 #' @param randcov_params A [randcov_params()] object.
 #' @param partition_factor A formula indicating the partition factor.
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #' @param xcoord Name of the column in \code{data} representing the x-coordinate.
 #'   Can be quoted or unquoted. Not required if \code{data} are an \code{sf}
-#'   or \code{sp} object.
+#'   object.
 #' @param ycoord Name of the column in \code{data} representing the y-coordinate.
 #'   Can be quoted or unquoted. Not required if \code{data} are an \code{sf}
-#'   or \code{sp} object.
+#'   object.
 #' @param W Weight matrix specifying the neighboring structure used for car and
-#'   sar models. Not required if \code{data} are an \code{sf} or \code{sp}
+#'   sar models. Not required if \code{data} are an \code{sf}
 #'   polygon object and \code{W} should be calculated internally.
 #' @param row_st A logical indicating whether row standardization be performed on
 #'   \code{W}. The default is \code{TRUE}.
 #' @param M M matrix satisfying the car symmetry condition. The car
-#'   symmetry condition states that \eqn{(I - range * W)^{-1}M} is symmetric (where
-#'   \eqn{^{-1}} represents the inverse operator). \code{M} is required for car models
-#'   when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M}
+#'   symmetry condition states that \eqn{(I - range * W)^{-1}M} is symmetric, where
+#'   \eqn{I} is an identity matrix, \eqn{range} is a constant that controls the
+#'   spatial dependence, \code{W} is the weights matrix,
+#'   and \eqn{^{-1}} represents the inverse operator.
+#'   \code{M} is required for car models
+#'   when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M},
 #'   is required, the default is the identity matrix.
 #'
 #' @details Random variables are simulated via the product of the covariance matrix's
@@ -43,12 +46,12 @@
 #'   but methods exist for all other spatial covariance functions defined in
 #'   [spcov_initial()]. Syntax for the \code{exponential} method is the same
 #'   as syntax for \code{spherical}, \code{gaussian}, \code{triangular},
-#'   \code{circular}, \code{cubic}, \code{penta}, \code{cosine}, \code{wave},
+#'   \code{circular}, \code{cubic}, \code{pentaspherical}, \code{cosine}, \code{wave},
 #'   \code{jbessel}, \code{gravity}, \code{rquad}, \code{magnetic}, \code{matern},
 #'   \code{cauchy}, and \code{pexponential} methods. Syntax for
 #'   the \code{car} method is the same as syntax for the \code{sar} method. The
-#'   \code{extra} parameter for car and sar models is ignored if there are no
-#'   observations without neighbors.
+#'   \code{extra} parameter for car and sar models is ignored when all observations have
+#'   neighbors.
 #'
 #'
 #' @return If \code{samples} is 1, a vector of random variables for each row of \code{data}
@@ -78,13 +81,7 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
   ## convert sp to data frame (point geometry)
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
-    # if (inherits(data, c("SpatialPointsDataFrame", "SpatialPolygonsDataFrame"))) {
-    data <- sf::st_as_sf(data)
-    # data <- sp_to_df(data)
-    # ### name xcoord "xcoord" to be used later
-    # xcoord <- "xcoord"
-    # ### name ycoord "ycoord" to be used later
-    # ycoord <- "ycoord"
+    stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
   }
 
   ## convert sf to data frame (point geometry) (1d objects obsolete)
@@ -92,17 +89,17 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
   if (inherits(data, "sf")) {
     data <- suppressWarnings(sf::st_centroid(data))
     data <- sf_to_df(data)
-    ### name xcoord "xcoord" to be used later
-    xcoord <- "xcoord"
-    ### name ycoord "ycoord" to be used later
-    ycoord <- "ycoord"
+    ### name xcoord ".xcoord" to be used later
+    xcoord <- ".xcoord"
+    ### name ycoord ".ycoord" to be used later
+    ycoord <- ".ycoord"
   }
 
   # non standard evaluation for the x and y coordinates
   xcoord <- substitute(xcoord)
   # replace null if necessary
   if (missing(ycoord)) {
-    ycoord <- "ycoord"
+    ycoord <- ".ycoord"
     data[[ycoord]] <- 0
   }
   ycoord <- substitute(ycoord)
@@ -177,9 +174,9 @@ sprnorm.circular <- sprnorm.exponential
 #' @export
 sprnorm.cubic <- sprnorm.exponential
 
-#' @method sprnorm penta
+#' @method sprnorm pentaspherical
 #' @export
-sprnorm.penta <- sprnorm.exponential
+sprnorm.pentaspherical <- sprnorm.exponential
 
 #' @method sprnorm cosine
 #' @export
@@ -283,8 +280,9 @@ sprnorm.car <- function(spcov_params, mean = 0, samples = 1, data, randcov_param
   # matrix equal to zero
   if (missing(W)) {
     ## convert sp to sf object
-    if (inherits(data, "SpatialPolygonsDataFrame")) {
-      data <- sf::st_as_sf(data)
+    attr_sp <- attr(class(data), "package")
+    if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
+      stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
     }
     W <- sf::st_intersects(data, sparse = FALSE)
     W_rowsums <- Matrix::rowSums(W)

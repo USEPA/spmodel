@@ -1,10 +1,10 @@
 #' Glance at many fitted model objects
 #'
 #' @description \code{glances()} repeatedly calls \code{glance()} on several
-#'   fitted model objects the output together, sorted by a column of interest.
+#'   fitted model objects and binds the output together, sorted by a column of interest.
 #'
 #' @param ... Fitted model objects from [splm()] or [spautor()].
-#' @param sort_by Sort by a \code{glance} statistic. The default is \code{AIC}.
+#' @param sort_by Sort by a \code{glance} statistic. The default is \code{AICc}.
 #' @param decreasing Should \code{sort_by} be decreasing or not? The default is \code{FALSE}.
 #'
 #' @return A tibble where each row represents the output of \code{glance()} for
@@ -23,10 +23,9 @@
 #' )
 #' glances(lmod, spmod)
 #' glances(lmod, spmod, sort_by = "logLik", decreasing = TRUE)
-glances <- function(..., sort_by = "AIC", decreasing = FALSE) {
+glances <- function(..., sort_by = "AICc", decreasing = FALSE) {
   model_list <- list(...)
   model_list_names <- as.character(as.list(substitute(list(...)))[-1])
-  # model_list_names <- paste0("model", seq_len(length(model_list)))
   model_glance <- lapply(model_list, function(x) glance(x))
   model_bind <- do.call(rbind, model_glance)
   model_bind <- cbind(data.frame(model = model_list_names), model_bind)

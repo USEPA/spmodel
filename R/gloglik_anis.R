@@ -45,7 +45,6 @@ gloglik_anis <- function(par, spcov_orig2optim, data_object, estmethod,
   randcov_params_val <- randcov_params(randcov_orig_val)
 
   # quadrant 1
-  # browser()
   ## make distance matrix
   new_coords_list_q1 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
     rotate = spcov_params_val[["rotate"]], scale = spcov_params_val[["scale"]]

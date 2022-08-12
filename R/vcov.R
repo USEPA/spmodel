@@ -20,10 +20,5 @@ vcov.spmod <- function(object, ...) {
   type <- "fixed"
   if (type == "fixed") {
     return(object$vcov$fixed)
-  } # else if (type == "covariance") {
-  #   return(NULL) # null for now until variance can be estimated
-  #   # use optimHess() with parameters on the original scale
-  # } else {
-  #   stop("type must be fixed or covariance")
-  # }
+  }
 }

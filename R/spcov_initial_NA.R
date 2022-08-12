@@ -8,7 +8,7 @@
 #' @noRd
 spcov_initial_NA <- function(spcov_initial, anisotropy = FALSE, is_W_connected = NULL) {
   # three parameter family
-  if (inherits(spcov_initial, c("exponential", "spherical", "gaussian", "triangular", "circular", "cubic", "penta", "cosine", "wave", "jbessel", "gravity", "rquad", "magnetic"))) {
+  if (inherits(spcov_initial, c("exponential", "spherical", "gaussian", "triangular", "circular", "cubic", "pentaspherical", "cosine", "wave", "jbessel", "gravity", "rquad", "magnetic"))) {
     spcov_names <- c("de", "ie", "range", "rotate", "scale")
     if (anisotropy) {
       spcov_val_default <- c(de = NA, ie = NA, range = NA, rotate = NA, scale = NA)

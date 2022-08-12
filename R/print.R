@@ -39,9 +39,12 @@ print.spmod <- function(x, digits = max(3L, getOption("digits") - 3L),
   cat("\n")
 
   spcoef <- coef(x, type = "spcov")
-  if (x$fn == "splm") {
+   if (x$fn == "splm") {
     if (!x$anisotropy) {
       spcoef <- spcoef[-which(names(spcoef) %in% c("rotate", "scale"))]
+    }
+    if (inherits(coef(x, type = "spcov"), "none")) {
+      spcoef <- spcoef["ie"]
     }
   }
 
@@ -121,6 +124,9 @@ print.summary.spmod <- function(x,
     if (!x$anisotropy) {
       spcoef <- spcoef[-which(names(spcoef) %in% c("rotate", "scale"))]
     }
+    if (inherits(x$coefficients$spcov, "none")) {
+      spcoef <- spcoef["ie"]
+    }
   }
 
   if (x$fn == "spautor") {
@@ -137,13 +143,8 @@ print.summary.spmod <- function(x,
     }
   }
 
-  cat(paste("\nCoefficients (", x$covariance_type, " spatial covariance):\n", sep = ""))
+  cat(paste("\nCoefficients (", x$spcov_type, " spatial covariance):\n", sep = ""))
   print(spcoef, digits = digits)
-
-  # pasting the covariance type
-  # cat("\nSpatial covariance type: ")
-  # cat(formatC(x$covariance_type, digits = digits))
-  # cat("\n")
 
   if (length(x$coefficients$randcov)) {
     cat("\nCoefficients (random effects):\n")
@@ -163,7 +164,7 @@ print.anova.spmod <- function(x, digits = max(getOption("digits") - 2L, 3L),
   cat("\n")
   cat(attr(x, "heading")[2])
   cat("\n")
-  if ("Pr(>X2)" %in% colnames(x)) {
+  if ("Pr(>Chi2)" %in% colnames(x)) {
     P.values <- TRUE
     has.Pvalue <- TRUE
   } else {

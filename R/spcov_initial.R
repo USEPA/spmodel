@@ -7,13 +7,13 @@
 #' @param spcov_type The spatial covariance function type. Available options include
 #'   \code{"exponential"}, \code{"spherical"}, \code{"gaussian"},
 #'   \code{"triangular"}, \code{"circular"}, \code{"cubic"},
-#'   \code{"penta"}, \code{"cosine"}, \code{"wave"},
+#'   \code{"pentaspherical"}, \code{"cosine"}, \code{"wave"},
 #'   \code{"jbessel"}, \code{"gravity"}, \code{"rquad"},
 #'   \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 #'   \code{"car"}, \code{"sar"}, and \code{"none"}.
-#' @param de The dependent (correlated) random error variance. Commonly referred to as
+#' @param de The spatially dependent (correlated) random error variance. Commonly referred to as
 #'   a partial sill.
-#' @param ie The independent (uncorrelated) random error variance. Commonly referred to as
+#' @param ie The spatially independent (uncorrelated) random error variance. Commonly referred to as
 #'   a nugget.
 #' @param range The correlation parameter.
 #' @param extra An extra covariance parameter used when \code{spcov_type} is
@@ -33,31 +33,30 @@
 #'   otherwise assumed known (e.g., \code{rotate} and \code{scale} with [splm()]
 #'   and \code{ie} with [spautor()]).
 #'   The spatial covariance functions can be generally expressed as
-#'   \eqn{de * R + ie * I(h = 0)}, where \eqn{de} is \code{de} above, \eqn{R}
-#'   is a correlation matrix that depends on the distance between observations,
-#'   \eqn{h}, \eqn{ie} is \code{ie} above, and \eqn{I(h = 0)} is
-#'   an indicator function equal to 1 when \eqn{h} equals zero and zero otherwise.
+#'   \eqn{de * R + ie * I}, where \eqn{de} is \code{de} above, \eqn{R}
+#'   is a matrix that controls the spatial dependence structure among observations,
+#'   \eqn{h}, \eqn{ie} is \code{ie} above, and \eqn{I} is and identity matrix.
 #'   Note that \eqn{de} and \eqn{ie} must be non-negative while \eqn{range}
 #'   must be positive, except when \code{spcov_type} is \code{car} or \code{sar},
 #'   in which case \eqn{range} must be between the reciprocal of the maximum
 #'   eigenvalue of \code{W} and the reciprocal of the minimum eigenvalue of
-#'   \code{W}. Parameteric forms for \eqn{R} are given below, where \eqn{distr = h / range}:
+#'   \code{W}. Parametric forms for \eqn{R} are given below, where \eqn{\eta = h / range}:
 #'   \itemize{
-#'     \item{exponential: }{\eqn{exp(- distr )}}
-#'     \item{spherical: }{\eqn{(1 - 1.5distr + 0.5distr^3) * I(h <= range)}}
-#'     \item{gaussian: }{\eqn{exp(- distr^2 )}}
-#'     \item{triangular: }{\eqn{(1 - distr) * I(h <= range)}}
-#'     \item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(sqrt(m)))) * I(h <= range)}, m = min(distr, 1)}
-#'     \item{cubic: }{\eqn{(1 - 7distr^2 + 8.75distr^3 - 3.5distr^5 + 0.75distr^7) * I(h <= range)}}
-#'     \item{penta: }{\eqn{(1 - 1.875distr + 1.25distr^3 - 0.375distr^5) * I(h <= range)}}
-#'     \item{cosine: }{\eqn{cos(distr)}}
-#'     \item{wave: }{\eqn{sin(distr) / distr * I(h > 0) + I(h = 0)}}
+#'     \item{exponential: }{\eqn{exp(- \eta )}}
+#'     \item{spherical: }{\eqn{(1 - 1.5\eta + 0.5\eta^3) * I(h <= range)}}
+#'     \item{gaussian: }{\eqn{exp(- \eta^2 )}}
+#'     \item{triangular: }{\eqn{(1 - \eta) * I(h <= range)}}
+#'     \item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(m))) * I(h <= range), m = min(\eta, 1)}}
+#'     \item{cubic: }{\eqn{(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75\eta^7) * I(h <= range)}}
+#'     \item{pentaspherical: }{\eqn{(1 - 1.875\eta + 1.25\eta^3 - 0.375\eta^5) * I(h <= range)}}
+#'     \item{cosine: }{\eqn{cos(\eta)}}
+#'     \item{wave: }{\eqn{sin(\eta) / \eta * I(h > 0) + I(h = 0)}}
 #'     \item{jbessel: }{\eqn{Bj(h * range)}, Bj is Bessel-J function}
-#'     \item{gravity: }{\eqn{(1 + distr^2)^(-0.5)}}
-#'     \item{rquad: }{\eqn{(1 + distr^2)^-1}}
-#'     \item{magnetic: }{\eqn{(1 + distr^2)^-1.5}}
-#'     \item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * distr)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
-#'     \item{cauchy: }{\eqn{(1 + distr^2)^{-extra}}, \eqn{extra > 0}}
+#'     \item{gravity: }{\eqn{(1 + \eta^2)^(-0.5)}}
+#'     \item{rquad: }{\eqn{(1 + \eta^2)^-1}}
+#'     \item{magnetic: }{\eqn{(1 + \eta^2)^-1.5}}
+#'     \item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
+#'     \item{cauchy: }{\eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}}
 #'     \item{pexponential: }{\eqn{exp(h^{extra/range)}}, \eqn{0 < extra \leq 2}}
 #'     \item{car: }{\eqn{(I - range * W)^{-1} * M}, weights matrix \eqn{W},
 #'      symmetry condition matrix \eqn{M}, observations with no neighbors
@@ -101,7 +100,7 @@ spcov_initial <- function(spcov_type, de, ie, range, extra, rotate, scale, known
     stop("spcov_type must be specified", call. = FALSE)
   } else if (!spcov_type %in% c(
     "exponential", "spherical", "gaussian", "triangular", "circular",
-    "none", "cubic", "penta", "cosine", "wave", "matern", "car", "sar", "jbessel",
+    "none", "cubic", "pentaspherical", "cosine", "wave", "matern", "car", "sar", "jbessel",
     "gravity", "rquad", "magnetic", "cauchy", "pexponential"
   )) {
     stop(paste(spcov_type), "is not a valid spatial covariance function")

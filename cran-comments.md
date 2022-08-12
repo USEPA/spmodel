@@ -8,23 +8,40 @@ This is a new release.
 
 ## Test environments
 
-* GitHub actions [here](https://github.com/USEPA/spmodel/actions/workflows/check-standard.yaml)
-    * Status: Passing on macOS-latest (release), windows-latest (release),
-      ubuntu-latest (devel), ubuntu-latest (release), ubuntu-latest (oldrel-1)
+Several tests were run using rhub. Below are the results for windows, linux, and mac os builds.
+
+* `rhub::check_on_windows()`
+    * Platform: Windows Server 2022, R-release, 32/64 bit
+        * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-7c88621231cf41ffa4f661dd79353b34
+        
+* `rhub::check_on_linux()`
+    * Platform: Ubuntu Linux 20.04 1 LTS, R-release, GCC
+        * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-ccfe2a1de93b44b79dc478ec606d315b
+        
+* `rhub::check(platform = "debian-gcc-release")`
+    * Platform: Debian Linux, R-release, GCC
+        * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-fd988dd5be0842f3ae5f131297204c4f
 
 * `rhub::check(platform = "macos-highsierra-release-cran")`
-* Platform: macOS 10.13.6 High Sierra, R-release, CRAN's setup
-        * Status: SUCCESS (NOTE related to doc sub-directory PDF size see next section)
-        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-d45f8503c3194072bb30e0f1d4889975
+    * Platform: macOS 10.13.6 High Sierra, R-release, CRAN's setup
+        * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
+        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-b7b851d01fb0465abb64fff84255c3b4
         
 * rhub tests were available on Solaris but not tested, as CRAN does not appear to
-  perform Solaris checks anymore
+  perform Solaris checks anymore.
   
-* Because rhub has temporariliy stopped Windows and Linux builders to sort out
-  billing issues, no rhub builds were tested on Windows or Linux. See 
-  [here](https://twitter.com/rhub_/status/1542039387369885698) for more
-  information.
+* The CRAN check may find the following `NOTE`s
+    * Possibly misspelled words in `DESCRIPTION`:
+        * anisotropy
+        * This word is spelled correctly.
 
+* I did receive an error running `rhub::check_for_cran()`:
+    * On Fedora Linux, the LaTeX package `framed.sty` was not found.
+    * It is my understanding that this bug is with rhub, as I was not able to reproduce it anywhere else.
+        
 ## R CMD check results
 
 Here is the output from `devtools::check(manual = TRUE)` on
@@ -34,7 +51,7 @@ the Windows 10 x64 operating system
 
 The warning: "WARNING qpdf is needed for checks on size reduction of PDFs". 
 I have received this warning while running `devtools::check()`
-with my other CRAN packages, but compression of some kind seems to happen on
+with my other CRAN packages (spsurvey and sptotal), but compression of some kind seems to happen on
 CRAN's end, as these packages have made it through. I will note that locally 
 installing and inspecting the PDFs, their actual file sizes are significantly
 smaller than what `devtools::check()` says, so compression of some kind

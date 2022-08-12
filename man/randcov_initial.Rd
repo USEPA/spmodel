@@ -32,6 +32,6 @@ effects design matrix and \code{u} is the random effect. The covariance of
 variance, and \eqn{Z^T} is the transpose of \eqn{Z}.
 }
 \examples{
-print(randcov_initial(group = 1))
-print(randcov_initial(group = 1, known = "group"))
+randcov_initial(group = 1)
+randcov_initial(group = 1, known = "group")
 }

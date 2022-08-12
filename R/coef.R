@@ -29,30 +29,6 @@ coef.spmod <- function(object, type = "fixed", ...) {
     return(object$coefficients$fixed)
   } else if (type == "spcov") {
     spcov_coef <- object$coefficients$spcov
-
-    # if (object$fn == "splm") {
-    #   if (!object$anisotropy) {
-    #     which_rotate <- which(names(spcov_coef) == "rotate")
-    #     which_scale <- which(names(spcov_coef) == "scale")
-    #     spcov_coef <- spcov_coef[-c(which_rotate, which_scale)]
-    #     class(spcov_coef) <- class(object$coefficients$spcov)
-    #   }
-    # }
-    #
-    # if (object$fn == "spautor") {
-    #   no_ie <- spcov_coef[["ie"]] == 0 && object$is_known$spcov[["ie"]]
-    #   if (no_ie) {
-    #     which_ie <- which(names(spcov_coef) == "ie")
-    #     spcov_coef <- spcov_coef[-c(which_ie)]
-    #   }
-    #   no_extra <- spcov_coef[["extra"]] == 0 && object$is_known$spcov[["extra"]]
-    #   if (no_extra) {
-    #     which_extra <- which(names(spcov_coef) == "extra")
-    #     spcov_coef <- spcov_coef[-c(which_extra)]
-    #     class(spcov_coef) <- class(object$coefficients$spcov)
-    #   }
-    # }
-
     return(spcov_coef)
   } else if (type == "randcov") {
     return(object$coefficients$randcov)

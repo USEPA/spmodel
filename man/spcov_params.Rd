@@ -10,15 +10,15 @@ spcov_params(spcov_type, de, ie, range, extra, rotate = 0, scale = 1)
 \item{spcov_type}{The spatial covariance function type. Available options include
 \code{"exponential"}, \code{"spherical"}, \code{"gaussian"},
 \code{"triangular"}, \code{"circular"}, \code{"cubic"},
-\code{"penta"}, \code{"cosine"}, \code{"wave"},
+\code{"pentaspherical"}, \code{"cosine"}, \code{"wave"},
 \code{"jbessel"}, \code{"gravity"}, \code{"rquad"},
 \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 \code{"car"}, \code{"sar"}, and \code{"none"}.}
 
-\item{de}{The dependent (correlated) random error variance. Commonly referred to as
+\item{de}{The spatially dependent (correlated) random error variance. Commonly referred to as
 a partial sill.}
 
-\item{ie}{The independent (uncorrelated) random error variance. Commonly referred to as
+\item{ie}{The spatially independent (uncorrelated) random error variance. Commonly referred to as
 a nugget.}
 
 \item{range}{The correlation parameter.}
@@ -28,9 +28,11 @@ a nugget.}
 \code{"sar"}.}
 
 \item{rotate}{Anisotropy rotation parameter (from 0 to \eqn{\pi} radians).
+A value of 0 (the default) implies no rotation.
 Not used if \code{spcov_type} is \code{"car"} or \code{"sar"}.}
 
 \item{scale}{Anisotropy scale parameter (from 0 to 1).
+A value of 1 (the default) implies no scaling.
 Not used if \code{spcov_type} is \code{"car"} or \code{"sar"}.}
 }
 \value{
@@ -42,9 +44,10 @@ functions.
 }
 \details{
 Generally, all arguments to \code{spcov_params} must be specified, though
-default arguments are often chosen based on \code{spcov_type}. For example,
-\code{rotate} and \code{scale} are assumed to be 0 and 1, respectively,
-unless specified otherwise. For full parameterizations of all spatial covariance
+default arguments are often chosen based on \code{spcov_type}.
+When \code{spcov_type} is \code{car} or
+\code{sar}, \code{ie} is assumed to be 0 unless specified otherwise.
+For full parameterizations of all spatial covariance
 functions, see \code{\link[=spcov_initial]{spcov_initial()}}.
 }
 \examples{

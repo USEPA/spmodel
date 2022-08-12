@@ -95,8 +95,8 @@ test_that("the simulation runs for cubic", {
   expect_vector(sprnorm(spcov_params_val, data = exdata, mean = 4, xcoord = xcoord, ycoord = ycoord))
 })
 
-test_that("the simulation runs for penta", {
-  spcov_params_val <- spcov_params("penta", de = 1, ie = 1, range = 1)
+test_that("the simulation runs for pentaspherical", {
+  spcov_params_val <- spcov_params("pentaspherical", de = 1, ie = 1, range = 1)
   expect_vector(sprnorm(spcov_params_val, data = exdata, mean = 4, xcoord = xcoord, ycoord = ycoord))
 })
 
@@ -158,4 +158,15 @@ test_that("the simulation runs for sar", {
 test_that("the simulation runs for sar unconnected", {
   spcov_params_val <- spcov_params("sar", de = 1, ie = 1, range = 1 / 2, extra = 1)
   expect_vector(sprnorm(spcov_params_val, data = exdata_Upoly))
+})
+
+test_that("quoting works", {
+  spcov_params_val <- spcov_params("exponential", de = 1, ie = 1, range = 1)
+  expect_vector(sprnorm(spcov_params_val, data = exdata, xcoord = "xcoord", ycoord = "ycoord"))
+})
+
+test_that("sf works", {
+  exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"))
+  spcov_params_val <- spcov_params("exponential", de = 1, ie = 1, range = 1)
+  expect_vector(sprnorm(spcov_params_val, data = exdata_sf))
 })

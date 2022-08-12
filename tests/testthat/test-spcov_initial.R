@@ -34,7 +34,7 @@ test_that("spcov_initial works", {
   expect_error(spcov_initial("triangular"), NA)
   expect_error(spcov_initial("circular"), NA)
   expect_error(spcov_initial("cubic"), NA)
-  expect_error(spcov_initial("penta"), NA)
+  expect_error(spcov_initial("pentaspherical"), NA)
   expect_error(spcov_initial("cosine"), NA)
   expect_error(spcov_initial("wave"), NA)
   expect_error(spcov_initial("jbessel"), NA)

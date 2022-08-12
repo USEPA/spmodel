@@ -3,7 +3,7 @@
 \docType{data}
 \name{caribou}
 \alias{caribou}
-\title{Data for a caribou forage experiment}
+\title{A caribou forage experiment}
 \format{
 A \code{tibble} with 30 rows and 5 columns:
 \itemize{
@@ -24,13 +24,11 @@ of Fish and Game.  The data were used in the publication listed in References.
 caribou
 }
 \description{
-Data for a caribou forage experiment.
+A caribou forage experiment.
 }
 \references{
 Lenart, E.A., Bowyer, R.T., Ver Hoef, J.M. and Ruess, R.W. 2002.
 Climate Change and Caribou: Effects of Summer Weather on Forage. Canadian
 Journal of Zoology 80: 664-678.
-(\href{https://www.nrcresearchpress.com/doi/abs/10.1139/z02-034#.XvweB3VKjmF}{links
-to: Climate Change and Caribou: Effects of Summer Weather on Forage})
 }
 \keyword{datasets}

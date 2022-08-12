@@ -39,20 +39,22 @@
 #'   specified, the linear combinations of terms specified by \code{L} are jointly
 #'   tested against zero.
 #'
-#'   When two fitted model objects are present, one must be a "reduced" (1)
-#'   model nested in a "full" (2) model. Then \code{anova()} performs a likelihood ratio test.
+#'   When two fitted model objects are present, one must be a "reduced"
+#'   model nested in a "full" model. Then \code{anova()} performs a likelihood ratio test.
 #'
 #' @return When one fitted model object is present, \code{anova()}
 #'   returns a data frame with degrees of
-#'   freedom, test statistics, and p-values (if \code{test = TRUE}) corresponding
+#'   freedom (\code{Df}), test statistics (\code{Chi2}), and p-values
+#'   (\code{Pr(>Chi2)} if \code{test = TRUE}) corresponding
 #'   to asymptotic Chi-squared hypothesis tests for each model term.
 #'
 #'   When two fitted model objects are present, \code{anova()} returns a data frame
-#'   with the difference in degrees of freedom between the full and reduced model, a test
-#'   statistic, and a p-value corresponding to the likelihood ratio test.
+#'   with the difference in degrees of freedom between the full and reduced model (\code{Df}), a test
+#'   statistic (\code{Chi2}), and a p-value corresponding to the likelihood ratio test
+#'   (\code{Pr(>Chi2)} if \code{test = TRUE}).
 #'
 #'   Whether one or two fitted model objects are provided,
-#'   [tidy.anova.spmod] can be used
+#'   \code{tidy()} can be used
 #'   to obtain tidy tibbles of the \code{anova(object)} output.
 #'
 #'
@@ -113,10 +115,10 @@ anova.spmod <- function(object, ..., test = TRUE, Terms, L) {
       }
       names(L) <- paste("contrast", seq_along(L), sep = "")
     }
-    anova_val <- do.call(rbind, lapply(L, get_marginal_X2, object))
+    anova_val <- do.call(rbind, lapply(L, get_marginal_Chi2, object))
 
     if (!test) {
-      anova_val <- anova_val[-which(colnames(anova_val) == "Pr(>X2)")]
+      anova_val <- anova_val[-which(colnames(anova_val) == "Pr(>Chi2)")]
     }
     anova_val <- structure(anova_val, heading = c("Analysis of Variance Table\n", paste("Response:", deparse(object$formula[[2L]]))))
   }
@@ -138,9 +140,9 @@ anova.spmod <- function(object, ..., test = TRUE, Terms, L) {
     ) {
       stop("The fixed effect coefficients must be the same when performing a likeihood ratio test using the reml estimation method. To perform the likelihood ratio tests for different fixed effect and covariance coefficients simultaneously, refit the models using the ml estimation method.", call. = FALSE)
     }
-    X2_stat <- abs(-2 * (logLik(object2) - logLik(object)))
+    Chi2_stat <- abs(-2 * (logLik(object2) - logLik(object)))
     df_diff <- abs(object2$npar - object$npar)
-    p_value <- pchisq(X2_stat, df_diff, lower.tail = FALSE)
+    p_value <- pchisq(Chi2_stat, df_diff, lower.tail = FALSE)
     if (object2$npar < object$npar) {
       full_name <- as.character(substitute(object))
       reduced_name <- as.character(as.list(substitute(list(...)))[-1])
@@ -149,11 +151,11 @@ anova.spmod <- function(object, ..., test = TRUE, Terms, L) {
       full_name <- as.character(as.list(substitute(list(...)))[-1])
     }
     if (test) {
-      anova_val <- data.frame(Df = df_diff, X2 = X2_stat, p.value = p_value)
-      colnames(anova_val) <- c("Df", "X2", "Pr(>X2)")
+      anova_val <- data.frame(Df = df_diff, Chi2 = Chi2_stat, p.value = p_value)
+      colnames(anova_val) <- c("Df", "Chi2", "Pr(>Chi2)")
     } else {
-      anova_val <- data.frame(Df = df_diff, X2 = X2_stat)
-      colnames(anova_val) <- c("Df", "X2")
+      anova_val <- data.frame(Df = df_diff, Chi2 = Chi2_stat)
+      colnames(anova_val) <- c("Df", "Chi2")
     }
     rownames(anova_val) <- paste(full_name, "vs", reduced_name)
     attr(anova_val, "full") <- full_name
@@ -172,7 +174,7 @@ anova.spmod <- function(object, ..., test = TRUE, Terms, L) {
   structure(anova_val, class = c(paste("anova", class(object), sep = "."), "data.frame"))
 }
 
-get_marginal_X2 <- function(L, object) {
+get_marginal_Chi2 <- function(L, object) {
   # make matrix if a numeric vector
   if (!is.matrix(L)) {
     L <- matrix(L, nrow = 1)
@@ -184,16 +186,16 @@ get_marginal_X2 <- function(L, object) {
   # find product3 of the GLHT
   part3 <- L %*% coefficients(object)
   # compute the chi-squared statistic
-  X2 <- as.numeric(crossprod(part3, part2) %*% part3)
+  Chi2 <- as.numeric(crossprod(part3, part2) %*% part3)
   # find the p-value
-  p.value <- pchisq(X2, Df, lower.tail = FALSE)
+  p.value <- pchisq(Chi2, Df, lower.tail = FALSE)
   # put it all in a data frame
-  X2_df <- data.frame(Df, X2, p.value)
+  Chi2_df <- data.frame(Df, Chi2, p.value)
   # assign column and row names
-  colnames(X2_df) <- c("Df", "X2", "Pr(>X2)")
-  rownames(X2_df) <- names(L)
+  colnames(Chi2_df) <- c("Df", "Chi2", "Pr(>Chi2)")
+  rownames(Chi2_df) <- names(L)
   # return the data frame
-  X2_df
+  Chi2_df
 }
 
 #' @rdname anova.spmod
@@ -203,95 +205,12 @@ get_marginal_X2 <- function(L, object) {
 #' @export
 tidy.anova.spmod <- function(x, ...) {
   if (!is.null(attr(x, "full")) && !is.null(attr(x, "reduced"))) {
-    result <- tibble::tibble(full = attr(x, "full"), reduced = attr(x, "reduced"), df = x$Df, statistic = x$X2)
+    result <- tibble::tibble(full = attr(x, "full"), reduced = attr(x, "reduced"), df = x$Df, statistic = x$Chi2)
   } else {
-    result <- tibble::tibble(effects = rownames(x), df = x$Df, statistic = x$X2)
+    result <- tibble::tibble(effects = rownames(x), df = x$Df, statistic = x$Chi2)
   }
-  if ("Pr(>X2)" %in% colnames(x)) {
-    result$p.value <- x[["Pr(>X2)"]]
+  if ("Pr(>Chi2)" %in% colnames(x)) {
+    result$p.value <- x[["Pr(>Chi2)"]]
   }
   result
 }
-
-# anova deprecated (old method of smw and sums of squares)
-
-# This was the old method of impelementing ANOVA based on sums of squares that was
-# deprecated in favor of the general linear hypothesis test, which more easily
-# accommodates joint tests and contrasts.
-
-
-# get_anova <- function(formula, X, y, Sig_lowchol, ss_f) {
-#   assign_index <- unique(attr(X, "assign"))
-#   terms_val <- terms(formula)
-#   label <- labels(terms_val)
-#   if (attr(terms_val, "intercept")) {
-#     label <- c("(Intercept)", label)
-#   }
-#   if (length(label) > 1) {
-#     anova_val <- do.call(rbind, lapply(assign_index, get_marginal_X2, X, y, Sig_lowchol, ss_f))
-#     colnames(anova_val) <- c("Df", "X2", "Pr(>X2)")
-#     rownames(anova_val) <- label
-#   } else {
-#     anova_val <- NULL
-#   }
-#   anova_val
-# }
-#
-# # alternative assuming df = Inf
-# get_marginal_X2 <- function(assign_index, X, y, Sig_lowchol, ss_f) {
-#   newX <- X[, attr(X, "assign") != assign_index, drop = FALSE]
-#   sqrtSigInv_newX <- forwardsolve(Sig_lowchol, newX)
-#   sqrtSigInv_y <- forwardsolve(Sig_lowchol, y)
-#   new_covbetahat <- chol2inv(chol(forceSymmetric(crossprod(sqrtSigInv_newX, sqrtSigInv_newX))))
-#   new_betahat <- new_covbetahat %*% crossprod(sqrtSigInv_newX, sqrtSigInv_y)
-#   sqrtSigInv_r <- sqrtSigInv_y - sqrtSigInv_newX %*% new_betahat
-#   ss_r <- crossprod(sqrtSigInv_r, sqrtSigInv_r)
-#   ss_diff <- ss_r - ss_f
-#   df_diff <- sum(attr(X, "assign") == assign_index)
-#   X2 <- as.vector(ss_r - ss_f)
-#   data.frame(Df = df_diff, X2 = X2, p.value = pchisq(X2, df_diff, lower.tail = FALSE))
-# }
-
-# sum of squares could just be
-# betahat where relevant columns of x are held out and SigmaHat is still used
-# to compute new betas
-# then sums of square error are just (y - x newbeta)t SigmaHat (y - xnewbeta)
-
-
-# # not assuming df = Inf
-# get_marginal_f <- function(assign_index, model1) {
-#   newX <- model1$model$X[, attr(model1$model$X, "assign") != assign_index, drop = FALSE]
-#   sqrtSigInv_newX <- forwardsolve(model1$Sig_lowchol, newX)
-#   sqrtSigInv_y <- forwardsolve(model1$Sig_lowchol, model1$model$y)
-#   new_covbetahat <- chol2inv(chol(forceSymmetric(crossprod(sqrtSigInv_newX, sqrtSigInv_newX))))
-#   new_betahat <- new_covbetahat %*% crossprod(sqrtSigInv_newX, sqrtSigInv_y)
-#   sqrtSigInv_r <- sqrtSigInv_y - sqrtSigInv_newX %*% new_betahat
-#   ss_r <- crossprod(sqrtSigInv_r, sqrtSigInv_r)
-#   ss_f <- deviance(model1)
-#   ss_diff <- ss_r - ss_f
-#   df_diff <- sum(attr(model1$model$X, "assign") == assign_index)
-#   df_f <- model1$n - model1$npar
-#   ms_diff <- ss_diff / df_diff
-#   ms_f <- ss_f / df_f
-#   f <- as.vector(ms_diff / ms_f)
-#   data.frame(f = f, numDF = df_diff, denDF = df_f, p.value = pf(f, df_diff, df_f, lower.tail = FALSE))
-# }
-
-# assuming df = Inf
-# get_marginal_f <- function(assign_index, model1) {
-#   newX <- model1$model$X[, attr(model1$model$X, "assign") != assign_index, drop = FALSE]
-#   sqrtSigInv_newX <- forwardsolve(model1$Sig_lowchol, newX)
-#   sqrtSigInv_y <- forwardsolve(model1$Sig_lowchol, model1$model$y)
-#   new_covbetahat <- chol2inv(chol(forceSymmetric(crossprod(sqrtSigInv_newX, sqrtSigInv_newX))))
-#   new_betahat <- new_covbetahat %*% crossprod(sqrtSigInv_newX, sqrtSigInv_y)
-#   sqrtSigInv_r <- sqrtSigInv_y - sqrtSigInv_newX %*% new_betahat
-#   ss_r <- crossprod(sqrtSigInv_r, sqrtSigInv_r)
-#   ss_f <- deviance(model1)
-#   ss_diff <- ss_r - ss_f
-#   df_diff <- sum(attr(model1$model$X, "assign") == assign_index)
-#   df_f <- Inf
-#   ms_diff <- ss_diff / df_diff
-#   ms_f <- 1
-#   f <- as.vector(ms_diff / ms_f)
-#   data.frame(Chisq = f, DF = df_diff, p.value = pf(f, df_diff, df_f, lower.tail = FALSE))
-# }

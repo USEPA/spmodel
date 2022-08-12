@@ -29,9 +29,6 @@ spcov_matrixInv_de.car <- function(spcov_params, dist_matrix, M) {
   if (length(U_index) > 0) {
     dist_matrix_CC <- dist_matrix[C_index, C_index, drop = FALSE]
     # the off diagonals are not needed because they are assumed zero later
-    # but they are here now for context
-    # dist_matrix_CU <- dist_matrix[C_index, U_index, drop = FALSE]
-    # dist_matrix_UC <- t(dist_matrix_CU)
     dist_matrix_UU <- dist_matrix[U_index, U_index, drop = FALSE]
 
     # compute - rho * W
@@ -42,24 +39,11 @@ spcov_matrixInv_de.car <- function(spcov_params, dist_matrix, M) {
     cor_matrixInv_CC <- cor_matrixInv_CC * 1 / M[C_index]
     spcov_matrixInv_CC <- 1 / spcov_params[["de"]] * cor_matrixInv_CC
 
-    # # compute (- rho * W)
-    # cor_matrixInv_CC <- -spcov_params[["range"]] * dist_matrix_CC
-    # # compute (diag(W1) - rho * W+)
-    # diag(cor_matrixInv_CC) <- dist_matrix_rowsums[C_index] + diag(cor_matrixInv_CC)
-    # # compute (sigma2 * (diag(W1) - rho * W+)^(-1))^(-1)
-    # spcov_matrixInv_CC <- 1 / spcov_params[["de"]] * cor_matrixInv_CC
-
-
-    # replace all else
-    # spcov_matrixInv_CU <- matrix(0, nrow = length(C_index), ncol = length(U_index))
-    # spcov_matrixInv_UC <- t(spcov_matrixInv_CU)
     cor_matrixInv_UU <- Matrix(diag(length(U_index)), sparse = TRUE)
     spcov_matrixInv_UU <- 1 / spcov_params[["extra"]] * cor_matrixInv_UU # no M multiplication here
 
     spcov_matrixInv_de <- Matrix::Matrix(0, nrow = length(index), ncol = length(index), sparse = TRUE)
     spcov_matrixInv_de[C_index, C_index] <- spcov_matrixInv_CC
-    # spcov_matrixInv_de[C_index, U_index] <- spcov_matrixInv_CU
-    # spcov_matrixInv_de[U_index, C_index] <- spcov_matrixInv_UC
     spcov_matrixInv_de[U_index, U_index] <- spcov_matrixInv_UU
   } else {
 
@@ -71,14 +55,6 @@ spcov_matrixInv_de.car <- function(spcov_params, dist_matrix, M) {
     cor_matrixInv_de <- cor_matrixInv_de * 1 / M
     # else do nothing as M is identity
     spcov_matrixInv_de <- 1 / spcov_params[["de"]] * cor_matrixInv_de
-
-
-    # # compute (- rho * W)
-    # cor_matrixInv_de <- -spcov_params[["range"]] * dist_matrix
-    # # compute (diag(W1) - rho * W+)
-    # diag(cor_matrixInv_de) <- dist_matrix_rowsums + diag(cor_matrixInv_de)
-    # # compute (sigma2 * (diag(W1) - rho * W+)^(-1))^(-1)
-    # spcov_matrixInv_de <- 1 / spcov_params[["de"]] * cor_matrixInv_de
   }
   spcov_matrixInv_de
 }
@@ -101,9 +77,6 @@ spcov_matrixInv_de.sar <- function(spcov_params, dist_matrix, M) { # M is not us
   if (length(U_index) > 0) {
     dist_matrix_CC <- dist_matrix[C_index, C_index, drop = FALSE]
     # the off diagonals are not needed because they are assumed zero later
-    # but they are here now for context
-    # dist_matrix_CU <- dist_matrix[C_index, U_index, drop = FALSE]
-    # dist_matrix_UC <- t(dist_matrix_CU)
     dist_matrix_UU <- dist_matrix[U_index, U_index, drop = FALSE]
 
     # compute - rho * W
@@ -114,32 +87,13 @@ spcov_matrixInv_de.sar <- function(spcov_params, dist_matrix, M) { # M is not us
     cor_matrixInv_CC <- tcrossprod(cor_matrixInv_CC_left, cor_matrixInv_CC_left)
     spcov_matrixInv_CC <- 1 / spcov_params[["de"]] * cor_matrixInv_CC
 
-    # # standardize W (compute W+)
-    # dist_matrix_CC_st <- dist_matrix_CC / dist_matrix_rowsums[C_index]
-    #
-    # # compute (- rho * W+)
-    # # (I - bW)
-    # cor_matrixInv_CC_left <- -spcov_params[["range"]] * dist_matrix_CC_st
-    # diag(cor_matrixInv_CC_left) <- 1 + diag(cor_matrixInv_CC_left)
-    # # (I -)
-    # cor_matrixInv_CC <- tcrossprod(cor_matrixInv_CC_left, cor_matrixInv_CC_left)
-    # # compute (sigma2 * (I - rho * W+) * (I - rho * W+)')^(-1)
-    # spcov_matrixInv_CC <- 1 / spcov_params[["de"]] * cor_matrixInv_CC
-
-    # replace all else
-    # spcov_matrixInv_CU <- matrix(0, nrow = length(C_index), ncol = length(U_index))
-    # spcov_matrixInv_UC <- t(spcov_matrixInv_CU)
     cor_matrixInv_UU <- Matrix(diag(length(U_index)), sparse = TRUE)
     spcov_matrixInv_UU <- 1 / spcov_params[["extra"]] * cor_matrixInv_UU
 
     spcov_matrixInv_de <- Matrix::Matrix(0, nrow = length(index), ncol = length(index), sparse = TRUE)
     spcov_matrixInv_de[C_index, C_index] <- spcov_matrixInv_CC
-    # spcov_matrixInv_de[C_index, U_index] <- spcov_matrixInv_CU
-    # spcov_matrixInv_de[U_index, C_index] <- spcov_matrixInv_UC
     spcov_matrixInv_de[U_index, U_index] <- spcov_matrixInv_UU
   } else {
-    # standardize W (compute W+)
-    # dist_matrix_st <- dist_matrix / dist_matrix_rowsums
 
     # compute - rho * W
     cor_matrixInv_de_left <- -spcov_params[["range"]] * dist_matrix
@@ -148,15 +102,6 @@ spcov_matrixInv_de.sar <- function(spcov_params, dist_matrix, M) { # M is not us
     # compute (I - rho * W) (I - rho * W)'
     cor_matrixInv_de <- tcrossprod(cor_matrixInv_de_left, cor_matrixInv_de_left)
     spcov_matrixInv_de <- 1 / spcov_params[["de"]] * cor_matrixInv_de
-
-    # # compute (- rho * W+)
-    # # (I - bW)
-    # cor_matrixInv_de_left <- -spcov_params[["range"]] * dist_matrix_st
-    # diag(cor_matrixInv_de_left) <- 1 + diag(cor_matrixInv_de_left)
-    # # (I -)
-    # cor_matrixInv_de <- tcrossprod(cor_matrixInv_de_left, cor_matrixInv_de_left)
-    # # compute (sigma2 * (I - rho * W+) * (I - rho * W+)')^(-1)
-    # spcov_matrixInv_de <- 1 / spcov_params[["de"]] * cor_matrixInv_de
   }
 
   spcov_matrixInv_de

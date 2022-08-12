@@ -3,7 +3,7 @@
 \docType{data}
 \name{moss}
 \alias{moss}
-\title{Data on heavy metals in mosses near a mining road in Alaska, USA}
+\title{Heavy metals in mosses near a mining road in Alaska, USA}
 \format{
 An \code{sf} object with 365 rows and 10 columns:
 
@@ -11,7 +11,7 @@ An \code{sf} object with 365 rows and 10 columns:
 \item{sample: }{A factor with a sample identifier. Some samples were
 replicated in the field or laboratory. As a result, there are 318 unique
 sample identifiers.}
-\item{field_rep: }{A factor representing field replicate. Takes values \code{1}
+\item{field_dup: }{A factor representing field duplicate. Takes values \code{1}
 and \code{2}.}
 \item{lab_rep: }{A factor representing laboratory replicate. Takes values \code{1}
 and \code{2}.}
@@ -19,9 +19,9 @@ and \code{2}.}
 \item{sideroad: }{A factor representing direction relative to the haul road.
 Takes values \code{N} (north of the haul road) and \code{S} (south
 of the haul road).}
-\item{log_dist2road: }{The log distance (in meters) to the haul road.}
-\item{log_Zn: }{The log zinc concentration in moss tissue (mg/kg).}
-\item{geometry: }{\code{POINT} geometry representing coordinates in an Alaksa
+\item{log_dist2road: }{The log of distance (in meters) to the haul road.}
+\item{log_Zn: }{The log of zinc concentration in moss tissue (mg/kg).}
+\item{geometry: }{\code{POINT} geometry representing coordinates in an Alaska
 Albers projection (EPSG: 3338).}
 }
 }
@@ -33,23 +33,17 @@ Park Service.  Data were used in the publications listed in References.
 moss
 }
 \description{
-Data on heavy metals in mosses near a mining road in Alaska, USA.
+Heavy metals in mosses near a mining road in Alaska, USA.
 }
 \references{
 Neitlich, P.N., Ver Hoef, J.M., Berryman, S. D., Mines, A., Geiser, L.H.,
 Hasselbach, L.M., and Shiel, A. E. 2017. Trends in Spatial Patterns of Heavy
 Metal Deposition on National Park Service Lands Along the Red Dog Mine Haul
 Road, Alaska, 2001-2006. PLOS ONE 12(5):e0177936 DOI:10.1371/journal.pone.0177936
-(\href{https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0177936}{links
-to: Trends in Spatial Patterns of Heavy Metal Deposition on National
-Park Service Lands Along the Red Dog Mine Haul Road, Alaska, 2001-2006.})
 
 Hasselbach, L., Ver Hoef, J.M., Ford, J., Neitlich, P., Berryman, S., Wolk B.
 and Bohle, T. 2005. Spatial Patterns of Cadmium, Lead and Zinc Deposition
 on National Park Service Lands in the Vicinity of Red Dog Mine, Alaska.
 Science of the Total Environment 348: 211-230.
-(\href{https://www.sciencedirect.com/science/article/pii/S0048969705000082}{links
-to: Spatial Patterns of Cadmium, Lead and Zinc Deposition on National
-Park Service Lands in the Vicinity of Red Dog Mine, Alaska.})
 }
 \keyword{datasets}

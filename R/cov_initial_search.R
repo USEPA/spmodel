@@ -11,12 +11,6 @@ cov_initial_search.exponential <- function(spcov_initial_NA, estmethod, data_obj
                                            dist_matrix_list, weights,
                                            randcov_initial_NA = NULL, esv_dotlist) {
   # find ols sample variance
-  # X_qr <- qr(X)
-  # R <- qr.R(X_qr)
-  # R_Inv <- solve(R)
-  # betahat <- R_Inv %*% crossprod(qr.Q(X_qr), y)
-  # r <- y - X %*% betahat
-  # s2 <- sum(r^2) / (n - p)
   s2 <- summary(lm(data_object$formula, do.call("rbind", data_object$obdata_list)))$sigma^2
   ns2 <- 1.2 * s2
 
@@ -105,14 +99,12 @@ cov_initial_search.exponential <- function(spcov_initial_NA, estmethod, data_obj
     })
     residual_list <- lapply(data_object$obdata_list, function(d) residuals(lm(data_object$formula, data = d)))
     residual_matrix_list <- lapply(residual_list, function(x) spdist(xcoord_val = x))
-    # residual_vector_list <- lapply(residual_matrix_list, function(x) triu(x, k = 1))
     residual_vector_list <- lapply(residual_matrix_list, function(x) {
       x <- as.matrix(x)
       x <- x[upper.tri(x)]
     })
     residual_vector <- unlist(residual_vector_list)
     if (!is.null(data_object$partition_list)) {
-      # partition_vector_list <- lapply(data_object$partition_list, function(x) triu(x, k = 1))
       partition_vector_list <- lapply(data_object$partition_list, function(x) {
         x <- as.matrix(x)
         x <- x[upper.tri(x)]
@@ -120,11 +112,10 @@ cov_initial_search.exponential <- function(spcov_initial_NA, estmethod, data_obj
       dist_vector_list <- mapply(d = dist_vector_list, p = partition_vector_list, function(d, p) d * p, SIMPLIFY = FALSE)
       residual_vector_list <- mapply(r = residual_vector_list, p = partition_vector_list, function(r, p) r * p, SIMPLIFY = FALSE)
     }
-    # dist_vector <- unlist(lapply(dist_vector_list, function(a) a@x))
+
     dist_vector <- unlist(dist_vector_list)
     dist_index <- dist_vector > 0
     dist_vector <- dist_vector[dist_index]
-    # residual_vector <- unlist(lapply(residual_vector_list, function(a) a@x))
     residual_vector <- unlist(residual_vector_list)
     residual_vector <- residual_vector[dist_index]
     residual_vector2 <- residual_vector^2
@@ -294,7 +285,7 @@ cov_initial_search.circular <- cov_initial_search.exponential
 #' @export
 cov_initial_search.cubic <- cov_initial_search.exponential
 #' @export
-cov_initial_search.penta <- cov_initial_search.exponential
+cov_initial_search.pentaspherical <- cov_initial_search.exponential
 #' @export
 cov_initial_search.cosine <- cov_initial_search.exponential
 #' @export
@@ -313,12 +304,6 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
                                     dist_matrix_list, weights,
                                     randcov_initial_NA = NULL, esv_dotlist) {
   # find ols sample variance
-  # X_qr <- qr(X)
-  # R <- qr.R(X_qr)
-  # R_Inv <- solve(R)
-  # betahat <- R_Inv %*% crossprod(qr.Q(X_qr), y)
-  # r <- y - X %*% betahat
-  # s2 <- sum(r^2) / (n - p)
   s2 <- summary(lm(data_object$formula, do.call("rbind", data_object$obdata_list)))$sigma^2
   ns2 <- 1.2 * s2
 
@@ -400,14 +385,12 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
     })
     residual_list <- lapply(data_object$obdata_list, function(d) residuals(lm(data_object$formula, data = d)))
     residual_matrix_list <- lapply(residual_list, function(x) spdist(xcoord_val = x))
-    # residual_vector_list <- lapply(residual_matrix_list, function(x) triu(x, k = 1))
     residual_vector_list <- lapply(residual_matrix_list, function(x) {
       x <- as.matrix(x)
       x <- x[upper.tri(x)]
     })
     residual_vector <- unlist(residual_vector_list)
     if (!is.null(data_object$partition_list)) {
-      # partition_vector_list <- lapply(data_object$partition_list, function(x) triu(x, k = 1))
       partition_vector_list <- lapply(data_object$partition_list, function(x) {
         x <- as.matrix(x)
         x <- x[upper.tri(x)]
@@ -415,11 +398,10 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
       dist_vector_list <- mapply(d = dist_vector_list, p = partition_vector_list, function(d, p) d * p, SIMPLIFY = FALSE)
       residual_vector_list <- mapply(r = residual_vector_list, p = partition_vector_list, function(r, p) r * p, SIMPLIFY = FALSE)
     }
-    # dist_vector <- unlist(lapply(dist_vector_list, function(a) a@x))
+
     dist_vector <- unlist(dist_vector_list)
     dist_index <- dist_vector > 0
     dist_vector <- dist_vector[dist_index]
-    # residual_vector <- unlist(lapply(residual_vector_list, function(a) a@x))
     residual_vector <- unlist(residual_vector_list)
     residual_vector <- residual_vector[dist_index]
     residual_vector2 <- residual_vector^2
@@ -585,12 +567,6 @@ cov_initial_search.matern <- function(spcov_initial_NA, estmethod, data_object,
                                       dist_matrix_list, weights,
                                       randcov_initial_NA = NULL, esv_dotlist) {
   # find ols sample variance
-  # X_qr <- qr(X)
-  # R <- qr.R(X_qr)
-  # R_Inv <- solve(R)
-  # betahat <- R_Inv %*% crossprod(qr.Q(X_qr), y)
-  # r <- y - X %*% betahat
-  # s2 <- sum(r^2) / (n - p)
   s2 <- summary(lm(data_object$formula, do.call("rbind", data_object$obdata_list)))$sigma^2
   ns2 <- 1.2 * s2
 
@@ -681,14 +657,12 @@ cov_initial_search.matern <- function(spcov_initial_NA, estmethod, data_object,
     })
     residual_list <- lapply(data_object$obdata_list, function(d) residuals(lm(data_object$formula, data = d)))
     residual_matrix_list <- lapply(residual_list, function(x) spdist(xcoord_val = x))
-    # residual_vector_list <- lapply(residual_matrix_list, function(x) triu(x, k = 1))
     residual_vector_list <- lapply(residual_matrix_list, function(x) {
       x <- as.matrix(x)
       x <- x[upper.tri(x)]
     })
     residual_vector <- unlist(residual_vector_list)
     if (!is.null(data_object$partition_list)) {
-      # partition_vector_list <- lapply(data_object$partition_list, function(x) triu(x, k = 1))
       partition_vector_list <- lapply(data_object$partition_list, function(x) {
         x <- as.matrix(x)
         x <- x[upper.tri(x)]
@@ -696,11 +670,10 @@ cov_initial_search.matern <- function(spcov_initial_NA, estmethod, data_object,
       dist_vector_list <- mapply(d = dist_vector_list, p = partition_vector_list, function(d, p) d * p, SIMPLIFY = FALSE)
       residual_vector_list <- mapply(r = residual_vector_list, p = partition_vector_list, function(r, p) r * p, SIMPLIFY = FALSE)
     }
-    # dist_vector <- unlist(lapply(dist_vector_list, function(a) a@x))
+
     dist_vector <- unlist(dist_vector_list)
     dist_index <- dist_vector > 0
     dist_vector <- dist_vector[dist_index]
-    # residual_vector <- unlist(lapply(residual_vector_list, function(a) a@x))
     residual_vector <- unlist(residual_vector_list)
     residual_vector <- residual_vector[dist_index]
     residual_vector2 <- residual_vector^2
@@ -871,18 +844,7 @@ cov_initial_search.pexponential <- cov_initial_search.matern
 cov_initial_search.car <- function(spcov_initial_NA, estmethod, data_object,
                                    dist_matrix_list, randcov_initial_NA = NULL) {
 
-  # browser()
   # find ols sample variance
-  # X_qr <- qr(X)
-  # R <- qr.R(X_qr)
-  # R_Inv <- solve(R)
-  # betahat <- R_Inv %*% crossprod(qr.Q(X_qr), y)
-  # r <- y - X %*% betahat
-  # s2 <- sum(r^2) / (n - p)
-  # use observed data here
-  ## this
-  ## summary(lm(data_object$formula, data_object$data[data$observed_index, , drop = FALSE]))$sigma^2
-  ## or this
   obdata <- data_object$data[data_object$observed_index, , drop = FALSE]
   s2 <- summary(lm(data_object$formula, obdata))$sigma^2
   ns2 <- 1.2 * s2
@@ -899,7 +861,6 @@ cov_initial_search.car <- function(spcov_initial_NA, estmethod, data_object,
   ## range
   rho_length <- data_object$rho_ub - data_object$rho_lb
   range <- c(data_object$rho_lb + 0.25 * rho_length, data_object$rho_ub - 0.25 * rho_length)
-  # range <- get_initial_range(class(spcov_initial_NA)) * c(-1, 0, 1)
 
   # find starting spatial grid
   spcov_grid <- expand.grid(de = de, ie = ie, range = range)
@@ -1063,8 +1024,6 @@ cov_initial_search.sar <- cov_initial_search.car
 eval_grid <- function(cov_grid_split, data_object, spcov_type,
                       estmethod, dist_matrix_list,
                       weights, esv, dist_vector, residual_vector2) {
-
-  # browser()
 
   # convert list structure to a vector
   cov_grid <- unlist(cov_grid_split)

@@ -10,6 +10,19 @@ generics::glance
 # use generics to export augment
 generics::augment
 
+# logit function
+logit <- function(x) {
+  if (x < 0 | x > 1) {
+    stop("logit argument must be between zero and one", call. = FALSE)
+  }
+  log(x / (1 - x))
+}
+
+# expit function
+expit <- function(x) {
+  1 / (1 + exp(-x))
+}
+
 # CRAN release questions
 release_questions <- function() {
   c(

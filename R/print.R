@@ -143,7 +143,7 @@ print.summary.spmod <- function(x,
     }
   }
 
-  cat(paste("\nCoefficients (", x$spcov_type, " spatial covariance):\n", sep = ""))
+  cat(paste("\nCoefficients (", class(x$coefficients$spcov), " spatial covariance):\n", sep = ""))
   print(spcoef, digits = digits)
 
   if (length(x$coefficients$randcov)) {

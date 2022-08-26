@@ -431,13 +431,13 @@ augment(sealmod, newdata = sealmod$newdata)
 
 # Advanced Features {#sec:advfeatures}
 
-`spmodel` offers several advanced features for fitting spatial linear models. We briefly discuss each next using the `moss` data and simulated data, though technical details for each advanced feature can be seen by running `vignette("technical", "spmodel")`.
+`spmodel` offers several advanced features for fitting spatial linear models. We briefly discuss some of these features next using the `moss` data and some simulated data. Technical details for each advanced feature can be seen by running `vignette("technical", "spmodel")`.
 
 ## Fixing Spatial Covariance Parameters
 
-We may desire to fix specific spatial covariance parameters at a particular value. Perhaps some parameter value is known, for example. Or perhaps we want to compare nested models where a reduced model uses a fixed parameter value while the full model estimates the parameter. Fixing spatial covariance parameters while fitting a model is possible using the `spcov_initial` argument to `spmod()` and `spautor()`. The `spcov_initial` argument takes an `spcov_initial` object (run `help("spcov_initial", "spmodel")` for more). `spcov_initial` objects can also be used to specify initial values used during optimization, even if they are not assumed to be fixed. By default, `spmodel` uses a grid search to find suitable initial values to use during optimization.
+We may desire to fix specific spatial covariance parameters at a particular value. Perhaps some parameter value is known, for example. Or perhaps we want to compare nested models where a reduced model uses a fixed parameter value while the full model estimates the parameter. Fixing spatial covariance parameters while fitting a model is possible using the `spcov_initial` argument to `splm()` and `spautor()`. The `spcov_initial` argument takes an `spcov_initial` object (run `help("spcov_initial", "spmodel")` for more). `spcov_initial` objects can also be used to specify initial values used during optimization, even if they are not assumed to be fixed. By default, `spmodel` uses a grid search to find suitable initial values to use during optimization.
 
-Suppose the goal is to compare the full model to a model that assumes the independent random error variance (nugget) is zero. First, the `spcov_initial` object is specified:
+As an example, suppose our goal is to compare a model with an exponential covariance with dependent error variance, independent error variance, and range parameters to a model that assumes the independent random error variance parameter (nugget) is zero. First, the `spcov_initial` object is specified for the latter model:
 ```{r}
 init <- spcov_initial("exponential", ie = 0, known = "ie")
 print(init)
@@ -454,7 +454,7 @@ The lower AIC and AICc of the full model compared to the reduced model indicates
 
 ## Random Effects
 
-Random effects incorporate additional sources of variability into model fitting. They are accommodated in `spmodel` using similar syntax as for random effects in the nlme [@pinheiro2006mixed] and lme4 [@bates2015lme4] \textbf{\textsf{R}} packages. Random effects are specified via a formula passed to the `random` argument. Next we show two examples incorporating random effects into the spatial linear model using the `moss` data.
+Non-spatial random effects incorporate additional sources of variability into model fitting. They are accommodated in `spmodel` using similar syntax as for random effects in the nlme [@pinheiro2006mixed] and lme4 [@bates2015lme4] \textbf{\textsf{R}} packages. Random effects are specified via a formula passed to the `random` argument. Next we show two examples incorporating random effects into the spatial linear model using the `moss` data.
 
 The first example explores random intercepts for the `sample` variable. The `sample` variable indexes each unique location, which can have replicate observations due to field duplicates (`field_dup`) and lab replicates (`lab_rep`). We create extra correlation for repeated observations from a sample by creating a random intercept for each level of `sample`. We incorporate the random intercepts for `sample` by running
 ```{r}
@@ -465,7 +465,7 @@ rand1 <- splm(
   random = ~ sample
 )
 ```
-Note that `sample` is shorthand for `(1 | sample)`, which is more explicit notation that indicates random intercepts for each level of `sample`.
+Note that `~ sample` is shorthand for `(1 | sample)`, which is more explicit notation that indicates random intercepts for each level of `sample`.
 
 The second example adds a random intercept for `year`, which creates extra correlation for observations within a year. It also adds a random slope for `log_dist2road` within `year`, which lets the effect of `log_dist2road` vary between years. We fit this model by running
 ```{r}
@@ -488,7 +488,7 @@ It is possible to fix random effect variances using the `randcov_initial` argume
 
 ## Partition Factors
 
-A partition factor is a variable that assumes observations are uncorrelated when they are from different levels of the partition factor. Partition factors are specified in `spmodel` by providing a formula with a single variable to the `partition_factor` argument. Suppose that for the `moss` data, it is appropriate to assume observations in different years (`year`) are uncorrelated. We fit a model that treats year as a partition factor by running
+A partition factor is a variable that allows observations to be uncorrelated when they are from different levels of the partition factor. Partition factors are specified in `spmodel` by providing a formula with a single variable to the `partition_factor` argument. Suppose that for the `moss` data, we would like to assume observations in different years (`year`) are uncorrelated. We fit a model that treats year as a partition factor by running
 ```{r}
 part <- splm(
   log_Zn ~ log_dist2road,
@@ -538,7 +538,7 @@ ggplot(df, aes(x = x, y = y)) +
 ```
 The black outline of each ellipse is a level curve of equal correlation. The left ellipse (a circle) represents an isotropic covariance function. The distance at which the correlation between two observations lays on the level curve is the same in all directions. The right ellipse represents an anisotropic covariance function. The distance at which the correlation between two observations lays on the level curve is different in different directions. 
 
-Accounting for anisotropy involves a rotation and scaling of the x-coordinates and y-coordinates such that the spatial covariance function that uses these transformed distances is isotropic. We fit a model with anisotropy by running
+Accounting for anisotropy involves a rotation and scaling of the x-coordinates and y-coordinates such that the spatial covariance function that uses these transformed distances is isotropic. We use the `anisotropy` argument to `splm()` to fit a model with anisotropy by running
 ```{r}
 spmod_anis <- splm(
   log_Zn ~ log_dist2road,
@@ -549,7 +549,9 @@ spmod_anis <- splm(
 summary(spmod_anis)
 ```
 
-The `rotate` parameter is between zero and $\pi$ radians and represents the angle of a clockwise rotation of the ellipse. The `scale` parameter is between zero and one and represents the ratio of the distance between the origin and the edge of the ellipse along the minor axis to the distance between the origin and the edge of the ellipse along the major axis. Figure$~$\ref{fig:anisotropy_fit} shows the transformation that turns an anisotropic ellipse into an isotropic one (i.e., a circle). This transformation requires rotating the the coordinates clockwise by `rotate` and then scaling them the reciprocal of `scale`.  The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances.
+<!-- MH: This is a little confusing to me, as the first sentence makes it seem like `rotate` is how much you rotate the ellipse, with a starting point as the ellipse's major axis as the x-axis. But then after reading the rest of the paragraph, I think `rotate` is how much you rotate the ellipse so that the major axis is back to the x-axis. I think the first sentence just needs revised but I am not confident enough with this to change it myself. -->
+
+The `rotate` parameter is between zero and $\pi$ radians and represents the angle of a clockwise rotation of the ellipse. The `scale` parameter is between zero and one and represents the ratio of the distance between the origin and the edge of the ellipse along the minor axis to the distance between the origin and the edge of the ellipse along the major axis. Figure$~$\ref{fig:anisotropy_fit} shows the transformation that turns an anisotropic ellipse into an isotropic one (i.e., a circle). This transformation requires rotating the coordinates clockwise by `rotate` and then scaling them the reciprocal of `scale`.  The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances.
 
 ```{r, anisotropy_fit, echo = FALSE, out.width = "33%", fig.show = "hold", fig.cap = "A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the \\texttt{rotate} parameter. In the middle figure, the second step is to scale the minor axis by the reciprocal of the \\texttt{scale} parameter. In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances."}
 spcov_params_val <- coef(spmod_anis, type = "spcov")
@@ -624,6 +626,7 @@ The `sprnorm()` function is used to simulate normal (Gaussian) spatial data. To 
 ```{r}
 sim_params <- spcov_params("exponential", de = 5, ie = 1, range = 0.5)
 ```
+
 We set a reproducible seed and then simulate data at 3000 random locations in the unit square using the spatial covariance parameters in `sim_params` by running
 ```{r}
 set.seed(0)
@@ -642,9 +645,9 @@ ggplot(sim_data, aes(x = x, y = y, color = sim_resp)) +
   scale_color_viridis_c(limits = c(-7, 7)) + 
   theme_gray(base_size = 18)
 ```
-There is noticeable spatial patterning in the response variable (`sim_resp`). The default mean in `sprnorm()` is zero for all observations, though a mean vector can be provided using the `mean` argument. The default number of samples generated in `sprnorm()` is one, though this is changed using the `samples` argument. Because `dat` is a `tibble` (`data.frame`) and not an `sf` object, the columns in `dat` representing the x-coordinates and y-coordinates must be provided to `sprnorm()`.
+There is noticeable spatial patterning in the response variable (`sim_resp`). The default mean in `sprnorm()` is zero for all observations, though a mean vector can be provided using the `mean` argument. The default number of samples generated in `sprnorm()` is one, though this can be changed using the `samples` argument. Because `sim_data` is a `tibble` (`data.frame`) and not an `sf` object, the columns in `sim_data` representing the x-coordinates and y-coordinates must be provided to `sprnorm()`.
 
-Note that the output from `coef(object, type = "spcov")` is a `spcov_params` object. This is useful if one wants to simulate data given the estimated spatial covariance parameters from a fitted model. Random effects are incorporated into simulation via the `randcov_params` argument.
+Note that the output from `coef(object, type = "spcov")` is a `spcov_params` object. This is useful if we want to simulate data given the estimated spatial covariance parameters from a fitted model. Random effects are incorporated into simulation via the `randcov_params` argument.
 
 ## Big Data
 

@@ -3,6 +3,5 @@
 .RData
 .Ruserdata
 inst/doc
-*.html
 /doc/
 /Meta/

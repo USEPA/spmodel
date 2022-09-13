@@ -43,3 +43,50 @@ Suggests:
     ggplot2
 VignetteBuilder: knitr
 Config/testthat/edition: 3
+Package: spmodel
+Title: Spatial Statistical Modeling and Prediction
+Version: 0.1.0
+Authors@R: c(
+    person(given = "Michael",
+           family = "Dumelle",
+           role = c("aut", "cre"),
+           email = "Dumelle.Michael@epa.gov",
+           comment = c(ORCID = "0000-0002-3393-5529")),
+    person(given = "Matt",
+           family = "Higham",
+           role = "aut",
+           email = "mhigham@stlawu.edu"),
+    person(given = "Jay M.",
+       family = "Ver Hoef",
+       role = "aut",
+       email = "jay.verhoef@noaa.gov")
+    )
+Description: Fit, summarize, and predict for a variety of spatial statistical models. Parameters
+    are estimated using various methods. Additional modeling features include anisotropy,
+    random effects, partition factors, big data approaches, and more. Model-fit statistics are
+    used to summarize, visualize, and compare models. Predictions at unobserved locations are
+    readily obtainable.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Depends: 
+    R (>= 3.5.0)
+Imports: 
+    graphics,
+    generics,
+    Matrix,
+    sf,
+    stats,
+    tibble,
+    parallel
+Suggests: 
+    rmarkdown,
+    knitr,
+    testthat (>= 3.0.0),
+    ggplot2
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+URL: https://usepa.github.io/spmodel/
+BugReports: https://github.com/USEPA/spmodel/issues

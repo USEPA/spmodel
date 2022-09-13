@@ -1,9 +1,0 @@
-pandoc: '2.18'
-pkgdown: 2.0.6
-pkgdown_sha: ~
-articles:
-  basics: basics.html
-  guide: guide.html
-  technical: technical.html
-last_built: 2022-09-12T12:58Z
-

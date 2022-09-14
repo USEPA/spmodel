@@ -774,7 +774,7 @@ We appreciate feedback from users regarding `spmodel`. To learn more about how t
 
 ## An Additional Example Using `caribou` {#app:caribou}
 
-The purpose of this example is to show more applications of the `splm()` and `spautor()` functions when the data are not an `sf` object, as well as to show a few other functions in `spmodel`. The `caribou` data are observed on an equally spaced lattice and can be analyzed as point-referenced or areal data. We view the first few rows of `caribou` by running
+The purpose of this example is to show more applications of the `splm()` and `spautor()` functions when the data are not an `sf` object, as well as to show a few other functions in `spmodel`. The `caribou` data are are designed experiment with two treatments observed on an equally spaced grid and can be analyzed as point-referenced or areal data. We view the first few rows of `caribou` by running
 ```{r}
 caribou
 ```

@@ -332,7 +332,7 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
     formula = formula,
     terms = data_object$terms,
     call = match.call(),
-    fn = as.character(as.list(match.call())[[1]]),
+    fn = "splm",
     estmethod = estmethod,
     obdata = data_object$obdata,
     newdata = data_object$newdata,

@@ -1,3 +1,34 @@
+#' Fit random forest residual spatial autoregressive models
+#'
+#' @param formula A two-sided linear formula describing the fixed effect structure
+#'   of the model, with the response to the left of the \code{~} operator and
+#'   the terms on the right, separated by \code{+} operators.
+#' @param data A data frame or \code{sf} object object that contains
+#'   the variables in \code{fixed}, \code{random}, and \code{partition_factor}
+#'   as well as geographical information. If an \code{sf} object is
+#'   provided with \code{POINT} geometries, the x-coordinates and y-coordinates
+#'   are used directly. If an \code{sf} object is
+#'   provided with \code{POLYGON} geometries, the x-coordinates and y-coordinates
+#'   are taken as the centroids of each polygon.
+#' @param ... Additional named arguments to \code{ranger::ranger} or [spautor()].
+#'
+#' @details 1. Find fitted values from a random forest model. 2. Fit a spatial
+#'   autoregressive model to the residuals of the random forest model.
+#'
+#' @return An \code{spmodRF} object to be used with \code{predict()}. There are
+#'   three elements: \code{ranger}, the output from fitting the mean model with
+#'   \code{ranger::ranger}; \code{spmod}, the output from fitting the spatial
+#'   linear model to the ranger residuals; and \code{newdata}, the \code{newdata}
+#'   object, if relevant.
+#'
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' seal$x <- rnorm(NROW(seal)) # add dummy variable
+#' sprfmod <- spautorRF(log_trend ~ x, data = seal, spcov_type = "car")
+#' predict(sprfmod)
+#' }
 spautorRF <- function(formula, data, ...) {
 
   # check to see if ranger installed
@@ -22,6 +53,11 @@ spautorRF <- function(formula, data, ...) {
 
     # get ... objects
     dotlist <- as.list(substitute(alist(...)))[-1]
+    penv <- parent.frame() # store parent env
+    dotlist <- lapply(dotlist, function(x) {
+      eval(eval(expression(x)), penv) # evaluate the arguments in parent env
+    })
+    dotlist_names <- names(dotlist)
     dotlist_names <- names(dotlist)
 
     # save ranger ... objects

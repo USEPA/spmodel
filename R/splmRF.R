@@ -1,3 +1,39 @@
+#' Fit random forest residual spatial linear models
+#'
+#' @param formula A two-sided linear formula describing the fixed effect structure
+#'   of the model, with the response to the left of the \code{~} operator and
+#'   the terms on the right, separated by \code{+} operators.
+#' @param data A data frame or \code{sf} object object that contains
+#'   the variables in \code{fixed}, \code{random}, and \code{partition_factor}
+#'   as well as geographical information. If an \code{sf} object is
+#'   provided with \code{POINT} geometries, the x-coordinates and y-coordinates
+#'   are used directly. If an \code{sf} object is
+#'   provided with \code{POLYGON} geometries, the x-coordinates and y-coordinates
+#'   are taken as the centroids of each polygon.
+#' @param ... Additional named arguments to \code{ranger::ranger} or [splm()].
+#'
+#' @details 1. Find fitted values from a random forest model. 2. Fit a spatial
+#'   linear model to the residuals of the random forest model.
+#'
+#' @return An \code{spmodRF} object to be used with \code{predict()}. There are
+#'   three elements: \code{ranger}, the output from fitting the mean model with
+#'   \code{ranger::ranger}; \code{spmod}, the output from fitting the spatial
+#'   linear model to the ranger residuals; and \code{newdata}, the \code{newdata}
+#'   object, if relevant.
+#'
+#' @note This function does not perform any internal scaling. If optimization is not
+#'   stable due to large extremely large variances, scale relevant variables
+#'   so they have variance 1 before optimization.
+#'
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' sulfate$x <- rnorm(NROW(sulfate)) # add dummy variable
+#' sulfate_preds$x <- rnorm(NROW(sulfate_preds)) # add dummy variable
+#' sprfmod <- splmRF(sulfate ~ x, data = sulfate, spcov_type = "exponential")
+#' predict(sprfmod, sulfate_preds)
+#' }
 splmRF <- function(formula, data, ...) {
 
   # check to see if ranger installed
@@ -14,11 +50,21 @@ splmRF <- function(formula, data, ...) {
     if (any(na_index)) {
       newdata <- data[na_index, , drop = FALSE]
       data <- data[!na_index, , drop = FALSE]
+    } else {
+      newdata <- NULL
     }
 
     # get ... objects
     dotlist <- as.list(substitute(alist(...)))[-1]
+    # escape hatch for nse on coords
+    coord_index <- which(names(dotlist) %in% c("xcoord", "ycoord"))
+    dotlist[coord_index] <- as.character(dotlist[coord_index])
+    penv <- parent.frame() # store parent env
+    dotlist <- lapply(dotlist, function(x) {
+      eval(eval(expression(x)), penv) # evaluate the arguments in parent env
+    })
     dotlist_names <- names(dotlist)
+
 
     # save ranger ... objects
     ranger_names <- names(formals(ranger::ranger))
@@ -39,38 +85,4 @@ splmRF <- function(formula, data, ...) {
   }
   # output list with names and class
   structure(list(ranger = ranger_out, spmod = spmod_out, newdata = newdata), class = "spmodRF")
-}
-
-#' @export
-predict.spmodRF <- function(object, newdata, ...) {
-
-  # check to see if ranger installed
-  if (!requireNamespace("ranger", quietly = TRUE)) {
-    stop("Install the ranger package before using predict with an splmRF object", call. = FALSE)
-  } else {
-
-    # find newdata if required (conditional if spautor? this would force them to use newdata object)
-    if ((missing(newdata) && !is.null(object$newdata)) || object$spmod$fn == "spautor") {
-      newdata <- object$newdata
-    }
-
-    # get ... objects
-    dotlist <- as.list(substitute(alist(...)))[-1]
-    dotlist_names <- names(dotlist)
-
-    # hardcode ranger names because of predict.ranger export issue
-    ranger_names <- c("predict.all", "num.trees", "se.method", "quantiles", "what", "seed", "num.threads", "verbose")
-    ranger_args <- dotlist[dotlist_names %in% ranger_names]
-
-    # do random forest prediction
-    ranger_pred <- do.call(predict, c(list(object = object$ranger, data = as.data.frame(newdata), type = "response"), ranger_args))
-
-    # find spmod names
-    spmod_args <-  dotlist[!dotlist_names %in% ranger_names]
-    # do splm prediction
-    spmod_pred <- do.call(predict, c(list(object = object$spmod, newdata = newdata), spmod_args))
-
-  }
-  # obtain final predictions
-  ranger_pred$predictions + spmod_pred
 }

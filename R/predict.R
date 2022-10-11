@@ -2,7 +2,7 @@
 #'
 #' @description Predicted values and intervals based on a fitted model object.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object from [splm()], [splmRF()], [spautor()], or [spautorRF()].
 #' @param newdata A data frame or \code{sf} object in which to
 #'   look for variables with which to predict. If a data frame, \code{newdata}
 #'   must contain all variables used by \code{formula(object)} and all variables
@@ -660,4 +660,40 @@ get_pred_spautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat,
   c0 <- cluster_list$c0
   s0 <- cluster_list$s0
   get_pred_spautor(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson, cov_betahat, SqrtSigInv_X, se.fit, interval)
+}
+
+#' @name predict.spmod
+#' @method predict spmodRF
+#' @export
+predict.spmodRF <- function(object, newdata, ...) {
+
+  # check to see if ranger installed
+  if (!requireNamespace("ranger", quietly = TRUE)) {
+    stop("Install the ranger package before using predict with an splmRF object", call. = FALSE)
+  } else {
+
+    # find newdata if required
+    if ((missing(newdata) && !is.null(object$newdata)) || object$spmod$fn == "spautor") {
+      newdata <- object$newdata
+    }
+
+    # get ... objects
+    dotlist <- as.list(substitute(alist(...)))[-1]
+    dotlist_names <- names(dotlist)
+
+    # hardcode ranger names because of predict.ranger export issue
+    ranger_names <- c("predict.all", "num.trees", "se.method", "quantiles", "what", "seed", "num.threads", "verbose")
+    ranger_args <- dotlist[dotlist_names %in% ranger_names]
+
+    # do random forest prediction
+    ranger_pred <- do.call(predict, c(list(object = object$ranger, data = as.data.frame(newdata), type = "response"), ranger_args))
+
+    # find spmod names
+    spmod_args <-  dotlist[!dotlist_names %in% ranger_names]
+    # do splm prediction
+    spmod_pred <- do.call(predict, c(list(object = object$spmod, newdata = newdata), spmod_args))
+
+  }
+  # obtain final predictions
+  ranger_pred$predictions + spmod_pred
 }

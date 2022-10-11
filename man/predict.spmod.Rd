@@ -2,6 +2,7 @@
 % Please edit documentation in R/predict.R
 \name{predict.spmod}
 \alias{predict.spmod}
+\alias{predict.spmodRF}
 \title{Model predictions (Kriging)}
 \usage{
 \method{predict}{spmod}(
@@ -13,9 +14,11 @@
   local,
   ...
 )
+
+\method{predict}{spmodRF}(object, newdata, ...)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
+\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=splmRF]{splmRF()}}, \code{\link[=spautor]{spautor()}}, or \code{\link[=spautorRF]{spautorRF()}}.}
 
 \item{newdata}{A data frame or \code{sf} object in which to
 look for variables with which to predict. If a data frame, \code{newdata}

@@ -4,12 +4,17 @@
 \alias{glances}
 \title{Glance at many fitted model objects}
 \usage{
-glances(..., sort_by = "AICc", decreasing = FALSE)
+glances(object, ..., sort_by = "AICc", decreasing = FALSE)
 }
 \arguments{
-\item{...}{Fitted model objects from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
+\item{object}{Fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
 
-\item{sort_by}{Sort by a \code{glance} statistic. The default is \code{AICc}.}
+\item{...}{Additional fitted model objects from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}. Ignored
+if \code{object} has class \code{spmod_list}.}
+
+\item{sort_by}{Sort by a \code{glance} statistic (i.e., the name of a column
+output from \code{\link[=glance.spmod]{glance.spmod()}} or the order of model input (\code{sort_by = "order"}).
+The default is \code{"AICc"}.}
 
 \item{decreasing}{Should \code{sort_by} be decreasing or not? The default is \code{FALSE}.}
 }

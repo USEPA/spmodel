@@ -25,14 +25,18 @@
 #'   available in Details. When \code{spcov_type} is specified, relevant spatial
 #'   covariance parameters are assumed unknown, requiring estimation.
 #'   \code{spcov_type} is not required (and is
-#'   ignored) if \code{spcov_initial} is provided. The default for \code{spcov_type}
-#'   is \code{"exponential"}.
+#'   ignored) if \code{spcov_initial} is provided. Multiple values can be
+#'   provided in a character vector. Then \code{splm()} is called iteratively
+#'   for each element and a list is returned for each model fit.
+#'   The default for \code{spcov_type} is \code{"exponential"}.
 #' @param xcoord The name of the column in \code{data} representing the x-coordinate.
 #'   Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.
 #' @param ycoord The name of the column in \code{data} representing the y-coordinate.
 #'   Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.
 #' @param spcov_initial An object from [spcov_initial()] specifying initial and/or
-#'   known values for the spatial covariance parameters.
+#'   known values for the spatial covariance parameters. Multiple [spcov_initial()]
+#'   objects can be provided in a list. Then \code{splm()} is called iteratively
+#'   for each element and a list is returned for each model fit.
 #' @param estmethod The estimation method. Available options include
 #'   \code{"reml"} for restricted maximum likelihood, \code{"ml"} for maximum
 #'   likelihood, \code{"sv-wls"} for semivariogram weighted least squares,
@@ -223,7 +227,9 @@
 #' summary(spmod)
 splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estmethod = "reml", weights = "cressie", anisotropy = FALSE, random, randcov_initial, partition_factor, local, ...) {
 
-  # set exponetnial as defaultif nothing specified
+
+
+  # set exponential as default if nothing specified
   if (missing(spcov_type) && missing(spcov_initial)) {
     spcov_type <- "exponential"
     message("No spatial covariance type provided. Assuming \"exponential\".")
@@ -231,6 +237,29 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
 
   if (!missing(spcov_type) && !missing(spcov_initial)) {
     message("Both spcov_type and spcov_initial provided. spcov_initial overriding spcov_type.")
+  }
+
+  # iterate if needed # STILL NEED TO FIX CALL ISSUE
+  if (!missing(spcov_initial) && is.list(spcov_initial[[1]])) {
+    call_list <- as.list(match.call())[-1]
+    call_list$data <- data # problems with NSE
+    splm_out <- lapply(spcov_initial, function(x) {
+      call_list$spcov_initial <- x
+      do.call("splm", call_list)
+    })
+    names(splm_out) <- paste("spcov_initial", seq_along(spcov_initial), sep = "_")
+    new_splm_out <- structure(splm_out, class = "spmod_list")
+    return(new_splm_out)
+  } else if (!missing(spcov_type) && length(spcov_type) > 1) {
+    call_list <- as.list(match.call())[-1]
+    call_list$data <- data # problems with NSE
+    splm_out <- lapply(spcov_type, function(x) {
+      call_list$spcov_type <- x
+      do.call("splm", call_list)
+    })
+    names(splm_out) <- spcov_type
+    new_splm_out <- structure(splm_out, class = "spmod_list")
+    return(new_splm_out)
   }
 
   # set spcov_initial

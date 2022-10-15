@@ -44,8 +44,10 @@ and \code{"none"}. Parameterizations of each spatial covariance type are
 available in Details. When \code{spcov_type} is specified, relevant spatial
 covariance parameters are assumed unknown, requiring estimation.
 \code{spcov_type} is not required (and is
-ignored) if \code{spcov_initial} is provided. The default for \code{spcov_type}
-is \code{"exponential"}.}
+ignored) if \code{spcov_initial} is provided. Multiple values can be
+provided in a character vector. Then \code{splm()} is called iteratively
+for each element and a list is returned for each model fit.
+The default for \code{spcov_type} is \code{"exponential"}.}
 
 \item{xcoord}{The name of the column in \code{data} representing the x-coordinate.
 Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
@@ -54,7 +56,9 @@ Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 
 \item{spcov_initial}{An object from \code{\link[=spcov_initial]{spcov_initial()}} specifying initial and/or
-known values for the spatial covariance parameters.}
+known values for the spatial covariance parameters. Multiple \code{\link[=spcov_initial]{spcov_initial()}}
+objects can be provided in a list. Then \code{splm()} is called iteratively
+for each element and a list is returned for each model fit.}
 
 \item{estmethod}{The estimation method. Available options include
 \code{"reml"} for restricted maximum likelihood, \code{"ml"} for maximum

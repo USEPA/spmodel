@@ -146,6 +146,29 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
     message("Both spcov_type and spcov_initial provided. spcov_initial overriding spcov_type.")
   }
 
+  # iterate if needed
+  if (!missing(spcov_initial) && is.list(spcov_initial[[1]])) {
+    call_list <- as.list(match.call())[-1]
+    call_list$data <- data # problems with NSE
+    spautor_out <- lapply(spcov_initial, function(x) {
+      call_list$spcov_initial <- x
+      do.call("spautor", call_list)
+    })
+    names(spautor_out) <- paste("spcov_initial", seq_along(spcov_initial), sep = "_")
+    new_spautor_out <- structure(spautor_out, class = "spmod_list")
+    return(new_spautor_out)
+  } else if (!missing(spcov_type) && length(spcov_type) > 1) {
+    call_list <- as.list(match.call())[-1]
+    call_list$data <- data # problems with NSE
+    spautor_out <- lapply(spcov_type, function(x) {
+      call_list$spcov_type <- x
+      do.call("spautor", call_list)
+    })
+    names(spautor_out) <- spcov_type
+    new_spautor_out <- structure(spautor_out, class = "spmod_list")
+    return(new_spautor_out)
+  }
+
   # replace initial values with appropriate NA's
   if (missing(spcov_initial)) {
     spcov_initial <- spmodel::spcov_initial(spcov_type)

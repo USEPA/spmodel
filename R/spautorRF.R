@@ -52,24 +52,21 @@ spautorRF <- function(formula, data, ...) {
     }
 
     # get ... objects
-    dotlist <- as.list(substitute(alist(...)))[-1]
-    penv <- parent.frame() # store parent env
-    dotlist <- lapply(dotlist, function(x) {
-      eval(eval(expression(x)), penv) # evaluate the arguments in parent env
-    })
-    dotlist_names <- names(dotlist)
-    dotlist_names <- names(dotlist)
+    call_list <- as.list(match.call())[-1]
+    call_list <- call_list[!names(call_list) %in% c("formula", "data")]
+    penv <- parent.frame()
 
     # save ranger ... objects
     ranger_names <- names(formals(ranger::ranger))
-    ranger_args <- dotlist[dotlist_names %in% ranger_names]
+    ranger_args <- call_list[names(call_list) %in% ranger_names]
 
     # perform random forest
-    ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = as.data.frame(data)), ranger_args))
+    ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = as.data.frame(data)), ranger_args), envir = penv)
     ranger_out$call <- ranger_call
 
     # get ... objects
-    spautor_args <-  dotlist[!dotlist_names %in% ranger_names]
+    spautor_names <- names(formals(spmodel::spautor))
+    spautor_args <-  call_list[names(call_list) %in% spautor_names]
     # find residuals
     data$.ranger_resid <- model.response(model.frame(formula, data)) - ranger_out$predictions
     newdata$.ranger_resid <- NA
@@ -79,7 +76,7 @@ spautorRF <- function(formula, data, ...) {
     # putting back in order
     data <- data[order(c(which(!na_index), which(na_index))), , drop = FALSE]
     # perform spautor
-    spmod_out <- do.call(spmodel::spautor, c(list(formula = .ranger_resid ~ 1, data = data), spautor_args))
+    spmod_out <- do.call(spmodel::spautor, c(list(formula = .ranger_resid ~ 1, data = data), spautor_args), envir = penv)
     spmod_out$call <- spautor_call
 
   }

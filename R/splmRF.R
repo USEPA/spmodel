@@ -55,31 +55,25 @@ splmRF <- function(formula, data, ...) {
     }
 
     # get ... objects
-    dotlist <- as.list(substitute(alist(...)))[-1]
-    # escape hatch for nse on coords
-    coord_index <- which(names(dotlist) %in% c("xcoord", "ycoord"))
-    dotlist[coord_index] <- as.character(dotlist[coord_index])
-    penv <- parent.frame() # store parent env
-    dotlist <- lapply(dotlist, function(x) {
-      eval(eval(expression(x)), penv) # evaluate the arguments in parent env
-    })
-    dotlist_names <- names(dotlist)
-
+    call_list <- as.list(match.call())[-1]
+    call_list <- call_list[!names(call_list) %in% c("formula", "data")]
+    penv <- parent.frame()
 
     # save ranger ... objects
     ranger_names <- names(formals(ranger::ranger))
-    ranger_args <- dotlist[dotlist_names %in% ranger_names]
+    ranger_args <- call_list[names(call_list) %in% ranger_names]
 
     # perform random forest
-    ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = as.data.frame(data)), ranger_args))
+    ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = as.data.frame(data)), ranger_args), envir = penv)
     ranger_out$call <- ranger_call
 
     # get ... objects
-    splm_args <-  dotlist[!dotlist_names %in% ranger_names]
+    splm_names <- names(formals(spmodel::splm))
+    splm_args <-  call_list[names(call_list) %in% splm_names]
     # find residuals
     data$.ranger_resid <- model.response(model.frame(formula, data)) - ranger_out$predictions
     # perform splm
-    spmod_out <- do.call(spmodel::splm, c(list(formula = .ranger_resid ~ 1, data = data), splm_args))
+    spmod_out <- do.call(spmodel::splm, c(list(formula = .ranger_resid ~ 1, data = data), splm_args), envir = penv)
     spmod_out$call <- splm_call
 
   }

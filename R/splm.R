@@ -239,23 +239,23 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
     message("Both spcov_type and spcov_initial provided. spcov_initial overriding spcov_type.")
   }
 
-  # iterate if needed # STILL NEED TO FIX CALL ISSUE
+  # iterate if needed
   if (!missing(spcov_initial) && is.list(spcov_initial[[1]])) {
     call_list <- as.list(match.call())[-1]
-    call_list$data <- data # problems with NSE
+    penv <- parent.frame()
     splm_out <- lapply(spcov_initial, function(x) {
       call_list$spcov_initial <- x
-      do.call("splm", call_list)
+      do.call("splm", call_list, envir = penv)
     })
     names(splm_out) <- paste("spcov_initial", seq_along(spcov_initial), sep = "_")
     new_splm_out <- structure(splm_out, class = "spmod_list")
     return(new_splm_out)
   } else if (!missing(spcov_type) && length(spcov_type) > 1) {
     call_list <- as.list(match.call())[-1]
-    call_list$data <- data # problems with NSE
+    penv <- parent.frame()
     splm_out <- lapply(spcov_type, function(x) {
       call_list$spcov_type <- x
-      do.call("splm", call_list)
+      do.call("splm", call_list, envir = penv)
     })
     names(splm_out) <- spcov_type
     new_splm_out <- structure(splm_out, class = "spmod_list")

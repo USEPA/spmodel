@@ -18,7 +18,7 @@ test_that("smwInv_rand works", {
   smwInv_rand_val <- smwInv_rand(Ainv, Aldet, randcov_params = randcov_params_val, randcov_Zs = randcov_Zs)
 
   # inv
-  expect_equal(SigInv, unname(smwInv_rand_val$SigInv))
+  expect_equal(as.vector(SigInv), as.vector(smwInv_rand_val$SigInv))
   # log det
-  expect_equal(Sigldet, unname(smwInv_rand_val$Sigldet))
+  expect_equal(as.vector(Sigldet), as.vector(smwInv_rand_val$Sigldet))
 })

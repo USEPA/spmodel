@@ -754,7 +754,7 @@ predict(local1, newdata = sim_preds, local = pred_list)
 
 This code implies that uniquely for each location requiring prediction, only the 30 observations in the data closest to it (in terms of Euclidean distance) are used in the computation and parallel processing is used with two cores.
 
-For areal data, no local neighborhood approximation exists because of the data's underlying neighborhood structure. Thus, all of the data must be used to compute predictions, and by consequence, `method` and `distance` are not components of the `local` list. The only components of the `local` list for areal data are `parallel` and `ncores`.
+For areal data, no local neighborhood approximation exists because of the data's underlying neighborhood structure. Thus, all of the data must be used to compute predictions, and by consequence, `method` and `size` are not components of the `local` list. The only components of the `local` list for areal data are `parallel` and `ncores`.
 
 # Discussion {#sec:discussion}
 

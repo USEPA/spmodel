@@ -1,6 +1,3 @@
-<!-- badges -->
-[![R-CMD-check](https://github.com/USEPA/spmodel/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/USEPA/spmodel/actions/workflows/check-standard.yaml)
-
 # spmodel: Spatial Statistical Modeling and Prediction
 
 spmodel is an R package used to fit, summarize, and predict for a variety spatial

@@ -1,6 +1,3 @@
-<!-- badges -->
-[![R-CMD-check](https://github.com/USEPA/spmodel/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/USEPA/spmodel/actions/workflows/check-standard.yaml)
-
 # spmodel: Spatial Statistical Modeling and Prediction
 
 spmodel is an R package used to fit, summarize, and predict for a variety spatial
@@ -57,7 +54,7 @@ citation(package = "spmodel")
 #> To cite spmodel in publications use:
 #> 
 #>   Dumelle, Michael., Higham, Matt., and Ver Hoef, Jay M. (2022).
-#>   spmodel: Spatial Statistical Modeling and Prediction. R package version 0.1.0.
+#>   spmodel: Spatial Statistical Modeling and Prediction. R package version 0.1.1.
 #> 
 #> A BibTeX entry for LaTeX users is
 #> 
@@ -65,7 +62,7 @@ citation(package = "spmodel")
 #>     title = {spmodel: Spatial Statistical Modeling and Prediction},
 #>     author = {Michael Dumelle and Matt Higham and Jay M. {Ver Hoef}},
 #>     year = {2022},
-#>     note = {R package version 0.1.0},
+#>     note = {R package version 0.1.1},
 #>   }
 ```
 

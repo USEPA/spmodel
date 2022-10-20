@@ -1,47 +1,11 @@
-This is a new release
+This is a minor update that updates two unit tests to reflect an upcoming change to `Matrix`.
 
 -------
 
-## New Release
+## Resubmission
 
-This is a new release.
+This is a resubmission.
 
-## Test environments
-
-Several tests were run using rhub. Below are the results for windows, linux, and mac os builds.
-
-* `rhub::check_on_windows()`
-    * Platform: Windows Server 2022, R-release, 32/64 bit
-        * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
-        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-7c88621231cf41ffa4f661dd79353b34
-        
-* `rhub::check_on_linux()`
-    * Platform: Ubuntu Linux 20.04 1 LTS, R-release, GCC
-        * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
-        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-ccfe2a1de93b44b79dc478ec606d315b
-        
-* `rhub::check(platform = "debian-gcc-release")`
-    * Platform: Debian Linux, R-release, GCC
-        * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
-        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-fd988dd5be0842f3ae5f131297204c4f
-
-* `rhub::check(platform = "macos-highsierra-release-cran")`
-    * Platform: macOS 10.13.6 High Sierra, R-release, CRAN's setup
-        * Status: SUCCESS (no ERRORs, WARNINGs, or NOTEs)
-        * Build ID: https://builder.r-hub.io/status/spmodel_0.1.0.tar.gz-b7b851d01fb0465abb64fff84255c3b4
-        
-* rhub tests were available on Solaris but not tested, as CRAN does not appear to
-  perform Solaris checks anymore.
-  
-* The CRAN check may find the following `NOTE`s
-    * Possibly misspelled words in `DESCRIPTION`:
-        * anisotropy
-        * This word is spelled correctly.
-
-* I did receive an error running `rhub::check_for_cran()`:
-    * On Fedora Linux, the LaTeX package `framed.sty` was not found.
-    * It is my understanding that this bug is with rhub, as I was not able to reproduce it anywhere else.
-        
 ## R CMD check results
 
 Here is the output from `devtools::check(manual = TRUE)` on

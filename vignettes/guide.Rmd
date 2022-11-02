@@ -165,7 +165,7 @@ pseudoR2(spmod)
 ```
 Roughly `r 100 * round(pseudoR2(spmod), digits = 2)`% of the variability in log zinc is explained by log distance from the road. The pseudo R-squared can be adjusted to account for the number of explanatory variables using the `adjust` argument. Pseudo R-squared (and the adjusted version) is most helpful for comparing models that have the same covariance structure. 
 
-The next two model-fit statistics we consider are the spatial AIC and AICc [@hoeting2006model]. The AIC and AICc evaluate the fit of a model with a penalty for the number of parameters estimated. This penalty balances model fit and model parsimony. Lower AIC and AICc indicate a better balance of model fit and parsimony. The AICc is a correction to AIC for small sample sizes. As the sample size increases, AIC and AICc converge.
+The next two model-fit statistics we consider are the AIC and AICc. The AIC and AICc evaluate the fit of a model with a penalty for the number of parameters estimated. This penalty balances model fit and model parsimony. Lower AIC and AICc indicate a better balance of model fit and parsimony. The AICc is a correction to AIC for small sample sizes. As the sample size increases, AIC and AICc converge.
 
 The spatial AIC and AICc are given by
 \begin{equation*}\label{eq:sp_aic}

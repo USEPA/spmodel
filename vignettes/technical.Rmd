@@ -87,7 +87,7 @@ Additional notation is used in Section$~$\ref{sec:predict} (`predict()`):
 
 # `AIC()` and `AICc()` {#sec:aic}
 
-The `AIC()` and `AICc()` functions in `spmodel` are defined for restricted maximum likelihood and maximum likelihood estimation, which maximize a likelihood. They follow @hoeting2006model, defining spatial AIC and AICc as
+The `AIC()` and `AICc()` functions in `spmodel` are defined for restricted maximum likelihood and maximum likelihood estimation, which maximize a likelihood. The AIC and AICc as defined @hoeting2006model are given by 
 \begin{equation*}\label{eq:sp_aic}
   \begin{split}
     \text{AIC} & = -2\ell(\hat{\boldsymbol{\Theta}}) + 2(|\hat{\boldsymbol{\Theta}}|) \\

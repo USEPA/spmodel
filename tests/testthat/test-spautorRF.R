@@ -12,13 +12,31 @@ if (!requireNamespace("ranger", quietly = TRUE)) {
   test_that("the model runs", {
     spcov_type <- "car"
     expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type), NA)
+    expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type, estmethod = "ml"), NA)
   })
 
-  test_that("prediction works", {
-    spcov_type <- "car"
-    sprfmod <- spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type)
-    expect_vector(predict(sprfmod))
-  })
+  if (test_local) {
+    test_that("the model runs", {
+      spcov_type <- "car"
+      num.tree <- 499
+      spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 0.5, known = "de")
+      expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_initial = spcov_initial_val), NA)
+      expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_initial = spcov_initial_val, estmethod = "ml"), NA)
+    })
 
+    test_that("the model list runs", {
+      spcov_type <- c("car", "sar")
+      expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type), NA)
+      expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type, estmethod = "ml"), NA)
+    })
+
+    test_that("the model list runs", {
+      spcov_type <- c("car", "sar")
+      num.tree <- 499
+      spcov_initial_val <- lapply(spcov_type, function(x) spcov_initial(spcov_type = x, de = 1, ie = 1, range = 0.5, known = "de"))
+      expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_initial = spcov_initial_val), NA)
+      expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_initial = spcov_initial_val, estmethod = "ml"), NA)
+    })
+  }
 
 }

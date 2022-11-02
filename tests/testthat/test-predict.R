@@ -370,4 +370,39 @@ if (test_local) {
     expect_error(predict(spmod), NA)
   })
 
+  test_that("prediction for splmRF works", {
+    spcov_type <- "exponential"
+
+    sprfmod <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_vector(predict(sprfmod, newdata = newexdata))
+
+    exdata$y[1] <- NA
+    sprfmod <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_vector(predict(sprfmod))
+
+
+    spcov_type <- c("exponential", "matern")
+
+    sprfmod <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_vector(predict(sprfmod, newdata = newexdata))
+
+    exdata$y[1] <- NA
+    sprfmod <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_vector(predict(sprfmod)[[1]])
+    expect_vector(predict(sprfmod)[[2]])
+  })
+
+  test_that("prediction for slautorRF works", {
+    spcov_type <- "car"
+    sprfmod <- spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type)
+    expect_vector(predict(sprfmod))
+
+    spcov_type <- c("car", "sar")
+    sprfmod <- spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type)
+    expect_vector(predict(sprfmod))
+    expect_vector(predict(sprfmod)[[1]])
+    expect_vector(predict(sprfmod)[[2]])
+  })
 }
+
+

@@ -15,7 +15,8 @@ partition_matrix <- function(partition_factor = NULL, data) {
     # use regular contrasts here so matrix all zeros and ones
     partition_model_frame <- model.frame(partition_formula, data)
     if (length(unique(as.character(unlist(partition_model_frame)))) == 1) {
-      partition_model_val <- Matrix::Matrix(as.matrix(partition_model_frame), sparse = TRUE)
+      partition_model_val <- Matrix::Matrix(matrix(1, nrow = NROW(partition_model_frame), ncol = 1), sparse = TRUE)
+      # partition_model_val <- Matrix::Matrix(as.matrix(partition_model_frame), sparse = TRUE)
     } else {
       partition_model_val <- Matrix::Matrix(model.matrix(partition_formula, data), sparse = TRUE)
     }

@@ -29,13 +29,20 @@ linear model to the ranger residuals; and \code{newdata}, the \code{newdata}
 object, if relevant.
 }
 \description{
-Fit random forest residual spatial autoregressive models
+Fit random forest residual spatial linear models
+for areal data (i.e., spatial autoregressive models) using
+random forest for the mean and a spatial linear model for the residuals,
+which can be modeled variety of estimation methods, allowing for random effects,
+partition factors, and row standardization.
 }
 \details{
-\enumerate{
-\item Find fitted values from a random forest model. 2. Fit a spatial
-autoregressive model to the residuals of the random forest model.
-}
+The random forest residual spatial linear model is described by
+Fox Et al. (2020). A random forest model is fit to the mean portion of the
+model specified by \code{formula} using \code{ranger::ranger()}. Residuals
+are computed and used as the response variable in an intercept-only spatial
+linear model fit using \code{\link[=spautor]{spautor()}}. This model object is intended for use with
+\code{predict()} for perform prediction, also called random forest
+regression Kriging.
 }
 \examples{
 \donttest{
@@ -43,4 +50,9 @@ seal$x <- rnorm(NROW(seal)) # add dummy variable
 sprfmod <- spautorRF(log_trend ~ x, data = seal, spcov_type = "car")
 predict(sprfmod)
 }
+}
+\references{
+Fox, E.W., Ver Hoef, J. M., & Olsen, A. R. (2020). Comparing spatial
+regression to random forests for large environmental data sets.
+\emph{PloS one}, 15(3), e0229509.
 }

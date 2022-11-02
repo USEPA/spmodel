@@ -2,7 +2,7 @@ load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
 load(system.file("extdata", "exdata_poly.rda", package = "spmodel"))
 
 
-test_local <- TRUE # FALSE for CRAN
+test_local <- FALSE # FALSE for CRAN
 
 ##### CRAN test
 test_that("glances works geostatistical", {

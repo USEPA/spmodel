@@ -13,22 +13,10 @@ if (!requireNamespace("ranger", quietly = TRUE)) {
   #### CRAN checks
   test_that("the model runs for exponential", {
     spcov_type <- "exponential"
-    expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "matern", estmethod = "reml"), NA)
+    expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"), NA)
     expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml"), NA)
     expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
     expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
-  })
-
-  test_that("prediction works", {
-
-    spcov_type <- "exponential"
-
-    sprfmod <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
-    expect_vector(predict(sprfmod, newdata = newexdata))
-
-    exdata$y[1] <- NA
-    sprfmod <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
-    expect_vector(predict(sprfmod))
   })
 
   #### CRAN checks
@@ -46,5 +34,23 @@ if (!requireNamespace("ranger", quietly = TRUE)) {
     })
   }
 
+  test_that("the model list runs", {
+    spcov_type <- c("exponential", "matern")
+    expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"), NA)
+    expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml"), NA)
+    expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
+    expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
+  })
+
+  test_that("the model runs", {
+    spcov_type <- c("exponential", "matern")
+    num.tree <- 499
+    spcov_initial_val <- lapply(spcov_type, function(x) spcov_initial(spcov_type = x, de = 1, ie = 1, range = 1, known = "de"))
+    expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", num.trees = num.tree), NA)
+    expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", num.trees = num.tree), NA)
+    expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "sv-wls", num.trees = num.tree), NA)
+    expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "sv-cl", num.trees = num.tree), NA)
+  })
 }
+
 

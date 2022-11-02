@@ -203,15 +203,20 @@
 #'   \code{predict(object)}.
 #'
 #' @return A list with many components used to return information about
-#'   the fitted model object via summary functions like
-#'   [summary.spmod()] [tidy.spmod()], [augment.spmod()], [glance.spmod()],
-#'   and [plot.spmod()].
-#'   Many other generics are also available for use with the fitted model
-#'   object, including \code{AIC}, \code{AICc},
-#'   \code{anova}, \code{coef}, \code{cooks.distance}, \code{deviance},
-#'   \code{fitted}, \code{formula}, \code{hatvalues}, \code{influence},
+#'   the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
+#'   length one, the list has class \code{spmod}. Many generic functions that
+#'   summarize model fit are available for \code{spmod} objects, including
+#'   \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
+#'   \code{cooks.distance}, \code{deviance}, \code{fitted}, \code{formula},
+#'   \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
 #'   \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},
-#'   \code{predict}, \code{print}, \code{pseudoR2},\code{terms}, \code{update}, and \code{vcov}.
+#'   \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
+#'   \code{terms}, \code{tidy}, \code{update}, and \code{vcov}. If
+#'   \code{spcov_type} or \code{spcov_initial} are length greater than one, the
+#'   list has class \code{spmod_list} and each element in the list has class
+#'   \code{spmod}. \code{glances} can be used to summarize \code{spmod_list}
+#'   objects, and the aforementioned \code{spmod} generics can be used on each
+#'   individual list element (model fit).
 #'
 #' @note This function does not perform any internal scaling. If optimization is not
 #'   stable due to large extremely large variances, scale relevant variables

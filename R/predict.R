@@ -697,3 +697,70 @@ predict.spmodRF <- function(object, newdata, ...) {
   # obtain final predictions
   ranger_pred$predictions + spmod_pred
 }
+
+
+
+
+
+
+#' @export
+predict.spmod_list <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
+                               level = 0.95, local, ...) {
+  # match interval argument so the three display
+  interval <- match.arg(interval)
+
+  # deal with local
+  if (missing(local)) {
+    local <- NULL
+  }
+
+  if (missing(newdata)) {
+    preds <- lapply(object, function(x) {
+      predict(x, se.fit = se.fit, interval = interval, level = level, local = local, ...)
+    })
+  } else {
+    preds <- lapply(object, function(x) {
+      predict(x, newdata = newdata, se.fit = se.fit, interval = interval, level = level, local = local, ...)
+    })
+  }
+  names(preds) <- names(object)
+  preds
+}
+
+#' @export
+predict.spmodRF_list <- function(object, newdata, ...) {
+
+  # check to see if ranger installed
+  if (!requireNamespace("ranger", quietly = TRUE)) {
+    stop("Install the ranger package before using predict with an splmRF object", call. = FALSE)
+  } else {
+
+    # find newdata if required
+    if ((missing(newdata) && !is.null(object$newdata)) || object$spmod[[1]]$fn == "spautor") {
+      newdata <- object$newdata
+    }
+
+    # get ... objects
+    dotlist <- as.list(substitute(alist(...)))[-1]
+    dotlist_names <- names(dotlist)
+
+    # hardcode ranger names because of predict.ranger export issue
+    ranger_names <- c("predict.all", "num.trees", "se.method", "quantiles", "what", "seed", "num.threads", "verbose")
+    ranger_args <- dotlist[dotlist_names %in% ranger_names]
+
+    # do random forest prediction
+    ranger_pred <- do.call(predict, c(list(object = object$ranger, data = as.data.frame(newdata), type = "response"), ranger_args))
+
+    # find spmod names
+    spmod_args <-  dotlist[!dotlist_names %in% ranger_names]
+    # do splm prediction
+    spmod_pred <- lapply(object$spmod, function(x) {
+      do.call(predict, c(list(object = x, newdata = newdata), spmod_args))
+    })
+  }
+  # obtain final predictions
+  sprf_pred <- lapply(spmod_pred, function(x) ranger_pred$predictions + x)
+  names(sprf_pred) <- names(object$spmod)
+  sprf_pred
+}
+

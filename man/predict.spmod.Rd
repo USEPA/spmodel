@@ -2,7 +2,7 @@
 % Please edit documentation in R/predict.R
 \name{predict.spmod}
 \alias{predict.spmod}
-\alias{predict.spmodRF}
+\alias{predict.spmod_list}
 \title{Model predictions (Kriging)}
 \usage{
 \method{predict}{spmod}(
@@ -15,10 +15,28 @@
   ...
 )
 
-\method{predict}{spmodRF}(object, newdata, ...)
+\method{predict}{spmod_list}(
+  object,
+  newdata,
+  se.fit = FALSE,
+  interval = c("none", "confidence", "prediction"),
+  level = 0.95,
+  local,
+  ...
+)
+
+\method{predict}{spmod_list}(
+  object,
+  newdata,
+  se.fit = FALSE,
+  interval = c("none", "confidence", "prediction"),
+  level = 0.95,
+  local,
+  ...
+)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=splmRF]{splmRF()}}, \code{\link[=spautor]{spautor()}}, or \code{\link[=spautorRF]{spautorRF()}}.}
+\item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
 
 \item{newdata}{A data frame or \code{sf} object in which to
 look for variables with which to predict. If a data frame, \code{newdata}
@@ -72,27 +90,30 @@ that \code{local} is transformed into
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 }
 \value{
-If \code{se.fit} is \code{FALSE}, \code{predict.spmod()} returns
+For \code{spmod} objects, if \code{se.fit} is \code{FALSE}, \code{predict.spmod()} returns
 a vector of predictions or a matrix of predictions with column names
 \code{fit}, \code{lwr}, and \code{upr} if \code{interval} is \code{"confidence"}
-or \code{"prediction"}.
-
-If \code{se.fit} is \code{TRUE}, a list with the following components is returned:
+or \code{"prediction"}. If \code{se.fit} is \code{TRUE}, a list with the following components is returned:
 \itemize{
 \item{\code{fit}: }{vector or matrix as above}
 \item{\code{se.fit: }}{standard error of each fit}
 }
+
+For \code{spmod_list} objects, a list that contains relevant quantities for each
+\code{spmod} object.
 }
 \description{
 Predicted values and intervals based on a fitted model object.
 }
 \details{
-The (empirical) best linear unbiased predictions (i.e., Kriging
+For \code{spmod} objects, the (empirical) best linear unbiased predictions (i.e., Kriging
 predictions) at each site are returned when \code{interval} is \code{"none"}
 or \code{"prediction"} alongside standard errors. Prediction intervals
 are also returned if \code{interval} is \code{"prediction"}. When
 \code{interval} is \code{"confidence"}, the estimated mean is returned
-alongside standard errors and confidence intervals for the mean.
+alongside standard errors and confidence intervals for the mean. For \code{spmod_list}
+objects, predictions and associated intervals and standard errors are returned
+for each \code{spmod} object.
 }
 \examples{
 spmod <- splm(sulfate ~ 1,

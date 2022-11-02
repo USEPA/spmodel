@@ -202,7 +202,7 @@
 #'   fitting, but their values can be predicted afterwards by running
 #'   \code{predict(object)}.
 #'
-#' @return A list with many components used to return information about
+#' @return A list with many elements that store information about
 #'   the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
 #'   length one, the list has class \code{spmod}. Many generic functions that
 #'   summarize model fit are available for \code{spmod} objects, including

@@ -1,9 +1,10 @@
-#' Fit random forest residual spatial autoregressive models
+#' Fit random forest spatial residual models
 #'
 #' @description Fit random forest residual spatial linear models
 #'   for areal data (i.e., spatial autoregressive models) using
-#'   random forest for the mean and a spatial linear model for the residuals,
-#'   which can be modeled variety of estimation methods, allowing for random effects,
+#'   random forest to fit the mean and a spatial linear model to fit the residuals.
+#'   The spatial linear model fit to the residuals can incorporate
+#'   a variety of estimation methods, allowing for random effects,
 #'   partition factors, and row standardization.
 #'
 #' @param formula A two-sided linear formula describing the fixed effect structure
@@ -26,11 +27,22 @@
 #'   \code{predict()} for perform prediction, also called random forest
 #'   regression Kriging.
 #'
-#' @return An \code{spmodRF} object to be used with \code{predict()}. There are
-#'   three elements: \code{ranger}, the output from fitting the mean model with
-#'   \code{ranger::ranger}; \code{spmod}, the output from fitting the spatial
-#'   linear model to the ranger residuals; and \code{newdata}, the \code{newdata}
-#'   object, if relevant.
+#' @return A list with several elements to be used with \code{predict()}. These
+#'   elements include the function call (named \code{call}), the random forest object
+#'   fit to the mean (named \code{ranger}),
+#'   the spatial linear model object fit to the residuals
+#'   (named \code{spmod} or \code{spmod_list}), and an object can contain data for
+#'   locations at which to predict (called \code{newdata}). The \code{newdata}
+#'   object contains the set of
+#'   observations in \code{data} whose response variable is \code{NA}.
+#'   If \code{spcov_type} or \code{spcov_initial} (which are passed to [spautor()])
+#'   are length one, the list has class \code{spmodRF} and the spatial linear
+#'   model object fit to the residuals is called \code{spmod}, which has
+#'   class \code{spmod}. If
+#'   \code{spcov_type} or \code{spcov_initial} are length greater than one, the
+#'   list has class \code{spmodRF_list} and the spatial linear model object
+#'   fit to the residuals is called \code{spmod_list}, which has class \code{spmod_list}.
+#'   and contains several objects, each with class \code{spmod}.
 #'
 #' @export
 #'
@@ -102,7 +114,7 @@ spautorRF <- function(formula, data, ...) {
         x$call <- NA
         x
       })
-      sprf_out <- structure(list(call = match.call(), ranger = ranger_out, spmod = spmod_out, newdata = newdata), class = "spmodRF_list")
+      sprf_out <- structure(list(call = match.call(), ranger = ranger_out, spmod_list = spmod_out, newdata = newdata), class = "spmodRF_list")
     }
   }
   # return object

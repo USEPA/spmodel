@@ -384,7 +384,8 @@ if (test_local) {
     spcov_type <- c("exponential", "matern")
 
     sprfmod <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
-    expect_vector(predict(sprfmod, newdata = newexdata))
+    expect_vector(predict(sprfmod, newdata = newexdata)[[1]])
+    expect_vector(predict(sprfmod, newdata = newexdata)[[2]])
 
     exdata$y[1] <- NA
     sprfmod <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")

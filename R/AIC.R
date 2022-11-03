@@ -2,7 +2,7 @@
 #'
 #' @description Compute AIC and AICc for one or
 #' several fitted model objects for which a log-likelihood
-#' value can be obtained
+#' value can be obtained.
 #'
 #' @param object A fitted model object from [splm()] or [spautor()]
 #'   where \code{estmethod} is \code{"ml"} or \code{"reml"}.

@@ -32,7 +32,7 @@ to the objects and columns representing the number of parameters estimated
 \description{
 Compute AIC and AICc for one or
 several fitted model objects for which a log-likelihood
-value can be obtained
+value can be obtained.
 }
 \details{
 When comparing models fit by maximum or restricted maximum

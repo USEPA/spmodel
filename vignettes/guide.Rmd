@@ -480,9 +480,31 @@ The lower AIC and AICc of the full model compared to the reduced model indicates
 
 Another application of fixing spatial covariance parameters involves calculating their profile likelihood confidence intervals [@box1964analysis]. Before calculating a profile likelihood confidence interval for $\boldsymbol{\Theta}_i$, the $i$th element of a general parameter vector $\boldsymbol{\Theta}$, it is necessary to obtain $-2\ell(\hat{\boldsymbol{\Theta}})$, minus twice the log-likelihood evaluated at the estimated parameter vector, $\hat{\boldsymbol{\Theta}}$. Then a $(1 - \alpha)$% profile likelihood confidence interval is then the set of values for $\boldsymbol{\Theta}_i$ such that $2\ell(\hat{\boldsymbol{\Theta}}) - 2\ell(\hat{\boldsymbol{\Theta}}_{-i}) \leq \chi^2_{1, 1 - \alpha}$, where $\ell(\hat{\boldsymbol{\Theta}}_{-i})$ is the value of the log-likelihood maximized after fixing $\boldsymbol{\Theta}_i$ and optimizing over the remaining parameters, $\boldsymbol{\Theta}_{-i}$, and $\chi^2_{1, 1 - \alpha}$ is the $1 - \alpha$ quantile of a chi-squared distribution with one degree of freedom. The result follows from inverting a likelihood ratio test comparing the full model to a reduced model that fixes the value of $\boldsymbol{\Theta}_i$. Because this approach requires refitting the model many times for different fixed values of $\boldsymbol{\Theta}_i$, it can be computationally intensive. This approached can be generalized to yield joint profile likelihood confidence intervals cases when $i$ has dimension greater than one.
 
+## Fitting and Predicting for Multiple Models
+
+Fitting multiple models is possible with a single call to `splm()` or `spautor()` when `spcov_type` is a vector with length greater than one or `spcov_initial` is a list of `spcov_initial` objects with length greater than one. We fit three separate spatial linear models using the exponential spatial covariance, spherical spatial covariance, and no spatial covariance by running
+```{r}
+spmods <- splm(sulfate ~ 1, sulfate, spcov_type = c("exponential", "spherical", "none"))
+```
+
+Then `glances()`is used to glance at each fitted model object:
+```{r}
+glances(spmods)
+```
+
+And `predict()` is used to predict `newdata` separately fo each fitted model object:
+```{r, eval = FALSE}
+predict(spmods, newdata = sulfate_preds)
+```
+
+Currently, `glances()` and `predict()` are the only `spmodel` generic functions that operate on an object that contains multiple model fits. Generic functions that operate on individual models can still be called when the argument is an individual model object. For example, we can compute the AIC of the model fit using the exponential covariance function by running
+```{r}
+AIC(spmods$exponential)
+```
+
 ## Random Effects
 
-Non-spatial random effects incorporate additional sources of variability into model fitting. They are accommodated in `spmodel` using similar syntax as for random effects in the nlme [@pinheiro2006mixed] and lme4 [@bates2015lme4] \textbf{\textsf{R}} packages. Random effects are specified via a formula passed to the `random` argument. Next we show two examples that incorporate random effects into the spatial linear model using the `moss` data.
+Non-spatial random effects incorporate additional sources of variability into model fitting. They are accommodated in `spmodel` using similar syntax as for random effects in the `nlme` [@pinheiro2006mixed] and `lme4` [@bates2015lme4] \textbf{\textsf{R}} packages. Random effects are specified via a formula passed to the `random` argument. Next we show two examples that incorporate random effects into the spatial linear model using the `moss` data.
 
 The first example explores random intercepts for the `sample` variable. The `sample` variable indexes each unique location, which can have replicate observations due to field duplicates (`field_dup`) and lab replicates (`lab_rep`). There are 365 observations in `moss` at 318 unique locations, which means that 47 observations in `moss` are either field duplicates or lab replicates. It is likely that the repeated observations at a location are correlated with one another. We can incorporate this repeated-observation correlation by creating a random intercept for each level of `sample`. We model the random intercepts for `sample` by running
 ```{r}
@@ -755,6 +777,24 @@ predict(local1, newdata = sim_preds, local = pred_list)
 This code implies that uniquely for each location requiring prediction, only the 30 observations in the data closest to it (in terms of Euclidean distance) are used in the computation and parallel processing is used with two cores.
 
 For areal data, no local neighborhood approximation exists because of the data's underlying neighborhood structure. Thus, all of the data must be used to compute predictions, and by consequence, `method` and `size` are not components of the `local` list. The only components of the `local` list for areal data are `parallel` and `ncores`.
+
+## Random Forest Spatial Residual Models {#sec:rf}
+
+Random forest spatial residual models are used for prediction. They combine aspects of random forest prediction and spatial linear model prediction, which can lead to significant improvements in predictive accuracy compared to standard random forest prediction [@fox2020comparing]. To fit a random forest spatial residual model, use `splmRF()` (for point-referenced data) or `spautorRF()` (for areal data). These functions require at least one explanatory variable be specified, so we add an explanatory variable called `var` to `sulfate` and `sulfate_preds` for illustrative purposes -- note that `var` is not related to the response variable `sulfate`.
+```{r}
+sulfate$var <- rnorm(NROW(sulfate))
+sulfate_preds$var <- rnorm(NROW(sulfate_preds))
+```
+
+Then we fit a random forest spatial residual model by running
+```{r}
+sprfmod <- splmRF(sulfate ~ var, sulfate, spcov_type = "exponential")
+```
+
+And we make predictions by running
+```{r, eval = FALSE}
+predict(sprfmod, newdata = sulfate_preds)
+```
 
 # Discussion {#sec:discussion}
 

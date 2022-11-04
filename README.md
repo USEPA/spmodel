@@ -54,7 +54,7 @@ citation(package = "spmodel")
 #> To cite spmodel in publications use:
 #> 
 #>   Dumelle, Michael., Higham, Matt., and Ver Hoef, Jay M. (2022).
-#>   spmodel: Spatial Statistical Modeling and Prediction. R package version 0.1.1.
+#>   spmodel: Spatial Statistical Modeling and Prediction. R package version 0.2.0.
 #> 
 #> A BibTeX entry for LaTeX users is
 #> 
@@ -62,13 +62,9 @@ citation(package = "spmodel")
 #>     title = {spmodel: Spatial Statistical Modeling and Prediction},
 #>     author = {Michael Dumelle and Matt Higham and Jay M. {Ver Hoef}},
 #>     year = {2022},
-#>     note = {R package version 0.1.1},
+#>     note = {R package version 0.2.0},
 #>   }
 ```
-
-## Code Coverage
-
-The [covr](https://cran.r-project.org/package=covr) package measures the percentage of code being exercised by a set of tests as an indirect measure of test quality and completeness. spmodel's code coverage is 95.81%.
 
 ## Package Contributions
 

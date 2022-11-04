@@ -58,8 +58,8 @@ regression Kriging.
 }
 \examples{
 \donttest{
-seal$x <- rnorm(NROW(seal)) # add dummy variable
-sprfmod <- spautorRF(log_trend ~ x, data = seal, spcov_type = "car")
+seal$var <- rnorm(NROW(seal)) # add noise variable
+sprfmod <- spautorRF(log_trend ~ var, data = seal, spcov_type = "car")
 predict(sprfmod)
 }
 }

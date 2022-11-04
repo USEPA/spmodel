@@ -63,9 +63,9 @@
 #'
 #' @examples
 #' \donttest{
-#' sulfate$x <- rnorm(NROW(sulfate)) # add dummy variable
-#' sulfate_preds$x <- rnorm(NROW(sulfate_preds)) # add dummy variable
-#' sprfmod <- splmRF(sulfate ~ x, data = sulfate, spcov_type = "exponential")
+#' sulfate$var <- rnorm(NROW(sulfate)) # add noise variable
+#' sulfate_preds$var <- rnorm(NROW(sulfate_preds)) # add noise variable
+#' sprfmod <- splmRF(sulfate ~ var, data = sulfate, spcov_type = "exponential")
 #' predict(sprfmod, sulfate_preds)
 #' }
 splmRF <- function(formula, data, ...) {

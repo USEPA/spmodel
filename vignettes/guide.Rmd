@@ -459,7 +459,7 @@ augment(sealmod, newdata = sealmod$newdata)
 
 `spmodel` offers several advanced features for fitting spatial linear models. We briefly discuss some of these features next using the `moss` data and some simulated data. Technical details for each advanced feature can be seen by running `vignette("technical", "spmodel")`.
 
-## Fixing Spatial Covariance Parameters
+## Fixing Spatial Covariance Parameters {#sec:spcov_init}
 
 We may desire to fix specific spatial covariance parameters at a particular value. Perhaps some parameter value is known, for example. Or perhaps we want to compare nested models where a reduced model uses a fixed parameter value while the full model estimates the parameter. Fixing spatial covariance parameters while fitting a model is possible using the `spcov_initial` argument to `splm()` and `spautor()`. The `spcov_initial` argument takes an `spcov_initial` object (run `help("spcov_initial", "spmodel")` for more). `spcov_initial` objects can also be used to specify initial values used during optimization, even if they are not assumed to be fixed. By default, `spmodel` uses a grid search to find suitable initial values to use during optimization.
 
@@ -482,7 +482,7 @@ Another application of fixing spatial covariance parameters involves calculating
 
 ## Fitting and Predicting for Multiple Models
 
-Fitting multiple models is possible with a single call to `splm()` or `spautor()` when `spcov_type` is a vector with length greater than one or `spcov_initial` is a list of `spcov_initial` objects with length greater than one. We fit three separate spatial linear models using the exponential spatial covariance, spherical spatial covariance, and no spatial covariance by running
+Fitting multiple models is possible with a single call to `splm()` or `spautor()` when `spcov_type` is a vector with length greater than one or `spcov_initial` is a list (with length greater than one) of `spcov_initial` objects (Section$~$\ref{sec:spcov_init}). We fit three separate spatial linear models using the exponential spatial covariance, spherical spatial covariance, and no spatial covariance by running
 ```{r}
 spmods <- splm(sulfate ~ 1, sulfate, spcov_type = c("exponential", "spherical", "none"))
 ```

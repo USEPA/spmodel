@@ -174,12 +174,12 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
   # e.g. poly(x, y, degree = 2) and newdata has one row
   if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses, fixed = TRUE)) && NROW(newdata) == 1) {
     newdata <- newdata[c(1, 1), , drop = FALSE]
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
     newdata_model <- newdata_model[1, , drop = FALSE]
     newdata <- newdata[1, , drop = FALSE]
   } else {
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
     # assumes that predicted observations are not outside the factor levels
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
   }
@@ -411,12 +411,12 @@ predict_spautor <- function(object, se.fit = FALSE, interval,
   # e.g. poly(x, y, degree = 2) and newdata has one row
   if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses, fixed = TRUE)) && NROW(newdata) == 1) {
     newdata <- newdata[c(1, 1), , drop = FALSE]
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
     newdata_model <- newdata_model[1, , drop = FALSE]
     newdata <- newdata[1, , drop = FALSE]
   } else {
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
     # assumes that predicted observations are not outside the factor levels
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
   }

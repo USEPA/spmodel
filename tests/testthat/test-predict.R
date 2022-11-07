@@ -370,6 +370,20 @@ if (test_local) {
     expect_error(predict(spmod), NA)
   })
 
+  test_that("prediction works when newdata does not have all factor levels", {
+    # geostatistical
+    spmod <- splm(y ~ group, exdata, "exponential", xcoord, ycoord)
+    newexdata_sub <- newexdata[1, , drop = FALSE]
+    newexdata_sub$group <- as.character(newexdata_sub$group)
+    expect_error(predict(spmod, newexdata_sub), NA)
+
+    # autoregressive
+    exdata_Mpoly_new <- exdata_Mpoly
+    exdata_Mpoly_new$group <- as.character(exdata_Mpoly_new$group)
+    spmod <- spautor(y ~ group, exdata_Mpoly_new, "car")
+    expect_error(predict(spmod), NA)
+  })
+
   test_that("prediction for splmRF works", {
     spcov_type <- "exponential"
 

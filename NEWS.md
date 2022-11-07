@@ -16,6 +16,7 @@
 ## Bug Fixes
 
 * Fixed a bug that prevents display of spatial covariance type in summary of `spmod` objects.
+* Fixed a bug that prevented prediction of factor variables when all levels of all factor variables did not appear in `newdata`.
 
 # spmodel 0.1.1
 

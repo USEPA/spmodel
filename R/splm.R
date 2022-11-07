@@ -383,6 +383,7 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
     missing_index = data_object$missing_index,
     local_index = local_index,
     contrasts = data_object$contrasts,
+    xlevels = data_object$xlevels,
     is_sf = data_object$is_sf,
     sf_column_name = data_object$sf_column_name,
     crs = data_object$crs

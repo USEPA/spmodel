@@ -257,6 +257,7 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
     observed_index = data_object$observed_index,
     missing_index = data_object$missing_index,
     contrasts = data_object$contrasts,
+    xlevels = data_object$xlevels,
     is_sf = data_object$is_sf,
     sf_column_name = data_object$sf_column_name,
     crs = data_object$crs

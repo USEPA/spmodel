@@ -209,7 +209,7 @@ For a spatial model, the leverage of the $i$th observation is the $i$th diagonal
   \mathbf{H}^* = (\mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X})^{-1} \mathbf{X}^{* \top}) ,
 \end{equation*}
 where $\mathbf{X}^* = \boldsymbol{\Sigma}^{-1/2}\mathbf{X}$ and $\boldsymbol{\Sigma}^{-1/2}$ is the inverse matrix square root of the covariance matrix, $\boldsymbol{\Sigma}$ [@montgomery2021introduction]. The spatial hat matrix can be viewed as the non-spatial hat matrix applied $\mathbf{X}^*$ instead of $\mathbf{X}$. We compute the hat values (leverage) by running
-```{r, results = "hide"}
+```{r, eval = FALSE}
 hatvalues(spmod)
 ```
 Larger hat values indicate more leverage. 
@@ -219,7 +219,7 @@ The fitted value of an observation is the estimated mean response given the obse
   \hat{\mathbf{y}} = \mathbf{X} \hat{\boldsymbol{\beta}}.
 \end{equation*}
 We compute the fitted values by running
-```{r, results = "hide"}
+```{r, eval = FALSE}
 fitted(spmod)
 ```
 Fitted values for the spatially dependent random errors ($\boldsymbol{\tau}$), spatially independent random errors ($\boldsymbol{\epsilon}$), and random effects can also be obtained via `fitted()` by changing the `type` argument.
@@ -229,7 +229,7 @@ The residuals measure each response's deviation from its fitted value. The raw r
   \mathbf{e}_{r} = \mathbf{y} - \hat{\mathbf{y}}.
 \end{equation*}
 We compute the raw residuals of the spatial model by running
-```{r, results = "hide"}
+```{r, eval = FALSE}
 residuals(spmod)
 ```
 
@@ -238,7 +238,7 @@ The raw residuals are typically not directly checked for linear model assumption
   \mathbf{e}_{p} = \boldsymbol{\Sigma}^{-1/2}\mathbf{e}_{r}.
 \end{equation*}
 When the model is correct, the Pearson residuals have mean zero, variance approximately one, and are uncorrelated. We compute the Pearson residuals of the spatial model by running
-```{r, results = "hide"}
+```{r, eval = FALSE}
 residuals(spmod, type = "pearson")
 ```
 The covariance of $\mathbf{e}_{p}$ is $(\mathbf{I} - \mathbf{H}^*)$, which is approximately $\mathbf{I}$ for large sample sizes. Explicitly dividing $\mathbf{e}_{p}$ by the respective diagonal element of $(\mathbf{I} - \mathbf{H}^*)$ yields the standardized residuals [@myers2012generalized]:
@@ -248,7 +248,7 @@ The covariance of $\mathbf{e}_{p}$ is $(\mathbf{I} - \mathbf{H}^*)$, which is ap
 where $\text{diag}(\mathbf{H}^*)$ denotes the diagonal of $\mathbf{H}^*$.
 
 We compute the standardized residuals of the spatial model by running
-```{r, results = "hide"}
+```{r, eval = FALSE}
 residuals(spmod, type = "standardized")
 ```
 or
@@ -276,7 +276,7 @@ For a spatial model, the Cook's distance of the $i$th observation is denoted $\m
   \mathbf{D}^* = \mathbf{e}_{s}^2 \frac{\text{diag}(\mathbf{H}^*)}{p(1 - \text{diag}(\mathbf{H}^*))} .
 \end{equation*}
 A larger Cook's distance indicates more influence from the observation. We compute Cook's distance by running
-```{r, results = "hide"}
+```{r, eval = FALSE}
 cooks.distance(spmod)
 ```
 
@@ -391,15 +391,15 @@ ggplot(sulfate_preds, aes(color = preds)) +
 Before making predictions, it is important to properly specify the `newdata` object. If explanatory variables were used to fit the model, the same explanatory variables must be included in `newdata` with the same names they have in `data`. If `data` is a `data.frame`, coordinates must be included in `newdata` with the same names as they have in `data`. If `data` is an `sf` object, coordinates must be included in `newdata` with the same geometry name as they have in `data`. When using projected coordinates, the projection for `newdata` should be the same as the projection for `data`.
 
 Prediction standard errors are returned by setting the `se.fit` argument to `TRUE`:
-```{r, results = "hide"}
+```{r, eval = FALSE}
 predict(sulfmod, newdata = sulfate_preds, se.fit = TRUE)
 ```
 The `interval` argument determines the type of interval returned. If `interval` is `"none"` (the default), no intervals are returned. If `interval` is `"prediction"`, `100 * level`% prediction intervals are returned (the default is 95% prediction intervals):
-```{r, results = "hide"}
+```{r, eval = FALSE}
 predict(sulfmod, newdata = sulfate_preds, interval = "prediction")
 ```
 If `interval` is `"confidence"`, the predictions are instead the estimated mean given each observation's explanatory variable values. The corresponding `100 * level`% confidence intervals are returned:
-```{r, results = "hide"}
+```{r, eval = FALSE}
 predict(sulfmod, newdata = sulfate_preds, interval = "confidence")
 ```
 
@@ -431,12 +431,12 @@ sulfmod_with_NA$newdata
 ```
 
 We can then predict the missing values by running
-```{r, results = "hide"}
+```{r, eval = FALSE}
 predict(sulfmod_with_NA)
 ```
 
 The call to `predict()` finds in `sulfmod_with_NA` the `newdata` object and is equivalent to
-```{r, results = "hide"}
+```{r, eval = FALSE}
 predict(sulfmod_with_NA, newdata = sulfmod_with_NA$newdata)
 ```
 
@@ -447,7 +447,7 @@ augment(sulfmod_with_NA, newdata = sulfmod_with_NA$newdata)
 Unlike `predict()`, `augment()` explicitly requires the `newdata` argument be specified in order to obtain predictions. Omitting `newdata` (e.g., running `augment(sulfmod_with_NA)`) returns model diagnostics, not predictions.
 
 For areal data models fit with `spautor()`, predictions cannot be computed at locations that were not incorporated in the neighborhood structure used to fit the model. Thus, predictions are only possible for observations in `data` whose response values are missing (`NA`), as their locations are incorporated into the neighborhood structure. For example, we make predictions of log seal trends at the missing polygons from Figure$~$\ref{fig:log_trend} by running
-```{r, results = "hide"}
+```{r, eval = FALSE}
 predict(sealmod)
 ```
 We can also use `augment()` to make the predictions:
@@ -528,9 +528,9 @@ rand2 <- splm(
 ```
 Note that `sample + (log_dist2road | year)` is shorthand for `(1 | sample) + (log_dist2road | year)`. If only random slopes within a year are desired (and no random intercepts), a `- 1` is given to the relevant portion of the formula: `(log_dist2road - 1 | year)`. When there is more than one term in `random`, each term must be surrounded by parentheses (recall that the random intercept shorthand automatically includes relevant parentheses). More examples of random effect syntax are provided in Appendix$~$\ref{app:rand}.
 
-We glance at all three models by running
+We glance at the models by running
 ```{r}
-glances(spmod, rand1, rand2)
+glances(rand1, rand2)
 ```
 `rand2` has the lowest AIC and AICc.
 
@@ -539,7 +539,7 @@ It is possible to fix random effect variances using the `randcov_initial` argume
 ## Partition Factors
 
 A partition factor is a variable that allows observations to be uncorrelated when they are from different levels of the partition factor. Partition factors are specified in `spmodel` by providing a formula with a single variable to the `partition_factor` argument. Suppose that for the `moss` data, we would observations in different years (`year`) to be uncorrelated. We fit a model that treats year as a partition factor by running
-```{r}
+```{r, eval = FALSE}
 part <- splm(
   log_Zn ~ log_dist2road,
   moss,
@@ -716,14 +716,12 @@ local1 <- splm(sim_response ~ 1, sim_data, spcov_type = "exponential",
 summary(local1)
 ```
 
-
 Instead of using `local = TRUE`, we can explicitly set `local`. For example, we can fit a model using using k-means clustering [@macqueen1967some]  on the x-coordinates and y-coordinates to create 60 groups (clusters), use the pooled variance adjustment, and use parallel processing with two cores by running
 ```{r}
 local2_list <- list(method = "kmeans", groups = 60, var_adjust = "pooled",
                     parallel = TRUE, ncores = 2)
 local2 <- splm(sim_response ~ 1, sim_data, spcov_type = "exponential", 
                xcoord = x, ycoord = y, local = local2_list)
-summary(local2)
 ```
 
 Likelihood-based statistics like `AIC()`, `AICc()`, `logLik()`, and `deviance()` should not be used to compare a model fit with a big data approximation to a model fit without a big data approximation, as the two approaches maximize different likelihoods.
@@ -780,14 +778,14 @@ For areal data, no local neighborhood approximation exists because of the data's
 
 ## Random Forest Spatial Residual Models {#sec:rf}
 
-Random forest spatial residual models are used for prediction. They combine aspects of random forest prediction and spatial linear model prediction, which can lead to significant improvements in predictive accuracy compared to standard random forest prediction [@fox2020comparing]. To fit a random forest spatial residual model, use `splmRF()` (for point-referenced data) or `spautorRF()` (for areal data). These functions require at least one explanatory variable be specified, so we add an explanatory variable called `var` to `sulfate` and `sulfate_preds` for illustrative purposes -- note that `var` is not related to the response variable `sulfate`.
+Random forest spatial residual models are used for prediction. They combine aspects of random forest prediction and spatial linear model prediction, which can lead to significant improvements in predictive accuracy compared to standard random forest prediction [@fox2020comparing]. To fit a random forest spatial residual model, use `splmRF()` (for point-referenced data) or `spautorRF()` (for areal data). These functions require at least one explanatory variable be specified, so we add an explanatory variable called `var` to `sulfate` and `sulfate_preds` for illustrative purposes.
 ```{r}
 sulfate$var <- rnorm(NROW(sulfate))
 sulfate_preds$var <- rnorm(NROW(sulfate_preds))
 ```
 
 Then we fit a random forest spatial residual model by running
-```{r}
+```{r, eval = FALSE}
 sprfmod <- splmRF(sulfate ~ var, sulfate, spcov_type = "exponential")
 ```
 

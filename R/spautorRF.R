@@ -69,7 +69,14 @@ spautorRF <- function(formula, data, ...) {
     # spautor_call <- call("spautor", formula = .ranger_resid ~ 1, data = substitute(data), quote(...))
 
     # find NA values for newdata if required
-    na_index <- is.na(model.response(model.frame(formula, data, na.action = na.pass)))
+    # find NA values for newdata if required
+    if (inherits(data, "sf")) {
+      model_resp <- model.response(model.frame(formula, sf::st_drop_geometry(data), na.action = na.pass))
+    } else {
+      model_resp <- model.response(model.frame(formula, data, na.action = na.pass))
+    }
+    na_index <- is.na(model_resp)
+    resp <- model_resp[!na_index]
 
     # make sure at least one missing value to predict
     if (any(na_index)) {
@@ -89,14 +96,19 @@ spautorRF <- function(formula, data, ...) {
     ranger_args <- call_list[names(call_list) %in% ranger_names]
 
     # perform random forest
-    ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = as.data.frame(data)), ranger_args), envir = penv)
+    ## ranger needs a data frame and model frame needs non list objects in formula
+    if (inherits(data, "sf")) {
+      ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = as.data.frame(sf::st_drop_geometry(data))), ranger_args), envir = penv)
+    } else {
+      ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = as.data.frame(data)), ranger_args), envir = penv)
+    }
     ranger_out$call <- NA
 
     # get ... objects
     spautor_names <- names(formals(spmodel::spautor))
     spautor_args <-  call_list[names(call_list) %in% spautor_names]
     # find residuals
-    data$.ranger_resid <- model.response(model.frame(formula, data)) - ranger_out$predictions
+    data$.ranger_resid <- resp - ranger_out$predictions
     newdata$.ranger_resid <- NA
     # perform spautor
     # reset newdata

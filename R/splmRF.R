@@ -107,9 +107,9 @@ splmRF <- function(formula, data, ...) {
     # perform random forest
     ## ranger needs a data frame and model frame needs non list objects in formula
     if (inherits(data, "sf")) {
-      ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = as.data.frame(sf::st_drop_geometry(data))), ranger_args), envir = penv)
+      ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = sf::st_drop_geometry(data)), ranger_args), envir = penv)
     } else {
-      ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = as.data.frame(data)), ranger_args), envir = penv)
+      ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = data), ranger_args), envir = penv)
     }
     ranger_out$call <- NA
 

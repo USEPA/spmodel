@@ -69,7 +69,6 @@ spautorRF <- function(formula, data, ...) {
     # spautor_call <- call("spautor", formula = .ranger_resid ~ 1, data = substitute(data), quote(...))
 
     # find NA values for newdata if required
-    # find NA values for newdata if required
     if (inherits(data, "sf")) {
       model_resp <- model.response(model.frame(formula, sf::st_drop_geometry(data), na.action = na.pass))
     } else {
@@ -98,9 +97,9 @@ spautorRF <- function(formula, data, ...) {
     # perform random forest
     ## ranger needs a data frame and model frame needs non list objects in formula
     if (inherits(data, "sf")) {
-      ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = as.data.frame(sf::st_drop_geometry(data))), ranger_args), envir = penv)
+      ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = sf::st_drop_geometry(data)), ranger_args), envir = penv)
     } else {
-      ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = as.data.frame(data)), ranger_args), envir = penv)
+      ranger_out <- do.call(ranger::ranger, c(list(formula = formula, data = data), ranger_args), envir = penv)
     }
     ranger_out$call <- NA
 

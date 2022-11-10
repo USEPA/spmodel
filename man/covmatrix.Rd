@@ -12,8 +12,8 @@ covmatrix(object, newdata, ...)
 \item{newdata}{If omitted, the covariance matrix of
 the observed data is returned. If provided, \code{newdata} is
 a data frame or \code{sf} object that contains coordinate information
-required to construct the covariance between \code{newdata} and the observed data and
-If a data frame, \code{newdata}
+required to construct the covariance between \code{newdata} and
+the observed data. If a data frame, \code{newdata}
 must contain variables that represent coordinates having the same name as
 the coordinates from the observed data used to fit \code{object}. If an
 \code{sf} object, coordinates are obtained from the geometry of \code{newdata}.}

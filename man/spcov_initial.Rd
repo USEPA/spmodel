@@ -51,7 +51,7 @@ initial and/or known values to use while estimating spatial covariance parameter
 with \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.
 }
 \details{
-The \code{spcov_initial} vector is later passed to \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.
+The \code{spcov_initial} list is later passed to \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.
 \code{NA} values can be given for \code{ie}, \code{rotate}, and \code{scale}, which lets
 \code{\link[=splm]{splm()}} and \code{\link[=spautor]{spautor()}} find initial values for parameters that are sometimes
 otherwise assumed known (e.g., \code{rotate} and \code{scale} with \code{\link[=splm]{splm()}}

@@ -41,13 +41,12 @@ are taken as the centroids of each polygon.}
 \code{"jbessel"}, \code{"gravity"}, \code{"rquad"},
 \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 and \code{"none"}. Parameterizations of each spatial covariance type are
-available in Details. When \code{spcov_type} is specified, relevant spatial
-covariance parameters are assumed unknown, requiring estimation.
-\code{spcov_type} is not required (and is
-ignored) if \code{spcov_initial} is provided. Multiple values can be
-provided in a character vector. Then \code{splm()} is called iteratively
-for each element and a list is returned for each model fit.
-The default for \code{spcov_type} is \code{"exponential"}.}
+available in Details. Multiple spatial covariance types can be provided as
+a character vector, and then \code{splm()} is called iteratively for each
+element and a list is returned for each model fit. The default for
+\code{spcov_type} is \code{"exponential"}. When \code{spcov_type} is
+specified, all unknown spatial covariance parameters are estimated.
+\code{spcov_type} is ignored if \code{spcov_initial} is provided.}
 
 \item{xcoord}{The name of the column in \code{data} representing the x-coordinate.
 Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}

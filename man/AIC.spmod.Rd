@@ -4,7 +4,7 @@
 \alias{AIC.spmod}
 \alias{AICc}
 \alias{AICc.spmod}
-\title{Compute spatial AIC and AICc of fitted model objects}
+\title{Compute AIC and AICc of fitted model objects}
 \usage{
 \method{AIC}{spmod}(object, ..., k = 2)
 
@@ -30,9 +30,9 @@ to the objects and columns representing the number of parameters estimated
 (\code{df}) and the AIC or AICc.
 }
 \description{
-Compute a spatial version AIC and AICc for one or
+Compute AIC and AICc for one or
 several fitted model objects for which a log-likelihood
-value can be obtained, according to Hoeting et al. (2006).
+value can be obtained.
 }
 \details{
 When comparing models fit by maximum or restricted maximum
@@ -62,9 +62,4 @@ spmod <- splm(z ~ water + tarp,
 )
 AIC(spmod)
 AICc(spmod)
-}
-\references{
-Hoeting, J. A., Davis, R. A., Merton, A. A., & Thompson, S. E. (2006).
-Model selection for geostatistical models.
-\emph{Ecological Applications}, 16(1), 87-98.
 }

@@ -49,23 +49,26 @@
 #'   \code{list(size = 50, method = "covariance", parallel = FALSE)}.
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
-#' @details The (empirical) best linear unbiased predictions (i.e., Kriging
+#' @details For \code{spmod} objects, the (empirical) best linear unbiased predictions (i.e., Kriging
 #'   predictions) at each site are returned when \code{interval} is \code{"none"}
 #'   or \code{"prediction"} alongside standard errors. Prediction intervals
 #'   are also returned if \code{interval} is \code{"prediction"}. When
 #'   \code{interval} is \code{"confidence"}, the estimated mean is returned
-#'   alongside standard errors and confidence intervals for the mean.
+#'   alongside standard errors and confidence intervals for the mean. For \code{spmod_list}
+#'   objects, predictions and associated intervals and standard errors are returned
+#'   for each \code{spmod} object.
 #'
-#' @return If \code{se.fit} is \code{FALSE}, \code{predict.spmod()} returns
+#' @return For \code{spmod} objects, if \code{se.fit} is \code{FALSE}, \code{predict.spmod()} returns
 #'   a vector of predictions or a matrix of predictions with column names
 #'   \code{fit}, \code{lwr}, and \code{upr} if \code{interval} is \code{"confidence"}
-#'   or \code{"prediction"}.
-#'
-#'   If \code{se.fit} is \code{TRUE}, a list with the following components is returned:
+#'   or \code{"prediction"}. If \code{se.fit} is \code{TRUE}, a list with the following components is returned:
 #'   \itemize{
 #'     \item{\code{fit}: }{vector or matrix as above}
 #'     \item{\code{se.fit: }}{standard error of each fit}
 #'   }
+#'
+#'   For \code{spmod_list} objects, a list that contains relevant quantities for each
+#'   \code{spmod} object.
 #'
 #' @method predict spmod
 #' @export
@@ -171,12 +174,12 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
   # e.g. poly(x, y, degree = 2) and newdata has one row
   if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses, fixed = TRUE)) && NROW(newdata) == 1) {
     newdata <- newdata[c(1, 1), , drop = FALSE]
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
     newdata_model <- newdata_model[1, , drop = FALSE]
     newdata <- newdata[1, , drop = FALSE]
   } else {
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
     # assumes that predicted observations are not outside the factor levels
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
   }
@@ -408,12 +411,12 @@ predict_spautor <- function(object, se.fit = FALSE, interval,
   # e.g. poly(x, y, degree = 2) and newdata has one row
   if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses, fixed = TRUE)) && NROW(newdata) == 1) {
     newdata <- newdata[c(1, 1), , drop = FALSE]
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
     newdata_model <- newdata_model[1, , drop = FALSE]
     newdata <- newdata[1, , drop = FALSE]
   } else {
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass)
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
     # assumes that predicted observations are not outside the factor levels
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
   }
@@ -661,3 +664,207 @@ get_pred_spautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat,
   s0 <- cluster_list$s0
   get_pred_spautor(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson, cov_betahat, SqrtSigInv_X, se.fit, interval)
 }
+
+
+#' @name predict.spmod
+#' @method predict spmod_list
+#' @export
+predict.spmod_list <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
+                               level = 0.95, local, ...) {
+  # match interval argument so the three display
+  interval <- match.arg(interval)
+
+  # deal with local
+  if (missing(local)) {
+    local <- NULL
+  }
+
+  if (missing(newdata)) {
+    preds <- lapply(object, function(x) {
+      predict(x, se.fit = se.fit, interval = interval, level = level, local = local, ...)
+    })
+  } else {
+    preds <- lapply(object, function(x) {
+      predict(x, newdata = newdata, se.fit = se.fit, interval = interval, level = level, local = local, ...)
+    })
+  }
+  names(preds) <- names(object)
+  preds
+}
+
+#' @name predict.spmod
+#' @method predict spmod_list
+#' @export
+predict.spmod_list <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
+                               level = 0.95, local, ...) {
+  # match interval argument so the three display
+  interval <- match.arg(interval)
+
+  # deal with local
+  if (missing(local)) {
+    local <- NULL
+  }
+
+  if (missing(newdata)) {
+    preds <- lapply(object, function(x) {
+      predict(x, se.fit = se.fit, interval = interval, level = level, local = local, ...)
+    })
+  } else {
+    preds <- lapply(object, function(x) {
+      predict(x, newdata = newdata, se.fit = se.fit, interval = interval, level = level, local = local, ...)
+    })
+  }
+  names(preds) <- names(object)
+  preds
+}
+
+
+
+
+
+
+#' Random forest spatial residual model predictions (random forest regression Kriging)
+#'
+#' @description Predicted values based on a random forest spatial residual fitted model object.
+#'
+#' @param object A fitted model object from [splmRF()] or [spautorRF()].
+#' @param newdata A data frame or \code{sf} object in which to
+#'   look for variables with which to predict. If a data frame, \code{newdata}
+#'   must contain all variables used by \code{formula(object)} and all variables
+#'   representing coordinates. If an \code{sf} object, \code{newdata} must contain
+#'   all variables used by \code{formula(object)} and coordinates are obtained
+#'   from the geometry of \code{newdata}. If omitted, missing data from the
+#'   fitted model object are used.
+#' @param local A optional logical or list controlling the big data approximation
+#'   to the spatial residual prediction. If omitted, \code{local}
+#'   is set to \code{TRUE} or \code{FALSE} based on the sample size of the fitted
+#'   model object and/or the prediction size of \code{newdata} -- if the sample
+#'   size or prediction size exceeds 5000, \code{local} is
+#'   set to \code{TRUE}, otherwise it is set to \code{FALSE}. If \code{FALSE}, no big data approximation
+#'   is implemented. If a list is provided, the following arguments detail the big
+#'   data approximation:
+#'   \itemize{
+#'     \item{\code{method}: }{The big data approximation method. If \code{method = "all"},
+#'       all observations are used and \code{size} is ignored. If \code{method = "distance"},
+#'       the \code{size} data observations closest (in terms of Euclidean distance)
+#'       to the observation requiring prediction are used.
+#'       If \code{method = "covariance"}, the \code{size} data observations
+#'       with the highest covariance with the observation requiring prediction are used.
+#'       If random effects and partition factors are not used in estimation and
+#'       the spatial covariance function is monotone decreasing,
+#'       \code{"distance"} and \code{"covariance"} are equivalent. The default
+#'       is \code{"covariance"}. Only used with models fit using [splm()].}
+#'     \item{\code{size}: }{The number of data observations to use when \code{method}
+#'       is \code{"distance"} or \code{"covariance"}. The default is 50. Only used
+#'       with models fit using [splm()].}
+#'     \item{\code{parallel}: }{If \code{TRUE}, parallel processing via the
+#'       parallel package is automatically used. The default is \code{FALSE}.}
+#'     \item{\code{ncores}: }{If \code{parallel = TRUE}, the number of cores to
+#'       parallelize over. The default is the number of available cores on your machine.}
+#'   }
+#'   When \code{local} is a list, at least one list element must be provided to
+#'   initialize default arguments for the other list elements.
+#'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
+#'   that \code{local} is transformed into
+#'   \code{list(size = 50, method = "covariance", parallel = FALSE)}.
+#' @param ... Other arguments to \code{ranger::predict.ranger()}
+#'
+#' @details For \code{spmodRF} objects, the random forest prediction is combined with
+#'   the (empirical) best linear unbiased prediction for the residual. Fox Et al.
+#'   call this approach random forest regression Kriging. For \code{spmodRF_list} objects,
+#'   predictions are returned for each \code{spmodRF} object.
+#'
+#' @return For \code{spmodRF} objects, a vector of predictions. For \code{spmodRF_list}
+#'   objects, a list that contains relevant quantities for each \code{spmodRF} object.
+#'
+#' @method predict spmodRF
+#' @export
+#'
+#' @references
+#' Fox, E.W., Ver Hoef, J. M., & Olsen, A. R. (2020). Comparing spatial
+#'   regression to random forests for large environmental data sets.
+#'   \emph{PloS one}, 15(3), e0229509.
+#'
+#' @examples
+#' \donttest{
+#' sulfate$var <- rnorm(NROW(sulfate)) # add noise variable
+#' sulfate_preds$var <- rnorm(NROW(sulfate_preds)) # add noise variable
+#' sprfmod <- splmRF(sulfate ~ var, data = sulfate, spcov_type = "exponential")
+#' predict(sprfmod, sulfate_preds)
+#' }
+predict.spmodRF <- function(object, newdata, local, ...) {
+
+  # check to see if ranger installed
+  if (!requireNamespace("ranger", quietly = TRUE)) {
+    stop("Install the ranger package before using predict with an splmRF object", call. = FALSE)
+  } else {
+
+    # find newdata if required
+    if ((missing(newdata) && !is.null(object$newdata)) || object$spmod$fn == "spautor") {
+      newdata <- object$newdata
+    }
+
+    # get ... objects
+    dotlist <- as.list(substitute(alist(...)))[-1]
+    dotlist_names <- names(dotlist)
+
+    # hardcode ranger names because of predict.ranger export issue
+    ranger_names <- c("predict.all", "num.trees", "se.method", "quantiles", "what", "seed", "num.threads", "verbose")
+    ranger_args <- dotlist[dotlist_names %in% ranger_names]
+
+    # do random forest prediction
+    ranger_pred <- do.call(predict, c(list(object = object$ranger, data = as.data.frame(newdata), type = "response"), ranger_args))
+
+    # set local if missing
+    if (missing(local)) {
+      local <- NULL
+    }
+    # do spmod prediction
+    spmod_pred <- do.call(predict, list(object = object$spmod, newdata = newdata, local = local))
+
+  }
+  # obtain final predictions
+  ranger_pred$predictions + spmod_pred
+}
+
+#' @name predict.spmodRF
+#' @method predict spmodRF_list
+#' @export
+predict.spmodRF_list <- function(object, newdata, local, ...) {
+
+  # check to see if ranger installed
+  if (!requireNamespace("ranger", quietly = TRUE)) {
+    stop("Install the ranger package before using predict with an splmRF_list object", call. = FALSE)
+  } else {
+
+    # find newdata if required
+    if ((missing(newdata) && !is.null(object$newdata)) || object$spmod[[1]]$fn == "spautor") {
+      newdata <- object$newdata
+    }
+
+    # get ... objects
+    dotlist <- as.list(substitute(alist(...)))[-1]
+    dotlist_names <- names(dotlist)
+
+    # hardcode ranger names because of predict.ranger export issue
+    ranger_names <- c("predict.all", "num.trees", "se.method", "quantiles", "what", "seed", "num.threads", "verbose")
+    ranger_args <- dotlist[dotlist_names %in% ranger_names]
+
+    # do random forest prediction
+    ranger_pred <- do.call(predict, c(list(object = object$ranger, data = as.data.frame(newdata), type = "response"), ranger_args))
+
+    # set local if missing
+    if (missing(local)) {
+      local <- NULL
+    }
+    # do spmod prediction
+    spmod_pred <- lapply(object$spmod_list, function(x) {
+      do.call(predict, list(object = x, newdata = newdata, local = local))
+    })
+  }
+  # obtain final predictions
+  sprf_pred <- lapply(spmod_pred, function(x) ranger_pred$predictions + x)
+  names(sprf_pred) <- names(object$spmod_list)
+  sprf_pred
+}
+

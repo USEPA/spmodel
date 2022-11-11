@@ -41,11 +41,12 @@ are taken as the centroids of each polygon.}
 \code{"jbessel"}, \code{"gravity"}, \code{"rquad"},
 \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 and \code{"none"}. Parameterizations of each spatial covariance type are
-available in Details. When \code{spcov_type} is specified, relevant spatial
-covariance parameters are assumed unknown, requiring estimation.
-\code{spcov_type} is not required (and is
-ignored) if \code{spcov_initial} is provided. The default for \code{spcov_type}
-is \code{"exponential"}.}
+available in Details. Multiple spatial covariance types can be provided as
+a character vector, and then \code{splm()} is called iteratively for each
+element and a list is returned for each model fit. The default for
+\code{spcov_type} is \code{"exponential"}. When \code{spcov_type} is
+specified, all unknown spatial covariance parameters are estimated.
+\code{spcov_type} is ignored if \code{spcov_initial} is provided.}
 
 \item{xcoord}{The name of the column in \code{data} representing the x-coordinate.
 Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
@@ -54,7 +55,9 @@ Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 
 \item{spcov_initial}{An object from \code{\link[=spcov_initial]{spcov_initial()}} specifying initial and/or
-known values for the spatial covariance parameters.}
+known values for the spatial covariance parameters. Multiple \code{\link[=spcov_initial]{spcov_initial()}}
+objects can be provided in a list. Then \code{splm()} is called iteratively
+for each element and a list is returned for each model fit.}
 
 \item{estmethod}{The estimation method. Available options include
 \code{"reml"} for restricted maximum likelihood, \code{"ml"} for maximum
@@ -145,16 +148,21 @@ that \code{local} is transformed into
 \item{...}{Other arguments to \code{\link[=esv]{esv()}} or \code{stats::optim()}.}
 }
 \value{
-A list with many components used to return information about
-the fitted model object via summary functions like
-\code{\link[=summary.spmod]{summary.spmod()}} \code{\link[=tidy.spmod]{tidy.spmod()}}, \code{\link[=augment.spmod]{augment.spmod()}}, \code{\link[=glance.spmod]{glance.spmod()}},
-and \code{\link[=plot.spmod]{plot.spmod()}}.
-Many other generics are also available for use with the fitted model
-object, including \code{AIC}, \code{AICc},
-\code{anova}, \code{coef}, \code{cooks.distance}, \code{deviance},
-\code{fitted}, \code{formula}, \code{hatvalues}, \code{influence},
+A list with many elements that store information about
+the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
+length one, the list has class \code{spmod}. Many generic functions that
+summarize model fit are available for \code{spmod} objects, including
+\code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
+\code{cooks.distance}, \code{deviance}, \code{fitted}, \code{formula},
+\code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
 \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},
-\code{predict}, \code{print}, \code{pseudoR2},\code{terms}, \code{update}, and \code{vcov}.
+\code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
+\code{terms}, \code{tidy}, \code{update}, and \code{vcov}. If
+\code{spcov_type} or \code{spcov_initial} are length greater than one, the
+list has class \code{spmod_list} and each element in the list has class
+\code{spmod}. \code{glances} can be used to summarize \code{spmod_list}
+objects, and the aforementioned \code{spmod} generics can be used on each
+individual list element (model fit).
 }
 \description{
 Fit spatial linear models for point-referenced data (i.e.,

@@ -1,4 +1,8 @@
-This is a minor update that updates two unit tests to reflect an upcoming change to `Matrix`.
+This is a minor update that adds a few features and fixes a few bugs. We submitted
+a bugfix update on 10-20-2022 to respond to a change in `Matrix` and apologize
+for the short timeframe between that submission and this submissions.
+We had been working on this minor update for several weeks prior to the recent
+bugfix update on 10-20-2022. Thank you.
 
 -------
 

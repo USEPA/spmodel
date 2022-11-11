@@ -370,4 +370,54 @@ if (test_local) {
     expect_error(predict(spmod), NA)
   })
 
+  test_that("prediction works when newdata does not have all factor levels", {
+    # geostatistical
+    spmod <- splm(y ~ group, exdata, "exponential", xcoord, ycoord)
+    newexdata_sub <- newexdata[1, , drop = FALSE]
+    newexdata_sub$group <- as.character(newexdata_sub$group)
+    expect_error(predict(spmod, newexdata_sub), NA)
+
+    # autoregressive
+    exdata_Mpoly_new <- exdata_Mpoly
+    exdata_Mpoly_new$group <- as.character(exdata_Mpoly_new$group)
+    spmod <- spautor(y ~ group, exdata_Mpoly_new, "car")
+    expect_error(predict(spmod), NA)
+  })
+
+  test_that("prediction for splmRF works", {
+    spcov_type <- "exponential"
+
+    sprfmod <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_vector(predict(sprfmod, newdata = newexdata))
+
+    exdata$y[1] <- NA
+    sprfmod <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_vector(predict(sprfmod))
+
+
+    spcov_type <- c("exponential", "matern")
+
+    sprfmod <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_vector(predict(sprfmod, newdata = newexdata)[[1]])
+    expect_vector(predict(sprfmod, newdata = newexdata)[[2]])
+
+    exdata$y[1] <- NA
+    sprfmod <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_vector(predict(sprfmod)[[1]])
+    expect_vector(predict(sprfmod)[[2]])
+  })
+
+  test_that("prediction for slautorRF works", {
+    spcov_type <- "car"
+    sprfmod <- spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type)
+    expect_vector(predict(sprfmod))
+
+    spcov_type <- c("car", "sar")
+    sprfmod <- spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type)
+    expect_vector(predict(sprfmod))
+    expect_vector(predict(sprfmod)[[1]])
+    expect_vector(predict(sprfmod)[[2]])
+  })
 }
+
+

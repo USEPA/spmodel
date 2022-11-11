@@ -1,8 +1,8 @@
-#' Compute spatial AIC and AICc of fitted model objects
+#' Compute AIC and AICc of fitted model objects
 #'
-#' @description Compute a spatial version AIC and AICc for one or
+#' @description Compute AIC and AICc for one or
 #' several fitted model objects for which a log-likelihood
-#' value can be obtained, according to Hoeting et al. (2006).
+#' value can be obtained.
 #'
 #' @param object A fitted model object from [splm()] or [spautor()]
 #'   where \code{estmethod} is \code{"ml"} or \code{"reml"}.
@@ -49,10 +49,6 @@
 #' )
 #' AIC(spmod)
 #' AICc(spmod)
-#' @references
-#' Hoeting, J. A., Davis, R. A., Merton, A. A., & Thompson, S. E. (2006).
-#'   Model selection for geostatistical models.
-#'   \emph{Ecological Applications}, 16(1), 87-98.
 AIC.spmod <- function(object, ..., k = 2) {
 
   # set k as 2

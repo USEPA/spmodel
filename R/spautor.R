@@ -14,12 +14,16 @@
 #'   \code{"car"} and \code{"sar"}. Parameterizations of each spatial covariance type are
 #'   available in Details. When \code{spcov_type} is specified, relevant spatial
 #'   covariance parameters are assumed unknown, requiring estimation.
-#'    \code{spcov_type} is not required (and is
-#'   ignored) if \code{spcov_initial} is provided. The default for \code{spcov_type}
-#'   is \code{"car"}.
+#'   \code{spcov_type} is not required (and is
+#'   ignored) if \code{spcov_initial} is provided.  Multiple values can be
+#'   provided in a character vector. Then \code{splm()} is called iteratively
+#'   for each element and a list is returned for each model fit.
+#'   The default for \code{spcov_type} is \code{"car"}.
 #' @param spcov_initial An object from [spcov_initial()] specifying initial and/or
 #'   known values for the spatial covariance parameters.
-#'   Not required if \code{spcov_type} is provided.
+#'   Not required if \code{spcov_type} is provided. Multiple [spcov_initial()]
+#'   objects can be provided in a list. Then \code{splm()} is called iteratively
+#'   for each element and a list is returned for each model fit.
 #' @param estmethod The estimation method. Available options include
 #'   \code{"reml"} for restricted maximum likelihood and \code{"ml"} for maximum
 #'   likelihood The default is
@@ -114,16 +118,21 @@
 #'   \code{spautor()} models (i.e., the prediction locations must be known prior
 #'   to estimation).
 #'
-#' @return A list with many components used to return information about
-#'   the fitted model object via summary functions like
-#'   [summary.spmod()] [tidy.spmod()], [augment.spmod()], [glance.spmod()],
-#'   and [plot.spmod()].
-#'   Many other generics are also available for use with the fitted model
-#'   object, including \code{AIC}, \code{AICc},
-#'   \code{anova}, \code{coef}, \code{cooks.distance}, \code{deviance},
-#'   \code{fitted}, \code{formula}, \code{hatvalues}, \code{influence},
+#' @return A list with many elements that store information about
+#'   the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
+#'   length one, the list has class \code{spmod}. Many generic functions that
+#'   summarize model fit are available for \code{spmod} objects, including
+#'   \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
+#'   \code{cooks.distance}, \code{deviance}, \code{fitted}, \code{formula},
+#'   \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
 #'   \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},
-#'   \code{predict}, \code{print}, \code{pseudoR2}, \code{terms}, \code{update}, and \code{vcov}.
+#'   \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
+#'   \code{terms}, \code{tidy}, \code{update}, and \code{vcov}. If
+#'   \code{spcov_type} or \code{spcov_initial} are length greater than one, the
+#'   list has class \code{spmod_list} and each element in the list has class
+#'   \code{spmod}. \code{glances} can be used to summarize \code{spmod_list}
+#'   objects, and the aforementioned \code{spmod} generics can be used on each
+#'   individual list element (model fit).
 #'
 #' @note This function does not perform any internal scaling. If optimization is not
 #'   stable due to large extremely large variances, scale relevant variables
@@ -144,6 +153,29 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
 
   if (!missing(spcov_type) && !missing(spcov_initial)) {
     message("Both spcov_type and spcov_initial provided. spcov_initial overriding spcov_type.")
+  }
+
+  # iterate if needed
+  if (!missing(spcov_initial) && is.list(spcov_initial[[1]])) {
+    call_list <- as.list(match.call())[-1]
+    penv <- parent.frame()
+    spautor_out <- lapply(spcov_initial, function(x) {
+      call_list$spcov_initial <- x
+      do.call("spautor", call_list, envir = penv)
+    })
+    names(spautor_out) <- paste("spcov_initial", seq_along(spcov_initial), sep = "_")
+    new_spautor_out <- structure(spautor_out, class = "spmod_list")
+    return(new_spautor_out)
+  } else if (!missing(spcov_type) && length(spcov_type) > 1) {
+    call_list <- as.list(match.call())[-1]
+    penv <- parent.frame()
+    spautor_out <- lapply(spcov_type, function(x) {
+      call_list$spcov_type <- x
+      do.call("spautor", call_list, envir = penv)
+    })
+    names(spautor_out) <- spcov_type
+    new_spautor_out <- structure(spautor_out, class = "spmod_list")
+    return(new_spautor_out)
   }
 
   # replace initial values with appropriate NA's
@@ -212,7 +244,7 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
     formula = formula,
     terms = data_object$terms,
     call = match.call(),
-    fn = as.character(as.list(match.call())[[1]]),
+    fn ="spautor",
     estmethod = estmethod,
     data = data_object$data,
     newdata = data_object$newdata,
@@ -225,6 +257,7 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
     observed_index = data_object$observed_index,
     missing_index = data_object$missing_index,
     contrasts = data_object$contrasts,
+    xlevels = data_object$xlevels,
     is_sf = data_object$is_sf,
     sf_column_name = data_object$sf_column_name,
     crs = data_object$crs

@@ -247,6 +247,7 @@ Here we list some commonly used `spmodel` functions.
 * `augment()`: Augment data with diagnostics or new data with predictions.
 * `coef()`: Return coefficients.
 * `confint()`: Compute confidence intervals.
+* `covmatrix()`: Return covariance matrices.
 * `deviance()`: Compute the deviance.
 * `esv()`: Compute an empirical semivariogram.
 * `fitted()`: Compute fitted values.
@@ -260,7 +261,9 @@ Here we list some commonly used `spmodel` functions.
 * `pseudoR2()`: Compute the pseudo r-squared.
 * `residuals()`: Compute residuals.
 * `spautor()`: Fit a spatial linear model for areal data (i.e., spatial autoregressive model).
+* `spautorRF()`: Fit a random forest spatial residual model for areal data.
 * `splm()`: Fit a spatial linear model for point-referenced data (i.e., geostatistical model).
+* `splmRF()`: Fit a random forest spatial residual model for point-referenced data.
 * `sprnorm()`: Simulate spatially correlated normal (Gaussian) random variables.
 * `summary()`: Summarize fitted models.
 * `tidy()`: Tidy fitted models.

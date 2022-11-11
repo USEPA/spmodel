@@ -27,7 +27,7 @@
 #'   assumed known. The value \code{"given"} is shorthand for assuming all
 #'   spatial covariance parameters given to \code{spcov_initial()} are assumed known.
 #'
-#' @details The \code{spcov_initial} vector is later passed to [splm()] or [spautor()].
+#' @details The \code{spcov_initial} list is later passed to [splm()] or [spautor()].
 #'   \code{NA} values can be given for \code{ie}, \code{rotate}, and \code{scale}, which lets
 #'   [splm()] and [spautor()] find initial values for parameters that are sometimes
 #'   otherwise assumed known (e.g., \code{rotate} and \code{scale} with [splm()]

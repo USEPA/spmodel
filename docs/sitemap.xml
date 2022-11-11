@@ -49,6 +49,9 @@
     <loc>/reference/cooks.distance.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/covmatrix.html</loc>
+  </url>
+  <url>
     <loc>/reference/deviance.spmod.html</loc>
   </url>
   <url>
@@ -100,6 +103,9 @@
     <loc>/reference/predict.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/predict.spmodRF.html</loc>
+  </url>
+  <url>
     <loc>/reference/print.spmod.html</loc>
   </url>
   <url>
@@ -124,6 +130,9 @@
     <loc>/reference/spautor.html</loc>
   </url>
   <url>
+    <loc>/reference/spautorRF.html</loc>
+  </url>
+  <url>
     <loc>/reference/spcov_initial.html</loc>
   </url>
   <url>
@@ -131,6 +140,9 @@
   </url>
   <url>
     <loc>/reference/splm.html</loc>
+  </url>
+  <url>
+    <loc>/reference/splmRF.html</loc>
   </url>
   <url>
     <loc>/reference/spmodel-package.html</loc>

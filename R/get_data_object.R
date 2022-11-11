@@ -131,6 +131,9 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   terms_val <- terms(obdata_model_frame)
   # find X
   X <- model.matrix(formula, obdata_model_frame, contrasts = dots$contrasts)
+  # find induced contrasts and xlevels
+  dots$contrasts <- attr(X, "contrasts")
+  xlevels <- .getXlevels(terms_val, obdata_model_frame)
   # find p
   p <- as.numeric(Matrix::rankMatrix(X))
   # find sample size
@@ -234,7 +237,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     partition_list = partition_list, randcov_initial = randcov_initial,
     randcov_list = randcov_list, randcov_names = randcov_names,
     sf_column_name = sf_column_name, terms = terms_val, var_adjust = local$var_adjust,
-    X_list = X_list, xcoord = xcoord, y_list = y_list, ycoord = ycoord,
+    X_list = X_list, xcoord = xcoord, xlevels = xlevels, y_list = y_list, ycoord = ycoord,
     ycoord_orig_name = ycoord_orig_name, ycoord_orig_val = ycoord_orig_val
   )
 }
@@ -341,6 +344,9 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
     dots$contrasts <- NULL
   }
   X <- model.matrix(formula, obdata_model_frame, contrasts = dots$contrasts)
+  # find induced contrasts and xlevels
+  dots$contrasts <- attr(X, "contrasts")
+  xlevels <- .getXlevels(terms_val, obdata_model_frame)
   y <- as.matrix(model.response(obdata_model_frame), ncol = 1)
 
   # see if response is numeric
@@ -408,6 +414,6 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
     randcov_initial = randcov_initial, randcov_names = randcov_names, randcov_Zs = randcov_Zs,
     sf_column_name = sf_column_name, terms = terms_val, W = W, W_rowsums = W_rowsums, M = M,
     rho_lb = rho_lb, rho_ub = rho_ub,
-    X = X, y = y
+    X = X, y = y, xlevels = xlevels
   )
 }

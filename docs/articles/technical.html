@@ -8,8 +8,8 @@
 <meta name="description" content="spmodel">
 <title>Technical Details • spmodel</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.1.0/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.1.0/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<link href="../deps/bootstrap-5.1.3/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Technical Details">
 <meta property="og:description" content="spmodel">
@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,7 +54,14 @@
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav"></ul>
+      <ul class="navbar-nav">
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/USEPA/spmodel/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 
     
@@ -63,14 +70,13 @@
 
 
 
-
-<div class="row">
+<script src="technical_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Technical Details</h1>
                         <h4 data-toc-skip class="author">Michael Dumelle, Matt Higham, and Jay M. Ver Hoef</h4>
             
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/vignettes/technical.Rmd" class="external-link"><code>vignettes/technical.Rmd</code></a></small>
       <div class="d-none name"><code>technical.Rmd</code></div>
     </div>
 
@@ -82,21 +88,21 @@
 <p>This vignette covers technical details regarding the functions in <code>spmodel</code> that perform computations. We first provide a notation guide and then describe relevant details for each function.</p>
 <p>If you use <code>spmodel</code> in a formal publication or report, please cite it. Citing <code>spmodel</code> lets us devote more resources to it in the future. To view the <code>spmodel</code> citation, run</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span>package <span class="op">=</span> <span class="st">"spmodel"</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">#&gt; </span>
-<span class="co">#&gt; To cite spmodel in publications use:</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt;   Michael Dumelle, Matt Higham, and Jay M. Ver Hoef (2022). spmodel:</span>
-<span class="co">#&gt;   Spatial Statistical Modeling and Prediction. R package version 0.1.0.</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; A BibTeX entry for LaTeX users is</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt;   @Manual{,</span>
-<span class="co">#&gt;     title = {spmodel: Spatial Statistical Modeling and Prediction},</span>
-<span class="co">#&gt;     author = {Michael Dumelle and Matt Higham and Jay M. {Ver Hoef}},</span>
-<span class="co">#&gt;     year = {2022},</span>
-<span class="co">#&gt;     note = {R package version 0.1.0},</span>
-<span class="co">#&gt;   }</span></code></pre>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span>package <span class="op">=</span> <span class="st">"spmodel"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; To cite spmodel in publications use:</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   Michael Dumelle, Matt Higham, and Jay M. Ver Hoef (2022). spmodel:</span></span>
+<span><span class="co">#&gt;   Spatial Statistical Modeling and Prediction. R package version 0.2.0.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; A BibTeX entry for LaTeX users is</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   @Manual{,</span></span>
+<span><span class="co">#&gt;     title = {spmodel: Spatial Statistical Modeling and Prediction},</span></span>
+<span><span class="co">#&gt;     author = {Michael Dumelle and Matt Higham and Jay M. {Ver Hoef}},</span></span>
+<span><span class="co">#&gt;     year = {2022},</span></span>
+<span><span class="co">#&gt;     note = {R package version 0.2.0},</span></span>
+<span><span class="co">#&gt;   }</span></span></code></pre>
 <p>In addition to this document on the technical details of <code>spmodel</code>, there are three other vignettes:</p>
 <ul>
 <li>An overview of basic features in <code>spmodel</code>: <code><a href="../articles/basics.html">vignette("basics", "spmodel")</a></code>
@@ -146,7 +152,7 @@
 <h2 id="sec:aic">
 <code>AIC()</code> and <code>AICc()</code><a class="anchor" aria-label="anchor" href="#sec:aic"></a>
 </h2>
-<p>The <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC()</a></code> and <code><a href="../reference/AIC.spmod.html">AICc()</a></code> functions in <code>spmodel</code> are defined for restricted maximum likelihood and maximum likelihood estimation, which maximize a likelihood. They follow <span class="citation">Hoeting et al. (2006)</span>, defining spatial AIC and AICc as <span class="math display">\[\begin{equation*}\label{eq:sp_aic}
+<p>The <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC()</a></code> and <code><a href="../reference/AIC.spmod.html">AICc()</a></code> functions in <code>spmodel</code> are defined for restricted maximum likelihood and maximum likelihood estimation, which maximize a likelihood. The AIC and AICc as defined by <span class="citation">Hoeting et al. (2006)</span> are given by <span class="math display">\[\begin{equation*}\label{eq:sp_aic}
   \begin{split}
     \text{AIC} &amp; = -2\ell(\hat{\boldsymbol{\Theta}}) + 2(|\hat{\boldsymbol{\Theta}}|) \\
     \text{AICc} &amp; = -2\ell(\hat{\boldsymbol{\Theta}}) + 2n(|\hat{\boldsymbol{\Theta}}|) / (n - |\hat{\boldsymbol{\Theta}}| - 1),
@@ -200,7 +206,7 @@
 </h2>
 <p>Cook’s distance measures the influence of an observation <span class="citation">(Cook 1979; Cook and Weisberg 1982)</span>. An influential observation has a large impact on the model fit. The vector of Cook’s distances for the spatial linear model is given by <span class="math display">\[\begin{equation} \label{eq:cooksd}
 \frac{\mathbf{e}_p^2}{p}\frac{diag(\mathbf{H}_s)}{1 - diag(\mathbf{H}_s)},
-\end{equation}\]</span> where <span class="math inline">\(\mathbf{e}_p\)</span> are the Pearson residuals and <span class="math inline">\(diag(\mathbf{H}_s)\)</span> is the diagonal of the spatial hat matrix, <span class="math inline">\(\mathbf{H}_s \equiv \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}\)</span> <span class="citation">(Montgomery, Peck, and Vining 2021)</span>. The larger the Cook’s distance, the larger the influence.</p>
+\end{equation}\]</span> where <span class="math inline">\(\mathbf{e}_p\)</span> are the Pearson and <span class="math inline">\(diag(\mathbf{H}_s)\)</span> is the diagonal of the spatial hat matrix, <span class="math inline">\(\mathbf{H}_s \equiv \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}\)</span> <span class="citation">(Montgomery, Peck, and Vining 2021)</span>. The larger the Cook’s distance, the larger the influence.</p>
 <p>To better understand the form in Equation , recall that the the non-spatial linear model <span class="math inline">\(\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}\)</span> assumes elements of <span class="math inline">\(\boldsymbol{\epsilon}\)</span> are independent and identically distributed (iid) with constant variance. In this context the vector of non-spatial Cook’s distances is given by <span class="math display">\[\begin{equation*}
 \frac{\mathbf{e}_p^2}{p}\frac{diag(\mathbf{H})}{1 - diag(\mathbf{H})},
 \end{equation*}\]</span> where <span class="math inline">\(diag(\mathbf{H})\)</span> is the diagonal of the non-spatial hat matrix, <span class="math inline">\(\mathbf{H} \equiv \mathbf{X} (\mathbf{X}^{\top} \mathbf{X})^{-1} \mathbf{X}^{\top}\)</span>. When the elements of <span class="math inline">\(\boldsymbol{\epsilon}\)</span> are not iid or do not have constant variance or both, the spatial Cook’s distance cannot be calculated using <span class="math inline">\(\mathbf{H}\)</span>. First the linear model must be whitened according to <span class="math inline">\(\mathbf{y}^* = \mathbf{X}^* \boldsymbol{\beta} + \boldsymbol{\epsilon}^*\)</span>, where <span class="math inline">\(\boldsymbol{\epsilon}^*\)</span> is the whitened version of the sum of all random errors in the model. Then the spatial Cook’s distance follows using the whitened version of <span class="math inline">\(\mathbf{X}\)</span>, <span class="math inline">\(\mathbf{X}^*\)</span>.</p>
@@ -221,7 +227,7 @@
 </h2>
 <p>The empirical semivariogram is a moment-based estimate of the theoretical semivariogram. The empirical semivariogram quantifies half of the average squared difference in the response among observations in several distance classes. More formally, the empirical semivariogram is defined as <span class="math display">\[\begin{equation}\label{eq:esv}
   \hat{\gamma}(h) = \frac{1}{2|N(h)|} \sum_{N(h)} (y_i - y_j)^2, 
-\end{equation}\]</span> where <span class="math inline">\(N(h)\)</span> is the set of observations in <span class="math inline">\(\mathbf{y}\)</span> that are <span class="math inline">\(h\)</span> distance units apart (distance classes) and <span class="math inline">\(|N(h)|\)</span> is the cardinality of <span class="math inline">\(N(h)\)</span> <span class="citation">(Cressie 1993)</span>. Often the set <span class="math inline">\(N(h)\)</span> contains observations that are <span class="math inline">\(h \pm c\)</span> apart, where <span class="math inline">\(c\)</span> is some constant. This approach is known as “binning” the empirical semivariogram. The default in <code>spmodel</code> is to construct the semivariogram using 15 equally spaced bins where <span class="math inline">\(h\)</span> is contained in <span class="math inline">\((0, h_{max}]\)</span>, and <span class="math inline">\(h_{max}\)</span> is known as a “distance cutoff.” Distance cutoffs are commonly used when constructing Equation<span class="math inline">\(~\)</span> because there tend to be few pairs with large distances. The default in <code>spmodel</code> is to use a cutoff of half the maximum distance (hypotenuse) of the domain’s bounding box.</p>
+\end{equation}\]</span> where <span class="math inline">\(N(h)\)</span> is the set of observations in <span class="math inline">\(\mathbf{y}\)</span> that are <span class="math inline">\(h\)</span> distance units apart (distance classes) and <span class="math inline">\(|N(h)|\)</span> is the cardinality of <span class="math inline">\(N(h)\)</span> <span class="citation">(Cressie 1993)</span>. Often the set <span class="math inline">\(N(h)\)</span> contains observations that are <span class="math inline">\(h \pm c\)</span> apart, where <span class="math inline">\(c\)</span> is some constant. This approach is known as “binning” the empirical semivariogram. The default in <code>spmodel</code> is to construct the semivariogram using 15 equally spaced bins where <span class="math inline">\(h\)</span> is contained in <span class="math inline">\((0, h_{max}]\)</span>, and <span class="math inline">\(h_{max}\)</span> is known as a “distance cutoff”. Distance cutoffs are commonly used when constructing Equation<span class="math inline">\(~\)</span> because there tend to be few pairs with large distances. The default in <code>spmodel</code> is to use a cutoff of half the maximum distance (hypotenuse) of the domain’s bounding box.</p>
 <p>The main purpose of the empirical semivariogram is its use in semivariogram weighted least squares estimation, though it can also be used as a visual diagnostic to assess the fit of a spatial covariance function.</p>
 </div>
 <div class="section level2">
@@ -357,6 +363,15 @@
 <p>When the number of observations in the fitted model (observed data) are large or there are many locations to predict at or both, it is often necessary to implement computationally efficient big data approximations. Big data approximations are implemented in <code>spmodel</code> using the <code>local</code> argument to <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>. When the method in <code>local</code> is <code>"all"</code>, all of the fitted model data are used to make predictions. In this context, computational efficiency is only gained by parallelizing each prediction. The only available method for <code><a href="../reference/spautor.html">spautor()</a></code> fitted models is <code>"all"</code>. This is because the neighborhood structure of <code><a href="../reference/spautor.html">spautor()</a></code> fitted models does not permit the subsetting used by the <code>"covariance"</code> and <code>"distance"</code> methods that we discuss next.</p>
 <p>When the <code>local</code> method is <code>"covariance"</code>, <span class="math inline">\(\hat{\boldsymbol{\Sigma}}_{uo}\)</span> is computed between the observation being predicted (<span class="math inline">\(\mathbf{y}_u\)</span>) and the rest of the observed data. This vector is then ordered and a number of observations (specified via the <code>size</code> argument) having the highest covariance with <span class="math inline">\(\mathbf{y}_u\)</span> are subset, yielding <span class="math inline">\(\check{\boldsymbol{\Sigma}}_{uo}\)</span>, which has dimension <span class="math inline">\(1 \times size\)</span>. Then similarly <span class="math inline">\(\hat{\boldsymbol{\Sigma}}_o\)</span>, <span class="math inline">\(\mathbf{y}_o\)</span>, and <span class="math inline">\(\mathbf{X}_u\)</span> are also subset by these <code>size</code> observations, yielding <span class="math inline">\(\check{\boldsymbol{\Sigma}}_{o}\)</span>, <span class="math inline">\(\check{\mathbf{y}}_o\)</span>, and <span class="math inline">\(\check{\mathbf{X}}_u\)</span>, respectively. Equations<span class="math inline">\(~\)</span> and  can be evaluated at <span class="math inline">\(\check{\boldsymbol{\Sigma}}_{uo}\)</span>, <span class="math inline">\(\check{\boldsymbol{\Sigma}}_{o}\)</span>, <span class="math inline">\(\check{\mathbf{y}}_o\)</span>, and <span class="math inline">\(\check{\mathbf{X}}_u\)</span>. When the local method is <code>"distance"</code>, a similar approach is used except a number of observations (specified via the <code>size</code> argument) closest (in terms of Euclidean distance) to <span class="math inline">\(\mathbf{y}_u\)</span> are subset instead. When random effects are not used, partition factors are not used, and the spatial covariance function is monotone decreasing, <code>"covariance"</code> and <code>"distance"</code> are equivalent. This approach of subsetting the observed data by the set of locations closest in covariance or proximity to <span class="math inline">\(\mathbf{y}_u\)</span> is known as the local neighborhood approach. As long as <code>size</code> is relatively small (the default is 50), the local neighborhood approach is very computationally efficient, mainly because <span class="math inline">\(\check{\boldsymbol{\Sigma}}_{o}^{-1}\)</span> is easy to compute. Additional computational efficiency is gained by parallelizing each prediction.</p>
 </div>
+<div class="section level3">
+<h3 id="sec:rf_pred">
+<code>splmRF()</code> and <code>spautorRF()</code><a class="anchor" aria-label="anchor" href="#sec:rf_pred"></a>
+</h3>
+<p>Random forest spatial residual model (Section<span class="math inline">\(~\)</span>) predictions are obtained by combining random forest predictions and spatial linear model predictions (i.e., Kriging) of the random forest residuals. Formally, the random forest spatial residual model predictions of <span class="math inline">\(\mathbf{y}_u\)</span> are given by <span class="math display">\[\begin{equation*}
+  \mathbf{\dot{y}}_u = \mathbf{\dot{y}}_{u, rf} + \mathbf{\dot{e}}_{u, slm},
+\end{equation*}\]</span> where <span class="math inline">\(\mathbf{\dot{y}}_{u, rf}\)</span> are the random forest predictions for <span class="math inline">\(\mathbf{y}_u\)</span> and <span class="math inline">\(\mathbf{\dot{e}}_{u, slm}\)</span> are the spatial linear model predictions of the random forest residuals for <span class="math inline">\(\mathbf{y}_u\)</span>. This process of obtaining predictions is sometimes analogously called random forest regression Kriging <span class="citation">(Fox, Ver Hoef, and Olsen 2020)</span>.</p>
+<p>Uncertainty quantification in a random forest context has been studied <span class="citation">(Meinshausen and Ridgeway 2006)</span> but is not currently available in <code>spmodel</code>. Big data are accommodated by supplying the <code>local</code> argument to <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="sec:pr2">
@@ -381,7 +396,7 @@ PR2 = 1 - \frac{(\mathbf{y} - \mathbf{X} \hat{\boldsymbol{\beta}})^\top \hat{\bo
 <p>When <code>type = "raw"</code>, raw residuals are returned: <span class="math display">\[\begin{equation*}
  \mathbf{e}_{r} = \mathbf{y} - \mathbf{X} \hat{\boldsymbol{\beta}}.
 \end{equation*}\]</span></p>
-<p>When <code>type = "pearson"</code>, pearson residuals are returned: <span class="math display">\[\begin{equation*}
+<p>When <code>type = "pearson"</code>, Pearson residuals are returned: <span class="math display">\[\begin{equation*}
  \mathbf{e}_{p} = \hat{\boldsymbol{\Sigma}}^{-1/2}\mathbf{e}_{r},
 \end{equation*}\]</span> If the errors are normal (Gaussian), the pearson residuals should be approximately normally distributed with mean zero and variance one. The result follows when <span class="math inline">\(\hat{\boldsymbol{\Sigma}}^{-1/2} \approx \boldsymbol{\Sigma}^{-1/2}\)</span> because <span class="math display">\[\begin{equation*}
   \text{E}(\boldsymbol{\Sigma}^{-1/2} \mathbf{e}_{r}) = \boldsymbol{\Sigma}^{-1/2} \text{E}(\mathbf{e}_{r}) = \boldsymbol{\Sigma}^{-1/2} \boldsymbol{0} = \boldsymbol{0}
@@ -426,6 +441,7 @@ PR2 = 1 - \frac{(\mathbf{y} - \mathbf{X} \hat{\boldsymbol{\beta}})^\top \hat{\bo
   \frac{\mathbf{W}_{ij}}{\mathbf{M}_{ii}} = \frac{\mathbf{W}_{ji}}{\mathbf{M}_{jj}}
 \end{equation*}\]</span> for all <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span>, where <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> index rows or columns. When <span class="math inline">\(\mathbf{W}\)</span> is symmetric, <span class="math inline">\(\mathbf{M}\)</span> is often taken to be the identity matrix.</p>
 <p>The default in <code>spmodel</code> is to row-standardize <span class="math inline">\(\mathbf{W}\)</span> by dividing each element by its respective row sum, which decreases variance. If row-standardization is not used for a CAR model, the default in <code>spmodel</code> for <span class="math inline">\(\mathbf{M}\)</span> is the identity matrix.</p>
+
 </div>
 <div class="section level3">
 <h3 id="splm-spatial-covariance-functions">
@@ -434,6 +450,7 @@ PR2 = 1 - \frac{(\mathbf{y} - \mathbf{X} \hat{\boldsymbol{\beta}})^\top \hat{\bo
 For point-referenced data, the spatial covariance is given by <span class="math display">\[\begin{equation*}
 \sigma^2_{de}\mathbf{R} + \sigma^2_{ie} \mathbf{I},
 \end{equation*}\]</span> where <span class="math inline">\(\sigma^2_{de}\)</span> <span class="math inline">\((\geq 0)\)</span> is the spatially dependent (correlated) variance, <span class="math inline">\(\mathbf{R}\)</span> is a spatial correlation matrix, <span class="math inline">\(\sigma^2_{ie}\)</span> <span class="math inline">\((\geq 0)\)</span> is the spatially independent (not correlated) variance, and <span class="math inline">\(\mathbf{I}\)</span> is an identity matrix. The <span class="math inline">\(\mathbf{R}\)</span> matrix always depends on a range parameter, <span class="math inline">\(\phi\)</span> <span class="math inline">\((&gt; 0)\)</span>, that controls the behavior of the covariance function with distance. For some covariance functions, the <span class="math inline">\(\mathbf{R}\)</span> matrix depends on an additional parameter that we call the “extra” parameter. Table<span class="math inline">\(~\)</span> shows the parametric form for all <span class="math inline">\(\mathbf{R}\)</span> matrices available in <code><a href="../reference/splm.html">splm()</a></code>. In Table<span class="math inline">\(~\)</span>, the range parameter is denoted as <span class="math inline">\(\phi\)</span>, the distance divided by the range parameter (<span class="math inline">\(h / \phi\)</span>) is denoted as <span class="math inline">\(\eta\)</span>, <span class="math inline">\(\mathbbm{1}\{\cdot\}\)</span> is an indicator function equal to one when the argument occurs and zero otherwise, and the extra parameter is denoted as <span class="math inline">\(\xi\)</span> (when relevant).
+
 </div>
 <div class="section level3">
 <h3 id="subsec:estimation">Model-fitting<a class="anchor" aria-label="anchor" href="#subsec:estimation"></a>
@@ -469,6 +486,7 @@ For point-referenced data, the spatial covariance is given by <span class="math 
   \sum_i w_i [\hat{\gamma}(h)_i - \gamma(h)_i]^2,
 \end{equation}\]</span> where <span class="math inline">\(w_i\)</span>, <span class="math inline">\(\hat{\gamma}(h)_i\)</span>, and <span class="math inline">\(\gamma(h)_i\)</span> are the weights, empirical semivariogram, and semivariogram for the <span class="math inline">\(i\)</span>th distance class, respectively. Minimizing Equation<span class="math inline">\(~\)</span> yields <span class="math inline">\(\boldsymbol{\hat{\theta}}_{wls}\)</span>, the semivariogram weighted least squares estimate of <span class="math inline">\(\boldsymbol{\theta}\)</span>. After estimating <span class="math inline">\(\boldsymbol{\theta}\)</span>, <span class="math inline">\(\boldsymbol{\beta}\)</span> estimates are constructed using (empirical) generalized least squares: <span class="math inline">\(\boldsymbol{\hat{\beta}}_{wls} = (\mathbf{X}^\top \hat{\mathbf{\Sigma}}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \hat{\mathbf{\Sigma}}^{-1} \mathbf{y}\)</span>.</p>
 <span class="citation">Cressie (1985)</span> recommends setting the <span class="math inline">\(w_i\)</span> in Equation<span class="math inline">\(~\)</span> as <span class="math inline">\(w_i = |N(h)| / \gamma(h)_i^2\)</span>, which gives more weight to distance classes with more observations (<span class="math inline">\(|N(h)|\)</span>) and shorter distances (<span class="math inline">\(1 / \gamma(h)_i^2\)</span>). The default in <code>spmodel</code> is to use these <span class="math inline">\(w_i\)</span>, known as Cressie weights, though several other options for <span class="math inline">\(w_i\)</span> exist and are available via the <code>weights</code> argument. Table<span class="math inline">\(~\)</span> contains all <span class="math inline">\(w_i\)</span> available via the <code>weights</code> argument.
+
 <p>The number of <span class="math inline">\(N(h)\)</span> classes and the maximum distance for <span class="math inline">\(h\)</span> are specified by passing the <code>bins</code> and <code>cutoff</code> arguments to <code><a href="../reference/splm.html">splm()</a></code> (these arguments are passed via <code>...</code> to <code><a href="../reference/esv.html">esv()</a></code>). The default value for <code>bins</code> is 15 and the default value for <code>cutoff</code> is half the maximum distance of the spatial domain’s bounding box.</p>
 <p>Recall that the semivariogram is defined for a constant-mean process. Generally, <span class="math inline">\(\mathbf{y}\)</span> does not necessarily have a constant mean so the empirical semivariogram and <span class="math inline">\(\boldsymbol{\hat{\theta}}_{wls}\)</span> are typically constructed using the residuals from an ordinary least squares regression of <span class="math inline">\(\mathbf{y}\)</span> on <span class="math inline">\(\mathbf{X}\)</span>. These ordinary least squares residuals are assumed to have mean zero.</p>
 </div>
@@ -489,11 +507,13 @@ For point-referenced data, the spatial covariance is given by <span class="math 
 <div class="section level4">
 <h4 id="grid-search">Grid Search<a class="anchor" aria-label="anchor" href="#grid-search"></a>
 </h4>
-<p><code>spmodel</code> uses a grid search to find suitable initial values for use in optimization. For spatial linear models without random effects, the spatially dependent variance (<span class="math inline">\(\sigma^2_{de}\)</span>) and spatially independent variance (<span class="math inline">\(\sigma^2_{ie}\)</span>) parameters are given “low,” “medium,” and “high” values. The sample variance of a non-spatial linear model is slightly inflated by a factor of 1.2 (non-spatial models can underestimate the variance when there is spatial dependence) and these “low,” “medium,” and “high” values correspond to 10%, 50%, and 90% of the inflated sample variance. Only combinations of <span class="math inline">\(\sigma^2_{de}\)</span> and <span class="math inline">\(\sigma^2_{ie}\)</span> whose proportions sum to 100% are considered. The range (<span class="math inline">\(\phi\)</span>) and extra (<span class="math inline">\(\xi\)</span>) parameters are given “low” and “high” values that are unique to each spatial covariance function. The anisotropy (Section<span class="math inline">\(~\)</span>) rotation parameter (<span class="math inline">\(\alpha\)</span>) is given six values that correspond to 0, <span class="math inline">\(\pi/6\)</span>, <span class="math inline">\(2\pi/6\)</span>, <span class="math inline">\(4\pi/6\)</span>, <span class="math inline">\(5\pi/6\)</span>, and <span class="math inline">\(\pi\)</span> radians. The anisotropy scale parameter (<span class="math inline">\(S\)</span>) is given “low,” “medium,” and “high” values that correspond to scaling factors of 0.25, 0.75, and 1. Note that the anisotropy parameters are only used during grid searches for point-referenced data.</p>
+<p><code>spmodel</code> uses a grid search to find suitable initial values for use in optimization. For spatial linear models without random effects, the spatially dependent variance (<span class="math inline">\(\sigma^2_{de}\)</span>) and spatially independent variance (<span class="math inline">\(\sigma^2_{ie}\)</span>) parameters are given “low”, “medium”, and “high” values. The sample variance of a non-spatial linear model is slightly inflated by a factor of 1.2 (non-spatial models can underestimate the variance when there is spatial dependence) and these “low”, “medium”, and “high” values correspond to 10%, 50%, and 90% of the inflated sample variance. Only combinations of <span class="math inline">\(\sigma^2_{de}\)</span> and <span class="math inline">\(\sigma^2_{ie}\)</span> whose proportions sum to 100% are considered. The range (<span class="math inline">\(\phi\)</span>) and extra (<span class="math inline">\(\xi\)</span>) parameters are given “low” and “high” values that are unique to each spatial covariance function. The anisotropy (Section<span class="math inline">\(~\)</span>) rotation parameter (<span class="math inline">\(\alpha\)</span>) is given six values that correspond to 0, <span class="math inline">\(\pi/6\)</span>, <span class="math inline">\(2\pi/6\)</span>, <span class="math inline">\(4\pi/6\)</span>, <span class="math inline">\(5\pi/6\)</span>, and <span class="math inline">\(\pi\)</span> radians. The anisotropy scale parameter (<span class="math inline">\(S\)</span>) is given “low”, “medium”, and “high” values that correspond to scaling factors of 0.25, 0.75, and 1. Note that the anisotropy parameters are only used during grid searches for point-referenced data.</p>
 The crossing of all appropriate parameter values is considered. If initial values are used for a parameter, the initial value replaces all values of the parameter in this crossing. Duplicate crossings are then omitted. The parameter configuration that yields the smallest value of the objective function is then used as an initial value for optimization. Suppose the inflated sample variance is 10 and the exponential covariance is used assuming isotropy. The parameter configurations evaluated are shown in Table<span class="math inline">\(~\)</span>.
+
 <p>For spatial linear models with random effects, the same approach is used to create a crossing of spatial covariance parameters. A separate approach is used to create a set of random effect variances. The random effect variances are similarly first grouped by proportions. The first combination is such that the first random effect variance is given 90% of variance, and the remaining 10% is spread out evenly among the remaining random effect variances. The second combination is such that the second random effect variance is given 90% of the variance, and the remaining 10% is spread out evenly among the remaining random effect variances. And so on and so forth. These combinations ascertain whether one random effect dominates variability. A final grouping is lastly considered: all 100% of variance is spread out evenly among all random effects.</p>
 <p>When finding parameter values <span class="math inline">\(\sigma^2_{de}\)</span>, <span class="math inline">\(\sigma^2_{ie}\)</span>, and the random effect variances (<span class="math inline">\(\sigma^2_{u_i}\)</span> for the <span class="math inline">\(i\)</span>th random effect), three scenarios are considered. In the first scenario, <span class="math inline">\(\sigma^2_{de}\)</span> and <span class="math inline">\(\sigma^2_{ie}\)</span> get 90% of the inflated sample variance and the random effect variances get 10%. In this scenario, only the random effect grouping where the variance is evenly spread out is considered. This is because the random effect variances are already contributing little to the overall variability, so performing additional objective function evaluations is unnecessary. In the second scenario, the random effects get 90% of the inflated sample variances and <span class="math inline">\(\sigma^2_{de}\)</span> and <span class="math inline">\(\sigma^2_{ie}\)</span> get 10%. Similarly in this scenario, only the <span class="math inline">\(\sigma^2_{de}\)</span> and <span class="math inline">\(\sigma^2_{ie}\)</span> grouping where the variance is evenly spread out is considered. Also in this scenario, only the lowest value for <code>range</code> and <code>extra</code> are used. In the third scenario, the 50% of the inflated sample variance is given to <span class="math inline">\(\sigma^2_{de}\)</span> and <span class="math inline">\(\sigma^2_{ie}\)</span> and 50% to the random effects. In this scenario, the only parameter combination considered is the case where variances are evenly spread out among <span class="math inline">\(\sigma^2_{de}\)</span>, <span class="math inline">\(\sigma^2_{ie}\)</span>, and the random effect variances. Together, there are parameter configurations where the spatial variability dominates (scenario 1), the random variability dominates (scenario 2), and where there is an even contribution from spatial and random variability. The parameter configuration that minimizes the objective function is then used as an initial value for optimization. Recall that random effects are only used with restricted maximum likelihood or maximum likelihood estimation, so the objective function is always a likelihood.</p>
 Suppose the inflated sample variance is 10, the exponential covariance is used assuming isotropy, and there are two random effects. The parameter configurations evaluated are shown in Table<span class="math inline">\(~\)</span>.
+
 <p>This grid search approach balances a thorough exploration of the parameter space with computational efficiency, as each objective function evaluation can be computationally expensive.</p>
 </div>
 </div>
@@ -617,6 +637,15 @@ In the left figure, the ellipse of an anisotropic spatial covariance function ce
 </div>
 </div>
 <div class="section level2">
+<h2 id="sec:rf">
+<code>splmRF()</code> and <code>spautorRF()</code><a class="anchor" aria-label="anchor" href="#sec:rf"></a>
+</h2>
+<p><code><a href="../reference/splmRF.html">splmRF()</a></code> and <code><a href="../reference/spautorRF.html">spautorRF()</a></code> fit random forest spatial residual models designed for prediction. These models are fit by combining aspects of random forest and spatial linear modeling. First, a random forest model <span class="citation">(Breiman 2001; James et al. 2013)</span> is fit using the <code>ranger</code> <strong>R</strong> package <span class="citation">(Wright and Ziegler 2015)</span>. Then random forest fitted values are obtained for each data observation and used to compute a residual (by subtracting the fitted value from the observed value). Then an intercept-only spatial linear model is fit to these residuals: <span class="math display">\[\begin{equation*}
+  \mathbf{e}_{rf} = \beta_0 + \mathbf{\tau} + \mathbf{\epsilon},
+\end{equation*}\]</span> where <span class="math inline">\(\mathbf{e}_{rf}\)</span> are the random forest residuals. Random forest spatial residual models can significantly improve predictive accuracy for new data compared to standard random forest models by formally incorporating spatial covariance in the random forest residuals <span class="citation">(Fox, Ver Hoef, and Olsen 2020)</span>. Random forest spatial residual model prediction is discussed in Section<span class="math inline">\(~\)</span>.</p>
+<p>Different estimation methods, different spatial covariance functions, fixing spatial covariance parameter values, random effects, anisotropy, partition factors, and big data are accommodated in the spatial linear model portion of the random forest spatial residual models by supplying their respective named arguments to <code><a href="../reference/splmRF.html">splmRF()</a></code> and <code><a href="../reference/spautorRF.html">spautorRF()</a></code>.</p>
+</div>
+<div class="section level2">
 <h2 id="sec:sprnorm">
 <code>sprnorm()</code><a class="anchor" aria-label="anchor" href="#sec:sprnorm"></a>
 </h2>
@@ -648,101 +677,116 @@ In the left figure, the ellipse of an anisotropic spatial covariance function ce
 <p>The products in this document that involve <span class="math inline">\(\boldsymbol{\Sigma}^{1/2}\)</span> and <span class="math inline">\(\boldsymbol{\Sigma}^{-1/2}\)</span> are actually implemented in <code>spmodel</code> using <span class="math inline">\(\mathbf{C}\)</span> and <span class="math inline">\(\mathbf{C}^{-1}\)</span> (instead of <span class="math inline">\(\boldsymbol{\Sigma}^{1/2}\)</span> and <span class="math inline">\(\boldsymbol{\Sigma}^{-1/2}\)</span>). They are written in this document using <span class="math inline">\(\boldsymbol{\Sigma}^{1/2}\)</span> and <span class="math inline">\(\boldsymbol{\Sigma}^{-1/2}\)</span> because the underlying concepts are easier to communicate using square root notation.</p>
 </div>
 <div class="section level2">
-<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent">
-<div id="ref-brent1971algorithm" class="csl-entry">
-Brent, Richard P. 1971. <span>“An Algorithm with Guaranteed Convergence for Finding a Zero of a Function.”</span> <em>The Computer Journal</em> 14 (4): 422–25.
+<div id="refs">
+<div id="ref-breiman2001random">
+<p>Breiman, Leo. 2001. “Random Forests.” <em>Machine Learning</em> 45 (1): 5–32.</p>
 </div>
-<div id="ref-cook1979influential" class="csl-entry">
-Cook, R Dennis. 1979. <span>“Influential Observations in Linear Regression.”</span> <em>Journal of the American Statistical Association</em> 74 (365): 169–74.
+<div id="ref-brent1971algorithm">
+<p>Brent, Richard P. 1971. “An Algorithm with Guaranteed Convergence for Finding a Zero of a Function.” <em>The Computer Journal</em> 14 (4): 422–25.</p>
 </div>
-<div id="ref-cook1982residuals" class="csl-entry">
-Cook, R Dennis, and Sanford Weisberg. 1982. <em>Residuals and Influence in Regression</em>. New York: Chapman; Hall.
+<div id="ref-cook1979influential">
+<p>Cook, R Dennis. 1979. “Influential Observations in Linear Regression.” <em>Journal of the American Statistical Association</em> 74 (365): 169–74.</p>
 </div>
-<div id="ref-cressie1985fitting" class="csl-entry">
-Cressie, Noel. 1985. <span>“Fitting Variogram Models by Weighted Least Squares.”</span> <em>Journal of the International Association for Mathematical Geology</em> 17 (5): 563–86.
+<div id="ref-cook1982residuals">
+<p>Cook, R Dennis, and Sanford Weisberg. 1982. <em>Residuals and Influence in Regression</em>. New York: Chapman; Hall.</p>
 </div>
-<div id="ref-cressie1993statistics" class="csl-entry">
-———. 1993. <em>Statistics for Spatial Data</em>. John Wiley &amp; Sons.
+<div id="ref-cressie1985fitting">
+<p>Cressie, Noel. 1985. “Fitting Variogram Models by Weighted Least Squares.” <em>Journal of the International Association for Mathematical Geology</em> 17 (5): 563–86.</p>
 </div>
-<div id="ref-curriero1999composite" class="csl-entry">
-Curriero, Frank C, and Subhash Lele. 1999. <span>“A Composite Likelihood Approach to Semivariogram Estimation.”</span> <em>Journal of Agricultural, Biological, and Environmental Statistics</em>, 9–28.
+<div id="ref-cressie1993statistics">
+<p>———. 1993. <em>Statistics for Spatial Data</em>. John Wiley &amp; Sons.</p>
 </div>
-<div id="ref-goldman2000statistical" class="csl-entry">
-Goldman, Nick, and Simon Whelan. 2000. <span>“Statistical Tests of Gamma-Distributed Rate Heterogeneity in Models of Sequence Evolution in Phylogenetics.”</span> <em>Molecular Biology and Evolution</em> 17 (6): 975–78.
+<div id="ref-curriero1999composite">
+<p>Curriero, Frank C, and Subhash Lele. 1999. “A Composite Likelihood Approach to Semivariogram Estimation.” <em>Journal of Agricultural, Biological, and Environmental Statistics</em>, 9–28.</p>
 </div>
-<div id="ref-golub2013matrix" class="csl-entry">
-Golub, Gene H, and Charles F Van Loan. 2013. <em>Matrix Computations</em>. JHU press.
+<div id="ref-fox2020comparing">
+<p>Fox, Eric W, Jay M Ver Hoef, and Anthony R Olsen. 2020. “Comparing Spatial Regression to Random Forests for Large Environmental Data Sets.” <em>PloS One</em> 15 (3): e0229509.</p>
 </div>
-<div id="ref-harville1977maximum" class="csl-entry">
-Harville, David A. 1977. <span>“Maximum Likelihood Approaches to Variance Component Estimation and to Related Problems.”</span> <em>Journal of the American Statistical Association</em> 72 (358): 320–38.
+<div id="ref-goldman2000statistical">
+<p>Goldman, Nick, and Simon Whelan. 2000. “Statistical Tests of Gamma-Distributed Rate Heterogeneity in Models of Sequence Evolution in Phylogenetics.” <em>Molecular Biology and Evolution</em> 17 (6): 975–78.</p>
 </div>
-<div id="ref-harville1992mean" class="csl-entry">
-Harville, David A, and Daniel R Jeske. 1992. <span>“Mean Squared Error of Estimation or Prediction Under a General Linear Model.”</span> <em>Journal of the American Statistical Association</em> 87 (419): 724–31.
+<div id="ref-golub2013matrix">
+<p>Golub, Gene H, and Charles F Van Loan. 2013. <em>Matrix Computations</em>. JHU press.</p>
 </div>
-<div id="ref-henderson1975best" class="csl-entry">
-Henderson, Charles R. 1975. <span>“Best Linear Unbiased Estimation and Prediction Under a Selection Model.”</span> <em>Biometrics</em>, 423–47.
+<div id="ref-harville1977maximum">
+<p>Harville, David A. 1977. “Maximum Likelihood Approaches to Variance Component Estimation and to Related Problems.” <em>Journal of the American Statistical Association</em> 72 (358): 320–38.</p>
 </div>
-<div id="ref-hoeting2006model" class="csl-entry">
-Hoeting, Jennifer A, Richard A Davis, Andrew A Merton, and Sandra E Thompson. 2006. <span>“Model Selection for Geostatistical Models.”</span> <em>Ecological Applications</em> 16 (1): 87–98.
+<div id="ref-harville1992mean">
+<p>Harville, David A, and Daniel R Jeske. 1992. “Mean Squared Error of Estimation or Prediction Under a General Linear Model.” <em>Journal of the American Statistical Association</em> 87 (419): 724–31.</p>
 </div>
-<div id="ref-hrong1996approximate" class="csl-entry">
-Hrong-Tai Fai, Alex, and Paul L Cornelius. 1996. <span>“Approximate f-Tests of Multiple Degree of Freedom Hypotheses in Generalized Least Squares Analyses of Unbalanced Split-Plot Experiments.”</span> <em>Journal of Statistical Computation and Simulation</em> 54 (4): 363–78.
+<div id="ref-henderson1975best">
+<p>Henderson, Charles R. 1975. “Best Linear Unbiased Estimation and Prediction Under a Selection Model.” <em>Biometrics</em>, 423–47.</p>
 </div>
-<div id="ref-kackar1984approximations" class="csl-entry">
-Kackar, Raghu N, and David A Harville. 1984. <span>“Approximations for Standard Errors of Estimators of Fixed and Random Effects in Mixed Linear Models.”</span> <em>Journal of the American Statistical Association</em> 79 (388): 853–62.
+<div id="ref-hoeting2006model">
+<p>Hoeting, Jennifer A, Richard A Davis, Andrew A Merton, and Sandra E Thompson. 2006. “Model Selection for Geostatistical Models.” <em>Ecological Applications</em> 16 (1): 87–98.</p>
 </div>
-<div id="ref-kenward1997small" class="csl-entry">
-Kenward, Michael G, and James H Roger. 1997. <span>“Small Sample Inference for Fixed Effects from Restricted Maximum Likelihood.”</span> <em>Biometrics</em>, 983–97.
+<div id="ref-hrong1996approximate">
+<p>Hrong-Tai Fai, Alex, and Paul L Cornelius. 1996. “Approximate F-Tests of Multiple Degree of Freedom Hypotheses in Generalized Least Squares Analyses of Unbalanced Split-Plot Experiments.” <em>Journal of Statistical Computation and Simulation</em> 54 (4): 363–78.</p>
 </div>
-<div id="ref-kenward2009improved" class="csl-entry">
-———. 2009. <span>“An Improved Approximation to the Precision of Fixed Effects from Restricted Maximum Likelihood.”</span> <em>Computational Statistics &amp; Data Analysis</em> 53 (7): 2583–95.
+<div id="ref-james2013introduction">
+<p>James, Gareth, Daniela Witten, Trevor Hastie, and Robert Tibshirani. 2013. <em>An Introduction to Statistical Learning</em>. Vol. 112. Springer.</p>
 </div>
-<div id="ref-littell2006sas" class="csl-entry">
-Littell, Ramon C, George A Milliken, Walter W Stroup, Russell D Wolfinger, and Schabenberber Oliver. 2006. <em>SAS for Mixed Models</em>. SAS publishing.
+<div id="ref-kackar1984approximations">
+<p>Kackar, Raghu N, and David A Harville. 1984. “Approximations for Standard Errors of Estimators of Fixed and Random Effects in Mixed Linear Models.” <em>Journal of the American Statistical Association</em> 79 (388): 853–62.</p>
 </div>
-<div id="ref-macqueen1967some" class="csl-entry">
-MacQueen, James, and others. 1967. <span>“Some Methods for Classification and Analysis of Multivariate Observations.”</span> In <em>Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability</em>, 1:281–97. 14. Oakland, CA, USA.
+<div id="ref-kenward1997small">
+<p>Kenward, Michael G, and James H Roger. 1997. “Small Sample Inference for Fixed Effects from Restricted Maximum Likelihood.” <em>Biometrics</em>, 983–97.</p>
 </div>
-<div id="ref-montgomery2021introduction" class="csl-entry">
-Montgomery, Douglas C, Elizabeth A Peck, and G Geoffrey Vining. 2021. <em>Introduction to Linear Regression Analysis</em>. John Wiley &amp; Sons.
+<div id="ref-kenward2009improved">
+<p>———. 2009. “An Improved Approximation to the Precision of Fixed Effects from Restricted Maximum Likelihood.” <em>Computational Statistics &amp; Data Analysis</em> 53 (7): 2583–95.</p>
 </div>
-<div id="ref-myers2012generalized" class="csl-entry">
-Myers, Raymond H, Douglas C Montgomery, G Geoffrey Vining, and Timothy J Robinson. 2012. <em>Generalized Linear Models: With Applications in Engineering and the Sciences</em>. John Wiley &amp; Sons.
+<div id="ref-littell2006sas">
+<p>Littell, Ramon C, George A Milliken, Walter W Stroup, Russell D Wolfinger, and Schabenberber Oliver. 2006. <em>SAS for Mixed Models</em>. SAS publishing.</p>
 </div>
-<div id="ref-nelder1965simplex" class="csl-entry">
-Nelder, John A, and Roger Mead. 1965. <span>“A Simplex Method for Function Minimization.”</span> <em>The Computer Journal</em> 7 (4): 308–13.
+<div id="ref-macqueen1967some">
+<p>MacQueen, James, and others. 1967. “Some Methods for Classification and Analysis of Multivariate Observations.” In <em>Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability</em>, 1:281–97. 14. Oakland, CA, USA.</p>
 </div>
-<div id="ref-patterson1971recovery" class="csl-entry">
-Patterson, H Desmond, and Robin Thompson. 1971. <span>“Recovery of Inter-Block Information When Block Sizes Are Unequal.”</span> <em>Biometrika</em> 58 (3): 545–54.
+<div id="ref-meinshausen2006quantile">
+<p>Meinshausen, Nicolai, and Greg Ridgeway. 2006. “Quantile Regression Forests.” <em>Journal of Machine Learning Research</em> 7 (6).</p>
 </div>
-<div id="ref-pinheiro2006mixed" class="csl-entry">
-Pinheiro, José, and Douglas Bates. 2006. <em>Mixed-Effects Models in s and s-PLUS</em>. Springer science &amp; business media.
+<div id="ref-montgomery2021introduction">
+<p>Montgomery, Douglas C, Elizabeth A Peck, and G Geoffrey Vining. 2021. <em>Introduction to Linear Regression Analysis</em>. John Wiley &amp; Sons.</p>
 </div>
-<div id="ref-prasad1990estimation" class="csl-entry">
-Prasad, NG Narasimha, and Jon NK Rao. 1990. <span>“The Estimation of the Mean Squared Error of Small-Area Estimators.”</span> <em>Journal of the American Statistical Association</em> 85 (409): 163–71.
+<div id="ref-myers2012generalized">
+<p>Myers, Raymond H, Douglas C Montgomery, G Geoffrey Vining, and Timothy J Robinson. 2012. <em>Generalized Linear Models: With Applications in Engineering and the Sciences</em>. John Wiley &amp; Sons.</p>
 </div>
-<div id="ref-satterthwaite1946approximate" class="csl-entry">
-Satterthwaite, Franklin E. 1946. <span>“An Approximate Distribution of Estimates of Variance Components.”</span> <em>Biometrics Bulletin</em> 2 (6): 110–14.
+<div id="ref-nelder1965simplex">
+<p>Nelder, John A, and Roger Mead. 1965. “A Simplex Method for Function Minimization.” <em>The Computer Journal</em> 7 (4): 308–13.</p>
 </div>
-<div id="ref-schluchter1990small" class="csl-entry">
-Schluchter, Mark D, and Janet T Elashoff. 1990. <span>“Small-Sample Adjustments to Tests with Unbalanced Repeated Measures Assuming Several Covariance Structures.”</span> <em>Journal of Statistical Computation and Simulation</em> 37 (1-2): 69–87.
+<div id="ref-patterson1971recovery">
+<p>Patterson, Desmond, and Robin Thompson. 1971. “Recovery of Inter-Block Information When Block Sizes Are Unequal.” <em>Biometrika</em> 58 (3): 545–54.</p>
 </div>
-<div id="ref-searle2009variance" class="csl-entry">
-Searle, Shayle R, George Casella, and Charles E McCulloch. 2009. <em>Variance Components</em>. John Wiley &amp; Sons.
+<div id="ref-pinheiro2006mixed">
+<p>Pinheiro, José, and Douglas Bates. 2006. <em>Mixed-Effects Models in S and S-Plus</em>. Springer science &amp; business media.</p>
 </div>
-<div id="ref-self1987asymptotic" class="csl-entry">
-Self, Steven G, and Kung-Yee Liang. 1987. <span>“Asymptotic Properties of Maximum Likelihood Estimators and Likelihood Ratio Tests Under Nonstandard Conditions.”</span> <em>Journal of the American Statistical Association</em> 82 (398): 605–10.
+<div id="ref-prasad1990estimation">
+<p>Prasad, NG Narasimha, and Jon NK Rao. 1990. “The Estimation of the Mean Squared Error of Small-Area Estimators.” <em>Journal of the American Statistical Association</em> 85 (409): 163–71.</p>
 </div>
-<div id="ref-stram1994variance" class="csl-entry">
-Stram, Daniel O, and Jae Won Lee. 1994. <span>“Variance Components Testing in the Longitudinal Mixed Effects Model.”</span> <em>Biometrics</em>, 1171–77.
+<div id="ref-satterthwaite1946approximate">
+<p>Satterthwaite, Franklin E. 1946. “An Approximate Distribution of Estimates of Variance Components.” <em>Biometrics Bulletin</em> 2 (6): 110–14.</p>
 </div>
-<div id="ref-wolf1978helmert" class="csl-entry">
-Wolf, Helmut. 1978. <span>“The Helmert Block Method-Its Origin and Development.”</span> In <em>Proceedings of the Second International Symposium on Problems Related to the Redefinition of North American Geodetic Networks,(NOAA, Arlington-Va, 1978)</em>, 319–26.
+<div id="ref-schluchter1990small">
+<p>Schluchter, Mark D, and Janet T Elashoff. 1990. “Small-Sample Adjustments to Tests with Unbalanced Repeated Measures Assuming Several Covariance Structures.” <em>Journal of Statistical Computation and Simulation</em> 37 (1-2): 69–87.</p>
 </div>
-<div id="ref-wolfinger1994computing" class="csl-entry">
-Wolfinger, Russ, Randy Tobias, and John Sall. 1994. <span>“Computing Gaussian Likelihoods and Their Derivatives for General Linear Mixed Models.”</span> <em>SIAM Journal on Scientific Computing</em> 15 (6): 1294–1310.
+<div id="ref-searle2009variance">
+<p>Searle, Shayle R, George Casella, and Charles E McCulloch. 2009. <em>Variance Components</em>. John Wiley &amp; Sons.</p>
+</div>
+<div id="ref-self1987asymptotic">
+<p>Self, Steven G, and Kung-Yee Liang. 1987. “Asymptotic Properties of Maximum Likelihood Estimators and Likelihood Ratio Tests Under Nonstandard Conditions.” <em>Journal of the American Statistical Association</em> 82 (398): 605–10.</p>
+</div>
+<div id="ref-stram1994variance">
+<p>Stram, Daniel O, and Jae Won Lee. 1994. “Variance Components Testing in the Longitudinal Mixed Effects Model.” <em>Biometrics</em>, 1171–7.</p>
+</div>
+<div id="ref-wolf1978helmert">
+<p>Wolf, Helmut. 1978. “The Helmert Block Method-Its Origin and Development.” In <em>Proceedings of the Second International Symposium on Problems Related to the Redefinition of North American Geodetic Networks,(NOAA, Arlington-Va, 1978)</em>, 319–26.</p>
+</div>
+<div id="ref-wolfinger1994computing">
+<p>Wolfinger, Russ, Randy Tobias, and John Sall. 1994. “Computing Gaussian Likelihoods and Their Derivatives for General Linear Mixed Models.” <em>SIAM Journal on Scientific Computing</em> 15 (6): 1294–1310.</p>
+</div>
+<div id="ref-wright2015ranger">
+<p>Wright, Marvin N, and Andreas Ziegler. 2015. “Ranger: A Fast Implementation of Random Forests for High Dimensional Data in C++ and R.” <em>arXiv Preprint arXiv:1508.04409</em>.</p>
 </div>
 </div>
 </div>

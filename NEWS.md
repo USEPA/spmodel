@@ -1,3 +1,14 @@
+# spmodel 0.2.1
+
+## Minor updates
+
+* Updated citation information
+* 
+
+## Bug fixes
+
+* Fixed a bug that produced irregular spacing in an error message for `spcov_initial()`.
+
 # spmodel 0.2.0
 
 ## Minor updates
@@ -13,7 +24,7 @@
 * Minor vignette updates.
 * Minor documentation updates.
 
-## Bug Fixes
+## Bug fixes
 
 * Fixed a bug that prevents display of spatial covariance type in summary of `spmod` objects.
 * Fixed a bug that prevented prediction of factor variables when all levels of all factor variables did not appear in `newdata`.

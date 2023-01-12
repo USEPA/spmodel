@@ -267,6 +267,7 @@ Here we list some commonly used `spmodel` functions.
 * `sprnorm()`: Simulate spatially correlated normal (Gaussian) random variables.
 * `summary()`: Summarize fitted models.
 * `tidy()`: Tidy fitted models.
+* `varcomp()`: Compare variance components.
 * `vcov()`: Compute variance-covariance matrices of estimated parameters.
 
 For a full list of `spmodel` functions alongside their documentation, see the documentation manual.

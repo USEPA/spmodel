@@ -1,15 +1,22 @@
-# spmodel 0.2.1
+# spmodel 0.3.0
 
 ## Minor updates
 
+* Changed class of `splm()` output to `"splm"` from `"spmod"` or `"splm_list"` from `"spmod_list"`.
+* Changed class of `spautor()` output to `"spautor"` from `"spmod"` or `"spautor_list"` from `"spautor_list"`.
+* Changed class of `splmRF()` output to `"splmRF"` from `"spmodRF"` or `"splmRF_list"` from `"spmodRF_list"`.
+* Changed class of `spautorRF()` output to `"spautorRF"` from `"spmodRF"` or `"spautorRF_list"` from `"spmodRF_list"`.
+* Added the `varcomp` function to compare variance components
 * Updated citation information
-* 
+
 
 ## Bug fixes
 
 * Fixed a bug that produced irregular spacing in an error message for `spcov_initial()`.
 
 # spmodel 0.2.0
+
+* `spmodel` v0.3.0 changed the names of `spmod`, `spmodRF`, `spmod_list`, and `spmodRF_list` objects.
 
 ## Minor updates
 

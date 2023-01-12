@@ -150,8 +150,8 @@ that \code{local} is transformed into
 \value{
 A list with many elements that store information about
 the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
-length one, the list has class \code{spmod}. Many generic functions that
-summarize model fit are available for \code{spmod} objects, including
+length one, the list has class \code{splm}. Many generic functions that
+summarize model fit are available for \code{splm} objects, including
 \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
 \code{cooks.distance}, \code{deviance}, \code{fitted}, \code{formula},
 \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
@@ -159,9 +159,9 @@ summarize model fit are available for \code{spmod} objects, including
 \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
 \code{terms}, \code{tidy}, \code{update}, and \code{vcov}. If
 \code{spcov_type} or \code{spcov_initial} are length greater than one, the
-list has class \code{spmod_list} and each element in the list has class
-\code{spmod}. \code{glances} can be used to summarize \code{spmod_list}
-objects, and the aforementioned \code{spmod} generics can be used on each
+list has class \code{splm_list} and each element in the list has class
+\code{splm}. \code{glances} can be used to summarize \code{splm_list}
+objects, and the aforementioned \code{splm} generics can be used on each
 individual list element (model fit).
 }
 \description{

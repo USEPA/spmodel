@@ -30,9 +30,9 @@ varcomp <- function(object, ...) {
 }
 
 #' @rdname varcomp
-#' @method varcomp spmod
+#' @method varcomp splm
 #' @export
-varcomp.spmod <- function(object, ...) {
+varcomp.splm <- function(object, ...) {
 
   PR2 <- pseudoR2(object)
   spcov_coef <- coef(object, type = "spcov")
@@ -42,18 +42,32 @@ varcomp.spmod <- function(object, ...) {
   total_var <- sum(de, ie, randcov_coef)
   varcomp_names <- c("Covariates (PR-sq)", "de", "ie", c(names(randcov_coef)))
   varcomp_values <- c(PR2, (1 - PR2) * c(de, ie, randcov_coef) / total_var)
-  if (object$fn == "spautor" && spcov_coef[["extra"]] != 0) {
-    varcomp_val1 <- tibble::tibble(varcomp = varcomp_names, proportion = varcomp_values)
-    extra <- spcov_coef[["extra"]]
-    total_var2 <- sum(extra, randcov_coef)
-    varcomp_names2 <- c("Covariates (PR-sq)", "extra", c(names(randcov_coef)))
-    varcomp_values2 <- c(PR2, (1 - PR2) * c(extra, randcov_coef) / total_var2)
-    varcomp_val2 <- tibble::tibble(varcomp = varcomp_names2, proportion = varcomp_values2)
-    ratio <- total_var / total_var2
-    varcomp_val <- list(connected = varcomp_val1, unconnected = varcomp_val2, ratio = ratio)
-  } else {
-    varcomp_val <- tibble::tibble(varcomp = varcomp_names, proportion = varcomp_values)
-  }
+  varcomp_val <- tibble::tibble(varcomp = varcomp_names, proportion = varcomp_values)
   varcomp_val
 }
 
+#' @rdname varcomp
+#' @method varcomp spautor
+#' @export
+varcomp.spautor <- function(object, ...) {
+
+  PR2 <- pseudoR2(object)
+  spcov_coef <- coef(object, type = "spcov")
+  de <- spcov_coef[["de"]]
+  ie <- spcov_coef[["ie"]]
+  extra <- spcov_coef[["extra"]]
+  randcov_coef <- coef(object, type = "randcov")
+  total_var_con <- sum(de, ie, randcov_coef)
+  varcomp_names_con <- c("Covariates (PR-sq)", "de", "ie", c(names(randcov_coef)))
+  varcomp_values_con <- c(PR2, (1 - PR2) * c(de, ie, randcov_coef) / total_var_con)
+  varcomp_val <- tibble::tibble(varcomp = varcomp_names_con, proportion = varcomp_values_con)
+  if (extra != 0) {
+    total_var_uncon <- sum(extra, randcov_coef)
+    varcomp_names_uncon <- c("Covariates (PR-sq)", "extra", c(names(randcov_coef)))
+    varcomp_values_uncon <- c(PR2, (1 - PR2) * c(extra, randcov_coef) / total_var_uncon)
+    varcomp_val_2 <- tibble::tibble(varcomp = varcomp_names_uncon, proportion = varcomp_values_uncon)
+    ratio <- total_var_con / total_var_uncon
+    varcomp_val <- list(connected = varcomp_val, unconnected = varcomp_val_2, ratio = ratio)
+  }
+  varcomp_val
+}

@@ -6,17 +6,17 @@
 #' @param model A fitted model object from [splm()] or [spautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
-#' @details This function calls [residuals.spmod()], [hatvalues.spmod()],
-#'   and [cooks.distance.spmod()] and puts the results into a tibble. It is
-#'   primarily used when calling [augment.spmod()].
+#' @details This function calls [residuals.splm()], [hatvalues.splm()],
+#'   and [cooks.distance.splm()] and puts the results into a tibble. It is
+#'   primarily used when calling [augment.splm()].
 #'
 #' @return A tibble with residuals (\code{.resid}), leverage values (\code{.hat}),
 #'   cook's distance (\code{.cooksd}), and standardized residuals (\code{.std.resid}).
 #'
-#' @method influence spmod
+#' @method influence splm
 #' @export
 #'
-#' @seealso [augment.spmod()] [cooks.distance.spmod()] [hatvalues.spmod()] [residuals.spmod()]
+#' @seealso [augment.splm()] [cooks.distance.splm()] [hatvalues.splm()] [residuals.splm()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -24,7 +24,7 @@
 #'   spcov_type = "exponential", xcoord = x, ycoord = y
 #' )
 #' influence(spmod)
-influence.spmod <- function(model, ...) {
+influence.splm <- function(model, ...) {
   tibble::tibble( # used to be data.frame
     .resid = residuals(model),
     .hat = hatvalues(model),
@@ -33,3 +33,8 @@ influence.spmod <- function(model, ...) {
     # .sigma = abs(model$model$y - loocv(model, cv_fitted = TRUE)$cv_fitted)
   )
 }
+
+#' @rdname influence.splm
+#' @method influence spautor
+#' @export
+influence.spautor <- influence.splm

@@ -38,7 +38,7 @@
 #'   (\code{df}) and the AIC or AICc.
 #'
 #'
-#' @method AIC spmod
+#' @method AIC splm
 #' @order 1
 #' @export
 #'
@@ -49,7 +49,7 @@
 #' )
 #' AIC(spmod)
 #' AICc(spmod)
-AIC.spmod <- function(object, ..., k = 2) {
+AIC.splm <- function(object, ..., k = 2) {
 
   # set k as 2
   k <- 2
@@ -126,17 +126,22 @@ AIC.spmod <- function(object, ..., k = 2) {
   AIC_val
 }
 
-#' @rdname AIC.spmod
+#' @rdname AIC.splm
+#' @method AIC spautor
+#' @export
+AIC.spautor <- AIC.splm
+
+#' @rdname AIC.splm
 #' @export
 AICc <- function(object, ..., k = 2) {
   # method dispatch
   UseMethod("AICc", object)
 }
 
-#' @rdname AIC.spmod
-#' @method AICc spmod
+#' @rdname AIC.splm
+#' @method AICc splm
 #' @export
-AICc.spmod <- function(object, ..., k = 2) {
+AICc.splm <- function(object, ..., k = 2) {
 
   # set k as 2
   k <- 2
@@ -211,3 +216,8 @@ AICc.spmod <- function(object, ..., k = 2) {
   # return AICc value
   AICc_val
 }
+
+#' @rdname AIC.splm
+#' @method AICc spautor
+#' @export
+AICc.spautor <- AICc.splm

@@ -9,7 +9,7 @@
 #'   observations and whose columns represent explanatory variables corresponding
 #'   to each fixed effect.
 #'
-#' @method model.matrix spmod
+#' @method model.matrix splm
 #' @export
 #'
 #' @seealso [stats::model.matrix()]
@@ -19,7 +19,12 @@
 #'   spcov_type = "exponential", xcoord = x, ycoord = y
 #' )
 #' model.matrix(spmod)
-model.matrix.spmod <- function(object, ...) {
+model.matrix.splm <- function(object, ...) {
   # model.matrix(formula(object, ...), model.frame(object, ...), ...) too much customization
   model.matrix(object$formula, model.frame(object), contrasts = object$contrasts)
 }
+
+#' @rdname model.matrix.splm
+#' @method model.matrix spautor
+#' @export
+model.matrix.spautor <- model.matrix.splm

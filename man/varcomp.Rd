@@ -2,12 +2,15 @@
 % Please edit documentation in R/varcomp.R
 \name{varcomp}
 \alias{varcomp}
-\alias{varcomp.spmod}
+\alias{varcomp.splm}
+\alias{varcomp.spautor}
 \title{Variability component comparison}
 \usage{
 varcomp(object, ...)
 
-\method{varcomp}{spmod}(object, ...)
+\method{varcomp}{splm}(object, ...)
+
+\method{varcomp}{spautor}(object, ...)
 }
 \arguments{
 \item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}

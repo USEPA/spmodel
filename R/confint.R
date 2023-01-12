@@ -12,7 +12,7 @@
 #' @return Gaussian-based confidence intervals (two-sided and equal-tailed) for the
 #'   fixed effect coefficients based on the confidence level specified by \code{level}.
 #'
-#' @method confint spmod
+#' @method confint splm
 #' @export
 #'
 #' @examples
@@ -22,7 +22,7 @@
 #' )
 #' confint(spmod)
 #' confint(spmod, parm = "waterY", level = 0.90)
-confint.spmod <- function(object, parm, level = 0.95, ...) {
+confint.splm <- function(object, parm, level = 0.95, ...) {
   # if (type == "fixed") ## may add spcov and randcov confidence intervals later
   alpha <- 1 - level
   # tstar <- qt(1 - alpha / 2, df = object$n - object$p)
@@ -40,3 +40,8 @@ confint.spmod <- function(object, parm, level = 0.95, ...) {
     return(confints[row.names(confints) %in% parm, , drop = FALSE])
   }
 }
+
+#' @rdname confint.splm
+#' @method confint spautor
+#' @export
+confint.spautor <- confint.splm

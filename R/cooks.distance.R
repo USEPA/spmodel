@@ -14,10 +14,10 @@
 #' @return A vector of Cook's distance values for each observation from the
 #'   fitted model object.
 #'
-#' @method cooks.distance spmod
+#' @method cooks.distance splm
 #' @export
 #'
-#' @seealso [hatvalues.spmod()] [influence.spmod()] [residuals.spmod()]
+#' @seealso [hatvalues.splm()] [influence.splm()] [residuals.splm()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -25,6 +25,11 @@
 #'   spcov_type = "exponential", xcoord = x, ycoord = y
 #' )
 #' cooks.distance(spmod)
-cooks.distance.spmod <- function(model, ...) {
+cooks.distance.splm <- function(model, ...) {
   model$cooks_distance
 }
+
+#' @rdname cooks.distance.splm
+#' @method cooks.distance spautor
+#' @export
+cooks.distance.spautor <- cooks.distance.splm

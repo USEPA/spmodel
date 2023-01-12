@@ -8,7 +8,7 @@
 #' @return A character vector containing the terms used for the fixed effects
 #'   from a fitted model object.
 #'
-#' @method labels spmod
+#' @method labels splm
 #' @export
 #'
 #' @examples
@@ -17,6 +17,11 @@
 #'   spcov_type = "exponential", xcoord = x, ycoord = y
 #' )
 #' labels(spmod)
-labels.spmod <- function(object, ...) {
+labels.splm <- function(object, ...) {
   labels(terms(formula(object)))
 }
+
+#' @rdname labels.splm
+#' @method labels spautor
+#' @export
+labels.spautor <- labels.splm

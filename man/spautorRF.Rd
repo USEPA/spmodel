@@ -26,18 +26,18 @@ A list with several elements to be used with \code{predict()}. These
 elements include the function call (named \code{call}), the random forest object
 fit to the mean (named \code{ranger}),
 the spatial linear model object fit to the residuals
-(named \code{spmod} or \code{spmod_list}), and an object can contain data for
+(named \code{spautor} or \code{spautor_list}), and an object can contain data for
 locations at which to predict (called \code{newdata}). The \code{newdata}
 object contains the set of
 observations in \code{data} whose response variable is \code{NA}.
 If \code{spcov_type} or \code{spcov_initial} (which are passed to \code{\link[=spautor]{spautor()}})
-are length one, the list has class \code{spmodRF} and the spatial linear
-model object fit to the residuals is called \code{spmod}, which has
-class \code{spmod}. If
+are length one, the list has class \code{spautorRF} and the spatial linear
+model object fit to the residuals is called \code{spautor}, which has
+class \code{spautor}. If
 \code{spcov_type} or \code{spcov_initial} are length greater than one, the
-list has class \code{spmodRF_list} and the spatial linear model object
-fit to the residuals is called \code{spmod_list}, which has class \code{spmod_list}.
-and contains several objects, each with class \code{spmod}.
+list has class \code{spautorRF_list} and the spatial linear model object
+fit to the residuals is called \code{spautor_list}, which has class \code{spautor_list}.
+and contains several objects, each with class \code{spautor}.
 }
 \description{
 Fit random forest residual spatial linear models

@@ -8,7 +8,7 @@
 #' @return A model frame that contains the variables used by the formula
 #'   for the fitted model object.
 #'
-#' @method model.frame spmod
+#' @method model.frame splm
 #' @export
 #'
 #' @seealso [stats::model.frame()]
@@ -19,17 +19,14 @@
 #'   spcov_type = "exponential", xcoord = x, ycoord = y
 #' )
 #' model.frame(spmod)
-model.frame.spmod <- function(formula, ...) {
-  switch(formula$fn,
-    "splm" = model.frame_splm(formula),
-    "spautor" = model.frame_spautor(formula)
-  )
-}
-model.frame_splm <- function(formula) {
+model.frame.splm <- function(formula, ...) {
   # model.frame(formula(formula, ...), data = formula$data, ...) too much customization
   model.frame(formula(formula), data = formula$obdata, drop.unused.levels = TRUE, na.action = na.omit)
 }
 
-model.frame_spautor <- function(formula) {
+#' @rdname model.frame.splm
+#' @method model.frame spautor
+#' @export
+model.frame.spautor <- function(formula, ...) {
   model.frame(formula(formula), data = formula$data[formula$observed_index, , drop = FALSE], drop.unused.levels = TRUE, na.action = na.omit)
 }

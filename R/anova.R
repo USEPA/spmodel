@@ -58,7 +58,7 @@
 #'   to obtain tidy tibbles of the \code{anova(object)} output.
 #'
 #'
-#' @method anova spmod
+#' @method anova splm
 #' @order 1
 #' @export
 #'
@@ -81,7 +81,7 @@
 #'   spcov_type = "none"
 #' )
 #' tidy(anova(spmod, lmod))
-anova.spmod <- function(object, ..., test = TRUE, Terms, L) {
+anova.splm <- function(object, ..., test = TRUE, Terms, L) {
 
 
   # see if one or two models
@@ -174,6 +174,11 @@ anova.spmod <- function(object, ..., test = TRUE, Terms, L) {
   structure(anova_val, class = c(paste("anova", class(object), sep = "."), "data.frame"))
 }
 
+#' @rdname anova.splm
+#' @method anova spautor
+#' @export
+anova.spautor <- anova.splm
+
 get_marginal_Chi2 <- function(L, object) {
   # make matrix if a numeric vector
   if (!is.matrix(L)) {
@@ -198,12 +203,12 @@ get_marginal_Chi2 <- function(L, object) {
   Chi2_df
 }
 
-#' @rdname anova.spmod
+#' @rdname anova.splm
 #' @param x An object from \code{anova(object)}.
 #'
-#' @method tidy anova.spmod
+#' @method tidy anova.splm
 #' @export
-tidy.anova.spmod <- function(x, ...) {
+tidy.anova.splm <- function(x, ...) {
   if (!is.null(attr(x, "full")) && !is.null(attr(x, "reduced"))) {
     result <- tibble::tibble(full = attr(x, "full"), reduced = attr(x, "reduced"), df = x$Df, statistic = x$Chi2)
   } else {
@@ -214,3 +219,8 @@ tidy.anova.spmod <- function(x, ...) {
   }
   result
 }
+
+#' @rdname anova.splm
+#' @method tidy anova.spautor
+#' @export
+tidy.anova.spautor <- tidy.anova.splm

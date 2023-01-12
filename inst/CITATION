@@ -5,8 +5,8 @@ citEntry(
    title="spmodel: Spatial Statistical Modeling and Prediction",
 author = c(person("Michael", "Dumelle"), person("Matt", "Higham"), person("Jay M.", "Ver Hoef")),
    year=2022,
-   note="R package version 0.2.0",
+   note="R package version 0.3.0",
    textVersion=paste("Michael Dumelle, Matt Higham, and Jay M. Ver Hoef (2022).",
                      "spmodel: Spatial Statistical Modeling and Prediction.",
-                     "R package version 0.2.0.")
+                     "R package version 0.3.0.")
 )

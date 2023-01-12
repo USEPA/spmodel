@@ -148,7 +148,7 @@ The dependent random error variance ($\sigma^2_{de}$) is estimated to be approxi
 ```{r emp_spcov, fig.cap="Empirical spatial covariance of fitted model.", out.width="75%", fig.align="center"}
 plot(spmod, which = 7)
 ```
-We can learn more about the plots available for fitted models by running `help("plot.spmod", "spmodel")`.
+We can learn more about the plots available for fitted models by running `help("plot.splm", "spmodel")`.
 
 
 ## Model-Fit Statistics
@@ -307,7 +307,7 @@ Finally, the `augment()` function augments the original data with model diagnost
 ```{r}
 augment(spmod)
 ```
-By default, only the columns of `data` used to fit the model are returned alongside the diagnostics. All original columns of `data` are returned by setting `drop` to `FALSE`. `augment()` is especially powerful when the data are an `sf` object because model diagnostics can be easily visualized spatially. For example, we could subset the augmented object so that it only includes observations whose standardized residuals have absolute values greater than some cutoff and then visualize them spatially. To learn more about the broom functions for spatial linear models, run `help("tidy.spmod", "spmodel")`, `help("glance.spmod", "spmodel")`, and `help("augment.spmod", "spmodel")`.
+By default, only the columns of `data` used to fit the model are returned alongside the diagnostics. All original columns of `data` are returned by setting `drop` to `FALSE`. `augment()` is especially powerful when the data are an `sf` object because model diagnostics can be easily visualized spatially. For example, we could subset the augmented object so that it only includes observations whose standardized residuals have absolute values greater than some cutoff and then visualize them spatially. To learn more about the broom functions for spatial linear models, run `help("tidy.splm", "spmodel")`, `help("glance.splm", "spmodel")`, and `help("augment.splm", "spmodel")`.
 
 ## An Areal Data Example
 

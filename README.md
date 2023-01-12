@@ -54,7 +54,7 @@ citation(package = "spmodel")
 #> To cite spmodel in publications use:
 #> 
 #>   Dumelle, Michael., Higham, Matt., and Ver Hoef, Jay M. (2022).
-#>   spmodel: Spatial Statistical Modeling and Prediction. R package version 0.2.0.
+#>   spmodel: Spatial Statistical Modeling and Prediction. R package version 0.3.0.
 #> 
 #> A BibTeX entry for LaTeX users is
 #> 
@@ -62,7 +62,7 @@ citation(package = "spmodel")
 #>     title = {spmodel: Spatial Statistical Modeling and Prediction},
 #>     author = {Michael Dumelle and Matt Higham and Jay M. {Ver Hoef}},
 #>     year = {2022},
-#>     note = {R package version 0.2.0},
+#>     note = {R package version 0.3.0},
 #>   }
 ```
 

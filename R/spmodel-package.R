@@ -9,6 +9,7 @@
 #' @importFrom stats AIC anova coef coefficients complete.cases confint cooks.distance
 #'   delete.response deviance dist fitted fitted.values formula .getXlevels hatvalues
 #'   influence kmeans lm logLik model.frame model.matrix model.response na.omit na.pass pchisq
-#'   pnorm predict pt qnorm qqnorm qqline qt resid residuals reformulate rnorm rstandard terms vcov
+#'   pnorm predict printCoefmat pt qnorm qqnorm qqline qt quantile resid
+#'   residuals reformulate rnorm rstandard terms vcov
 #' @importFrom tibble tibble as_tibble
 NULL

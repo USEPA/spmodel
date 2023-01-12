@@ -26,22 +26,22 @@ A list with several elements to be used with \code{predict()}. These
 elements include the function call (named \code{call}), the random forest object
 fit to the mean (named \code{ranger}),
 the spatial linear model object fit to the residuals
-(named \code{spmod} or \code{spmod_list}), and an object can contain data for
+(named \code{splm} or \code{splm_list}), and an object can contain data for
 locations at which to predict (called \code{newdata}). The \code{newdata}
 object contains the set of
 observations in \code{data} whose response variable is \code{NA}.
 If \code{spcov_type} or \code{spcov_initial} (which are passed to \code{\link[=splm]{splm()}})
-are length one, the list has class \code{spmodRF} and the spatial linear
-model object fit to the residuals is called \code{spmod}, which has
-class \code{spmod}. If
+are length one, the list has class \code{splmRF} and the spatial linear
+model object fit to the residuals is called \code{splm}, which has
+class \code{splm}. If
 \code{spcov_type} or \code{spcov_initial} are length greater than one, the
-list has class \code{spmodRF_list} and the spatial linear model object
-fit to the residuals is called \code{spmod_list}, which has class \code{spmod_list}.
-and contains several objects, each with class \code{spmod}.
+list has class \code{splmRF_list} and the spatial linear model object
+fit to the residuals is called \code{splm_list}, which has class \code{splm_list}.
+and contains several objects, each with class \code{splm}.
 
-An \code{spmodRF} object to be used with \code{predict()}. There are
+An \code{splmRF} object to be used with \code{predict()}. There are
 three elements: \code{ranger}, the output from fitting the mean model with
-\code{ranger::ranger()}; \code{spmod}, the output from fitting the spatial
+\code{ranger::ranger()}; \code{splm}, the output from fitting the spatial
 linear model to the ranger residuals; and \code{newdata}, the \code{newdata}
 object, if relevant.
 }

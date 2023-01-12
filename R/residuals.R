@@ -21,7 +21,7 @@
 #'
 #' @return The residuals as a numeric vector.
 #'
-#' @method residuals spmod
+#' @method residuals splm
 #' @export
 #'
 #' @examples
@@ -34,7 +34,7 @@
 #' residuals(spmod, type = "pearson")
 #' residuals(spmod, type = "standardized")
 #' rstandard(spmod)
-residuals.spmod <- function(object, type = "raw", ...) {
+residuals.splm <- function(object, type = "raw", ...) {
   if (type == "raw") {
     return(object$residuals$raw)
   } else if (type == "pearson") {
@@ -45,13 +45,29 @@ residuals.spmod <- function(object, type = "raw", ...) {
     stop("residuals must be raw or pearson or standardized")
   }
 }
-#' @rdname residuals.spmod
+#' @rdname residuals.splm
+#' @method resid splm
 #' @export
-resid.spmod <- residuals.spmod
+resid.splm <- residuals.splm
 
-#' @rdname residuals.spmod
-#' @method rstandard spmod
+#' @rdname residuals.splm
+#' @method residuals spautor
 #' @export
-rstandard.spmod <- function(model, ...) {
-  residuals.spmod(model, type = "standardized")
+residuals.spautor <- residuals.splm
+
+#' @rdname residuals.splm
+#' @method resid spautor
+#' @export
+resid.spautor <- residuals.spautor
+
+#' @rdname residuals.splm
+#' @method rstandard splm
+#' @export
+rstandard.splm <- function(model, ...) {
+  residuals.splm(model, type = "standardized")
 }
+
+#' @rdname residuals.splm
+#' @method rstandard spautor
+#' @export
+rstandard.spautor <- rstandard.splm

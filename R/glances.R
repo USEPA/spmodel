@@ -5,9 +5,9 @@
 #'
 #' @param object Fitted model object from [splm()] or [spautor()].
 #' @param ... Additional fitted model objects from [splm()] or [spautor()]. Ignored
-#'   if \code{object} has class \code{spmod_list}.
+#'   if \code{object} has class \code{splm_list} or \code{spautor_list}.
 #' @param sort_by Sort by a \code{glance} statistic (i.e., the name of a column
-#'   output from [glance.spmod()] or the order of model input (\code{sort_by = "order"}).
+#'   output from \code{glance()} or the order of model input (\code{sort_by = "order"}).
 #'   The default is \code{"AICc"}.
 #' @param decreasing Should \code{sort_by} be decreasing or not? The default is \code{FALSE}.
 #'
@@ -30,10 +30,13 @@
 glances <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
   UseMethod("glances", object)
 }
-#' @method glances default
+#' @method glances splm
 #' @export
-glances.default <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
+glances.splm <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
   model_list <- c(list(object), list(...))
+  if (any(vapply(model_list, function(x) class(x), character(1)) != class(object))) {
+    stop(paste("All models must be of class", class(object), sep = " "), call. = FALSE)
+  }
   model_list_names <- c(as.character(as.list(substitute(list(object)))[-1]), as.character(as.list(substitute(list(...)))[-1]))
   model_glance <- lapply(model_list, function(x) glance(x))
   model_bind <- do.call(rbind, model_glance)
@@ -45,9 +48,14 @@ glances.default <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
   }
   tibble::as_tibble(model_bind)
 }
-#' @method glances spmod_list
+
+#' @method glances spautor
 #' @export
-glances.spmod_list <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
+glances.spautor <- glances.splm
+
+#' @method glances splm_list
+#' @export
+glances.splm_list <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
   model_glance <- lapply(object, function(x) glance(x))
   model_bind <- do.call(rbind, model_glance)
   model_bind <- cbind(data.frame(model = names(model_glance), model_bind))
@@ -58,3 +66,7 @@ glances.spmod_list <- function(object, ..., sort_by = "AICc", decreasing = FALSE
   }
   tibble::as_tibble(model_bind)
 }
+
+#' @method glances spautor_list
+#' @export
+glances.spautor_list <- glances.splm_list

@@ -12,6 +12,7 @@
 #' @return Gaussian-based confidence intervals (two-sided and equal-tailed) for the
 #'   fixed effect coefficients based on the confidence level specified by \code{level}.
 #'
+#' @name confint.spmodel
 #' @method confint splm
 #' @export
 #'
@@ -41,7 +42,7 @@ confint.splm <- function(object, parm, level = 0.95, ...) {
   }
 }
 
-#' @rdname confint.splm
+#' @rdname confint.spmodel
 #' @method confint spautor
 #' @export
 confint.spautor <- confint.splm

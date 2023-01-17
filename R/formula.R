@@ -7,6 +7,7 @@
 #'
 #' @return The formula used by a fitted model object.
 #'
+#' @name formula.spmodel
 #' @method formula splm
 #' @export
 #'
@@ -20,7 +21,7 @@ formula.splm <- function(x, ...) {
   formula(x$formula)
 }
 
-#' @rdname formula.splm
+#' @rdname formula.spmodel
 #' @method formula spautor
 #' @export
 formula.spautor <- formula.splm

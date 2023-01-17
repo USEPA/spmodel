@@ -15,10 +15,11 @@
 #'
 #' @return A tidy tibble of summary information \code{effects}.
 #'
+#' @name tidy.spmodel
 #' @method tidy splm
 #' @export
 #'
-#' @seealso [glance.splm()] [augment.splm()]
+#' @seealso [glance.spmodel()] [augment.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -81,7 +82,7 @@ tidy.splm <- function(x, conf.int = FALSE,
   result
 }
 
-#' @rdname tidy.splm
+#' @rdname tidy.spmodel
 #' @method tidy spautor
 #' @export
 tidy.spautor <- function(x, conf.int = FALSE,

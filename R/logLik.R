@@ -9,6 +9,7 @@
 #'
 #' @return The log-likelihood.
 #'
+#' @name logLik.spmodel
 #' @method logLik splm
 #' @export
 #'
@@ -28,7 +29,7 @@ logLik.splm <- function(object, ...) {
   }
 }
 
-#' @rdname logLik.splm
+#' @rdname logLik.spmodel
 #' @method logLik spautor
 #' @export
 logLik.spautor <- logLik.splm

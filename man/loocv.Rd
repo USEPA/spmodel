@@ -21,9 +21,9 @@ should be returned. Defaults to \code{FALSE}.}
 prediction standard errors should be returned. Defaults to \code{FALSE}.}
 
 \item{local}{A list or logical. If a list, specific list elements described
-in \code{\link[=predict.splm]{predict.splm()}} control the big data approximation behavior.
+in \code{\link[=predict.spmodel]{predict.spmodel()}} control the big data approximation behavior.
 If a logical, \code{TRUE} chooses default list elements for the list version
-of \code{local} as specified in \code{\link[=predict.splm]{predict.splm()}}. Defaults to \code{FALSE},
+of \code{local} as specified in \code{\link[=predict.spmodel]{predict.spmodel()}}. Defaults to \code{FALSE},
 which performs exact computations.}
 }
 \value{

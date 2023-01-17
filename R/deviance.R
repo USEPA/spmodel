@@ -13,6 +13,7 @@
 #'
 #' @return The deviance.
 #'
+#' @name deviance.spmodel
 #' @method deviance splm
 #' @export
 #'
@@ -31,7 +32,7 @@ deviance.splm <- function(object, ...) {
   }
 }
 
-#' @rdname deviance.splm
+#' @rdname deviance.spmodel
 #' @method deviance spautor
 #' @export
 deviance.spautor <- deviance.splm

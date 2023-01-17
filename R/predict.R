@@ -2,7 +2,7 @@
 #'
 #' @description Predicted values and intervals based on a fitted model object.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object.
 #' @param newdata A data frame or \code{sf} object in which to
 #'   look for variables with which to predict. If a data frame, \code{newdata}
 #'   must contain all variables used by \code{formula(object)} and all variables
@@ -47,7 +47,9 @@
 #'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 #'   that \code{local} is transformed into
 #'   \code{list(size = 50, method = "covariance", parallel = FALSE)}.
-#' @param ... Other arguments. Not used (needed for generic consistency).
+#' @param ... Other arguments. Only used for models fit using \code{splmRF()}
+#'   or \code{spautorRF()} where \code{...} indicates other
+#'   arguments to \code{ranger::predict.ranger()}.
 #'
 #' @details For \code{splm} and \code{spautor} objects, the (empirical) best linear unbiased predictions (i.e., Kriging
 #'   predictions) at each site are returned when \code{interval} is \code{"none"}
@@ -57,6 +59,13 @@
 #'   alongside standard errors and confidence intervals for the mean. For \code{splm_list}
 #'   and \code{spautor_list} objects, predictions and associated intervals and standard errors are returned
 #'   for each list element.
+#'
+#'   For \code{splmRF} or \code{spautorRF} objects, random forest spatial residual
+#'   model predictions are computed by combining the random forest prediction with
+#'   the (empirical) best linear unbiased prediction for the residual. Fox et al. (2020)
+#'   call this approach random forest regression Kriging. For \code{splmRF_list}
+#'   or \code{spautorRF} objects,
+#'   predictions are returned for each list element.
 #'
 #' @return For \code{splm} or \code{spautor} objects, if \code{se.fit} is \code{FALSE}, \code{predict()} returns
 #'   a vector of predictions or a matrix of predictions with column names
@@ -70,6 +79,10 @@
 #'   For \code{splm_list} or \code{spautor_list} objects, a list that contains relevant quantities for each
 #'   list element.
 #'
+#'   For \code{splmRF} or \code{spautorRF} objects, a vector of predictions. For \code{splmRF_list}
+#'   or \code{spautorRF_list} objects, a list that contains relevant quantities for each list element.
+#'
+#' @name predict.spmodel
 #' @method predict splm
 #' @export
 #'
@@ -379,7 +392,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
 
 }
 
-#' @rdname predict.splm
+#' @rdname predict.spmodel
 #' @method predict spautor
 #' @export
 predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
@@ -679,7 +692,7 @@ get_pred_spautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat,
 }
 
 
-#' @name predict.splm
+#' @name predict.spmodel
 #' @method predict splm_list
 #' @export
 predict.splm_list <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
@@ -705,7 +718,7 @@ predict.splm_list <- function(object, newdata, se.fit = FALSE, interval = c("non
   preds
 }
 
-#' @name predict.splm
+#' @name predict.spmodel
 #' @method predict spautor_list
 #' @export
 predict.spautor_list <- predict.splm_list
@@ -713,61 +726,7 @@ predict.spautor_list <- predict.splm_list
 
 
 
-#' Random forest spatial residual model predictions (random forest regression Kriging)
-#'
-#' @description Predicted values based on a random forest spatial residual fitted model object.
-#'
-#' @param object A fitted model object from [splmRF()] or [spautorRF()].
-#' @param newdata A data frame or \code{sf} object in which to
-#'   look for variables with which to predict. If a data frame, \code{newdata}
-#'   must contain all variables used by \code{formula(object)} and all variables
-#'   representing coordinates. If an \code{sf} object, \code{newdata} must contain
-#'   all variables used by \code{formula(object)} and coordinates are obtained
-#'   from the geometry of \code{newdata}. If omitted, missing data from the
-#'   fitted model object are used.
-#' @param local A optional logical or list controlling the big data approximation
-#'   to the spatial residual prediction. If omitted, \code{local}
-#'   is set to \code{TRUE} or \code{FALSE} based on the sample size of the fitted
-#'   model object and/or the prediction size of \code{newdata} -- if the sample
-#'   size or prediction size exceeds 5000, \code{local} is
-#'   set to \code{TRUE}, otherwise it is set to \code{FALSE}. If \code{FALSE}, no big data approximation
-#'   is implemented. If a list is provided, the following arguments detail the big
-#'   data approximation:
-#'   \itemize{
-#'     \item{\code{method}: }{The big data approximation method. If \code{method = "all"},
-#'       all observations are used and \code{size} is ignored. If \code{method = "distance"},
-#'       the \code{size} data observations closest (in terms of Euclidean distance)
-#'       to the observation requiring prediction are used.
-#'       If \code{method = "covariance"}, the \code{size} data observations
-#'       with the highest covariance with the observation requiring prediction are used.
-#'       If random effects and partition factors are not used in estimation and
-#'       the spatial covariance function is monotone decreasing,
-#'       \code{"distance"} and \code{"covariance"} are equivalent. The default
-#'       is \code{"covariance"}. Only used with models fit using [splm()].}
-#'     \item{\code{size}: }{The number of data observations to use when \code{method}
-#'       is \code{"distance"} or \code{"covariance"}. The default is 50. Only used
-#'       with models fit using [splm()].}
-#'     \item{\code{parallel}: }{If \code{TRUE}, parallel processing via the
-#'       parallel package is automatically used. The default is \code{FALSE}.}
-#'     \item{\code{ncores}: }{If \code{parallel = TRUE}, the number of cores to
-#'       parallelize over. The default is the number of available cores on your machine.}
-#'   }
-#'   When \code{local} is a list, at least one list element must be provided to
-#'   initialize default arguments for the other list elements.
-#'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
-#'   that \code{local} is transformed into
-#'   \code{list(size = 50, method = "covariance", parallel = FALSE)}.
-#' @param ... Other arguments to \code{ranger::predict.ranger()}
-#'
-#' @details For \code{splmRF} or \code{spautorRF} objects, the random forest prediction is combined with
-#'   the (empirical) best linear unbiased prediction for the residual. Fox Et al.
-#'   call this approach random forest regression Kriging. For \code{splmRF_list}
-#'   or \code{spautorRF} objects,
-#'   predictions are returned for each list element.
-#'
-#' @return For \code{splmRF} or \code{spautorRF} objects, a vector of predictions. For \code{splmRF_list}
-#'   or \code{spautorRF_list} objects, a list that contains relevant quantities for each list element.
-#'
+#' @rdname predict.spmodel
 #' @method predict splmRF
 #' @export
 #'
@@ -820,7 +779,7 @@ predict.splmRF <- function(object, newdata, local, ...) {
 
 }
 
-#' @rdname predict.splmRF
+#' @rdname predict.spmodel
 #' @method predict spautorRF
 #' @export
 predict.spautorRF <- function(object, newdata, local, ...) {
@@ -857,7 +816,7 @@ predict.spautorRF <- function(object, newdata, local, ...) {
   ranger_pred$predictions + spautor_pred
 }
 
-#' @name predict.splmRF
+#' @name predict.spmodel
 #' @method predict splmRF_list
 #' @export
 predict.splmRF_list <- function(object, newdata, local, ...) {
@@ -897,7 +856,7 @@ predict.splmRF_list <- function(object, newdata, local, ...) {
   sprf_pred
 }
 
-#' @name predict.splmRF
+#' @name predict.spmodel
 #' @method predict spautorRF_list
 #' @export
 predict.spautorRF_list <- function(object, newdata, local, ...) {

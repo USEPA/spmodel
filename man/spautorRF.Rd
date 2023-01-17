@@ -49,7 +49,7 @@ partition factors, and row standardization.
 }
 \details{
 The random forest residual spatial linear model is described by
-Fox Et al. (2020). A random forest model is fit to the mean portion of the
+Fox et al. (2020). A random forest model is fit to the mean portion of the
 model specified by \code{formula} using \code{ranger::ranger()}. Residuals
 are computed and used as the response variable in an intercept-only spatial
 linear model fit using \code{\link[=spautor]{spautor()}}. This model object is intended for use with

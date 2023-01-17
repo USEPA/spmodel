@@ -37,7 +37,7 @@
 #'   to the objects and columns representing the number of parameters estimated
 #'   (\code{df}) and the AIC or AICc.
 #'
-#'
+#' @name AIC.spmodel
 #' @method AIC splm
 #' @order 1
 #' @export
@@ -126,19 +126,19 @@ AIC.splm <- function(object, ..., k = 2) {
   AIC_val
 }
 
-#' @rdname AIC.splm
+#' @rdname AIC.spmodel
 #' @method AIC spautor
 #' @export
 AIC.spautor <- AIC.splm
 
-#' @rdname AIC.splm
+#' @rdname AIC.spmodel
 #' @export
 AICc <- function(object, ..., k = 2) {
   # method dispatch
   UseMethod("AICc", object)
 }
 
-#' @rdname AIC.splm
+#' @rdname AIC.spmodel
 #' @method AICc splm
 #' @export
 AICc.splm <- function(object, ..., k = 2) {
@@ -217,7 +217,7 @@ AICc.splm <- function(object, ..., k = 2) {
   AICc_val
 }
 
-#' @rdname AIC.splm
+#' @rdname AIC.spmodel
 #' @method AICc spautor
 #' @export
 AICc.spautor <- AICc.splm

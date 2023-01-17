@@ -30,6 +30,7 @@
 #'
 #' @return No return value. Function called for plotting side effects.
 #'
+#' @name plot.spmodel
 #' @method plot splm
 #' @export
 #'
@@ -176,7 +177,7 @@ plot.splm <- function(x, which, ...) {
   }
 }
 
-#' @rdname plot.splm
+#' @rdname plot.spmodel
 #' @method plot spautor
 #' @export
 plot.spautor <- function(x, which, ...) {

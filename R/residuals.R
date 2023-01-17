@@ -21,6 +21,7 @@
 #'
 #' @return The residuals as a numeric vector.
 #'
+#' @name residuals.spmodel
 #' @method residuals splm
 #' @export
 #'
@@ -45,29 +46,29 @@ residuals.splm <- function(object, type = "raw", ...) {
     stop("residuals must be raw or pearson or standardized")
   }
 }
-#' @rdname residuals.splm
+#' @rdname residuals.spmodel
 #' @method resid splm
 #' @export
 resid.splm <- residuals.splm
 
-#' @rdname residuals.splm
+#' @rdname residuals.spmodel
 #' @method residuals spautor
 #' @export
 residuals.spautor <- residuals.splm
 
-#' @rdname residuals.splm
+#' @rdname residuals.spmodel
 #' @method resid spautor
 #' @export
 resid.spautor <- residuals.spautor
 
-#' @rdname residuals.splm
+#' @rdname residuals.spmodel
 #' @method rstandard splm
 #' @export
 rstandard.splm <- function(model, ...) {
   residuals.splm(model, type = "standardized")
 }
 
-#' @rdname residuals.splm
+#' @rdname residuals.spmodel
 #' @method rstandard spautor
 #' @export
 rstandard.spautor <- rstandard.splm

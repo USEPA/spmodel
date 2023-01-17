@@ -8,6 +8,7 @@
 #' @return A model frame that contains the variables used by the formula
 #'   for the fitted model object.
 #'
+#' @name model.frame.spmodel
 #' @method model.frame splm
 #' @export
 #'
@@ -24,7 +25,7 @@ model.frame.splm <- function(formula, ...) {
   model.frame(formula(formula), data = formula$obdata, drop.unused.levels = TRUE, na.action = na.omit)
 }
 
-#' @rdname model.frame.splm
+#' @rdname model.frame.spmodel
 #' @method model.frame spautor
 #' @export
 model.frame.spautor <- function(formula, ...) {

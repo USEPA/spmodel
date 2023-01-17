@@ -6,17 +6,18 @@
 #' @param model A fitted model object from [splm()] or [spautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
-#' @details This function calls [residuals.splm()], [hatvalues.splm()],
-#'   and [cooks.distance.splm()] and puts the results into a tibble. It is
-#'   primarily used when calling [augment.splm()].
+#' @details This function calls [residuals.spmodel()], [hatvalues.spmodel()],
+#'   and [cooks.distance.spmodel()] and puts the results into a tibble. It is
+#'   primarily used when calling [augment.spmodel()].
 #'
 #' @return A tibble with residuals (\code{.resid}), leverage values (\code{.hat}),
 #'   cook's distance (\code{.cooksd}), and standardized residuals (\code{.std.resid}).
 #'
+#' @name influence.spmodel
 #' @method influence splm
 #' @export
 #'
-#' @seealso [augment.splm()] [cooks.distance.splm()] [hatvalues.splm()] [residuals.splm()]
+#' @seealso [augment.spmodel()] [cooks.distance.spmodel()] [hatvalues.spmodel()] [residuals.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -34,7 +35,7 @@ influence.splm <- function(model, ...) {
   )
 }
 
-#' @rdname influence.splm
+#' @rdname influence.spmodel
 #' @method influence spautor
 #' @export
 influence.spautor <- influence.splm

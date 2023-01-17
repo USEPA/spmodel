@@ -10,6 +10,7 @@
 #'
 #' @return Printed fitted model objects and summaries with formatting.
 #'
+#' @name print.spmodel
 #' @method print splm
 #' @export
 #'
@@ -67,7 +68,7 @@ print.splm <- function(x, digits = max(3L, getOption("digits") - 3L),
   invisible(x)
 }
 
-#' @rdname print.splm
+#' @rdname print.spmodel
 #' @method print spautor
 #' @export
 print.spautor <- function(x, digits = max(3L, getOption("digits") - 3L),
@@ -121,7 +122,7 @@ print.spautor <- function(x, digits = max(3L, getOption("digits") - 3L),
   invisible(x)
 }
 
-#' @rdname print.splm
+#' @rdname print.spmodel
 #' @method print summary.splm
 #' @export
 print.summary.splm <- function(x,
@@ -178,7 +179,7 @@ print.summary.splm <- function(x,
   invisible(x)
 }
 
-#' @rdname print.splm
+#' @rdname print.spmodel
 #' @method print summary.spautor
 #' @export
 print.summary.spautor <- function(x,
@@ -240,7 +241,7 @@ print.summary.spautor <- function(x,
   invisible(x)
 }
 
-#' @rdname print.splm
+#' @rdname print.spmodel
 #' @method print anova.splm
 #' @export
 print.anova.splm <- function(x, digits = max(getOption("digits") - 2L, 3L),
@@ -259,7 +260,7 @@ print.anova.splm <- function(x, digits = max(getOption("digits") - 2L, 3L),
   printCoefmat(x, digits = digits, signif.stars = signif.stars, P.values = P.values, has.Pvalue = has.Pvalue, ...)
 }
 
-#' @rdname print.splm
+#' @rdname print.spmodel
 #' @method print anova.spautor
 #' @export
 print.anova.spautor <- print.anova.splm

@@ -21,6 +21,7 @@
 #'
 #' @return The fitted values according to \code{type}.
 #'
+#' @name fitted.spmodel
 #' @method fitted splm
 #' @export
 #'
@@ -44,17 +45,17 @@ fitted.splm <- function(object, type = "response", ...) {
   }
   fitted_val
 }
-#' @rdname fitted.splm
+#' @rdname fitted.spmodel
 #' @method fitted.values splm
 #' @export
 fitted.values.splm <- fitted.splm
 
-#' @rdname fitted.splm
+#' @rdname fitted.spmodel
 #' @method fitted spautor
 #' @export
 fitted.spautor <- fitted.splm
 
-#' @rdname fitted.splm
+#' @rdname fitted.spmodel
 #' @method fitted.values spautor
 #' @export
 fitted.values.spautor <- fitted.spautor

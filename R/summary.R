@@ -14,10 +14,11 @@
 #' @return A list with several fitted model quantities used to create
 #'   informative summaries when printing.
 #'
+#' @name summary.spmodel
 #' @method summary splm
 #' @export
 #'
-#' @seealso [print.summary.splm()]
+#' @seealso [print.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -51,7 +52,7 @@ summary.splm <- function(object, ...) {
   new_summary_list
 }
 
-#' @rdname summary.splm
+#' @rdname summary.spmodel
 #' @method summary spautor
 #' @export
 summary.spautor <- summary.splm

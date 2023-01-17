@@ -8,6 +8,7 @@
 #' @return The variance-covariance matrix of coefficients obtained via \code{coef()}.
 #'   Currently, only the variance-covariance matrix of the fixed effects is supported.
 #'
+#' @name vcov.spmodel
 #' @method vcov splm
 #' @export
 #'
@@ -24,7 +25,7 @@ vcov.splm <- function(object, ...) {
   }
 }
 
-#' @rdname vcov.splm
+#' @rdname vcov.spmodel
 #' @method vcov spautor
 #' @export
 vcov.spautor <- vcov.splm

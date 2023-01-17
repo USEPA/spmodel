@@ -59,11 +59,12 @@
 #'     \item{\code{.se.fit}}{ Standard error of the predicted (or fitted) value}
 #'   }
 #'
+#' @name augment.spmodel
 #' @method augment splm
 #' @order 1
 #' @export
 #'
-#' @seealso [tidy.splm()] [glance.splm()]
+#' @seealso [tidy.spmodel()] [glance.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -174,7 +175,7 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
   tibble_out
 }
 
-#' @rdname augment.splm
+#' @rdname augment.spmodel
 #' @method augment spautor
 #' @export
 augment.spautor <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,

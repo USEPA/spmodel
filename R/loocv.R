@@ -9,9 +9,9 @@
 #' @param se.fit A logical indicating whether the leave-one-out
 #'   prediction standard errors should be returned. Defaults to \code{FALSE}.
 #' @param local A list or logical. If a list, specific list elements described
-#'   in [predict.splm()] control the big data approximation behavior.
+#'   in [predict.spmodel()] control the big data approximation behavior.
 #'   If a logical, \code{TRUE} chooses default list elements for the list version
-#'   of \code{local} as specified in [predict.splm()]. Defaults to \code{FALSE},
+#'   of \code{local} as specified in [predict.spmodel()]. Defaults to \code{FALSE},
 #'   which performs exact computations.
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'

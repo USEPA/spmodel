@@ -22,10 +22,11 @@
 #'     \item{\code{pseudo.r.squared}}{ The pseudo r-squared}
 #'   }
 #'
+#' @name glance.spmodel
 #' @method glance splm
 #' @export
 #'
-#' @seealso [AIC.splm()] [AICc()] [logLik.splm()] [deviance.splm()] [pseudoR2()] [tidy.splm()] [augment.splm()]
+#' @seealso [AIC.spmodel()] [AICc()] [logLik.spmodel()] [deviance.spmodel()] [pseudoR2()] [tidy.spmodel()] [augment.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -49,7 +50,7 @@ glance.splm <- function(x, ...) {
   )
 }
 
-#' @rdname glance.splm
+#' @rdname glance.spmodel
 #' @method glance spautor
 #' @export
 glance.spautor <- glance.splm

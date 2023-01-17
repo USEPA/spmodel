@@ -9,6 +9,7 @@
 #'   observations and whose columns represent explanatory variables corresponding
 #'   to each fixed effect.
 #'
+#' @name model.matrix.spmodel
 #' @method model.matrix splm
 #' @export
 #'
@@ -24,7 +25,7 @@ model.matrix.splm <- function(object, ...) {
   model.matrix(object$formula, model.frame(object), contrasts = object$contrasts)
 }
 
-#' @rdname model.matrix.splm
+#' @rdname model.matrix.spmodel
 #' @method model.matrix spautor
 #' @export
 model.matrix.spautor <- model.matrix.splm

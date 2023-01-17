@@ -8,6 +8,7 @@
 #' @return A character vector containing the terms used for the fixed effects
 #'   from a fitted model object.
 #'
+#' @name labels.spmodel
 #' @method labels splm
 #' @export
 #'
@@ -21,7 +22,7 @@ labels.splm <- function(object, ...) {
   labels(terms(formula(object)))
 }
 
-#' @rdname labels.splm
+#' @rdname labels.spmodel
 #' @method labels spautor
 #' @export
 labels.spautor <- labels.splm

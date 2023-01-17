@@ -13,6 +13,7 @@
 #'
 #' @return A named vector of coefficients.
 #'
+#' @name coef.spmodel
 #' @method coef splm
 #' @export
 #'
@@ -36,17 +37,17 @@ coef.splm <- function(object, type = "fixed", ...) {
     stop("Invalid type argument. The type argument must be \"fixed\", \"spcov\", or \"randcov\".", call. = FALSE)
   }
 }
-#' @rdname coef.splm
+#' @rdname coef.spmodel
 #' @method coefficients splm
 #' @export
 coefficients.splm <- coef.splm
 
-#' @rdname coef.splm
-#' @method coef splm
+#' @rdname coef.spmodel
+#' @method coef spautor
 #' @export
 coef.spautor <- coef.splm
 
-#' @rdname coef.splm
+#' @rdname coef.spmodel
 #' @method coefficients spautor
 #' @export
 coefficients.spautor <- coef.spautor

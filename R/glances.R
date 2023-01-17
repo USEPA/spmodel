@@ -34,8 +34,8 @@ glances <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
 #' @export
 glances.splm <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
   model_list <- c(list(object), list(...))
-  if (any(vapply(model_list, function(x) class(x), character(1)) != class(object))) {
-    stop(paste("All models must be of class", class(object), sep = " "), call. = FALSE)
+  if (any(!(vapply(model_list, function(x) class(x), character(1)) %in% c("splm", "spautor")))) {
+    stop("All models must be of class splm or spautor", call. = FALSE)
   }
   model_list_names <- c(as.character(as.list(substitute(list(object)))[-1]), as.character(as.list(substitute(list(...)))[-1]))
   model_glance <- lapply(model_list, function(x) glance(x))

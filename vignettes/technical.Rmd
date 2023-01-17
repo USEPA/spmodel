@@ -389,7 +389,7 @@ If the fitted model does not have an intercept, the $n - 1$ term is instead $n$.
 
 Terminology regarding residual names if often conflicting and confusing. Because of this, next we explicitly define the residual options in `spmodel`. These definitions may be different from others you may have seen in the literature.
 
-When `type = "raw"`, raw residuals are returned:
+When `type = "response"`, response residuals are returned:
 \begin{equation*}
  \mathbf{e}_{r} = \mathbf{y} - \mathbf{X} \hat{\boldsymbol{\beta}}.
 \end{equation*}

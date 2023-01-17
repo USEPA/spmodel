@@ -224,16 +224,16 @@ fitted(spmod)
 ```
 Fitted values for the spatially dependent random errors ($\boldsymbol{\tau}$), spatially independent random errors ($\boldsymbol{\epsilon}$), and random effects can also be obtained via `fitted()` by changing the `type` argument.
 
-The residuals measure each response's deviation from its fitted value. The raw residuals are given by
+The residuals measure each response's deviation from its fitted value. The response residuals are given by
 \begin{equation*}
   \mathbf{e}_{r} = \mathbf{y} - \hat{\mathbf{y}}.
 \end{equation*}
-We compute the raw residuals of the spatial model by running
+We compute the response residuals of the spatial model by running
 ```{r, eval = FALSE}
 residuals(spmod)
 ```
 
-The raw residuals are typically not directly checked for linear model assumptions, as they have covariance closely resembling the covariance of $\mathbf{y}$. Pre-multiplying the residuals by $\boldsymbol{\Sigma}^{-1/2}$ yields the Pearson residuals [@myers2012generalized]:
+The response residuals are typically not directly checked for linear model assumptions, as they have covariance closely resembling the covariance of $\mathbf{y}$. Pre-multiplying the residuals by $\boldsymbol{\Sigma}^{-1/2}$ yields the Pearson residuals [@myers2012generalized]:
 \begin{equation*}
   \mathbf{e}_{p} = \boldsymbol{\Sigma}^{-1/2}\mathbf{e}_{r}.
 \end{equation*}

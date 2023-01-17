@@ -10,13 +10,13 @@
 \alias{rstandard.spautor}
 \title{Extract fitted model residuals}
 \usage{
-\method{residuals}{splm}(object, type = "raw", ...)
+\method{residuals}{splm}(object, type = "response", ...)
 
-\method{resid}{splm}(object, type = "raw", ...)
+\method{resid}{splm}(object, type = "response", ...)
 
-\method{residuals}{spautor}(object, type = "raw", ...)
+\method{residuals}{spautor}(object, type = "response", ...)
 
-\method{resid}{spautor}(object, type = "raw", ...)
+\method{resid}{spautor}(object, type = "response", ...)
 
 \method{rstandard}{splm}(model, ...)
 
@@ -25,9 +25,9 @@
 \arguments{
 \item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
 
-\item{type}{\code{"raw"} for raw residuals, \code{"pearson"}
+\item{type}{\code{"response"} for response residuals, \code{"pearson"}
 for Pearson residuals, or \code{"standardized"} for standardized residuals.
-The default is \code{"raw"}.}
+The default is \code{"response"}.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 
@@ -41,9 +41,9 @@ Extract residuals from a fitted model object.
 \code{resid} is an alias.
 }
 \details{
-The raw residuals are taken as the response minus the fitted values
+The response residuals are taken as the response minus the fitted values
 for the response: \eqn{y - X \hat{\beta}}. The Pearson residuals are the
-raw residuals pre-multiplied by their square (Cholesky) root.
+response residuals pre-multiplied by their square (Cholesky) root.
 The standardized residuals are Pearson residuals divided by the square
 root of one minus the leverage (hat) value. The standardized residuals are often used to
 check model assumptions, as they have mean zero and variance approximately one.

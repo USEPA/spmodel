@@ -135,8 +135,8 @@ print.summary.splm <- function(x,
   # pasting the residual summary
   cat("\nResiduals:\n")
   resQ <- c(
-    min(x$residuals$raw), quantile(x$residuals$raw, p = c(0.25, 0.5, 0.75), na.rm = TRUE),
-    max(x$residuals$raw)
+    min(x$residuals$response), quantile(x$residuals$response, p = c(0.25, 0.5, 0.75), na.rm = TRUE),
+    max(x$residuals$response)
   )
   names(resQ) <- c("Min", "1Q", "Median", "3Q", "Max")
   print(resQ, digits = digits)
@@ -192,8 +192,8 @@ print.summary.spautor <- function(x,
   # pasting the residual summary
   cat("\nResiduals:\n")
   resQ <- c(
-    min(x$residuals$raw), quantile(x$residuals$raw, p = c(0.25, 0.5, 0.75), na.rm = TRUE),
-    max(x$residuals$raw)
+    min(x$residuals$response), quantile(x$residuals$response, p = c(0.25, 0.5, 0.75), na.rm = TRUE),
+    max(x$residuals$response)
   )
   names(resQ) <- c("Min", "1Q", "Median", "3Q", "Max")
   print(resQ, digits = digits)

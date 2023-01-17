@@ -5,6 +5,7 @@
 * Added the `varcomp` function to compare variance components
 * Added an error message when there are `NA` values in predictors.
 * Added an error message when the design (model) matrix is not invertible (i.e., perfect collinearities are detected).
+* Renamed `residuals()` type `raw` to `response` to match `stats::lm()`
 * Changed class of `splm()` output to `"splm"` from `"spmod"` or `"splm_list"` from `"spmod_list"`.
 * Changed class of `spautor()` output to `"spautor"` from `"spmod"` or `"spautor_list"` from `"spautor_list"`.
 * Changed class of `splmRF()` output to `"splmRF"` from `"spmodRF"` or `"splmRF_list"` from `"spmodRF_list"`.

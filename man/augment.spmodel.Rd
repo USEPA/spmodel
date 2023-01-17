@@ -50,7 +50,7 @@ to \code{"none"}.}
 When augmenting the original data set, a tibble with additional columns
 \itemize{
 \item{\code{.fitted}}{ Fitted value}
-\item{\code{.resid}}{ Raw residual (the difference between observed and fitted values)}
+\item{\code{.resid}}{ Response residual (the difference between observed and fitted values)}
 \item{\code{.hat}}{ Leverage (diagonal of the hat matrix)}
 \item{\code{.cooksd}}{ Cook's distance}
 \item{\code{.std.resid}}{ Standardized residuals}

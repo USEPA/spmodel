@@ -77,7 +77,7 @@ get_model_stats_splm <- function(cov_est_object, data_object, estmethod) {
   fitted$spcov$de <- fitted$spcov$de[order(data_object$order)]
   fitted$spcov$ie <- fitted$spcov$ie[order(data_object$order)]
   hatvalues <- hatvalues[order(data_object$order)]
-  residuals$raw <- residuals$raw[order(data_object$order)]
+  residuals$response <- residuals$response[order(data_object$order)]
   residuals$pearson <- residuals$pearson[order(data_object$order)]
   residuals$standardized <- residuals$standardized[order(data_object$order)]
   cooks_distance <- cooks_distance[order(data_object$order)]

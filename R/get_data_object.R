@@ -122,6 +122,9 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   X <- model.matrix(formula, obdata_model_frame, contrasts = dots$contrasts)
   # finding rows w/out NA
   ob_predictors <- complete.cases(X)
+  if (any(!ob_predictors)) {
+    stop("Cannot have NA values in predictors.", call. = FALSE)
+  }
   # subset obdata by nonNA predictors
   obdata <- obdata[ob_predictors, , drop = FALSE]
 
@@ -136,6 +139,9 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   xlevels <- .getXlevels(terms_val, obdata_model_frame)
   # find p
   p <- as.numeric(Matrix::rankMatrix(X))
+  if (p < NCOL(X)) {
+    stop("Perfect collinearities detected in X. Remove redundant predictors.", call. = FALSE)
+  }
   # find sample size
   n <- NROW(X)
   # find response
@@ -334,6 +340,21 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
   }
 
 
+  # finding model frame
+  obdata_model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass)
+  # finding contrasts as ...
+  dots <- list(...)
+  if (!"contrasts" %in% names(dots)) {
+    dots$contrasts <- NULL
+  }
+  # model matrix with potential NA
+  X <- model.matrix(formula, obdata_model_frame, contrasts = dots$contrasts)
+  # finding rows w/out NA
+  ob_predictors <- complete.cases(X)
+  if (any(!ob_predictors)) {
+    stop("Cannot have NA values in predictors.", call. = FALSE)
+  }
+
 
   # store X and y
   obdata_model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.omit)
@@ -357,6 +378,9 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
   # store n, p, and ones
   n <- NROW(obdata)
   p <- as.numeric(Matrix::rankMatrix(X))
+  if (p < NCOL(X)) {
+    stop("Perfect collinearities detected in X. Remove redundant predictors.", call. = FALSE)
+  }
   ones <- rep(1, n)
 
   # error if p >= n

@@ -2,17 +2,24 @@
 
 ## Minor updates
 
+* Added the `varcomp` function to compare variance components
+* Added an error message when there are `NA` values in predictors.
+* Added an error message when the design (model) matrix is not invertible (i.e., perfect collinearities are detected).
 * Changed class of `splm()` output to `"splm"` from `"spmod"` or `"splm_list"` from `"spmod_list"`.
 * Changed class of `spautor()` output to `"spautor"` from `"spmod"` or `"spautor_list"` from `"spautor_list"`.
 * Changed class of `splmRF()` output to `"splmRF"` from `"spmodRF"` or `"splmRF_list"` from `"spmodRF_list"`.
 * Changed class of `spautorRF()` output to `"spautorRF"` from `"spmodRF"` or `"spautorRF_list"` from `"spmodRF_list"`.
-* Added the `varcomp` function to compare variance components
+* Methods corresponding to a generic function defined outside of `spmodel` are now all documented using
+    an `.spmodel` suffix, making it easier to find documentation of a particular
+    `spmodel` method for the generic function of interest.
 * Updated citation information
 
 
 ## Bug fixes
 
 * Fixed a bug that produced irregular spacing in an error message for `spcov_initial()`.
+* Fixed a bug that prevented proper display of row names when calling `predict()
+    with `interval = "confidence"`.
 
 # spmodel 0.2.0
 

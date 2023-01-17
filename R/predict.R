@@ -349,7 +349,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
       lwr <- fit - tstar * se
       upr <- fit + tstar * se
       fit <- cbind(fit, lwr, upr)
-      rownames(fit) <- 1:NROW(fit)
+      row.names(fit) <- 1:NROW(fit)
       if (se.fit) {
         if (add_newdata_rows) {
           row.names(fit) <- object$missing_index
@@ -374,6 +374,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
     lwr <- fit - tstar * se
     upr <- fit + tstar * se
     fit <- cbind(fit, lwr, upr)
+    row.names(fit) <- 1:NROW(fit)
     if (se.fit) {
       if (add_newdata_rows) {
         row.names(fit) <- object$missing_index
@@ -549,7 +550,7 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none"
       lwr <- fit - tstar * se
       upr <- fit + tstar * se
       fit <- cbind(fit, lwr, upr)
-      rownames(fit) <- 1:NROW(fit)
+      row.names(fit) <- 1:NROW(fit)
       if (se.fit) {
         row.names(fit) <- object$missing_index
         names(se) <- object$missing_index
@@ -569,6 +570,7 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none"
     lwr <- fit - tstar * se
     upr <- fit + tstar * se
     fit <- cbind(fit, lwr, upr)
+    row.names(fit) <- 1:NROW(fit)
     if (se.fit) {
       row.names(fit) <- object$missing_index
       names(se) <- object$missing_index

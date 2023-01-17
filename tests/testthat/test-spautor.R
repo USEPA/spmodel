@@ -599,6 +599,11 @@ if (test_local) {
     expect_error(spautor(y ~ x, exdata_poly, "exponential"))
     expect_error(spautor(y ~ x, exdata, "car"))
     expect_error(spautor(y ~ x, exdata_poly, "car", estmethod = "xyz"))
+    exdata_poly4 <- exdata_poly
+    exdata_poly4$x2 <- exdata_poly4$x
+    expect_error(spautor(y ~ x + x2, exdata_poly4, "car"))
+    exdata_poly4$x[1] <- NA
+    expect_error(spautor(y ~ x, exdata_poly4, "car"))
   })
 
   test_that("additional covr", {

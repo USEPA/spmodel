@@ -36,13 +36,13 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
 
   if (!missing(xcoord)) {
     if (!as.character(xcoord) %in% colnames(data)) {
-      stop("The xcoord argument must match the name of a variable in data", call. = FALSE)
+      stop("The xcoord argument must match the name of a variable in data.", call. = FALSE)
     }
   }
 
   if (!missing(ycoord)) {
     if (!as.character(ycoord) %in% colnames(data)) {
-      stop("The ycoord argument must match the name of a variable in data", call. = FALSE)
+      stop("The ycoord argument must match the name of a variable in data.", call. = FALSE)
     }
   }
 

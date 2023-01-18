@@ -13,6 +13,9 @@ test_that("esv works", {
   expect_equal(NROW(esv1_q), 15)
   expect_equal(NCOL(esv1_q), 4)
 
+  # quoting works
+  expect_equal(esv1, esv1_q)
+
   # specifying bins and cutoff
   esv2 <- esv(y ~ x, exdata, xcoord, ycoord, bins = 30, cutoff = 5)
   expect_s3_class(esv2, "data.frame")
@@ -33,11 +36,15 @@ test_that("esv works", {
   expect_equal(NCOL(esv1), 4)
   expect_false(identical(esv1, esv4)) # make sure results are not identical to full esv
 
-  # quoting works
-  esv1_2 <- esv(y ~ x, exdata, "xcoord", "ycoord")
-  expect_equal(esv1, esv1_2)
-
   # works with sf object
   exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"))
   expect_error(esv(y ~ x, exdata_sf), NA)
+
+  # works with one dimension
+  expect_error(esv(y ~ x, exdata, xcoord), NA)
+
+  # errors occur
+  expect_error(esv(y ~ x, exdata))
+  expect_error(esv(y ~ x, exdata, xcoord_xyz))
+  expect_error(esv(y ~ x, exdata, xcoord, ycoord_xyz))
 })

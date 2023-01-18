@@ -5,6 +5,7 @@
 * Added the `varcomp` function to compare variance components
 * Added an error message when there are `NA` values in predictors.
 * Added an error message when the design (model) matrix is not invertible (i.e., perfect collinearities are detected).
+* Added support for plotting anisotropic level curves of equal correlation when the `which` argument to `plot()` contains `8`.
 * Renamed `residuals()` type `raw` to `response` to match `stats::lm()`
 * Changed class of `splm()` output to `"splm"` from `"spmod"` or `"splm_list"` from `"spmod_list"`.
 * Changed class of `spautor()` output to `"spautor"` from `"spmod"` or `"spautor_list"` from `"spautor_list"`.

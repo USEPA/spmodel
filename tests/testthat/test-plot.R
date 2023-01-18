@@ -24,6 +24,17 @@ test_that("plot works geo", {
 
   # plot 7
   expect_error(plot(spmod, which = 7), NA)
+
+  # plot 8
+  expect_error(plot(spmod, which = 8), NA)
+
+  # plot 9 (return error)
+  expect_error(plot(spmod, which = 9))
+
+  spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord, anisotropy = TRUE)
+
+  # plot 8
+  expect_error(plot(spmod, which = 8), NA)
 })
 
 test_that("plot works auto", {
@@ -49,4 +60,7 @@ test_that("plot works auto", {
 
   # plot 7
   expect_error(plot(spmod, which = 7))
+
+  # plot 8
+  expect_error(plot(spmod, which = 8))
 })

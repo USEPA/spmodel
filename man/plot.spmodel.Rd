@@ -28,7 +28,8 @@ No return value. Function called for plotting side effects.
 \description{
 Plot fitted model diagnostics such as residuals vs fitted values,
 quantile-quantile, scale-location, Cook's distance, residuals vs leverage,
-Cook's distance vs leverage, and a fitted spatial covariance function.
+Cook's distance vs leverage, a fitted spatial covariance function, and a
+fitted anisotropic level curve of equal correlation.
 }
 \details{
 For \code{\link[=splm]{splm()}} and \code{\link[=spautor]{spautor()}}, the values of \code{which} make the
@@ -41,9 +42,10 @@ corresponding plot:
 \item{5:}{ Standardized residuals vs leverage}
 \item{6:}{ Cook's distance vs leverage}
 }
-For \code{\link[=splm]{splm()}}, there is an additional value of \code{which}:
+For \code{\link[=splm]{splm()}}, there are two additional values of \code{which}:
 \itemize{
 \item{7:}{ Fitted spatial covariance function vs distance}
+\item{8:}{ Fitted anisotropic level curve of equal correlation}
 }
 }
 \examples{

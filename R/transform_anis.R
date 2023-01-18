@@ -15,3 +15,16 @@ transform_anis <- function(data, xcoord, ycoord, rotate, scale) {
   new_coords <- (scale_yaxis %*% rotate_clockwise) %*% coords
   list(xcoord_val = new_coords[1, ], ycoord_val = new_coords[2, ])
 }
+
+#' The inverse of transforming coordiantes to accommodate anisotropy
+#'
+#' @return new coordinates
+#'
+#' @noRd
+transform_anis_inv <- function(data, xcoord, ycoord, rotate, scale) {
+  rotate_clockwise_inv <- matrix(c(cos(rotate), -sin(rotate), sin(rotate), cos(rotate)), nrow = 2, ncol = 2, byrow = TRUE)
+  scale_yaxis_inv <- matrix(c(1, 0, 0, scale), nrow = 2, ncol = 2, byrow = TRUE)
+  coords <- rbind(data[[xcoord]], data[[ycoord]])
+  new_coords <- (rotate_clockwise_inv %*% scale_yaxis_inv) %*% coords
+  list(xcoord_val = new_coords[1, ], ycoord_val = new_coords[2, ])
+}

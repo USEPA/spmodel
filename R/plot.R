@@ -2,7 +2,8 @@
 #'
 #' @description Plot fitted model diagnostics such as residuals vs fitted values,
 #'   quantile-quantile, scale-location, Cook's distance, residuals vs leverage,
-#'   Cook's distance vs leverage, and a fitted spatial covariance function.
+#'   Cook's distance vs leverage, a fitted spatial covariance function, and a
+#'   fitted anisotropic level curve of equal correlation.
 #'
 #' @param x A fitted model object from [splm()] or [spautor()].
 #' @param which An integer vector taking on values between 1 and 7, which indicates
@@ -23,9 +24,10 @@
 #'     \item{5:}{ Standardized residuals vs leverage}
 #'     \item{6:}{ Cook's distance vs leverage}
 #'   }
-#'   For [splm()], there is an additional value of \code{which}:
+#'   For [splm()], there are two additional values of \code{which}:
 #'   \itemize{
 #'     \item{7:}{ Fitted spatial covariance function vs distance}
+#'     \item{8:}{ Fitted anisotropic level curve of equal correlation}
 #'   }
 #'
 #' @return No return value. Function called for plotting side effects.
@@ -46,8 +48,8 @@ plot.splm <- function(x, which, ...) {
     which <- c(1, 2, 7)
   }
 
-  if (any(!(which %in% 1:7))) {
-    stop("Values of which can only take on 1, 2, 3, 4, 5, 6, or 7.", call. = FALSE)
+  if (any(!(which %in% 1:8))) {
+    stop("Values of which can only take on 1, 2, 3, 4, 5, 6, 7, or 8.", call. = FALSE)
   }
 
   # setting old graphical parameter value
@@ -173,6 +175,39 @@ plot.splm <- function(x, which, ...) {
       ...
     )
     points(x = h[1], y = sum(spcoef[c("de", "ie")]), ...)
+    title(sub = sub.caption)
+  }
+
+  if (8 %in% which) {
+    r <- 1
+    theta_seq <- seq(0, 2 * pi, length.out = 1000)
+    x_orig <- r * cos(theta_seq)
+    y_orig <- r * sin(theta_seq)
+    spcoef <- coefficients(x, type = "spcov")
+    rotate <- spcoef[["rotate"]]
+    scale <- spcoef[["scale"]]
+    if (rotate != 0 || scale != 1) {
+      dat <- data.frame(x_orig = x_orig, y_orig = y_orig)
+      new_coords <- transform_anis_inv(dat, "x_orig", "y_orig", rotate, scale)
+      x_new <- new_coords$xcoord_val
+      y_new <- new_coords$ycoord_val
+    } else {
+      x_new <- x_orig
+      y_new <- y_orig
+    }
+    plot(
+      x = x_new,
+      y = y_new,
+      xlab = "x-distance",
+      ylab = "y-distance",
+      main = "Anisotropic level curve", # of equal correlation
+      type = "l",
+      xlim = c(-1, 1),
+      ylim = c(-1, 1),
+      xaxt = "n", # remove axis information
+      yaxt = "n", # remove axis information
+      ...
+    )
     title(sub = sub.caption)
   }
 }

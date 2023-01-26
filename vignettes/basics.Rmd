@@ -271,6 +271,8 @@ Here we list some commonly used `spmodel` functions.
 * `vcov()`: Compute variance-covariance matrices of estimated parameters.
 
 For a full list of `spmodel` functions alongside their documentation, see the documentation manual.
+Documentation for methods of generic functions that are defined outside of `spmodel` can be found
+by running `?generic.spmodel` (e.g., `?fitted.spmodel`, `?predict.spmodel`, `?summary.spmodel`, etc.).
 
 # References {.unnumbered}
 

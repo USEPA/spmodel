@@ -167,7 +167,7 @@ The columns of this tibble represent:
 * `.std.residuals`: Standardized residuals
 * `geometry`: The spatial information in the `sf` object.
 
-By default, `augment()` only returns the variables in the data used by the model. All variables from the original data are returned by setting `drop = FALSE`. Many of these model diagnostics can be visualized by running `plot(spmod)`. We can learn more about `plot()` in `spmodel` by running `help("plot.splm", "spmodel")`. 
+By default, `augment()` only returns the variables in the data used by the model. All variables from the original data are returned by setting `drop = FALSE`. Many of these model diagnostics can be visualized by running `plot(spmod)`. We can learn more about `plot()` in `spmodel` by running `help("plot.spmodel", "spmodel")`. 
 
 ## Prediction (Kriging)
 

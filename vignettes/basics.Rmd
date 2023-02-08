@@ -247,6 +247,7 @@ Here we list some commonly used `spmodel` functions.
 * `augment()`: Augment data with diagnostics or new data with predictions.
 * `coef()`: Return coefficients.
 * `confint()`: Compute confidence intervals.
+* `cooks.distance()`: Compute Cook's distance.
 * `covmatrix()`: Return covariance matrices.
 * `deviance()`: Compute the deviance.
 * `esv()`: Compute an empirical semivariogram.
@@ -256,6 +257,7 @@ Here we list some commonly used `spmodel` functions.
 * `hatvalues()`: Compute leverage (hat) values.
 * `logLik()`: Compute the log-likelihood.
 * `loocv()`: Perform leave-one-out cross validation.
+* `model.matrix()`: Return the model matrix ($\mathbf{X}$).
 * `plot()`: Create fitted model plots.
 * `predict()`: Compute predictions and prediction intervals.
 * `pseudoR2()`: Compute the pseudo r-squared.

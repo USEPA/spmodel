@@ -63,7 +63,7 @@ get_model_stats_splm <- function(cov_est_object, data_object, estmethod) {
   )
 
   # return hat values
-  hatvalues <- as.numeric(unlist(lapply(cholprods_list, function(x) get_hatvalues(cov_betahat, x$SqrtSigInv_X))))
+  hatvalues <- as.numeric(unlist(lapply(cholprods_list, function(x) get_hatvalues(cov_betahat_noadjust, x$SqrtSigInv_X))))
 
   # return residuals
   residuals <- get_residuals_splm(betahat, data_object, cholprods_list, hatvalues)

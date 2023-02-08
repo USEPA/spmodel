@@ -172,7 +172,12 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     if (length(partition_factor_labels) > 1) {
       stop("Only one variable can be specified in partition_factor.", call. = FALSE)
     }
-    partition_factor <- reformulate(paste0("as.character(", partition_factor_labels, ")"), intercept = FALSE)
+    partition_mf <- model.frame(partition_factor, obdata)
+    if (any(! attr(terms(partition_mf), "dataClasses") %in% c("character", "factor"))) {
+      stop("Partition factor variable must be categorical or factor.", call. = FALSE)
+    }
+    partition_factor <- reformulate(partition_factor_labels, intercept = FALSE)
+    # partition_factor <- reformulate(paste0("as.character(", partition_factor_labels, ")"), intercept = FALSE)
   }
 
 

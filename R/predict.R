@@ -222,9 +222,9 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
       # comment out here for simple
       reform_bar_list <- lapply(randcov_names, function(randcov_name) {
         bar_split <- unlist(strsplit(randcov_name, " | ", fixed = TRUE))
-        reform_bar2 <- reformulate(paste0("as.numeric(", bar_split[[2]], ")"), intercept = FALSE)
+        reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
         if (bar_split[[1]] != "1") {
-          reform_bar1 <- reformulate(paste0("as.numeric(", bar_split[[1]], ")"), intercept = FALSE)
+          reform_bar1 <- reformulate(bar_split[[1]], intercept = FALSE)
         } else {
           reform_bar1 <- NULL
         }
@@ -234,7 +234,17 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
       names(reform_bar2_list) <- randcov_names
       reform_bar1_list <- lapply(reform_bar_list, function(x) x$reform_bar1)
       names(reform_bar1_list) <- randcov_names
-      Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) as.vector(model.matrix(reform_bar2, obdata)))
+      Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) {
+        reform_bar2_mf <- model.frame(reform_bar2, obdata)
+        reform_bar2_terms <- terms(reform_bar2_mf)
+        reform_bar2_xlev <- .getXlevels(reform_bar2_terms, reform_bar2_mf)
+        reform_bar2_mx <- model.matrix(reform_bar2, obdata)
+        reform_bar2_names <- colnames(reform_bar2_mx)
+        reform_bar2_split <- split(reform_bar2_mx, seq_len(NROW(reform_bar2_mx)))
+        reform_bar2_vals <- reform_bar2_names[vapply(reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+        list(reform_bar2_vals = reform_bar2_vals, reform_bar2_xlev = reform_bar2_xlev)
+      })
+      # Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) as.vector(model.matrix(reform_bar2, obdata)))
       names(Z_index_obdata_list) <- randcov_names
       Z_val_obdata_list <- lapply(reform_bar1_list, function(reform_bar1) {
         if (is.null(reform_bar1)) {
@@ -253,10 +263,19 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
 
     # partition factor stuff
     if (!is.null(object$partition_factor)) {
+
       partition_factor_val <- get_partition_name(labels(terms(object$partition_factor)))
       bar_split <- unlist(strsplit(partition_factor_val, " | ", fixed = TRUE))
-      reform_bar2 <- reformulate(paste0("as.numeric(", bar_split[[2]], ")"), intercept = FALSE)
-      partition_index_obdata <- as.vector(model.matrix(reform_bar2, obdata))
+      reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
+      p_reform_bar2_mf <- model.frame(reform_bar2, obdata)
+      p_reform_bar2_terms <- terms(p_reform_bar2_mf)
+      p_reform_bar2_xlev <- .getXlevels(p_reform_bar2_terms, p_reform_bar2_mf)
+      p_reform_bar2_mx <- model.matrix(reform_bar2, obdata)
+      p_reform_bar2_names <- colnames(p_reform_bar2_mx)
+      p_reform_bar2_split <- split(p_reform_bar2_mx, seq_len(NROW(p_reform_bar2_mx)))
+      p_reform_bar2_vals <- p_reform_bar2_names[vapply(p_reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+      partition_index_obdata <- list(reform_bar2_vals = p_reform_bar2_vals, reform_bar2_xlev = p_reform_bar2_xlev)
+      # partition_index_obdata <- as.vector(model.matrix(reform_bar2, obdata))
     } else {
       reform_bar2 <- NULL
       partition_index_obdata <- NULL

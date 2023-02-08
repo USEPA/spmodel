@@ -14,7 +14,10 @@
 * Methods corresponding to a generic function defined outside of `spmodel` are now all documented using
     an `.spmodel` suffix, making it easier to find documentation of a particular
     `spmodel` method for the generic function of interest.
+* Return an error when random effect grouping variables or partition factors are numeric.
+* Return an error when random effect or partition factor levels in `newdata` are not also in `data`.
 * Updated citation information
+
 
 
 ## Bug fixes
@@ -23,6 +26,7 @@
 * Fixed a bug that prevented proper display of row names when calling `predict()
     with `interval = "confidence"`.
 * Fixed a bug that could miscalculate model diagnostics when `local` was specified.
+* Fixed a bug that caused errors in model-fitting and prediction when random effect or partition factor levels as a result of incorrect coercion among vector types.
 
 # spmodel 0.2.0
 

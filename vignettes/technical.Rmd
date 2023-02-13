@@ -859,7 +859,7 @@ To perform estimation for big data, observations with the same index value are a
 Estimation then proceeds as described in Section$~$\ref{subsec:estimation} using $\boldsymbol{\Sigma}_{bd}$ instead of $\boldsymbol{\Sigma}$. When computing the empirical semivariogram, semivariances are ignored when observations have different local indexes. For the `sv-wls` and `sv-cl` estimation methods, semivariances are ignored when observations have different local indexes. Via Equation$~$\ref{eq:bd_cov}, it can be seen that the local index acts as a partition factor separate from the partition factor explicitly defined by `partition_factor`.
 
 
-spmodel allows for custom local indexes to be passed to `splm()`. If a custom local index is not passed, the local index is determined using the `"random"` or `"kmeans"` method. The `"random"` method assigns observations to indexes randomly based on the number of groups desired. The `"kmeans"` method uses k-means clustering [@macqueen1967some] on the x-coordinates and y-coordinates to assign observations to indexes (based on the number of clusters (groups) desired).
+spmodel allows for custom local indexes to be passed to `splm()`. If a custom local index is not passed, the local index is determined using the `"random"` or `"kmeans"` method. The `"random"` method assigns observations to indexes randomly based on the number of groups desired. The `"kmeans"` method uses k-means clustering [@macqueen1967classification] on the x-coordinates and y-coordinates to assign observations to indexes (based on the number of clusters (groups) desired).
 
 The estimate of $\boldsymbol{\beta}$ when using Equation$~$\ref{eq:bd_cov} is given by
 \begin{equation}\label{eq:beta_bd}

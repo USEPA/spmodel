@@ -721,7 +721,7 @@ local1 <- splm(sim_response ~ 1, sim_data, spcov_type = "exponential",
 summary(local1)
 ```
 
-Instead of using `local = TRUE`, we can explicitly set `local`. For example, we can fit a model using k-means clustering [@macqueen1967some]  on the x-coordinates and y-coordinates to create 60 groups (clusters), use the pooled variance adjustment, and use parallel processing with two cores by running
+Instead of using `local = TRUE`, we can explicitly set `local`. For example, we can fit a model using k-means clustering [@macqueen1967classification]  on the x-coordinates and y-coordinates to create 60 groups (clusters), use the pooled variance adjustment, and use parallel processing with two cores by running
 ```{r}
 local2_list <- list(method = "kmeans", groups = 60, var_adjust = "pooled",
                     parallel = TRUE, ncores = 2)

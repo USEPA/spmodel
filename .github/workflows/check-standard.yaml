@@ -43,7 +43,7 @@ jobs:
         with:
           extra-packages: rcmdcheck
 
-      - uses: r-lib/actions/setup-tinytex@main
+      - uses: r-lib/actions/setup-tinytex@v1
 
       - uses: r-lib/actions/check-r-package@v2
         with:

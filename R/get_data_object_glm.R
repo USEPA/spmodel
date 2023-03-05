@@ -2,7 +2,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
                                  anisotropy, random, randcov_initial, partition_factor, local, ...) {
 
 
-  browser()
+
   # covert sp to sf
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {

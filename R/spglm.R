@@ -92,6 +92,16 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
     partition_factor, local, ...
   )
 
+  # parallel cluster if necessary
+  if (data_object$parallel) {
+    data_object$cl <- parallel::makeCluster(data_object$ncores)
+    # invisible(clusterEvalQ(data_object$cl, library(Matrix)))
+  }
+
+  cov_est_object <- cov_estimate_laploglik_spglm(data_object, formula,
+                                                 spcov_initial, dispersion_initial, estmethod,
+                                                 optim_dotlist = get_optim_dotlist(...))
+
 
 
 }

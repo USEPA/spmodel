@@ -91,5 +91,9 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
     partition_factor, row_st, ...
   )
 
+  cov_est_object <- cov_estimate_laploglik_spgautor(data_object, formula,
+                                                 spcov_initial, dispersion_initial, estmethod,
+                                                 optim_dotlist = get_optim_dotlist(...))
+
 
 }

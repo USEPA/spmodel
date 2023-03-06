@@ -61,7 +61,7 @@ laploglik_products.exponential <- function(spcov_params_val, dispersion_params_v
   dispersion <- as.vector(dispersion_params_val) # take class away
 
   # newton rhapson
-  w_and_H <- get_w_and_H(data_object, dispersion,
+  w_and_H <- get_w_and_H_spglm(data_object, dispersion,
                          SigInv_list, SigInv_X, cov_betahat, Xt_SigInv_X, estmethod)
 
   w <- w_and_H$w
@@ -127,6 +127,7 @@ laploglik_products.pexponential <- laploglik_products.exponential
 #' @export
 laploglik_products.car <- function(spcov_params_val, dispersion_params_val, data_object, estmethod,
                                  dist_matrix_list, randcov_params_val) {
+
   spautor_cov_matrixInv_val <- spautor_cov_matrixInv(
     spcov_params_val, data_object,
     dist_matrix_list, randcov_params_val
@@ -140,29 +141,45 @@ laploglik_products.car <- function(spcov_params_val, dispersion_params_val, data
   Xt_SigInv_X <- crossprod(data_object$X, SigInv_X)
   Xt_SigInv_X_upchol <- chol(forceSymmetric(Xt_SigInv_X))
   cov_betahat <- chol2inv(Xt_SigInv_X_upchol)
-  betahat <- cov_betahat %*% crossprod(SigInv_X, data_object$y)
-  r <- data_object$y - data_object$X %*% betahat
-  rt_SigInv_r <- crossprod(r, SigInv %*% r)
 
-  # using wolfinger notation
+  # find dispersion
+  dispersion <- as.vector(dispersion_params_val) # take class away
+
+  # newton rhapson
+  w_and_H <- get_w_and_H_spgautor(data_object, dispersion,
+                               SigInv, SigInv_X, cov_betahat, Xt_SigInv_X, estmethod)
+
+  w <- w_and_H$w
+  # H <- w_and_H$H
+  mHldet <- w_and_H$mHldet
+
+  betahat <- tcrossprod(cov_betahat, SigInv_X) %*% w
+  X <- data_object$X
+  r <- w - X %*% betahat
+  rt_SigInv_r <- crossprod(r, SigInv) %*% r
+
+  # get wolfinger objects
+  y <- data_object$y
+  l00 <- get_l00(data_object$family, w, y, data_object$size, dispersion)
+  l01 <- mHldet
   l1 <- Sigldet
-  l2 <- rt_SigInv_r
+  l2 <- as.numeric(rt_SigInv_r)
 
   # returning relevant quantities
   if (estmethod == "reml") {
     l3 <- 2 * sum(log(diag(Xt_SigInv_X_upchol)))
-    return(list(l1 = l1, l2 = l2, l3 = l3))
+    return(list(l00 = l00, l01 = l01, l1 = l1, l2 = l2, l3 = l3))
   }
 
   if (estmethod == "ml") {
-    return(list(l1 = l1, l2 = l2))
+    return(list(l00 = l00, l01 = l01, l1 = l1, l2 = l2))
   }
 }
 #' @export
 laploglik_products.sar <- laploglik_products.car
 
 
-get_w_and_H <- function(data_object, dispersion, SigInv_list, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod) {
+get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod) {
 
   family <- data_object$family
   SigInv <- Matrix::bdiag(SigInv_list)
@@ -221,6 +238,42 @@ get_w_and_H <- function(data_object, dispersion, SigInv_list, SigInv_X, cov_beta
   }
 
   mHldet <- smw_mHldet(A_list = DSigInv_list, AInv = DSigInv_Inv, U = SigInv_X, C = cov_betahat, CInv = cov_betahat_Inv)
+  list(w = w, H = NULL, mHldet = mHldet)
+}
+
+get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod) {
+
+  family <- data_object$family
+  Ptheta <- SigInv - SigInv_X %*% tcrossprod(cov_betahat, SigInv_X)
+  y <- data_object$y
+  size <- data_object$size
+  w <- get_w_init(family, y, dispersion)
+  wdiffmax <- Inf
+  iter <- 0
+  while (iter < 50 && wdiffmax > 1e-4) {
+
+
+    iter <- iter + 1
+    # compute the d vector
+    d <-  get_d(family, w, y, size, dispersion)
+    # and then the gradient vector
+    g <-  d - Ptheta %*% w
+    # Next, compute H
+    D <- get_D(family, w, y, size, dispersion)
+    H <-  D - Ptheta # not PD but -H is
+    solveHg <- solve(H, g)
+    wnew <- w - solveHg
+    # check overshoot on loglik surface
+    dnew <- get_d(family, wnew, y, size, dispersion)
+    gnew <- dnew - Ptheta %*% wnew
+    if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem", call. = FALSE)
+    if (max(abs(gnew)) > max(abs(g))) wnew <- w - 0.1 * solveHg
+    wdiffmax <- max(abs(wnew - w))
+    # update w
+    w <- wnew
+  }
+
+  mHldet <- as.numeric(determinant(-H, logarithm = TRUE)$modulus)
   list(w = w, H = NULL, mHldet = mHldet)
 }
 

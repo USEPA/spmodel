@@ -54,17 +54,20 @@ cov_initial_search_glm.exponential <- function(spcov_initial_NA, dispersion_init
     }
   }
 
-  # add dispersion
-  spcov_grid$dispersion <- 1
-  if (!is.na(dispersion_initial_NA$initial)) {
-    spcov_grid[, "dispersion"] <- dispersion_initial_NA$initial
-  }
 
   # take unique rows
   spcov_grid <- unique(spcov_grid)
 
   # perform search if no random effects
   if (is.null(randcov_initial_NA)) {
+
+    # add dispersion
+    spcov_grid$dispersion <- 1
+    if (!is.na(dispersion_initial_NA$initial)) {
+      spcov_grid[, "dispersion"] <- dispersion_initial_NA$initial
+    }
+
+
     # split
     cov_grid_splits <- split(spcov_grid, seq_len(NROW(spcov_grid)))
     # apply (add family)
@@ -73,17 +76,21 @@ cov_initial_search_glm.exponential <- function(spcov_initial_NA, dispersion_init
       data_object = data_object, spcov_type = class(spcov_initial_NA),
       family = class(dispersion_initial_NA), estmethod = estmethod, dist_matrix_list = dist_matrix_list
     )
+
     # find minimum value and record parameters
     min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "rotate", "scale")]
     spcov_initial_NA$initial <- spcov_params
+    dispersion_params <- min_params[c("dispersion")]
+    dispersion_initial_NA$initial <- dispersion_params
 
     # return the best parameters
     best_params <- list(
-      spcov_initial_val = spcov_initial_NA, randcov_initial_val = NULL, esv = esv_val,
-      dist_vector = dist_vector, residual_vector2 = residual_vector2
+      spcov_initial_val = spcov_initial_NA,
+      dispersion_initial_val = dispersion_initial_NA, randcov_initial_val = NULL
     )
   } else {
+
     # randcov names
     randcov_names <- data_object$randcov_names
     # find number of random effects
@@ -181,29 +188,37 @@ cov_initial_search_glm.exponential <- function(spcov_initial_NA, dispersion_init
     # bind together all grids
     cov_grid <- rbind(spcov_grid, evencov_grid, randcov_grid)
     cov_grid <- unique(cov_grid)
+
+    # add dispersion
+    cov_grid$dispersion <- 1
+    if (!is.na(dispersion_initial_NA$initial)) {
+      cov_grid[, "dispersion"] <- dispersion_initial_NA$initial
+    }
+
     cov_grid_splits <- split(cov_grid, seq_len(NROW(cov_grid)))
     # apply
-    objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+     objvals <- vapply(
+      X = cov_grid_splits, FUN = eval_grid_glm, FUN.VALUE = numeric(1),
       data_object = data_object, spcov_type = class(spcov_initial_NA),
-      estmethod = estmethod, dist_matrix_list = dist_matrix_list,
-      weights = weights, esv = esv_val,
-      dist_vector = dist_vector,
-      residual_vector2 = residual_vector2
+      family = class(dispersion_initial_NA), estmethod = estmethod, dist_matrix_list = dist_matrix_list
     )
     # find minimum value and record parameters
     min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "rotate", "scale")]
     # return the spatial parameters
     spcov_initial_NA$initial <- spcov_params
+    # return the dispersion parameter
+    dispersion_params <- min_params[c("dispersion")]
+    dispersion_initial_NA$initial <- dispersion_params
     # return the random effect parameters
     randcov_initial_NA$initial <- randcov_params(min_params[randcov_names])
     # return the best parameters
     best_params <- list(
-      spcov_initial_val = spcov_initial_NA, randcov_initial_val = randcov_initial_NA, esv = esv_val,
-      dist_vector = dist_vector, residual_vector2 = residual_vector2
+      spcov_initial_val = spcov_initial_NA,
+      dispersion_initial_val = dispersion_initial_NA, randcov_initial_val = randcov_initial_NA
     )
   }
+
   # return the best parameters
   best_params
 }
@@ -238,8 +253,13 @@ cov_initial_search_glm.none <- function(spcov_initial_NA, dispersion_initial_NA,
                                     dist_matrix_list, weights,
                                     randcov_initial_NA = NULL, esv_dotlist) {
   # find ols sample variance
-  s2 <- summary(lm(data_object$formula, do.call("rbind", data_object$obdata_list)))$sigma^2
-  ns2 <- 1.2 * s2
+  lm_out <- lm(data_object$formula, do.call("rbind", data_object$obdata_list))
+  if (inherits(dispersion_initial_NA, "binomial") && length(summary(lm_out)) == 2) {
+    s2 <- summary(lm_out)[[1]]$sigma^2
+  } else {
+    s2 <- summary(lm_out)$sigma^2
+  }
+  ns2 <- log(1 + 1.2 * s2) # so no negative variances
 
   # find sets of starting values
   ## de
@@ -271,103 +291,34 @@ cov_initial_search_glm.none <- function(spcov_initial_NA, dispersion_initial_NA,
   # take unique rows
   spcov_grid <- unique(spcov_grid)
 
-  # compute empirical semivariogram
-  if (estmethod == "sv-wls") {
-    if (data_object$anisotropy) {
-      new_coords_list <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-                                rotate = spcov_initial_NA$initial[["rotate"]],
-                                scale = spcov_initial_NA$initial[["scale"]]
-      )
-      dist_matrix_list <- lapply(new_coords_list, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-    }
-    # compute empirical semivariogram
-    esv_vals <- mapply(d = data_object$obdata_list, m = dist_matrix_list, function(d, m) {
-      do.call("esv", c(
-        list(
-          formula = data_object$formula,
-          data = d,
-          dist_matrix = m,
-          partition_factor = data_object$partition_factor
-        ),
-        esv_dotlist
-      ))
-    }, SIMPLIFY = FALSE)
-    esv_vals <- do.call("rbind", esv_vals)
-    esv_val <- data.frame(
-      bins = levels(esv_vals$bins),
-      dist = tapply(esv_vals$dist, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),
-      gamma = tapply(esv_vals$gamma, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),
-      np = tapply(esv_vals$np, esv_vals$bins, function(x) mean(x))
-    )
-  } else {
-    esv_val <- NULL
-  }
-
-  # find relevant quantities for composite likelihood
-  if (estmethod == "sv-cl") {
-    if (data_object$anisotropy) {
-      new_coords_list <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-                                rotate = spcov_initial_NA$initial[["rotate"]],
-                                scale = spcov_initial_NA$initial[["scale"]]
-      )
-      dist_matrix_list <- lapply(new_coords_list, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-    }
-    # dist_vector_list <- lapply(dist_matrix_list, function(x) triu(x, k = 1))
-    dist_vector_list <- lapply(dist_matrix_list, function(x) {
-      x <- as.matrix(x)
-      x <- x[upper.tri(x)]
-    })
-    residual_list <- lapply(data_object$obdata_list, function(d) residuals(lm(data_object$formula, data = d)))
-    residual_matrix_list <- lapply(residual_list, function(x) spdist(xcoord_val = x))
-    residual_vector_list <- lapply(residual_matrix_list, function(x) {
-      x <- as.matrix(x)
-      x <- x[upper.tri(x)]
-    })
-    residual_vector <- unlist(residual_vector_list)
-    if (!is.null(data_object$partition_list)) {
-      partition_vector_list <- lapply(data_object$partition_list, function(x) {
-        x <- as.matrix(x)
-        x <- x[upper.tri(x)]
-      })
-      dist_vector_list <- mapply(d = dist_vector_list, p = partition_vector_list, function(d, p) d * p, SIMPLIFY = FALSE)
-      residual_vector_list <- mapply(r = residual_vector_list, p = partition_vector_list, function(r, p) r * p, SIMPLIFY = FALSE)
-    }
-
-    dist_vector <- unlist(dist_vector_list)
-    dist_index <- dist_vector > 0
-    dist_vector <- dist_vector[dist_index]
-    residual_vector <- unlist(residual_vector_list)
-    residual_vector <- residual_vector[dist_index]
-    residual_vector2 <- residual_vector^2
-  } else {
-    dist_vector <- NULL
-    residual_vector2 <- NULL
-  }
-
-
-
   # perform search if no random effects
   if (is.null(randcov_initial_NA)) {
+    # add dispersion
+    spcov_grid$dispersion <- 1
+    if (!is.na(dispersion_initial_NA$initial)) {
+      spcov_grid[, "dispersion"] <- dispersion_initial_NA$initial
+    }
+
     # split
     cov_grid_splits <- split(spcov_grid, seq_len(NROW(spcov_grid)))
-    # apply
+    # apply (add family)
     objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+      X = cov_grid_splits, FUN = eval_grid_glm, FUN.VALUE = numeric(1),
       data_object = data_object, spcov_type = class(spcov_initial_NA),
-      estmethod = estmethod, dist_matrix_list = dist_matrix_list,
-      weights = weights, esv = esv_val,
-      dist_vector = dist_vector,
-      residual_vector2 = residual_vector2
+      family = class(dispersion_initial_NA), estmethod = estmethod, dist_matrix_list = dist_matrix_list
     )
 
     # find minimum value and record parameters
     min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "rotate", "scale")]
     spcov_initial_NA$initial <- spcov_params
+    dispersion_params <- min_params[c("dispersion")]
+    dispersion_initial_NA$initial <- dispersion_params
+
     # return the best parameters
     best_params <- list(
-      spcov_initial_val = spcov_initial_NA, randcov_initial_val = NULL, esv = esv_val,
-      dist_vector = dist_vector, residual_vector2 = residual_vector2
+      spcov_initial_val = spcov_initial_NA,
+      dispersion_initial_val = dispersion_initial_NA, randcov_initial_val = NULL
     )
   } else {
 
@@ -469,27 +420,34 @@ cov_initial_search_glm.none <- function(spcov_initial_NA, dispersion_initial_NA,
     # bind together all grids
     cov_grid <- rbind(spcov_grid, evencov_grid, randcov_grid)
     cov_grid <- unique(cov_grid)
+
+    # add dispersion
+    cov_grid$dispersion <- 1
+    if (!is.na(dispersion_initial_NA$initial)) {
+      cov_grid[, "dispersion"] <- dispersion_initial_NA$initial
+    }
+
     cov_grid_splits <- split(cov_grid, seq_len(NROW(cov_grid)))
     # apply
     objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+      X = cov_grid_splits, FUN = eval_grid_glm, FUN.VALUE = numeric(1),
       data_object = data_object, spcov_type = class(spcov_initial_NA),
-      estmethod = estmethod, dist_matrix_list = dist_matrix_list,
-      weights = weights, esv = esv_val,
-      dist_vector = dist_vector,
-      residual_vector2 = residual_vector2
+      family = class(dispersion_initial_NA), estmethod = estmethod, dist_matrix_list = dist_matrix_list
     )
     # find minimum value and record parameters
     min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "rotate", "scale")]
     # return the spatial parameters
     spcov_initial_NA$initial <- spcov_params
+    # return the dispersion parameter
+    dispersion_params <- min_params[c("dispersion")]
+    dispersion_initial_NA$initial <- dispersion_params
     # return the random effect parameters
     randcov_initial_NA$initial <- randcov_params(min_params[randcov_names])
     # return the best parameters
     best_params <- list(
-      spcov_initial_val = spcov_initial_NA, randcov_initial_val = randcov_initial_NA, esv = esv_val,
-      dist_vector = dist_vector, residual_vector2 = residual_vector2
+      spcov_initial_val = spcov_initial_NA,
+      dispersion_initial_val = dispersion_initial_NA, randcov_initial_val = randcov_initial_NA
     )
   }
   # return the best parameters
@@ -501,8 +459,13 @@ cov_initial_search_glm.matern <- function(spcov_initial_NA, dispersion_initial_N
                                       dist_matrix_list, weights,
                                       randcov_initial_NA = NULL, esv_dotlist) {
   # find ols sample variance
-  s2 <- summary(lm(data_object$formula, do.call("rbind", data_object$obdata_list)))$sigma^2
-  ns2 <- 1.2 * s2
+  lm_out <- lm(data_object$formula, do.call("rbind", data_object$obdata_list))
+  if (inherits(dispersion_initial_NA, "binomial") && length(summary(lm_out)) == 2) {
+    s2 <- summary(lm_out)[[1]]$sigma^2
+  } else {
+    s2 <- summary(lm_out)$sigma^2
+  }
+  ns2 <- log(1 + 1.2 * s2) # so no negative variances
 
 
 
@@ -543,103 +506,34 @@ cov_initial_search_glm.matern <- function(spcov_initial_NA, dispersion_initial_N
   # take unique rows
   spcov_grid <- unique(spcov_grid)
 
-  # compute empirical semivariogram
-  if (estmethod == "sv-wls") {
-    if (data_object$anisotropy) {
-      new_coords_list <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-                                rotate = spcov_initial_NA$initial[["rotate"]],
-                                scale = spcov_initial_NA$initial[["scale"]]
-      )
-      dist_matrix_list <- lapply(new_coords_list, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-    }
-    # compute empirical semivariogram
-    esv_vals <- mapply(d = data_object$obdata_list, m = dist_matrix_list, function(d, m) {
-      do.call("esv", c(
-        list(
-          formula = data_object$formula,
-          data = d,
-          dist_matrix = m,
-          partition_factor = data_object$partition_factor
-        ),
-        esv_dotlist
-      ))
-    }, SIMPLIFY = FALSE)
-    esv_vals <- do.call("rbind", esv_vals)
-    esv_val <- data.frame(
-      bins = levels(esv_vals$bins),
-      dist = tapply(esv_vals$dist, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),
-      gamma = tapply(esv_vals$gamma, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),
-      np = tapply(esv_vals$np, esv_vals$bins, function(x) mean(x))
-    )
-  } else {
-    esv_val <- NULL
-  }
-
-  # find relevant quantities for composite likelihood
-  if (estmethod == "sv-cl") {
-    if (data_object$anisotropy) {
-      new_coords_list <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-                                rotate = spcov_initial_NA$initial[["rotate"]],
-                                scale = spcov_initial_NA$initial[["scale"]]
-      )
-      dist_matrix_list <- lapply(new_coords_list, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-    }
-    # dist_vector_list <- lapply(dist_matrix_list, function(x) triu(x, k = 1))
-    dist_vector_list <- lapply(dist_matrix_list, function(x) {
-      x <- as.matrix(x)
-      x <- x[upper.tri(x)]
-    })
-    residual_list <- lapply(data_object$obdata_list, function(d) residuals(lm(data_object$formula, data = d)))
-    residual_matrix_list <- lapply(residual_list, function(x) spdist(xcoord_val = x))
-    residual_vector_list <- lapply(residual_matrix_list, function(x) {
-      x <- as.matrix(x)
-      x <- x[upper.tri(x)]
-    })
-    residual_vector <- unlist(residual_vector_list)
-    if (!is.null(data_object$partition_list)) {
-      partition_vector_list <- lapply(data_object$partition_list, function(x) {
-        x <- as.matrix(x)
-        x <- x[upper.tri(x)]
-      })
-      dist_vector_list <- mapply(d = dist_vector_list, p = partition_vector_list, function(d, p) d * p, SIMPLIFY = FALSE)
-      residual_vector_list <- mapply(r = residual_vector_list, p = partition_vector_list, function(r, p) r * p, SIMPLIFY = FALSE)
-    }
-
-    dist_vector <- unlist(dist_vector_list)
-    dist_index <- dist_vector > 0
-    dist_vector <- dist_vector[dist_index]
-    residual_vector <- unlist(residual_vector_list)
-    residual_vector <- residual_vector[dist_index]
-    residual_vector2 <- residual_vector^2
-  } else {
-    dist_vector <- NULL
-    residual_vector2 <- NULL
-  }
-
-
-
   # perform search if no random effects
   if (is.null(randcov_initial_NA)) {
+    # add dispersion
+    spcov_grid$dispersion <- 1
+    if (!is.na(dispersion_initial_NA$initial)) {
+      spcov_grid[, "dispersion"] <- dispersion_initial_NA$initial
+    }
+
     # split
     cov_grid_splits <- split(spcov_grid, seq_len(NROW(spcov_grid)))
-    # apply
+    # apply (add family)
     objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+      X = cov_grid_splits, FUN = eval_grid_glm, FUN.VALUE = numeric(1),
       data_object = data_object, spcov_type = class(spcov_initial_NA),
-      estmethod = estmethod, dist_matrix_list = dist_matrix_list,
-      weights = weights, esv = esv_val,
-      dist_vector = dist_vector,
-      residual_vector2 = residual_vector2
+      family = class(dispersion_initial_NA), estmethod = estmethod, dist_matrix_list = dist_matrix_list
     )
 
     # find minimum value and record parameters
     min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "extra", "rotate", "scale")]
     spcov_initial_NA$initial <- spcov_params
+    dispersion_params <- min_params[c("dispersion")]
+    dispersion_initial_NA$initial <- dispersion_params
+
     # return the best parameters
     best_params <- list(
-      spcov_initial_val = spcov_initial_NA, randcov_initial_val = NULL, esv = esv_val,
-      dist_vector = dist_vector, residual_vector2 = residual_vector2
+      spcov_initial_val = spcov_initial_NA,
+      dispersion_initial_val = dispersion_initial_NA, randcov_initial_val = NULL
     )
   } else {
     # randcov names
@@ -742,27 +636,33 @@ cov_initial_search_glm.matern <- function(spcov_initial_NA, dispersion_initial_N
     # bind together all grids
     cov_grid <- rbind(spcov_grid, evencov_grid, randcov_grid)
     cov_grid <- unique(cov_grid)
+    # add dispersion
+    cov_grid$dispersion <- 1
+    if (!is.na(dispersion_initial_NA$initial)) {
+      cov_grid[, "dispersion"] <- dispersion_initial_NA$initial
+    }
+
     cov_grid_splits <- split(cov_grid, seq_len(NROW(cov_grid)))
     # apply
     objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+      X = cov_grid_splits, FUN = eval_grid_glm, FUN.VALUE = numeric(1),
       data_object = data_object, spcov_type = class(spcov_initial_NA),
-      estmethod = estmethod, dist_matrix_list = dist_matrix_list,
-      weights = weights, esv = esv_val,
-      dist_vector = dist_vector,
-      residual_vector2 = residual_vector2
+      family = class(dispersion_initial_NA), estmethod = estmethod, dist_matrix_list = dist_matrix_list
     )
     # find minimum value and record parameters
     min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "extra", "rotate", "scale")]
     # return the spatial parameters
     spcov_initial_NA$initial <- spcov_params
+    # return the dispersion parameter
+    dispersion_params <- min_params[c("dispersion")]
+    dispersion_initial_NA$initial <- dispersion_params
     # return the random effect parameters
     randcov_initial_NA$initial <- randcov_params(min_params[randcov_names])
     # return the best parameters
     best_params <- list(
-      spcov_initial_val = spcov_initial_NA, randcov_initial_val = randcov_initial_NA, esv = esv_val,
-      dist_vector = dist_vector, residual_vector2 = residual_vector2
+      spcov_initial_val = spcov_initial_NA,
+      dispersion_initial_val = dispersion_initial_NA, randcov_initial_val = randcov_initial_NA
     )
   }
   # return the best parameters
@@ -780,8 +680,14 @@ cov_initial_search_glm.car <- function(spcov_initial_NA, dispersion_initial_NA, 
 
   # find ols sample variance
   obdata <- data_object$data[data_object$observed_index, , drop = FALSE]
-  s2 <- summary(lm(data_object$formula, obdata))$sigma^2
-  ns2 <- 1.2 * s2
+  # find ols sample variance
+  lm_out <- lm(data_object$formula, obdata)
+  if (inherits(dispersion_initial_NA, "binomial") && length(summary(lm_out)) == 2) {
+    s2 <- summary(lm_out)[[1]]$sigma^2
+  } else {
+    s2 <- summary(lm_out)$sigma^2
+  }
+  ns2 <- log(1 + 1.2 * s2) # so no negative variances
 
   # store W as dist_matrix
   # MAKE IT CLEAR DIST_MATRIX_LIST IS NOT A LIST
@@ -816,21 +722,32 @@ cov_initial_search_glm.car <- function(spcov_initial_NA, dispersion_initial_NA, 
 
   # perform search if no random effects
   if (is.null(randcov_initial_NA)) {
+    # add dispersion
+    spcov_grid$dispersion <- 1
+    if (!is.na(dispersion_initial_NA$initial)) {
+      spcov_grid[, "dispersion"] <- dispersion_initial_NA$initial
+    }
+
     # split
     cov_grid_splits <- split(spcov_grid, seq_len(NROW(spcov_grid)))
-    # apply
+    # apply (add family)
     objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+      X = cov_grid_splits, FUN = eval_grid_glm, FUN.VALUE = numeric(1),
       data_object = data_object, spcov_type = class(spcov_initial_NA),
-      estmethod = estmethod, dist_matrix_list = W
+      family = class(dispersion_initial_NA), estmethod = estmethod, dist_matrix_list = W
     )
 
     # find minimum value and record parameters
     min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "extra")]
     spcov_initial_NA$initial <- spcov_params
+    dispersion_params <- min_params[c("dispersion")]
+    dispersion_initial_NA$initial <- dispersion_params
     # return the best parameters
-    best_params <- list(spcov_initial_val = spcov_initial_NA, randcov_initial_val = NULL)
+    best_params <- list(
+      spcov_initial_val = spcov_initial_NA,
+      dispersion_initial_val = dispersion_initial_NA, randcov_initial_val = NULL
+    )
   } else {
 
     # randcov vars names
@@ -931,22 +848,36 @@ cov_initial_search_glm.car <- function(spcov_initial_NA, dispersion_initial_NA, 
     # bind together all grids
     cov_grid <- rbind(spcov_grid, evencov_grid, randcov_grid)
     cov_grid <- unique(cov_grid)
+
+    # add dispersion
+    cov_grid$dispersion <- 1
+    if (!is.na(dispersion_initial_NA$initial)) {
+      cov_grid[, "dispersion"] <- dispersion_initial_NA$initial
+    }
+
     cov_grid_splits <- split(cov_grid, seq_len(NROW(cov_grid)))
+
     # apply
     objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+      X = cov_grid_splits, FUN = eval_grid_glm, FUN.VALUE = numeric(1),
       data_object = data_object, spcov_type = class(spcov_initial_NA),
-      estmethod = estmethod, dist_matrix_list = W
+      family = class(dispersion_initial_NA), estmethod = estmethod, dist_matrix_list = W
     )
     # find minimum value and record parameters
     min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "extra")]
     # return the spatial parameters
     spcov_initial_NA$initial <- spcov_params
+    # return the dispersion parameter
+    dispersion_params <- min_params[c("dispersion")]
+    dispersion_initial_NA$initial <- dispersion_params
     # return the random effect parameters
     randcov_initial_NA$initial <- randcov_params(min_params[randcov_names])
     # return the best parameters
-    best_params <- list(spcov_initial_val = spcov_initial_NA, randcov_initial_val = randcov_initial_NA)
+    best_params <- list(
+      spcov_initial_val = spcov_initial_NA,
+      dispersion_initial_val = dispersion_initial_NA, randcov_initial_val = randcov_initial_NA
+    )
   }
   # return the best parameters
   best_params

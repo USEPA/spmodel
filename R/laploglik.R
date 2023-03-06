@@ -5,9 +5,9 @@ laploglik <- function(par, spcov_orig2optim, dispersion_orig2optim, data_object,
 
   # dispersion first then remove
   dispersion_orig_val <- dispersion_optim2orig(dispersion_orig2optim, par)
-  dispersion_params_val <- dispersion_params(data_object$family, dispersion_orig_val)
+  dispersion_params_val <- dispersion_params(data_object$family, dispersion_orig_val$fill_orig_val)
 
-  par <- par[-length(par)] # remove dispersion par
+  par <- dispersion_orig_val$new_par
 
   # transforming to original scale
   spcov_orig_val <- spcov_optim2orig(spcov_orig2optim, par, spcov_profiled = spcov_profiled, data_object = data_object)

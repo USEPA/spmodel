@@ -42,9 +42,9 @@ use_laploglik <- function(spcov_initial, dispersion_initial, data_object, estmet
   # dispersion first then remove
   par <- optim_output$par
   dispersion_orig_val <- dispersion_optim2orig(dispersion_orig2optim_val, par)
-  dispersion_params_val <- dispersion_params(data_object$family, dispersion_orig_val)
+  dispersion_params_val <- dispersion_params(data_object$family, dispersion_orig_val$fill_orig_val)
 
-  par <- par[-length(par)] # remove dispersion par
+  par <- dispersion_orig_val$new_par
 
   # transforming to original scale
   spcov_orig_val <- spcov_optim2orig(spcov_orig2optim_val, par, spcov_profiled = spcov_profiled, data_object = data_object)
@@ -102,6 +102,7 @@ use_laploglik <- function(spcov_initial, dispersion_initial, data_object, estmet
     hessian = if (optim_dotlist$hessian) optim_output$hessian else FALSE
   )
   # return list
+  browser
   list(
     spcov_params_val = spcov_params_val, dispersion_params_val = dispersion_params_val, randcov_params_val = randcov_params_val,
     optim_output = optim_output, dist_matrix_list = dist_matrix_list,

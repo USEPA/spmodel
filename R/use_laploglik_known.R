@@ -1,7 +1,7 @@
 use_laploglik_known <- function(spcov_initial, dispersion_initial, data_object, estmethod, dist_matrix_list, randcov_initial) {
 
   spcov_params_val <- get_spcov_params(class(spcov_initial), spcov_initial$initial)
-  dispersion_params_val <- dispersion_params(data_object$family, unname(dispersion_initial$initial))
+  dispersion_params_val <- dispersion_params(data_object$family, dispersion_initial$initial)
   # unname otherwise name dispersion.dispersion
   randcov_params_val <- randcov_params(randcov_initial$initial)
 

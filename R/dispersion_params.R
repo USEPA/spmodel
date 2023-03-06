@@ -7,7 +7,7 @@ dispersion_params <- function(family, dispersion) {
 
   dispersion_checks(family, dispersion)
 
-  object <- c(dispersion = dispersion)
+  object <- c(dispersion = unname(dispersion))
   new_object <- structure(object, class = family)
   new_object
 }

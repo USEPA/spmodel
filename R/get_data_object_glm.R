@@ -233,6 +233,11 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
   X_list <- split.data.frame(X, local$index)
   y_list <- split.data.frame(y, local$index)
   ones_list <- lapply(obdata_list, function(x) matrix(rep(1, nrow(x)), ncol = 1))
+  if (!is.null(size)) {
+    size_list <- split.data.frame(size, local$index)
+    size <- as.vector(do.call("rbind", size_list)) # rearranging size by y list
+  }
+
 
   # store random effects list
   if (is.null(random)) {

@@ -88,4 +88,83 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   # return fitted
   fitted <- get_fitted_glm(w, data_object)
 
+  # return hat values
+  hatvalues <- get_hatvalues_glm(w, data_object, dispersion)
+
+  # return deviance i
+  deviance_i <- get_deviance_glm(data_object$family, y, fitted$response, data_object$size, dispersion)
+  deviance_i <- pmax(deviance_i, 0) # sometimes numerical instability can cause these to be slightly non-negative
+
+
+
+  cholprods_null_list <- mapply(
+    c = cov_matrix_list, x = data_object$ones_list, y = data_object$y_list,
+    function(c, x, y) get_cholprods_glm(c, x, y),
+    SIMPLIFY = FALSE
+  )
+
+  SigInv_null_list <- lapply(cholprods_null_list, function(x) x$SigInv)
+  SigInv_null <- Matrix::bdiag(SigInv_null_list)
+  SigInv_X_null <- do.call("rbind", lapply(cholprods_null_list, function(x) x$SigInv_X))
+
+  # storing relevant products
+  ## lower chol %*% X
+  SqrtSigInv_X_null <- do.call("rbind", lapply(cholprods_null_list, function(x) x$SqrtSigInv_X))
+  ## lower chol %*% y
+  SqrtSigInv_y_null <- do.call("rbind", lapply(cholprods_null_list, function(x) x$SqrtSigInv_y))
+  # covariance of beta hat
+  ## t(X) %*% sigma_inverse %*% X
+  Xt_SigInv_X_null <- crossprod(SqrtSigInv_X_null, SqrtSigInv_X_null)
+  ## t(X) %*% sigma_inverse %*% X)^(-1)
+  Xt_SigInv_X_upchol_null <- chol(Xt_SigInv_X_null)
+  cov_betahat_null <- chol2inv(Xt_SigInv_X_upchol_null)
+
+  # newton rhapson
+  w_and_H_null <- get_w_and_H_spglm(data_object, dispersion,
+                                  SigInv_null_list, SigInv_X_null, cov_betahat_null, Xt_SigInv_X_null, estmethod)
+
+
+  w_null <- w_and_H_null$w
+
+  fitted_null <- get_fitted_glm(w_null, data_object)$response
+
+  # return deviance i
+  deviance_i_null <- get_deviance_glm(data_object$family, y, fitted_null, data_object$size, dispersion)
+  deviance_i_null <- pmax(deviance_i_null, 0) # sometimes numerical instability can cause these to be slightly non-negative
+
+  deviance <- sum(deviance_i)
+  deviance_null <- sum(deviance_i_null)
+  pseudoR2 <- as.numeric(1 - deviance / deviance_null)
+
+  # should always be non-negative
+  pseudoR2 <- pmax(0, pseudoR2)
+  # set null model R2 equal to zero (no covariates)
+  if (length(labels(terms(data_object$formula))) == 0) {
+    pseudoR2 <- 0
+  }
+
+  # return residuals
+  residuals <- get_residuals_glm(w, data_object, deviance_i, hatvalues, dispersion)
+
+  # return cooks distance
+  cooks_distance <- get_cooks_distance_glm(residuals, hatvalues, data_object$p)
+
+  # return variance covariance matrices
+  vcov <- get_vcov_glm(cov_betahat)
+
+  # return npar
+  npar <- sum(unlist(lapply(cov_est_object$is_known, function(x) length(x) - sum(x)))) # could do sum(!x$is_known)
+
+  # return list
+  list(
+    coefficients = coefficients,
+    fitted = fitted,
+    hatvalues = hatvalues,
+    residuals = residuals,
+    cooks_distance = cooks_distance,
+    vcov = vcov,
+    deviance = deviance,
+    pseudoR2 = pseudoR2,
+    npar = npar
+  )
 }

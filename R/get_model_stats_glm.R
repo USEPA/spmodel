@@ -155,7 +155,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   ## fitted
   w <- w[order(data_object$order)]
   fitted$response <- fitted$response[order(data_object$order)]
-  fitted$link <- fitted$response[order(data_object$order)]
+  fitted$link <- fitted$link[order(data_object$order)]
   hatvalues <- hatvalues[order(data_object$order)]
   residuals$response <- residuals$response[order(data_object$order)]
   residuals$deviance <- residuals$deviance[order(data_object$order)]

@@ -73,6 +73,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
     cov_est_object$randcov_params_val,
     cov_betahat_noadjust, data_object$var_adjust
   )
+
   cov_betahat <- as.matrix(cov_betahat)
   wts_beta <- tcrossprod(cov_betahat, SigInv_X)
   betawtsvarw <- wts_beta %*% w_and_H$mHInv %*% t(wts_beta)
@@ -89,7 +90,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   fitted <- get_fitted_glm(w, data_object)
 
   # return hat values
-  hatvalues <- get_hatvalues_glm(w, data_object, dispersion)
+  hatvalues <- get_hatvalues_glm(w, X, data_object, dispersion)
 
   # return deviance i
   deviance_i <- get_deviance_glm(data_object$family, y, fitted$response, data_object$size, dispersion)
@@ -144,7 +145,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   }
 
   # return residuals
-  residuals <- get_residuals_glm(w, data_object, deviance_i, hatvalues, dispersion)
+  residuals <- get_residuals_glm(w, y, data_object, deviance_i, hatvalues, dispersion)
 
   # return cooks distance
   cooks_distance <- get_cooks_distance_glm(residuals, hatvalues, data_object$p)

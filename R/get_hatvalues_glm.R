@@ -1,6 +1,5 @@
-get_hatvalues_glm <- function(w, data_object, dispersion) {
+get_hatvalues_glm <- function(w, X, data_object, dispersion) {
   # the hat matrix of the whitened residuals
-  X <- data_object$X_list[[1]]
   V <- get_V(w, data_object$family, data_object$size, dispersion)
   SqrtVInv_X <- sqrt(V) * X # same as diag(sqrt(V)) %*% X
   cov_vhat <- chol2inv(chol(crossprod(SqrtVInv_X, SqrtVInv_X)))

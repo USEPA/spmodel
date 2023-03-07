@@ -1,9 +1,4 @@
-get_residuals_glm <- function(w, data_object, deviance_i, hatvalues, dispersion) {
-
-  # find model components
-  X <- data_object$X_list[[1]]
-  y <- data_object$y_list[[1]]
-
+get_residuals_glm <- function(w, y, data_object, deviance_i, hatvalues, dispersion) {
 
   residuals_response <- y - invlink(w, data_object$family, data_object$size)
 

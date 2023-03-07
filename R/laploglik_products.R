@@ -252,7 +252,7 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
   w_and_H_list
 }
 
-get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod) {
+get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod, ret_mHInv = FALSE) {
 
   family <- data_object$family
   Ptheta <- SigInv - SigInv_X %*% tcrossprod(cov_betahat, SigInv_X)
@@ -285,7 +285,13 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
   }
 
   mHldet <- as.numeric(determinant(-H, logarithm = TRUE)$modulus)
-  list(w = w, H = NULL, mHldet = mHldet)
+  w_and_H_list <- list(w = w, H = NULL, mHldet = mHldet)
+  if (ret_mHInv) {
+    # not done above because this is only for model stats and solve(H) slower than solve(H, g)
+    HInv <- solve(H)
+    w_and_H_list$mHInv <- -HInv
+  }
+  w_and_H_list
 }
 
 # gradient of w (lowcase d)

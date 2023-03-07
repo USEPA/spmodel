@@ -102,6 +102,64 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
                                                  spcov_initial, dispersion_initial, estmethod,
                                                  optim_dotlist = get_optim_dotlist(...))
 
-  model_stats_glm <- get_model_stats_spglm(cov_est_object, data_object, estmethod)
+  model_stats <- get_model_stats_spglm(cov_est_object, data_object, estmethod)
+
+  # parallel cluster if necessary
+  if (data_object$parallel) {
+    data_object$cl <- parallel::stopCluster(data_object$cl) # makes it NULL
+  }
+
+  # store index if necessary
+  if (is.null(local)) { # local was stored as NULL in previous function call
+    local_index <- NULL
+  } else {
+    local_index <- data_object$local_index
+  }
+
+  if (inherits(spcov_initial, c("triangular", "circular"))) {
+    data_object <- replace_data_object_dimcoords1(data_object)
+  }
+
+  output <- list(
+    coefficients = model_stats$coefficients,
+    fitted = model_stats$fitted,
+    hatvalues = model_stats$hatvalues,
+    residuals = model_stats$residuals,
+    cooks_distance = model_stats$cooks_distance,
+    vcov = model_stats$vcov,
+    deviance = model_stats$deviance,
+    pseudoR2 = model_stats$pseudoR2,
+    esv = cov_est_object$esv,
+    p = data_object$p,
+    n = data_object$n,
+    npar = model_stats$npar,
+    formula = formula,
+    terms = data_object$terms,
+    call = match.call(),
+    estmethod = estmethod,
+    obdata = data_object$obdata,
+    newdata = data_object$newdata,
+    xcoord = as.character(data_object$xcoord),
+    ycoord = as.character(data_object$ycoord),
+    anisotropy = data_object$anisotropy,
+    dim_coords = data_object$dim_coords,
+    random = random,
+    optim = cov_est_object$optim_output,
+    is_known = cov_est_object$is_known,
+    partition_factor = partition_factor,
+    max_dist = 2 * data_object$max_halfdist,
+    observed_index = data_object$observed_index,
+    missing_index = data_object$missing_index,
+    local_index = local_index,
+    contrasts = data_object$contrasts,
+    xlevels = data_object$xlevels,
+    is_sf = data_object$is_sf,
+    sf_column_name = data_object$sf_column_name,
+    crs = data_object$crs,
+    w = model_stats$w
+  )
+
+  new_output <- structure(output, class = "spglm")
+  new_output
 
 }

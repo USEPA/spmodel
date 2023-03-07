@@ -95,5 +95,43 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
                                                  spcov_initial, dispersion_initial, estmethod,
                                                  optim_dotlist = get_optim_dotlist(...))
 
+  model_stats <- get_model_stats_spgautor(cov_est_object, data_object, estmethod)
+
+  output <- list(
+    coefficients = model_stats$coefficients,
+    fitted = model_stats$fitted,
+    hatvalues = model_stats$hatvalues,
+    residuals = model_stats$residuals,
+    cooks_distance = model_stats$cooks_distance,
+    vcov = model_stats$vcov,
+    deviance = model_stats$deviance,
+    pseudoR2 = model_stats$pseudoR2,
+    p = data_object$p,
+    n = data_object$n,
+    npar = model_stats$npar,
+    formula = formula,
+    terms = data_object$terms,
+    call = match.call(),
+    estmethod = estmethod,
+    data = data_object$data,
+    newdata = data_object$newdata,
+    optim = cov_est_object$optim_output,
+    is_known = cov_est_object$is_known,
+    W = data_object$W,
+    M = data_object$M,
+    partition_factor = partition_factor,
+    random = random,
+    observed_index = data_object$observed_index,
+    missing_index = data_object$missing_index,
+    contrasts = data_object$contrasts,
+    xlevels = data_object$xlevels,
+    is_sf = data_object$is_sf,
+    sf_column_name = data_object$sf_column_name,
+    crs = data_object$crs,
+    w = model_stats$w
+  )
+
+  new_output <- structure(output, class = "spgautor")
+  new_output
 
 }

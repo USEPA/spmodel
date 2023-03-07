@@ -14,6 +14,13 @@ laploglik_products <- function(spcov_params_val, dispersion_params_val, ...) {
 laploglik_products.exponential <- function(spcov_params_val, dispersion_params_val, data_object, estmethod,
                                          dist_matrix_list, randcov_params_val) {
 
+  if (inherits(spcov_params_val, "none") && spcov_params_val[["ie"]] < 1e-4) {
+    # instability when in smw of H when ie is small enough and the covariance is "none"
+    # spcov_matrix.none does not adequately handle this when de = 0 because max set to 0
+    # maybe another statement after the first max setting to check for zero to get
+    # around this case?
+    spcov_params_val[["ie"]] <- 1e-4
+  }
 
 
   # making a covariance matrix
@@ -358,7 +365,9 @@ get_l00 <- function(family, w, y, size, dispersion) {
 }
 
 smw_HInv <- function(AInv, U, CInv) {
-  AInv - (AInv %*% U) %*% solve(CInv + t(U) %*% AInv %*% U) %*% (t(U) %*% AInv)
+  mid <- CInv + t(U) %*% AInv %*% U
+  # if (all(mid == 0)) diag(mid) <- diag(mid) + 1e-4
+  AInv - (AInv %*% U) %*% solve(mid) %*% (t(U) %*% AInv)
 }
 
 smw_mHldet <- function(A_list, AInv, U, C, CInv) {

@@ -186,7 +186,7 @@ laploglik_products.car <- function(spcov_params_val, dispersion_params_val, data
 laploglik_products.sar <- laploglik_products.car
 
 
-get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod) {
+get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod, ret_mHInv = FALSE) {
 
   family <- data_object$family
   SigInv <- Matrix::bdiag(SigInv_list)
@@ -245,7 +245,11 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
   }
 
   mHldet <- smw_mHldet(A_list = DSigInv_list, AInv = DSigInv_Inv, U = SigInv_X, C = cov_betahat, CInv = cov_betahat_Inv)
-  list(w = w, H = NULL, mHldet = mHldet)
+  w_and_H_list <- list(w = w, H = NULL, mHldet = mHldet)
+  if (ret_mHInv) {
+    w_and_H_list$mHInv <- -HInv
+  }
+  w_and_H_list
 }
 
 get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod) {

@@ -102,4 +102,6 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
                                                  spcov_initial, dispersion_initial, estmethod,
                                                  optim_dotlist = get_optim_dotlist(...))
 
+  model_stats_glm <- get_model_stats_spglm(cov_est_object, data_object, estmethod)
+
 }

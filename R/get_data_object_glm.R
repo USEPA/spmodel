@@ -234,7 +234,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
   y_list <- split.data.frame(y, local$index)
   ones_list <- lapply(obdata_list, function(x) matrix(rep(1, nrow(x)), ncol = 1))
   if (!is.null(size)) {
-    size_list <- split.data.frame(size, local$index)
+    size_list <- split(size, local$index) # just split because vector not matrix
     size <- as.vector(do.call("rbind", size_list)) # rearranging size by y list
   }
 

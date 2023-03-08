@@ -226,10 +226,13 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
       )
     }
 
-    # DSigInv_eigen <- lapply(DSigInv_list, function(x) eigen(x)) # not symm PD so must use eigen
-    # DSigInv_det <- prod(unlist(lapply(DSigInv_eigen, function(x) prod(x$values))))
-    # DSigInv_Inv <- Matrix::bdiag(lapply(DSigInv_chol, function(x) tcrossprod(t(t(x$vectors) * x$values), x$vectors)))
-    DSigInv_Inv_list <- lapply(DSigInv_list, function(x) solve(x))
+    if (data_object$parallel) {
+      cluster_list <- DSigInv_list
+      DSigInv_Inv_list <- parallel::parLapply(data_object$cl, cluster_list, solve)
+      names(DSigInv_Inv_list) <- names(D_list)
+    } else {
+      DSigInv_Inv_list <- lapply(DSigInv_list, function(x) solve(x))
+    }
     DSigInv_Inv <- Matrix::bdiag(DSigInv_Inv_list)
     HInv <- smw_HInv(AInv = DSigInv_Inv, U = SigInv_X, CInv = cov_betahat_Inv)
     solveHg <- HInv %*% g
@@ -396,3 +399,10 @@ get_DSigInv_parallel <- function(cluster_list) {
   S <- cluster_list$S
   get_DSigInv(D, S)
 }
+
+
+
+# DSigInv_eigen <- lapply(DSigInv_list, function(x) eigen(x)) # not symm PD so must use eigen
+# DSigInv_det <- prod(unlist(lapply(DSigInv_eigen, function(x) prod(x$values))))
+# DSigInv_Inv <- Matrix::bdiag(lapply(DSigInv_chol, function(x) tcrossprod(t(t(x$vectors) * x$values), x$vectors)))
+

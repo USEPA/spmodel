@@ -162,6 +162,13 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   residuals$pearson <- residuals$pearson[order(data_object$order)]
   residuals$standardized <- residuals$standardized[order(data_object$order)]
   cooks_distance <- cooks_distance[order(data_object$order)]
+  y <- y[order(data_object$order)]
+  if (is.null(data_object$size)) {
+    size <- NULL
+  } else {
+    size <- data_object$size[order(data_object$size)]
+  }
+
 
   # return npar
   npar <- sum(unlist(lapply(cov_est_object$is_known, function(x) length(x) - sum(x)))) # could do sum(!x$is_known)
@@ -177,7 +184,9 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
     deviance = deviance,
     pseudoR2 = pseudoR2,
     npar = npar,
-    w = w
+    w = w,
+    y = y, # problems with model.response later
+    size = size
   )
 }
 
@@ -304,7 +313,9 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
     deviance = deviance,
     pseudoR2 = pseudoR2,
     npar = npar,
-    w = w
+    w = w,
+    y = y,
+    size = data_object$size
   )
 
 }

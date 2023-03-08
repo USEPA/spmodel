@@ -311,6 +311,10 @@ get_d <- function(family, w, y, size, dispersion) {
     d <- 1 / dispersion * (y * exp(-w) - 1)
   } else if (family == "inverse.gaussian") {
     d <- 1 / dispersion * (y - exp(w)) / exp(2 * w)
+  } else if (family == "beta") {
+    one_expw <- 1 + exp(w)
+    k0 <- digamma(dispersion * exp(w) / one_expw) - digamma(dispersion / one_expw) + log(1 / y - 1)
+    d <- -dispersion * k0 / one_expw^2
   }
   d
 }
@@ -331,6 +335,11 @@ get_D <- function(family, w, y, size, dispersion) {
     D_vec <- - 1 / dispersion * y * exp(-w)
   } else if (family == "inverse.gaussian") {
     D_vec <- 1 / dispersion * (exp(w) - 2 * y) / exp(2 * w)
+  } else if (family == "beta") {
+    one_expw <- 1 + exp(w)
+    k0 <- digamma(dispersion * exp(w) / one_expw) - digamma(dispersion / one_expw) + log(1 / y - 1)
+    k1 <- dispersion * (trigamma(dispersion * exp(w) / one_expw) + trigamma(dispersion / one_expw)) - 2 * sinh(w) * (k0 + 2 * atanh(1 - 2 * y))
+    D_vec <- -dispersion * exp(2 * w) * k1 / one_expw^4
   }
   D <- Diagonal(x = D_vec)
 }
@@ -347,6 +356,8 @@ get_w_init <- function(family, y, dispersion) {
     w_init <- 0.5 * log(y + 1)
   } else if (family == "inverse.gaussian") {
     w_init <- 0.5 * log(y + 1)
+  } else if (family == "beta") {
+    w_init <- rep(0, times = length(y))
   }
   w_init
 }
@@ -373,6 +384,11 @@ get_l00 <- function(family, w, y, size, dispersion) {
     mu <- exp(w)
     disp_recip <- 1 / dispersion
     l00 <- -2 * sum((log(disp_recip) - log(2 * pi) - 3 * log(y)) / 2 - (disp_recip * (y - mu)^2 / (2 * y * mu^2)))
+  } else if (family == "beta") {
+    mu <- expit(w)
+    a <- mu * dispersion
+    b <- (1 - mu) * dispersion
+    l00 <- -2 * sum(dbeta(x = y, shape1 = a, shape2 = b, log = TRUE))
   }
   l00
 }

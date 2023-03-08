@@ -31,6 +31,9 @@ get_V <- function(w, family, size, dispersion) {
   } else if (family == "inverse.gaussian") {
     mu <- exp(w)
     V <- mu^3
+  } else if (family == "beta") {
+    mu <- exp(w)
+    V <- mu * (1 - mu)
   }
   V
 }
@@ -49,6 +52,9 @@ get_var_y <- function(w, family, size, dispersion) {
     var_y <- get_V(w, family, size, dispersion) * dispersion
   } else if (family == "inverse.gaussian") {
     var_y <- get_V(w, family, size, dispersion) * dispersion
+  } else if (family == "beta") {
+    dispersion_true <- 1 / (1 + dispersion)
+    var_y <- get_V(w, family, size, dispersion) * dispersion_true
   }
   var_y
 }

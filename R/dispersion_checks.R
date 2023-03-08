@@ -1,7 +1,8 @@
 dispersion_checks <- function(family, dispersion) {
 
   # family must be a character here
-  family_valid <- c("binomial", "poisson", "nbinomial", "Gamma")
+  # inverse gaussian unstable can think of adding it later
+  family_valid <- c("binomial", "poisson", "nbinomial", "Gamma", "inverse.gaussian", "beta")
   if (!(family %in% family_valid)) {
     stop(paste(family, " is not a valid glm family."), call. = FALSE)
   }

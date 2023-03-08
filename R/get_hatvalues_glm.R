@@ -2,7 +2,7 @@ get_hatvalues_glm <- function(w, X, data_object, dispersion) {
   # the hat matrix of the whitened residuals
   V <- get_V(w, data_object$family, data_object$size, dispersion)
   SqrtVInv_X <- sqrt(V) * X # same as diag(sqrt(V)) %*% X
-  cov_vhat <- chol2inv(chol(crossprod(SqrtVInv_X, SqrtVInv_X)))
+  cov_vhat <- chol2inv(chol(Matrix::forceSymmetric(crossprod(SqrtVInv_X, SqrtVInv_X))))
   hatvalues <- diag(SqrtVInv_X %*% tcrossprod(cov_vhat, SqrtVInv_X))
   as.numeric(hatvalues)
 }
@@ -31,7 +31,7 @@ get_V <- function(w, family, size, dispersion) {
     mu <- exp(w)
     V <- mu^3
   } else if (family == "beta") {
-    mu <- exp(w)
+    mu <- expit(w)
     V <- mu * (1 - mu)
   }
   V

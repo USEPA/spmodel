@@ -8,7 +8,7 @@ get_wts_varw <- function(family, Xmat, y, w, size, dispersion, cov_lowchol, x0, 
 
   d <-  get_d(family, w, y, size, dispersion)
   # and then the gradient vector
-  g <-  d - Ptheta %*% w
+  # g <-  d - Ptheta %*% w
   # Next, compute H
   D <- get_D(family, w, y, size, dispersion)
   H <- D - Ptheta

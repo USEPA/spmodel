@@ -307,10 +307,10 @@ get_d <- function(family, w, y, size, dispersion) {
   } else if (family == "binomial") {
     d <- y - size * expit(w)
   } else if (family == "Gamma") {
-    # d <- (1 / w - y) * 1 / dispersion
-    d <- 1 / dispersion * (y * exp(-w) - 1)
+    d <- - dispersion + dispersion * y * exp(-w)
   } else if (family == "inverse.gaussian") {
-    d <- 1 / dispersion * (y - exp(w)) / exp(2 * w)
+    # d <- 1 / dispersion * (y - exp(w)) / exp(2 * w)
+    d <- dispersion * (y/(2 * exp(w)) - exp(w)/(2 * y)) + 1/2
   } else if (family == "beta") {
     one_expw <- 1 + exp(w)
     k0 <- digamma(dispersion * exp(w) / one_expw) - digamma(dispersion / one_expw) + log(1 / y - 1)
@@ -331,10 +331,10 @@ get_D <- function(family, w, y, size, dispersion) {
   } else if (family == "binomial") {
     D_vec <- - size * expit(w) / (1 + exp(w))
   } else if (family == "Gamma") {
-    # D_vec <- -1 / w^2 * 1 / dispersion
-    D_vec <- - 1 / dispersion * y * exp(-w)
+    D_vec <- - dispersion * y * exp(-w)
   } else if (family == "inverse.gaussian") {
-    D_vec <- 1 / dispersion * (exp(w) - 2 * y) / exp(2 * w)
+    # D_vec <- 1 / dispersion * (exp(w) - 2 * y) / exp(2 * w)
+    D_vec <- - dispersion * (exp(2 * w) + y^2) / (2 * y * exp(w))
   } else if (family == "beta") {
     one_expw <- 1 + exp(w)
     k0 <- digamma(dispersion * exp(w) / one_expw) - digamma(dispersion / one_expw) + log(1 / y - 1)
@@ -378,12 +378,14 @@ get_l00 <- function(family, w, y, size, dispersion) {
     l00 <- -2 * sum(dbinom(y, size, mu, log = TRUE))
   } else if (family == "Gamma") {
     mu <- exp(w)
-    disp_recip <- 1 / dispersion
-    l00 <- -2 * sum(dgamma(y, shape = disp_recip, scale = dispersion * mu, log = TRUE))
+    # disp_recip <- 1 / dispersion
+    # l00 <- -2 * sum(dgamma(y, shape = disp_recip, scale = dispersion * mu, log = TRUE))
+    l00 <- -2 * sum(dgamma(y, shape = dispersion, scale = mu / dispersion, log = TRUE))
   } else if (family == "inverse.gaussian") {
     mu <- exp(w)
-    disp_recip <- 1 / dispersion
-    l00 <- -2 * sum((log(disp_recip) - log(2 * pi) - 3 * log(y)) / 2 - (disp_recip * (y - mu)^2 / (2 * y * mu^2)))
+    # disp_recip <- 1 / dispersion
+    # l00 <- -2 * sum((log(disp_recip) - log(2 * pi) - 3 * log(y)) / 2 - (disp_recip * (y - mu)^2 / (2 * y * mu^2)))
+    l00 <- -2 * sum(1/2 * (log(dispersion) + log(exp(w)) - log(2 * pi) - log(y^3)) - dispersion * (y - exp(w))^2 / (2 * exp(w) * y))
   } else if (family == "beta") {
     mu <- expit(w)
     a <- mu * dispersion

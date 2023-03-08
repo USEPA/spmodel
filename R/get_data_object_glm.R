@@ -95,7 +95,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
   # na_index <- is.na(data[[all.vars(formula)[1]]])
   response_index <- model.response(model.frame(formula, data, na.action = na.pass))
   if (NCOL(response_index) == 2) {
-    na_index <- rowSums(response_index) # will be NA if successes or failures NA
+    na_index <- is.na(rowSums(response_index)) # will be NA if successes or failures NA
   } else {
     na_index <- is.na(response_index)
   }
@@ -369,7 +369,7 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
   # na_index <- is.na(data[[all.vars(formula)[1]]])
   response_index <- model.response(model.frame(formula, data, na.action = na.pass))
   if (NCOL(response_index) == 2) {
-    na_index <- rowSums(response_index) # will be NA if successes or failures NA
+    na_index <- is.na(rowSums(response_index)) # will be NA if successes or failures NA
   } else {
     na_index <- is.na(response_index)
   }

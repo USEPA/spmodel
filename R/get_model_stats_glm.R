@@ -166,7 +166,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   if (is.null(data_object$size)) {
     size <- NULL
   } else {
-    size <- data_object$size[order(data_object$size)]
+    size <- data_object$size[order(data_object$order)]
   }
 
 

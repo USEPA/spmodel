@@ -25,8 +25,8 @@
 * Fixed a bug that produced irregular spacing in an error message for `spcov_initial()`.
 * Fixed a bug that prevented proper display of row names when calling `predict()
     with `interval = "confidence"`.
-* Fixed a bug that could miscalculate model diagnostics when `local` was specified.
 * Fixed a bug that caused errors in model-fitting and prediction when random effect or partition factor levels as a result of incorrect coercion among vector types.
+* Fixed bugs that sometimes caused certain model diagnostics to be miscalculated.
 
 # spmodel 0.2.0
 

@@ -3,7 +3,7 @@
 #' @param invcov_betahat_list A list of inverse covariances of beta hat for each grouping
 #' @param betahat_list A list of beta hat for each grouping
 #' @param betahat Average betahat
-#' @param cholprods_list A list of cholesky products for each grouping
+#' @param eigenprods_list A list of cholesky products for each grouping
 #' @param data_object The data object
 #' @param spcov_params Spatial covariance parameters
 #' @param randcov_params Random effects
@@ -14,7 +14,7 @@
 #' @return An adjusted covariance matrix of betahat
 #' @noRd
 cov_betahat_adjust <- function(invcov_betahat_list, betahat_list,
-                               betahat, cholprods_list, data_object, spcov_params,
+                               betahat, eigenprods_list, data_object, spcov_params,
                                randcov_params, cov_betahat_noadjust, var_adjust) {
   P <- length(betahat_list)
   # reset var_adjust if only one partition
@@ -54,14 +54,14 @@ cov_betahat_adjust <- function(invcov_betahat_list, betahat_list,
     index_list <- split(index_grid, seq_len(NROW(index_grid)))
     if (data_object$parallel) {
       W_adjust_list <- parallel::parLapply(data_object$cl, index_list, get_W_ij_parallel,
-        cholprods_list = cholprods_list,
+        eigenprods_list = eigenprods_list,
         spcov_params = spcov_params, randcov_params = randcov_params,
         randcov_names = names(randcov_params), data_object = data_object
       )
     } else {
       W_adjust_list <- lapply(index_list, function(x) {
         get_W_ij(
-          x$d1, x$d2, cholprods_list,
+          x$d1, x$d2, eigenprods_list,
           spcov_params, randcov_params,
           names(randcov_params), data_object
         )
@@ -76,7 +76,7 @@ cov_betahat_adjust <- function(invcov_betahat_list, betahat_list,
   cov_betahat_adjust_val
 }
 
-get_W_ij <- function(d1_index, d2_index, cholprods_list, spcov_params,
+get_W_ij <- function(d1_index, d2_index, eigenprods_list, spcov_params,
                      randcov_params, randcov_names, data_object) {
   d1 <- data_object$obdata_list[[d1_index]]
   d2 <- data_object$obdata_list[[d2_index]]
@@ -137,22 +137,25 @@ get_W_ij <- function(d1_index, d2_index, cholprods_list, spcov_params,
 
   cov_d1d2_cross <- cov_matrix_cross(spcov_params, dist_d1d2_cross, randcov_params, Zs_cross, partition_matrix_cross_val)
 
-  part1 <- cholprods_list[[d1_index]]$SqrtSigInv_X
-  part2 <- forwardsolve(cholprods_list[[d1_index]]$Sig_lowchol, cov_d1d2_cross)
-  part4 <- cholprods_list[[d2_index]]$SqrtSigInv_X
-  part3 <- backsolve(t(cholprods_list[[d2_index]]$Sig_lowchol), part4)
+  # part1 <- cholprods_list[[d1_index]]$SqrtSigInv_X
+  # part2 <- forwardsolve(cholprods_list[[d1_index]]$Sig_lowchol, cov_d1d2_cross)
+  # part4 <- cholprods_list[[d2_index]]$SqrtSigInv_X
+  # part3 <- backsolve(t(cholprods_list[[d2_index]]$Sig_lowchol), part4)
+  # W_ij_half <- Matrix::crossprod(part1, part2) %*% part3
 
-  W_ij_half <- Matrix::crossprod(part1, part2) %*% part3
+  part1 <- eigenprods_list[[d1_index]]$SigInv_X
+  part2 <- eigenprods_list[[d2_index]]$SigInv_X
+  W_ij_half <- Matrix::crossprod(part1, cov_d1d2_cross) %*% part2
   W_ij <- W_ij_half + t(W_ij_half)
 }
 
 
-get_W_ij_parallel <- function(index_list, cholprods_list, spcov_params,
+get_W_ij_parallel <- function(index_list, eigenprods_list, spcov_params,
                               randcov_params, randcov_names, data_object) {
   d1_index <- index_list$d1
   d2_index <- index_list$d2
   get_W_ij(
-    d1_index, d2_index, cholprods_list,
+    d1_index, d2_index, eigenprods_list,
     spcov_params, randcov_params,
     randcov_params, data_object
   )

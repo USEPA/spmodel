@@ -3,7 +3,7 @@
 #' @param betahat Vector of fixed effects
 #' @param spcov_params A \code{spcov_params} object
 #' @param X Model matrix
-#' @param cholprods A \code{cholprods} object
+#' @param eigenprods A \code{eigenprods} object
 #' @param dist_matrix A distance matrix
 #' @param randcov_params A \code{randcov_params} object
 #' @param randcov_Zs Random effect design matrices
@@ -11,7 +11,7 @@
 #' @return A list of fitted values
 #'
 #' @noRd
-get_fitted_splm <- function(betahat, spcov_params, data_object, cholprods_list,
+get_fitted_splm <- function(betahat, spcov_params, data_object, eigenprods_list,
                             dist_matrix_list, randcov_params = NULL) {
   fitted_response <- as.numeric(do.call("rbind", lapply(data_object$X_list, function(x) x %*% betahat)))
 
@@ -20,8 +20,7 @@ get_fitted_splm <- function(betahat, spcov_params, data_object, cholprods_list,
   ### so upchol is from siginv^(-1/2)uptri * siginv^(-1/2)(y - x beta)
   ### packsolve used because upper triangluar
   ### this gives siginv (y - x beta)
-  SqrtSigInv_r_list <- lapply(cholprods_list, function(x) x$SqrtSigInv_y - x$SqrtSigInv_X %*% betahat)
-  SigInv_r_list <- mapply(c = cholprods_list, r = SqrtSigInv_r_list, function(c, r) backsolve(t(c$Sig_lowchol), r), SIMPLIFY = FALSE)
+  SigInv_r_list <- lapply(eigenprods_list, function(x) x$SigInv_y - x$SigInv_X %*% betahat)
 
   # cov params no de   (set ie portion to zero because BLUP only uses cov(dependent error))
   spcov_params_de_only <- spcov_params
@@ -78,7 +77,7 @@ get_fitted_splm <- function(betahat, spcov_params, data_object, cholprods_list,
   )
 }
 
-get_fitted_spautor <- function(betahat, spcov_params, data_object, cholprods,
+get_fitted_spautor <- function(betahat, spcov_params, data_object, eigenprods,
                                randcov_params = NULL) {
   dist_matrix <- data_object$W[data_object$observed_index, data_object$observed_index, drop = FALSE]
   M <- data_object$M[data_object$observed_index]
@@ -90,8 +89,7 @@ get_fitted_spautor <- function(betahat, spcov_params, data_object, cholprods,
   ### so upchol is from siginv^(-1/2)uptri * siginv^(-1/2)(y - x beta)
   ### packsolve used because upper triangluar
   ### this gives siginv (y - x beta)
-  SqrtSigInv_r <- cholprods$SqrtSigInv_y - cholprods$SqrtSigInv_X %*% betahat
-  SigInv_r <- backsolve(t(cholprods$Sig_lowchol), SqrtSigInv_r)
+  SigInv_r <- eigenprods$SigInv_y - eigenprods$SigInv_X %*% betahat
 
   # cov params no de   (set ie portion to zero because BLUP only uses cov(dependent error))
   spcov_params_de_only <- spcov_params

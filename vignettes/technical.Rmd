@@ -930,7 +930,7 @@ So then taking $\mathbf{S} = \mathbf{D}^{1/2}$ implies $\mathbf{S}^{-1} = \mathb
 
 The Cholesky decomposition decomposes $\boldsymbol{\Sigma}$ into the product between $\mathbf{C}$ and $\mathbf{C}^\top$ ($\boldsymbol{\Sigma} = \mathbf{C}\mathbf{C}^\top$), where $\mathbf{C}$ is a lower triangular matrix. Note that $\mathbf{C}$ is generally not equal to $\boldsymbol{\Sigma}^{1/2}$. Taking $\mathbf{S}$ to be $\mathbf{C}$, we see that finding the inverse products requires solving $\mathbf{C}^{-1}\mathbf{X}$. Observe that $\mathbf{C}^{-1}\mathbf{X} = \mathbf{A}$ for some matrix $\mathbf{A}$. This implies $\mathbf{X} = \mathbf{C}\mathbf{A}$, which for $\mathbf{A}$ can be efficiently solved using forward substitution because $\mathbf{C}$ is lower triangular. 
 
-The products in this document that involve $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1/2}$ are actually implemented in `spmodel` using $\mathbf{C}$ and $\mathbf{C}^{-1}$ (instead of $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1/2}$). They are written in this document using $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1/2}$ because the underlying concepts are easier to communicate using square root notation.
+The products in this document that involve $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1}$ are actually implemented in `spmodel` using $\mathbf{C}$ and $\mathbf{C}^{-1}$. The products in this document that involve $\boldsymbol{\Sigma}^{-1/2}$ still rely on an eigendecomposition (because recall that generally, $\mathbf{C}^{-1} \mathbf{A} \neq \boldsymbol{\Sigma}^{-1/2} \mathbf{A}$). An example is computing the Pearson residuals.
 
 
 # References {.unnumbered}

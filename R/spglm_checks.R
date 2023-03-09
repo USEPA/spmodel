@@ -6,7 +6,7 @@
 #' @return Error messages or nothing
 #'
 #' @noRd
-spglm_checks <- function(spcov_initial, xcoord_given, ycoord_given, estmethod, anisotropy, random_given) {
+spglm_checks <- function(family, spcov_initial, xcoord_given, ycoord_given, estmethod, anisotropy, random_given) {
   spcov_type <- class(spcov_initial)
   if (spcov_type %in% c("car", "sar")) {
     stop("Invalid spatial covariance type for spglm(). To fit models for autoregressive data, use spgautor().", call. = FALSE)
@@ -19,5 +19,11 @@ spglm_checks <- function(spcov_initial, xcoord_given, ycoord_given, estmethod, a
 
   if (!estmethod %in% c("reml", "ml")) {
     stop("Estimation method must be \"reml\" or \"ml\".", call. = FALSE)
+  }
+
+  # family must be a character here
+  family_valid <- c("binomial", "poisson", "nbinomial", "Gamma", "inverse.gaussian", "beta")
+  if (!(family %in% family_valid)) {
+    stop(paste(family, " is not a valid glm family.", sep = ""), call. = FALSE)
   }
 }

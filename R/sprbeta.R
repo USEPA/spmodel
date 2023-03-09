@@ -16,12 +16,16 @@ sprbeta <- function(spcov_params, dispersion = 1, mean = 0, samples = 1, data, r
     sprbeta_val <- vapply(mu_list, function(x) {
       a <- x * dispersion
       b <- (1 - x) * dispersion
-      rbeta(n, shape1 = a, shape2 = b)
+      val <- rbeta(n, shape1 = a, shape2 = b)
+      val <- pmax(1e-4, val)
+      val <- pmin(1 - 1e-4, val)
     }, numeric(n))
   } else {
     a <- mu * dispersion
     b <- (1 - mu) * dispersion
     sprbeta_val <- rbeta(n, shape1 = a, shape2 = b)
+    sprbeta_val <- pmax(1e-6, sprbeta_val)
+    sprbeta_val <- pmin(1 - 1e-6, sprbeta_val)
   }
   sprbeta_val
 

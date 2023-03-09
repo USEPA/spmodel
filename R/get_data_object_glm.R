@@ -170,21 +170,13 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     y <- as.matrix(y_modr, ncol = 1)
   }
 
-  # checks on y
-  if (family == "binomial" && all(size == 1)) {
-    if (!all(y == 0 | y == 1)) {
-      stop("All response values must be 0 or 1.", call. = FALSE)
-    }
-  } else {
-    if (any(y < 0)) {
-      stop("All response values must be non-negative.", call. = FALSE)
-    }
-  }
-
   # see if response is numeric
   if (!is.numeric(y)) {
     stop("Response variable must be numeric", call. = FALSE)
   }
+
+  # checks on y
+  response_checks_glm(family, y, size)
 
   # error if p >= n
   if (p >= n) {
@@ -433,21 +425,13 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
     y <- as.matrix(y_modr, ncol = 1)
   }
 
-  # checks on y
-  if (family == "binomial" && all(size == 1)) {
-    if (!all(y == 0 | y == 1)) {
-      stop("All response values must be 0 or 1.", call. = FALSE)
-    }
-  } else {
-    if (any(y < 0)) {
-      stop("All response values must be non-negative.", call. = FALSE)
-    }
-  }
-
   # see if response is numeric
   if (!is.numeric(y)) {
     stop("Response variable must be numeric", call. = FALSE)
   }
+
+  # checks on y
+  response_checks_glm(family, y, size)
 
   # store n, p, and ones
   n <- NROW(obdata)

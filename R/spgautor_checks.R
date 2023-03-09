@@ -7,7 +7,7 @@
 #' @return Error messages or nothing
 #'
 #' @noRd
-spgautor_checks <- function(spcov_type, W_given, data, estmethod) {
+spgautor_checks <- function(family, spcov_type, W_given, data, estmethod) {
   if (spcov_type %in% c(
     "exponential", "spherical", "gaussian", "triangular",
     "circular", "cubic", "pentaspherical", "cosine", "wave",
@@ -24,5 +24,11 @@ spgautor_checks <- function(spcov_type, W_given, data, estmethod) {
 
   if (!estmethod %in% c("reml", "ml")) {
     stop("Estimation method must be \"reml\", or \"ml\".", call. = FALSE)
+  }
+
+  # family must be a character here
+  family_valid <- c("binomial", "poisson", "nbinomial", "Gamma", "inverse.gaussian", "beta")
+  if (!(family %in% family_valid)) {
+    stop(paste(family, " is not a valid glm family."), call. = FALSE)
   }
 }

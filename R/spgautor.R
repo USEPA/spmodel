@@ -58,7 +58,7 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
     spcov_initial <- spmodel::spcov_initial(spcov_type)
   }
 
-  spgautor_checks(class(spcov_initial), !missing(W), data, estmethod)
+  spgautor_checks(family, class(spcov_initial), !missing(W), data, estmethod)
 
   # set partition factor if necessary
   if (missing(W)) {

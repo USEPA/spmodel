@@ -60,7 +60,7 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
   }
 
   # perform checks to return errors
-  spglm_checks(spcov_initial, !missing(xcoord), !missing(ycoord), estmethod, anisotropy, !missing(random))
+  spglm_checks(family, spcov_initial, !missing(xcoord), !missing(ycoord), estmethod, anisotropy, !missing(random))
 
   # set random NULL if necessary
   if (missing(random)) {

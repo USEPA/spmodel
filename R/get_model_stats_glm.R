@@ -48,7 +48,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   # H <- w_and_H$H
 
   # put w in cholprods
-  w_list <- split(w, data_object$local_index)
+  w_list <- split(w, sort(data_object$local_index))
   Xt_SigInv_w_list <- mapply(
     x = cholprods_list, w = w_list,
     function(x, w) crossprod(x$SqrtSigInv_X, forwardsolve(x$Sig_lowchol, w)),

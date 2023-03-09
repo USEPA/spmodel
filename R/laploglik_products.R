@@ -207,7 +207,7 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
     # Next, compute H
     D <- get_D(family, w, y, size, dispersion)
     D_diag <- diag(D)
-    D_list <- lapply(split(D_diag, data_object$local_index), function(x) Diagonal(x = x))
+    D_list <- lapply(split(D_diag, sort(data_object$local_index)), function(x) Diagonal(x = x))
     # cholesky products
     if (data_object$parallel) {
       cluster_list <- lapply(seq_along(D_list), function(l) {
@@ -314,7 +314,7 @@ get_d <- function(family, w, y, size, dispersion) {
   } else if (family == "beta") {
     one_expw <- 1 + exp(w)
     k0 <- digamma(dispersion * exp(w) / one_expw) - digamma(dispersion / one_expw) + log(1 / y - 1)
-    d <- -dispersion * k0 / one_expw^2
+    d <- -dispersion * exp(w) * k0 / one_expw^2
   }
   d
 }

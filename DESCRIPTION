@@ -42,7 +42,8 @@ Suggests:
     knitr,
     testthat (>= 3.0.0),
     ggplot2,
-    ranger
+    ranger,
+    statmod
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 URL: https://usepa.github.io/spmodel/

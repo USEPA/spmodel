@@ -9,12 +9,12 @@ sprnbinom <- function(spcov_params, dispersion = 1, mean = 0, samples = 1, data,
     call_list <- call_list[-which(names(call_list) == "dispersion")]
   }
   call_val <- as.call(call_list)
-  sprnbinom_val <- eval(call_val, envir = parent.frame())
-  mu <- exp(sprnbinom_val)
+  sprnorm_val <- eval(call_val, envir = parent.frame())
+  mu <- exp(sprnorm_val)
 
   if (is.matrix(mu)) {
     mu_list <- split(t(mu), seq_len(NCOL(mu)))
-    sprnbinom_val <- vapply(mu_list, function(x) rnbinom(n, mu = mu, size = dispersion), numeric(n))
+    sprnbinom_val <- vapply(mu_list, function(x) rnbinom(n, mu = x, size = dispersion), numeric(n))
   } else {
     sprnbinom_val <- rnbinom(n, mu = mu, size = dispersion)
   }

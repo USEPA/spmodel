@@ -8,15 +8,14 @@ sprgamma <- function(spcov_params, dispersion = 1, mean = 0, samples = 1, data, 
     call_list <- call_list[-which(names(call_list) == "dispersion")]
   }
   call_val <- as.call(call_list)
-  sprgamma_val <- eval(call_val, envir = parent.frame())
-  mu <- exp(sprgamma_val)
-  disp_recip <- 1 / dispersion
+  sprnorm_val <- eval(call_val, envir = parent.frame())
+  mu <- exp(sprnorm_val)
 
   if (is.matrix(mu)) {
     mu_list <- split(t(mu), seq_len(NCOL(mu)))
-    sprgamma_val <- vapply(mu_list, function(x) rgamma(n, shape = disp_recip, scale = dispersion * mu), numeric(n))
+    sprgamma_val <- vapply(mu_list, function(x) rgamma(n, shape = dispersion, scale = x / dispersion), numeric(n))
   } else {
-    sprgamma_val <- rgamma(n, shape = disp_recip, scale = dispersion * mu)
+    sprgamma_val <- rgamma(n, shape = dispersion, scale = mu / dispersion)
   }
   sprgamma_val
 }

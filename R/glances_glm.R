@@ -1,3 +1,5 @@
+#' @rdname glances.spmodel
+#' @method glances spglm
 #' @export
 glances.spglm <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
   model_list <- c(list(object), list(...))
@@ -16,5 +18,7 @@ glances.spglm <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
   tibble::as_tibble(model_bind)
 }
 
+#' @rdname glances.spmodel
+#' @method glances spgautor
 #' @export
 glances.spgautor <- glance.spglm

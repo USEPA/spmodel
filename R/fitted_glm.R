@@ -1,3 +1,5 @@
+#' @rdname fitted.spmodel
+#' @method fitted spglm
 #' @export
 fitted.spglm <- function(object, type = "response", ...) {
   if (type == "link") {
@@ -10,5 +12,17 @@ fitted.spglm <- function(object, type = "response", ...) {
   fitted_val
 }
 
+#' @rdname fitted.spmodel
+#' @method fitted.values spglm
+#' @export
+fitted.values.spglm <- fitted.spglm
+
+#' @rdname fitted.spmodel
+#' @method fitted spgautor
 #' @export
 fitted.spgautor <- fitted.spglm
+
+#' @rdname fitted.spmodel
+#' @method fitted.values spgautor
+#' @export
+fitted.values.spgautor <- fitted.spgautor

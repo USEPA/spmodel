@@ -1,3 +1,5 @@
+#' @rdname coef.spmodel
+#' @method coef spglm
 #' @export
 coef.spglm <- function(object, type = "fixed", ...) {
   if (type == "fixed") {
@@ -14,11 +16,17 @@ coef.spglm <- function(object, type = "fixed", ...) {
   }
 }
 
+#' @rdname coef.spmodel
+#' @method coefficients spglm
 #' @export
 coefficients.spglm <- coef.spglm
 
+#' @rdname coef.spmodel
+#' @method coef spgautor
 #' @export
 coef.spgautor <- coef.spglm
 
+#' @rdname coef.spmodel
+#' @method coefficients spgautor
 #' @export
 coefficients.spgautor <- coef.spgautor

@@ -1,3 +1,5 @@
+#' @rdname residuals.spmodel
+#' @method residuals spglm
 #' @export
 residuals.spglm <- function(object, type = "deviance", ...) {
   if (type == "deviance") {
@@ -13,19 +15,29 @@ residuals.spglm <- function(object, type = "deviance", ...) {
   }
 }
 
+#' @rdname residuals.spmodel
+#' @method resid spglm
 #' @export
 resid.spglm <- residuals.spglm
 
+#' @rdname residuals.spmodel
+#' @method residuals spgautor
 #' @export
 residuals.spgautor <- residuals.spglm
 
+#' @rdname residuals.spmodel
+#' @method resid spgautor
 #' @export
 resid.spgautor <- residuals.spgautor
 
+#' @rdname rstandard.spmodel
+#' @method rstandard spglm
 #' @export
 rstandard.spglm <- function(model, ...) {
   residuals.spglm(model, type = "standardized")
 }
 
+#' @rdname rstandard.spmodel
+#' @method rstandard spgautor
 #' @export
 rstandard.spgautor <- rstandard.spglm

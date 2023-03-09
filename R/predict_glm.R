@@ -1,3 +1,5 @@
+#' @rdname predict.spmodel
+#' @method predict spglm
 #' @export
 predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
                          newdata_size, level = 0.95, local, ...) {
@@ -484,7 +486,9 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
 
 
 
-
+#' @rdname predict.spmodel
+#' @method predict spgautor
+#' @export
 predict.spgautor <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
                             newdata_size, level = 0.95, local, ...) {
 

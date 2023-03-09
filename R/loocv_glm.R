@@ -1,3 +1,5 @@
+#' @rdname loocv.spmodel
+#' @method loocv spglm
 #' @export
 loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
 
@@ -115,6 +117,8 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
   cv_output
 }
 
+#' @rdname loocv.spmodel
+#' @method loocv spgautor
 #' @export
 loocv.spgautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
 

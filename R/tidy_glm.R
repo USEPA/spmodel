@@ -1,3 +1,5 @@
+#' @rdname tidy.spmodel
+#' @method tidy spglm
 #' @export
 tidy.spglm <- function(x, conf.int = FALSE,
                       conf.level = 0.95, effects = "fixed", ...) {
@@ -59,6 +61,8 @@ tidy.spglm <- function(x, conf.int = FALSE,
   result
 }
 
+#' @rdname tidy.spmodel
+#' @method tidy spgautor
 #' @export
 tidy.spgautor <- function(x, conf.int = FALSE,
                          conf.level = 0.95, effects = "fixed", ...) {

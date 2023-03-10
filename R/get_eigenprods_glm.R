@@ -23,5 +23,5 @@ get_eigenprods_glm_parallel <- function(cluster_list) {
   X <- cluster_list$x
   y <- cluster_list$y
   o <- cluster_list$o
-  get_eigenprods(cov_matrix, X, y, o)
+  get_eigenprods_glm(cov_matrix, X, y, o)
 }

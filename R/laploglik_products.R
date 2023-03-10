@@ -14,12 +14,17 @@ laploglik_products <- function(spcov_params_val, dispersion_params_val, ...) {
 laploglik_products.exponential <- function(spcov_params_val, dispersion_params_val, data_object, estmethod,
                                          dist_matrix_list, randcov_params_val, ...) {
 
-  if (inherits(spcov_params_val, "none") && spcov_params_val[["ie"]] < 1e-4) {
+  if (inherits(spcov_params_val, "none")) {
     # instability when in smw of H when ie is small enough and the covariance is "none"
     # spcov_matrix.none does not adequately handle this when de = 0 because max set to 0
     # maybe another statement after the first max setting to check for zero to get
     # around this case?
-    spcov_params_val[["ie"]] <- 1e-4
+    if (spcov_params_val[["ie"]] <= 1e-4) {
+      spcov_params_val[["ie"]] <- 1e-4
+    }
+    # if (dispersion_params_val[["dispersion"]] <= 1e-4) {
+    #   dispersion_params_val[["dispersion"]] <- 1e-4
+    # }
   }
 
 

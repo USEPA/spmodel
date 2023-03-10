@@ -14,7 +14,9 @@ cov_estimate_laploglik_spglm <- function(data_object, formula, spcov_initial,
 
 
   # make NA spcov_initial
-  spcov_initial_NA_val <- spcov_initial_NA(spcov_initial, anisotropy = data_object$anisotropy)
+  spcov_initial_NA_val <- spcov_initial_NA_glm(data_object$family, spcov_initial, anisotropy = data_object$anisotropy)
+  # dispersion ie confounded in comment below
+  # spcov_initial_NA_val <- spcov_initial_NA(spcov_initial, anisotropy = data_object$anisotropy)
 
   # make NA dispersion initial
   dispersion_initial_NA_val <- dispersion_initial_NA(dispersion_initial, data_object)
@@ -114,7 +116,9 @@ cov_estimate_laploglik_spgautor <- function(data_object, formula, spcov_initial,
                                          dispersion_initial, estmethod,
                                          optim_dotlist) {
   # make NA spcov_initial
-  spcov_initial_NA_val <- spcov_initial_NA(spcov_initial, is_W_connected = data_object$is_W_connected)
+  spcov_initial_NA_val <- spcov_initial_NA_glm(data_object$family, spcov_initial, is_W_connected = data_object$is_W_connected)
+  # dispersion ie confounded in comment below
+  # spcov_initial_NA_val <- spcov_initial_NA(spcov_initial, is_W_connected = data_object$is_W_connected)
 
   # make NA dispersion initial
   dispersion_initial_NA_val <- dispersion_initial_NA(dispersion_initial, data_object)

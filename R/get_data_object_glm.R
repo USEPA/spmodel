@@ -418,7 +418,7 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
       # if (is.factor(y_modr)) {
       #   y_modr <- ifelse(y_modr == levels(y_modr)[1], 0, 1)
       # }
-      size <- rep(1, n)
+      size <- rep(1, NROW(obdata))
     } else {
       size <- NULL
     }

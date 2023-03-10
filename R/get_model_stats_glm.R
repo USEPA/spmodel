@@ -260,9 +260,9 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
   deviance_i <- pmax(deviance_i, 0) # sometimes numerical instability can cause these to be slightly non-negative
 
   # storing relevant products
-  SigInv_X_null <- eigenprods_null$SigInv_X
+  SigInv_X_null <- eigenprods$SigInv_ones
   ## lower chol %*% X
-  SqrtSigInv_X_null <- eigenprods_null$SqrtSigInv_X
+  SqrtSigInv_X_null <- eigenprods$SqrtSigInv_ones
   # covariance of beta hat
   ## t(X) %*% sigma_inverse %*% X
   Xt_SigInv_X_null <- crossprod(SqrtSigInv_X_null, SqrtSigInv_X_null)
@@ -272,7 +272,7 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
 
   # newton rhapson
   w_and_H_null <- get_w_and_H_spgautor(data_object, dispersion,
-                                    SigInv_null, SigInv_X_null, cov_betahat_null, Xt_SigInv_X_null, estmethod)
+                                    SigInv, SigInv_X_null, cov_betahat_null, Xt_SigInv_X_null, estmethod)
 
 
   w_null <- w_and_H_null$w

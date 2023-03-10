@@ -12,7 +12,7 @@ laploglik_products <- function(spcov_params_val, dispersion_params_val, ...) {
 }
 #' @export
 laploglik_products.exponential <- function(spcov_params_val, dispersion_params_val, data_object, estmethod,
-                                         dist_matrix_list, randcov_params_val) {
+                                         dist_matrix_list, randcov_params_val, ...) {
 
   if (inherits(spcov_params_val, "none") && spcov_params_val[["ie"]] < 1e-4) {
     # instability when in smw of H when ie is small enough and the covariance is "none"
@@ -133,7 +133,7 @@ laploglik_products.pexponential <- laploglik_products.exponential
 
 #' @export
 laploglik_products.car <- function(spcov_params_val, dispersion_params_val, data_object, estmethod,
-                                 dist_matrix_list, randcov_params_val) {
+                                 dist_matrix_list, randcov_params_val, ...) {
 
   spautor_cov_matrixInv_val <- spautor_cov_matrixInv(
     spcov_params_val, data_object,

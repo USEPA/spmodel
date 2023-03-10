@@ -10,7 +10,7 @@ cov_initial_search_glm <- function(spcov_initial_NA, dispersion_initial_NA, ...)
 #' @export
 cov_initial_search_glm.exponential <- function(spcov_initial_NA, dispersion_initial_NA, estmethod, data_object,
                                            dist_matrix_list, weights,
-                                           randcov_initial_NA = NULL, esv_dotlist) {
+                                           randcov_initial_NA = NULL, esv_dotlist, ...) {
 
 
   # find ols sample variance
@@ -251,7 +251,7 @@ cov_initial_search_glm.magnetic <- cov_initial_search_glm.exponential
 #' @export
 cov_initial_search_glm.none <- function(spcov_initial_NA, dispersion_initial_NA, estmethod, data_object,
                                     dist_matrix_list, weights,
-                                    randcov_initial_NA = NULL, esv_dotlist) {
+                                    randcov_initial_NA = NULL, esv_dotlist, ...) {
   # find ols sample variance
   lm_out <- lm(data_object$formula, do.call("rbind", data_object$obdata_list))
   if (inherits(dispersion_initial_NA, "binomial") && length(summary(lm_out)) == 2) {
@@ -457,7 +457,7 @@ cov_initial_search_glm.none <- function(spcov_initial_NA, dispersion_initial_NA,
 #' @export
 cov_initial_search_glm.matern <- function(spcov_initial_NA, dispersion_initial_NA, estmethod, data_object,
                                       dist_matrix_list, weights,
-                                      randcov_initial_NA = NULL, esv_dotlist) {
+                                      randcov_initial_NA = NULL, esv_dotlist, ...) {
   # find ols sample variance
   lm_out <- lm(data_object$formula, do.call("rbind", data_object$obdata_list))
   if (inherits(dispersion_initial_NA, "binomial") && length(summary(lm_out)) == 2) {
@@ -676,7 +676,7 @@ cov_initial_search_glm.pexponential <- cov_initial_search_glm.matern
 
 #' @export
 cov_initial_search_glm.car <- function(spcov_initial_NA, dispersion_initial_NA, estmethod, data_object,
-                                   dist_matrix_list, randcov_initial_NA = NULL) {
+                                   dist_matrix_list, randcov_initial_NA = NULL, ...) {
 
   # find ols sample variance
   obdata <- data_object$data[data_object$observed_index, , drop = FALSE]

@@ -27,7 +27,8 @@
     with `interval = "confidence"`.
 * Fixed a bug that caused errors in model-fitting and prediction when random effect or partition factor levels as a result of incorrect coercion among vector types.
 * Fixed bugs that sometimes caused certain model diagnostics to be miscalculated.
-* Fixed several inconsistencies in non-exported generics
+* Fixed several inconsistencies in non-exported generic functions.
+* Fixed a bug that prevented names from appearing with output from certain model diagnostic generic functions.
 
 # spmodel 0.2.0
 

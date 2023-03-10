@@ -86,13 +86,21 @@ get_model_stats_splm <- function(cov_est_object, data_object, estmethod) {
   # reorder relevant quantities
   ## fitted
   fitted$response <- fitted$response[order(data_object$order)]
+  names(fitted$response) <- data_object$observed_index
   fitted$spcov$de <- fitted$spcov$de[order(data_object$order)]
+  names(fitted$spcov$de) <- data_object$observed_index
   fitted$spcov$ie <- fitted$spcov$ie[order(data_object$order)]
+  names(fitted$spcov$ie) <- data_object$observed_index
   hatvalues <- hatvalues[order(data_object$order)]
+  names(hatvalues) <- data_object$observed_index
   residuals$response <- residuals$response[order(data_object$order)]
+  names(residuals$response) <- data_object$observed_index
   residuals$pearson <- residuals$pearson[order(data_object$order)]
+  names(residuals$pearson) <- data_object$observed_index
   residuals$standardized <- residuals$standardized[order(data_object$order)]
+  names(residuals$standardized) <- data_object$observed_index
   cooks_distance <- cooks_distance[order(data_object$order)]
+  names(cooks_distance) <- data_object$observed_index
 
   # return variance covariance matrices
   vcov <- get_vcov(cov_betahat)
@@ -189,6 +197,16 @@ get_model_stats_spautor <- function(cov_est_object, data_object, estmethod) {
 
   # return cooks distance
   cooks_distance <- get_cooks_distance(residuals, hatvalues, data_object$p)
+
+  # give names
+  names(fitted$response) <- data_object$observed_index
+  names(fitted$spcov$de) <- data_object$observed_index
+  names(fitted$spcov$ie) <- data_object$observed_index
+  names(hatvalues) <- data_object$observed_index
+  names(residuals$response) <- data_object$observed_index
+  names(residuals$pearson) <- data_object$observed_index
+  names(residuals$standardized) <- data_object$observed_index
+  names(cooks_distance) <- data_object$observed_index
 
   # return variance covariance matrices
   vcov <- get_vcov(cov_betahat)

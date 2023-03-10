@@ -14,7 +14,7 @@ spcov_matrixInv_de <- function(spcov_params, dist_matrix, ...) {
 
 # spcov_matrixInv_de car
 #' @export
-spcov_matrixInv_de.car <- function(spcov_params, dist_matrix, M) {
+spcov_matrixInv_de.car <- function(spcov_params, dist_matrix, M, ...) {
   if (spcov_params[["de"]] < 0.01) {
     spcov_params[["de"]] <- 0.01
   } # done for invertibility issues arising with cov_initial_search
@@ -61,7 +61,7 @@ spcov_matrixInv_de.car <- function(spcov_params, dist_matrix, M) {
 
 # spcov_matrixInv_de sar
 #' @export
-spcov_matrixInv_de.sar <- function(spcov_params, dist_matrix, M) { # M is not used
+spcov_matrixInv_de.sar <- function(spcov_params, dist_matrix, M, ...) { # M is not used
   if (spcov_params[["de"]] < 0.01) {
     spcov_params[["de"]] < 0.01
   } # done for invertibility issues arising with cov_initial_search

@@ -9,7 +9,8 @@
 #'
 #' @return The log-likelihood.
 #'
-#' @method logLik spmod
+#' @name logLik.spmodel
+#' @method logLik splm
 #' @export
 #'
 #' @examples
@@ -18,7 +19,7 @@
 #'   spcov_type = "exponential", xcoord = x, ycoord = y
 #' )
 #' logLik(spmod)
-logLik.spmod <- function(object, ...) {
+logLik.splm <- function(object, ...) {
   if (object$estmethod %in% c("reml", "ml")) {
     minus2loglik <- object$optim$value
     loglik <- -1 / 2 * minus2loglik
@@ -27,3 +28,8 @@ logLik.spmod <- function(object, ...) {
     stop("log likelihood is only defined for the reml or ml estimation")
   }
 }
+
+#' @rdname logLik.spmodel
+#' @method logLik spautor
+#' @export
+logLik.spautor <- logLik.splm

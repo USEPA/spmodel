@@ -978,6 +978,11 @@ if (test_local) {
     expect_error(splm(y ~ x, exdata, "exponential", "xyz", ycoord))
     expect_error(splm(y ~ x, exdata, "exponential", xcoord, xyz))
     expect_error(splm(y ~ x, exdata, "exponential", xcoord, "xyz"))
+    exdata4 <- exdata
+    exdata4$x2 <- exdata4$x
+    expect_error(splm(y ~ x + x2, exdata4, "exponential", xcoord, ycoord))
+    exdata4$x[1] <- NA
+    expect_error(splm(y ~ x, exdata4, "exponential", xcoord, ycoord))
 
     # anisotropy
     expect_error(splm(y ~ x, exdata, "exponential", xcoord, ycoord, anisotropy = TRUE, estmethod = "sv-wls"))

@@ -167,7 +167,7 @@ The columns of this tibble represent:
 * `.std.residuals`: Standardized residuals
 * `geometry`: The spatial information in the `sf` object.
 
-By default, `augment()` only returns the variables in the data used by the model. All variables from the original data are returned by setting `drop = FALSE`. Many of these model diagnostics can be visualized by running `plot(spmod)`. We can learn more about `plot()` in `spmodel` by running `help("plot.spmod", "spmodel")`. 
+By default, `augment()` only returns the variables in the data used by the model. All variables from the original data are returned by setting `drop = FALSE`. Many of these model diagnostics can be visualized by running `plot(spmod)`. We can learn more about `plot()` in `spmodel` by running `help("plot.spmodel", "spmodel")`. 
 
 ## Prediction (Kriging)
 
@@ -247,6 +247,7 @@ Here we list some commonly used `spmodel` functions.
 * `augment()`: Augment data with diagnostics or new data with predictions.
 * `coef()`: Return coefficients.
 * `confint()`: Compute confidence intervals.
+* `cooks.distance()`: Compute Cook's distance.
 * `covmatrix()`: Return covariance matrices.
 * `deviance()`: Compute the deviance.
 * `esv()`: Compute an empirical semivariogram.
@@ -256,6 +257,7 @@ Here we list some commonly used `spmodel` functions.
 * `hatvalues()`: Compute leverage (hat) values.
 * `logLik()`: Compute the log-likelihood.
 * `loocv()`: Perform leave-one-out cross validation.
+* `model.matrix()`: Return the model matrix ($\mathbf{X}$).
 * `plot()`: Create fitted model plots.
 * `predict()`: Compute predictions and prediction intervals.
 * `pseudoR2()`: Compute the pseudo r-squared.
@@ -267,9 +269,12 @@ Here we list some commonly used `spmodel` functions.
 * `sprnorm()`: Simulate spatially correlated normal (Gaussian) random variables.
 * `summary()`: Summarize fitted models.
 * `tidy()`: Tidy fitted models.
+* `varcomp()`: Compare variance components.
 * `vcov()`: Compute variance-covariance matrices of estimated parameters.
 
 For a full list of `spmodel` functions alongside their documentation, see the documentation manual.
+Documentation for methods of generic functions that are defined outside of `spmodel` can be found
+by running `?generic.spmodel` (e.g., `?fitted.spmodel`, `?predict.spmodel`, `?summary.spmodel`, etc.).
 
 # References {.unnumbered}
 

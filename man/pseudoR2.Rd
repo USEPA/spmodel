@@ -2,12 +2,15 @@
 % Please edit documentation in R/PseudoR2.R
 \name{pseudoR2}
 \alias{pseudoR2}
-\alias{pseudoR2.spmod}
+\alias{pseudoR2.splm}
+\alias{pseudoR2.spautor}
 \title{Compute a pseudo r-squared}
 \usage{
 pseudoR2(object, ...)
 
-\method{pseudoR2}{spmod}(object, adjust = FALSE, ...)
+\method{pseudoR2}{splm}(object, adjust = FALSE, ...)
+
+\method{pseudoR2}{spautor}(object, adjust = FALSE, ...)
 }
 \arguments{
 \item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}

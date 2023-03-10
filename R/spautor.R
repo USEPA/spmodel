@@ -120,8 +120,8 @@
 #'
 #' @return A list with many elements that store information about
 #'   the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
-#'   length one, the list has class \code{spmod}. Many generic functions that
-#'   summarize model fit are available for \code{spmod} objects, including
+#'   length one, the list has class \code{spautor}. Many generic functions that
+#'   summarize model fit are available for \code{spautor} objects, including
 #'   \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
 #'   \code{cooks.distance}, \code{deviance}, \code{fitted}, \code{formula},
 #'   \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
@@ -129,9 +129,9 @@
 #'   \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
 #'   \code{terms}, \code{tidy}, \code{update}, and \code{vcov}. If
 #'   \code{spcov_type} or \code{spcov_initial} are length greater than one, the
-#'   list has class \code{spmod_list} and each element in the list has class
-#'   \code{spmod}. \code{glances} can be used to summarize \code{spmod_list}
-#'   objects, and the aforementioned \code{spmod} generics can be used on each
+#'   list has class \code{spautor_list} and each element in the list has class
+#'   \code{spautor}. \code{glances} can be used to summarize \code{spautor_list}
+#'   objects, and the aforementioned \code{spautor} generics can be used on each
 #'   individual list element (model fit).
 #'
 #' @note This function does not perform any internal scaling. If optimization is not
@@ -164,7 +164,7 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
       do.call("spautor", call_list, envir = penv)
     })
     names(spautor_out) <- paste("spcov_initial", seq_along(spcov_initial), sep = "_")
-    new_spautor_out <- structure(spautor_out, class = "spmod_list")
+    new_spautor_out <- structure(spautor_out, class = "spautor_list")
     return(new_spautor_out)
   } else if (!missing(spcov_type) && length(spcov_type) > 1) {
     call_list <- as.list(match.call())[-1]
@@ -174,7 +174,7 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
       do.call("spautor", call_list, envir = penv)
     })
     names(spautor_out) <- spcov_type
-    new_spautor_out <- structure(spautor_out, class = "spmod_list")
+    new_spautor_out <- structure(spautor_out, class = "spautor_list")
     return(new_spautor_out)
   }
 
@@ -244,7 +244,6 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
     formula = formula,
     terms = data_object$terms,
     call = match.call(),
-    fn ="spautor",
     estmethod = estmethod,
     data = data_object$data,
     newdata = data_object$newdata,
@@ -263,6 +262,6 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
     crs = data_object$crs
   )
 
-  new_output <- structure(output, class = "spmod")
+  new_output <- structure(output, class = "spautor")
   new_output
 }

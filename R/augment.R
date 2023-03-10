@@ -44,7 +44,7 @@
 #' @return When augmenting the original data set, a tibble with additional columns
 #'   \itemize{
 #'     \item{\code{.fitted}}{ Fitted value}
-#'     \item{\code{.resid}}{ Raw residual (the difference between observed and fitted values)}
+#'     \item{\code{.resid}}{ Response residual (the difference between observed and fitted values)}
 #'     \item{\code{.hat}}{ Leverage (diagonal of the hat matrix)}
 #'     \item{\code{.cooksd}}{ Cook's distance}
 #'     \item{\code{.std.resid}}{ Standardized residuals}
@@ -59,11 +59,12 @@
 #'     \item{\code{.se.fit}}{ Standard error of the predicted (or fitted) value}
 #'   }
 #'
-#' @method augment spmod
+#' @name augment.spmodel
+#' @method augment splm
 #' @order 1
 #' @export
 #'
-#' @seealso [tidy.spmod()] [glance.spmod()]
+#' @seealso [tidy.spmodel()] [glance.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -78,16 +79,10 @@
 #' spmod_seal <- spautor(log_trend ~ 1, data = seal, spcov_type = "car")
 #' augment(spmod_seal)
 #' augment(spmod_seal, newdata = spmod_seal$newdata)
-augment.spmod <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
-                          interval = c("none", "confidence", "prediction"), ...) {
+augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
+                         interval = c("none", "confidence", "prediction"), ...) {
 
   interval <- match.arg(interval)
-  switch(x$fn,
-    "splm" = augment_splm(x, drop, newdata, se_fit, interval, ...),
-    "spautor" = augment_spautor(x, drop, newdata, se_fit, interval, ...)
-  )
-}
-augment_splm <- function(x, drop, newdata, se_fit, interval, ...) {
 
   # set data and newdata
   if (is.null(newdata)) {
@@ -180,9 +175,13 @@ augment_splm <- function(x, drop, newdata, se_fit, interval, ...) {
   tibble_out
 }
 
-augment_spautor <- function(x, drop, newdata, se_fit,
-                            interval, ...) {
+#' @rdname augment.spmodel
+#' @method augment spautor
+#' @export
+augment.spautor <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
+                            interval = c("none", "confidence", "prediction"), ...) {
 
+  interval <- match.arg(interval)
 
   # set data and newdata
   if (is.null(newdata)) {

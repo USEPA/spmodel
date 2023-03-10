@@ -18,7 +18,7 @@ allowing for random effects, anisotropy, partition factors, and big data methods
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -104,25 +104,25 @@ are taken as the centroids of each polygon.</p></dd>
 elements include the function call (named <code>call</code>), the random forest object
 fit to the mean (named <code>ranger</code>),
 the spatial linear model object fit to the residuals
-(named <code>spmod</code> or <code>spmod_list</code>), and an object can contain data for
+(named <code>splm</code> or <code>splm_list</code>), and an object can contain data for
 locations at which to predict (called <code>newdata</code>). The <code>newdata</code></p>
 
 
 <p>object contains the set of
 observations in <code>data</code> whose response variable is <code>NA</code>.
 If <code>spcov_type</code> or <code>spcov_initial</code> (which are passed to <code><a href="splm.html">splm()</a></code>)
-are length one, the list has class <code>spmodRF</code> and the spatial linear
-model object fit to the residuals is called <code>spmod</code>, which has
-class <code>spmod</code>. If
+are length one, the list has class <code>splmRF</code> and the spatial linear
+model object fit to the residuals is called <code>splm</code>, which has
+class <code>splm</code>. If
 <code>spcov_type</code> or <code>spcov_initial</code> are length greater than one, the
-list has class <code>spmodRF_list</code> and the spatial linear model object
-fit to the residuals is called <code>spmod_list</code>, which has class <code>spmod_list</code>.
-and contains several objects, each with class <code>spmod</code>.</p>
+list has class <code>splmRF_list</code> and the spatial linear model object
+fit to the residuals is called <code>splm_list</code>, which has class <code>splm_list</code>.
+and contains several objects, each with class <code>splm</code>.</p>
 
 
-<p>An <code>spmodRF</code> object to be used with <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>. There are
+<p>An <code>splmRF</code> object to be used with <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>. There are
 three elements: <code>ranger</code>, the output from fitting the mean model with
-<code><a href="https://rdrr.io/pkg/ranger/man/ranger.html" class="external-link">ranger::ranger()</a></code>; <code>spmod</code>, the output from fitting the spatial
+<code><a href="https://rdrr.io/pkg/ranger/man/ranger.html" class="external-link">ranger::ranger()</a></code>; <code>splm</code>, the output from fitting the spatial
 linear model to the ranger residuals; and <code>newdata</code>, the <code>newdata</code></p>
 
 
@@ -131,7 +131,7 @@ linear model to the ranger residuals; and <code>newdata</code>, the <code>newdat
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The random forest residual spatial linear model is described by
-Fox Et al. (2020). A random forest model is fit to the mean portion of the
+Fox et al. (2020). A random forest model is fit to the mean portion of the
 model specified by <code>formula</code> using <code><a href="https://rdrr.io/pkg/ranger/man/ranger.html" class="external-link">ranger::ranger()</a></code>. Residuals
 are computed and used as the response variable in an intercept-only spatial
 linear model fit using <code><a href="splm.html">splm()</a></code>. This model object is intended for use with
@@ -159,35 +159,35 @@ regression to random forests for large environmental data sets.
 <span class="r-in"><span><span class="va">sprfmod</span> <span class="op">&lt;-</span> <span class="fu">splmRF</span><span class="op">(</span><span class="va">sulfate</span> <span class="op">~</span> <span class="va">var</span>, data <span class="op">=</span> <span class="va">sulfate</span>, spcov_type <span class="op">=</span> <span class="st">"exponential"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">sprfmod</span>, <span class="va">sulfate_preds</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          1          2          3          4          5          6          7 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11.3260354 14.4985360  8.8554729 15.4528434  2.7078048 29.0843811 -3.7472819 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -4.4851325 32.4148416 18.8629687 11.1070667  0.2634920 44.9187172 10.1639579 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          8          9         10         11         12         13         14 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15.2077900  6.5062496 17.6143028 -4.2339449 18.8949519  0.8461354 21.7425429 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8.5247499  1.8860764 12.4416770 -6.3775122 17.5852110 11.5623177 20.6920841 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         15         16         17         18         19         20         21 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 30.8737497 14.1182966 10.3616990  5.9274988 -3.7144827 13.4781594  5.0286565 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21.4332762 11.2546474 12.3473305 12.5740582  7.2474599 28.4453424  0.8100155 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         22         23         24         25         26         27         28 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -5.4160692 -3.2527590 -4.3117937  4.0895361 -7.5575237 22.8340300 10.2775693 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6.0370955 -5.4465345 -6.5956603 -0.5376039  5.5680906 11.5976435 20.3328393 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         29         30         31         32         33         34         35 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13.4057889  7.1863819  4.0325676  9.0076379 11.7876560 -1.6011810 -2.7114512 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16.5762511  3.8881088 -4.0676631  6.0720815 14.3105877 -0.7299244  2.2381128 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         36         37         38         39         40         41         42 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2.1475384 16.0232487  4.9165419  6.1951623 14.2874082 11.5686687 21.0549982 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.7647218 14.9721270 11.8360909 23.6370043  6.6962919 15.2936410 15.3288531 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         43         44         45         46         47         48         49 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14.2518761 30.1271720 -2.8541667  7.1106434 13.6612669  7.8630109 30.5769357 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22.0592287 25.2815993  3.9245916 19.8398873 11.2798565 11.1203216 14.5816465 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         50         51         52         53         54         55         56 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6.0392232 29.0537832 24.0733400  1.1639907 19.6657160  5.5695725 11.4190362 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -5.3944058 31.9331112  9.0964024  9.8282052 -1.1915019  8.2903132 16.1091002 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         57         58         59         60         61         62         63 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8.5224696  3.6418977 22.0808369  2.1956732 10.1888424 18.1241811 -3.0900778 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22.0095733 -9.3955489 13.9137869 14.7992536 13.2129057 17.4727237  8.3532127 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         64         65         66         67         68         69         70 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 19.1958757 22.2073973 -0.5849305 -1.9014546  9.6097322  6.5544375 13.7044535 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17.7958098 27.1275193 -1.4759576 -4.5544598  6.2849949  5.3399282  9.4943331 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         71         72         73         74         75         76         77 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1.4703563 25.7793427 13.3649952  0.1977996  0.5301885 -2.5390173  8.9823117 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -3.3325025 24.7863430  1.4071574  6.0413836  2.3921251 -0.6820872 21.0012823 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         78         79         80         81         82         83         84 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.7245707 21.3834141 16.3853513 16.7134407 -0.4161622 21.1505571 16.4542252 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6.1881032 16.7233182 12.3833482  9.2240733 12.0010120  8.2314757  6.5824609 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         85         86         87         88         89         90         91 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10.0369576  5.3034031 -4.8446441  4.2813757  6.9533961 11.9503019 14.5366711 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5.1828613  8.7499919  4.8092601 -3.0923806  9.9381419 17.9122543 15.8968522 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         92         93         94         95         96         97         98 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16.1530883  3.9024402 22.6080707 12.4198031 18.0471193 28.7157686 18.6732068 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10.5204847  4.9098156 20.0045755  9.4817227 20.2961642 20.3496114 19.8505763 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         99        100 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 19.3570959 12.7604056 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17.7304013 10.3742592 </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

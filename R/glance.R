@@ -22,10 +22,11 @@
 #'     \item{\code{pseudo.r.squared}}{ The pseudo r-squared}
 #'   }
 #'
-#' @method glance spmod
+#' @name glance.spmodel
+#' @method glance splm
 #' @export
 #'
-#' @seealso [AIC.spmod()] [AICc()] [logLik.spmod()] [deviance.spmod()] [pseudoR2()] [tidy.spmod()] [augment.spmod()]
+#' @seealso [AIC.spmodel()] [AICc()] [logLik.spmodel()] [deviance.spmodel()] [pseudoR2()] [tidy.spmodel()] [augment.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -33,7 +34,7 @@
 #'   spcov_type = "exponential", xcoord = x, ycoord = y
 #' )
 #' glance(spmod)
-glance.spmod <- function(x, ...) {
+glance.splm <- function(x, ...) {
   is_likbased <- x$estmethod %in% c("ml", "reml")
   tibble::tibble(
     n = x$n,
@@ -48,3 +49,8 @@ glance.spmod <- function(x, ...) {
     # cv.crit = loocv(x)
   )
 }
+
+#' @rdname glance.spmodel
+#' @method glance spautor
+#' @export
+glance.spautor <- glance.splm

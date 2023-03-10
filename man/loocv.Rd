@@ -2,12 +2,12 @@
 % Please edit documentation in R/loocv.R
 \name{loocv}
 \alias{loocv}
-\alias{loocv.spmod}
+\alias{loocv.splm}
 \title{Perform leave-one-out cross validation}
 \usage{
 loocv(object, ...)
 
-\method{loocv}{spmod}(object, cv_predict = FALSE, se.fit = FALSE, local, ...)
+\method{loocv}{splm}(object, cv_predict = FALSE, se.fit = FALSE, local, ...)
 }
 \arguments{
 \item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
@@ -21,9 +21,9 @@ should be returned. Defaults to \code{FALSE}.}
 prediction standard errors should be returned. Defaults to \code{FALSE}.}
 
 \item{local}{A list or logical. If a list, specific list elements described
-in \code{\link[=predict.spmod]{predict.spmod()}} control the big data approximation behavior.
+in \code{\link[=predict.spmodel]{predict.spmodel()}} control the big data approximation behavior.
 If a logical, \code{TRUE} chooses default list elements for the list version
-of \code{local} as specified in \code{\link[=predict.spmod]{predict.spmod()}}. Defaults to \code{FALSE},
+of \code{local} as specified in \code{\link[=predict.spmodel]{predict.spmodel()}}. Defaults to \code{FALSE},
 which performs exact computations.}
 }
 \value{

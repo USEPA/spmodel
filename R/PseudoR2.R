@@ -29,10 +29,11 @@
 pseudoR2 <- function(object, ...) {
   UseMethod("pseudoR2", object)
 }
+
 #' @rdname pseudoR2
-#' @method pseudoR2 spmod
+#' @method pseudoR2 splm
 #' @export
-pseudoR2.spmod <- function(object, adjust = FALSE, ...) {
+pseudoR2.splm <- function(object, adjust = FALSE, ...) {
   if (adjust) {
     has_intercept <- "(Intercept)" %in% tidy(object)$term
     pr2 <- object$pseudoR2
@@ -42,3 +43,8 @@ pseudoR2.spmod <- function(object, adjust = FALSE, ...) {
     return(object$pseudoR2)
   }
 }
+
+#' @rdname pseudoR2
+#' @method pseudoR2 spautor
+#' @export
+pseudoR2.spautor <- pseudoR2.splm

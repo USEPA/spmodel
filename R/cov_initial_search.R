@@ -9,7 +9,7 @@ cov_initial_search <- function(spcov_initial_NA, ...) {
 #' @export
 cov_initial_search.exponential <- function(spcov_initial_NA, estmethod, data_object,
                                            dist_matrix_list, weights,
-                                           randcov_initial_NA = NULL, esv_dotlist) {
+                                           randcov_initial_NA = NULL, esv_dotlist, ...) {
   # find ols sample variance
   s2 <- summary(lm(data_object$formula, do.call("rbind", data_object$obdata_list)))$sigma^2
   ns2 <- 1.2 * s2
@@ -302,7 +302,7 @@ cov_initial_search.magnetic <- cov_initial_search.exponential
 #' @export
 cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
                                     dist_matrix_list, weights,
-                                    randcov_initial_NA = NULL, esv_dotlist) {
+                                    randcov_initial_NA = NULL, esv_dotlist, ...) {
   # find ols sample variance
   s2 <- summary(lm(data_object$formula, do.call("rbind", data_object$obdata_list)))$sigma^2
   ns2 <- 1.2 * s2
@@ -565,7 +565,7 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
 #' @export
 cov_initial_search.matern <- function(spcov_initial_NA, estmethod, data_object,
                                       dist_matrix_list, weights,
-                                      randcov_initial_NA = NULL, esv_dotlist) {
+                                      randcov_initial_NA = NULL, esv_dotlist, ...) {
   # find ols sample variance
   s2 <- summary(lm(data_object$formula, do.call("rbind", data_object$obdata_list)))$sigma^2
   ns2 <- 1.2 * s2
@@ -842,7 +842,7 @@ cov_initial_search.pexponential <- cov_initial_search.matern
 
 #' @export
 cov_initial_search.car <- function(spcov_initial_NA, estmethod, data_object,
-                                   dist_matrix_list, randcov_initial_NA = NULL) {
+                                   dist_matrix_list, randcov_initial_NA = NULL, ...) {
 
   # find ols sample variance
   obdata <- data_object$data[data_object$observed_index, , drop = FALSE]

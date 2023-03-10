@@ -217,7 +217,7 @@ where the result follows because the random terms in $\mathbf{y}$ are independen
 which matches Equation$~$\ref{eq:blup_mm}. Similarly, the BLUP of $\boldsymbol{\tau}$ is found by noting that
 $\text{E}(\boldsymbol{\tau}) = \mathbf{0}$ and
 \begin{equation*}
-  \mathbf{\Sigma}_{de} = \text{Cov}(\boldsymbol{\tau}, \mathbf{y}) = \text{Cov}(\boldsymbol{\tau}, \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\tau} + \boldsymbol{\epsilon}) = \text{Cov}(\boldsymbol{\tau}, \boldsymbol{\tau}) = \sigma^2_{de} \mathbf{R},
+  \mathbf{\Sigma}_{de} = \text{Cov}(\boldsymbol{\tau}, \mathbf{y}) = \text{Cov}(\boldsymbol{\tau}, \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \mathbf{u} + \boldsymbol{\tau} + \boldsymbol{\epsilon}) = \text{Cov}(\boldsymbol{\tau}, \boldsymbol{\tau}) = \sigma^2_{de} \mathbf{R},
 \end{equation*}
 where the result follows because the random terms in $\mathbf{y}$ are independent and $\text{Cov}(\boldsymbol{\tau}, \boldsymbol{\tau}) = \sigma^2_{de} \mathbf{R}$, and $\sigma^2_{de}$ is the variance of $\boldsymbol{\tau}$. Then it follows that
 \begin{equation}\label{eq:blup_sp}
@@ -225,7 +225,7 @@ where the result follows because the random terms in $\mathbf{y}$ are independen
 \end{equation}
 Fitted values for $\boldsymbol{\epsilon}$ are obtained using similar arguments. Evaluating these equations at the plug-in (empirical) estimates of the covariance parameters yields EBLUPs.
 
-When partition factors are used, the covariance matrix of all random effects (spatial and non-spatial) can be viewed as the interaction between the non-partitioned covariance matrix and the partition matrix, $\mathbf{P}$. The $ij$th entry in $\mathbf{P}$ equals one if observation $i$ and observation $j$ share the same level of the partition factor and zero otherwise. For spatial random effects, an adjustment is straightforward, as each column in $\boldsymbol{\Sigma_{de}}$ corresponds to a distinct spatial random effect. Thus with partition factors, $\boldsymbol{\Sigma_{de}}^* = \boldsymbol{\Sigma_{de}} \odot \mathbf{P} = \sigma^2_{de} \mathbf{R} \odot \mathbf{P}$, where $\odot$ denotes the Hadmart (element-wise) product, is used instead used of $\boldsymbol{\Sigma_{de}}$ in Equation$~$\ref{eq:blup_sp}. Note that $\boldsymbol{\Sigma_{ie}}$ is unchanged as it is proportional to the identity matrix. For non-spatial random effects, however, the situation is more complicated. Applying Equation$~$\ref{eq:blup_mm} directly yields BLUPs of random effects corresponding to the interaction between random effect levels and partition levels. Thus a logical approach is to average the non-zero BLUPs for each random effect level across partition levels, yielding a prediction for the random effect level. This does not imply, however, that these estimates are BLUPs of the random effect.
+When partition factors are used, the covariance matrix of all random effects (spatial and non-spatial) can be viewed as the interaction between the non-partitioned covariance matrix and the partition matrix, $\mathbf{P}$. The $ij$th entry in $\mathbf{P}$ equals one if observation $i$ and observation $j$ share the same level of the partition factor and zero otherwise. For spatial random effects, an adjustment is straightforward, as each column in $\boldsymbol{\Sigma}_{de}$ corresponds to a distinct spatial random effect. Thus with partition factors, $\boldsymbol{\Sigma}_{de}^* = \boldsymbol{\Sigma}_{de} \odot \mathbf{P} = \sigma^2_{de} \mathbf{R} \odot \mathbf{P}$, where $\odot$ denotes the Hadmart (element-wise) product, is used instead used of $\boldsymbol{\Sigma}_{de}$ in Equation$~$\ref{eq:blup_sp}. Note that $\boldsymbol{\Sigma}_{ie}$ is unchanged as it is proportional to the identity matrix. For non-spatial random effects, however, the situation is more complicated. Applying Equation$~$\ref{eq:blup_mm} directly yields BLUPs of random effects corresponding to the interaction between random effect levels and partition levels. Thus a logical approach is to average the non-zero BLUPs for each random effect level across partition levels, yielding a prediction for the random effect level. This does not imply, however, that these estimates are BLUPs of the random effect.
 
 For big data without partition factors, the local indexes act as partition factors. That is, the BLUPs correspond to random effects interacted with each local index. For big data with partition factors, an adjusted partition factor is created as the interaction between each local index and the partition factor. Then this adjusted partition factor is applied to Equation$~$\ref{eq:blup_gen}.
 
@@ -348,7 +348,7 @@ A similar result exists for the log determinant of $\boldsymbol{\Sigma}_o$, whic
 
 When the number of observations in the fitted model (observed data) are large or there are many locations to predict at or both, it is often necessary to implement computationally efficient big data approximations. Big data approximations are implemented in `spmodel` using the `local` argument to `predict()`. When the method in `local` is `"all"`, all of the fitted model data are used to make predictions. In this context, computational efficiency is only gained by parallelizing each prediction. The only available method for `spautor()` fitted models is `"all"`. This is because the neighborhood structure of `spautor()` fitted models does not permit the subsetting used by the `"covariance"` and `"distance"` methods that we discuss next.
 
-When the `local` method is `"covariance"`, $\hat{\boldsymbol{\Sigma}}_{uo}$ is computed between the observation being predicted ($\mathbf{y}_u$) and the rest of the observed data. This vector is then ordered and a number of observations (specified via the `size` argument) having the highest covariance with $\mathbf{y}_u$ are subset, yielding $\check{\boldsymbol{\Sigma}}_{uo}$, which has dimension $1 \times size$. Then similarly $\hat{\boldsymbol{\Sigma}}_o$, $\mathbf{y}_o$, and $\mathbf{X}_u$ are also subset by these `size` observations, yielding $\check{\boldsymbol{\Sigma}}_{o}$, $\check{\mathbf{y}}_o$, and $\check{\mathbf{X}}_u$, respectively. Equations$~$\ref{eq:blup} and \ref{eq:blup_cov} can be evaluated at $\check{\boldsymbol{\Sigma}}_{uo}$, $\check{\boldsymbol{\Sigma}}_{o}$, $\check{\mathbf{y}}_o$, and $\check{\mathbf{X}}_u$. When the local method is `"distance"`, a similar approach is used except a number of observations (specified via the `size` argument) closest (in terms of Euclidean distance) to $\mathbf{y}_u$ are subset instead. When random effects are not used, partition factors are not used, and the spatial covariance function is monotone decreasing, `"covariance"` and `"distance"` are equivalent. This approach of subsetting the observed data by the set of locations closest in covariance or proximity to $\mathbf{y}_u$ is known as the local neighborhood approach. As long as `size` is relatively small (the default is 50), the local neighborhood approach is very computationally efficient, mainly because $\check{\boldsymbol{\Sigma}}_{o}^{-1}$ is easy to compute. Additional computational efficiency is gained by parallelizing each prediction. 
+When the `local` method is `"covariance"`, $\hat{\boldsymbol{\Sigma}}_{uo}$ is computed between the observation being predicted ($\mathbf{y}_u$) and the rest of the observed data. This vector is then ordered and a number of observations (specified via the `size` argument) having the highest covariance with $\mathbf{y}_u$ are subset, yielding $\check{\boldsymbol{\Sigma}}_{uo}$, which has dimension $1 \times size$. Then similarly $\hat{\boldsymbol{\Sigma}}_o$, $\mathbf{y}_o$, and $\mathbf{X}_u$ are also subset by these `size` observations, yielding $\check{\boldsymbol{\Sigma}}_{o}$, $\check{\mathbf{y}}_o$, and $\check{\mathbf{X}}_u$, respectively. Equations$~$\ref{eq:blup} and \ref{eq:blup_cov} can be evaluated at $\check{\boldsymbol{\Sigma}}_{uo}$, $\check{\boldsymbol{\Sigma}}_{o}$, $\check{\mathbf{y}}_o$, and $\check{\mathbf{X}}_u$ (except for the quantity $(\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o)^{-1}$, which is evaluated using all the observed data). When the local method is `"distance"`, a similar approach is used except a number of observations (specified via the `size` argument) closest (in terms of Euclidean distance) to $\mathbf{y}_u$ are subset instead. When random effects are not used, partition factors are not used, and the spatial covariance function is monotone decreasing, `"covariance"` and `"distance"` are equivalent. This approach of subsetting the observed data by the set of locations closest in covariance or proximity to $\mathbf{y}_u$ is known as the local neighborhood approach. As long as `size` is relatively small (the default is 50), the local neighborhood approach is very computationally efficient, mainly because $\check{\boldsymbol{\Sigma}}_{o}^{-1}$ is easy to compute. Additional computational efficiency is gained by parallelizing each prediction. 
 
 ## `splmRF()` and `spautorRF()` {#sec:rf_pred}
 
@@ -389,7 +389,7 @@ If the fitted model does not have an intercept, the $n - 1$ term is instead $n$.
 
 Terminology regarding residual names if often conflicting and confusing. Because of this, next we explicitly define the residual options in `spmodel`. These definitions may be different from others you may have seen in the literature.
 
-When `type = "raw"`, raw residuals are returned:
+When `type = "response"`, response residuals are returned:
 \begin{equation*}
  \mathbf{e}_{r} = \mathbf{y} - \mathbf{X} \hat{\boldsymbol{\beta}}.
 \end{equation*}
@@ -838,28 +838,28 @@ Big data model-fitting is accommodated in `spmodel` using a "local indexing" app
 \begin{equation}\label{eq:full_cov}
   \boldsymbol{\Sigma} = 
   \begin{bmatrix}
-  \boldsymbol{\Sigma}_{1,1} & \boldsymbol{\Sigma}_{1,2} & \hdots & \hdots & \boldsymbol{\Sigma}_{1,m} \\
-  \boldsymbol{\Sigma}_{2,1} & \boldsymbol{\Sigma}_{2,2} & \boldsymbol{\Sigma}_{2,3} & \hdots & \boldsymbol{\Sigma}_{2,m} \\
+  \boldsymbol{\Sigma}_{1,1} & \boldsymbol{\Sigma}_{1,2} & \ldots & \ldots & \boldsymbol{\Sigma}_{1,m} \\
+  \boldsymbol{\Sigma}_{2,1} & \boldsymbol{\Sigma}_{2,2} & \boldsymbol{\Sigma}_{2,3} & \ldots & \boldsymbol{\Sigma}_{2,m} \\
   \vdots & \boldsymbol{\Sigma}_{3,2} & \ddots & \boldsymbol{\Sigma}_{3,4} & \vdots \\
   \vdots & \vdots & \boldsymbol{\Sigma}_{4,3} & \ddots & \vdots \\
-  \boldsymbol{\Sigma}_{m,1} & \hdots & \hdots & \hdots & \boldsymbol{\Sigma}_{m, m}
+  \boldsymbol{\Sigma}_{m,1} & \ldots & \ldots & \ldots & \boldsymbol{\Sigma}_{m, m}
   \end{bmatrix},
 \end{equation}
 To perform estimation for big data, observations with the same index value are assumed independent of observations with different index values, yielding a "big-data" covariance matrix given by
 \begin{equation}\label{eq:bd_cov}
   \boldsymbol{\Sigma}_{bd} = 
   \begin{bmatrix}
-  \boldsymbol{\Sigma}_{1,1} & \boldsymbol{0} & \hdots & \hdots & \boldsymbol{0} \\
-  \boldsymbol{0} & \boldsymbol{\Sigma}_{2,2} & \boldsymbol{0} & \hdots & \boldsymbol{0} \\
+  \boldsymbol{\Sigma}_{1,1} & \boldsymbol{0} & \ldots & \ldots & \boldsymbol{0} \\
+  \boldsymbol{0} & \boldsymbol{\Sigma}_{2,2} & \boldsymbol{0} & \ldots & \boldsymbol{0} \\
   \vdots & \boldsymbol{0} & \ddots & \boldsymbol{0} & \vdots \\
   \vdots & \vdots & \boldsymbol{0} & \ddots & \vdots \\
-  \boldsymbol{0} & \hdots & \hdots & \hdots & \boldsymbol{\Sigma}_{m, m}
+  \boldsymbol{0} & \ldots & \ldots & \ldots & \boldsymbol{\Sigma}_{m, m}
   \end{bmatrix},
 \end{equation}
 Estimation then proceeds as described in Section$~$\ref{subsec:estimation} using $\boldsymbol{\Sigma}_{bd}$ instead of $\boldsymbol{\Sigma}$. When computing the empirical semivariogram, semivariances are ignored when observations have different local indexes. For the `sv-wls` and `sv-cl` estimation methods, semivariances are ignored when observations have different local indexes. Via Equation$~$\ref{eq:bd_cov}, it can be seen that the local index acts as a partition factor separate from the partition factor explicitly defined by `partition_factor`.
 
 
-spmodel allows for custom local indexes to be passed to `splm()`. If a custom local index is not passed, the local index is determined using the `"random"` or `"kmeans"` method. The `"random"` method assigns observations to indexes randomly based on the number of groups desired. The `"kmeans"` method uses k-means clustering [@macqueen1967some] on the x-coordinates and y-coordinates to assign observations to indexes (based on the number of clusters (groups) desired).
+spmodel allows for custom local indexes to be passed to `splm()`. If a custom local index is not passed, the local index is determined using the `"random"` or `"kmeans"` method. The `"random"` method assigns observations to indexes randomly based on the number of groups desired. The `"kmeans"` method uses k-means clustering [@macqueen1967classification] on the x-coordinates and y-coordinates to assign observations to indexes (based on the number of clusters (groups) desired).
 
 The estimate of $\boldsymbol{\beta}$ when using Equation$~$\ref{eq:bd_cov} is given by
 \begin{equation}\label{eq:beta_bd}
@@ -930,7 +930,7 @@ So then taking $\mathbf{S} = \mathbf{D}^{1/2}$ implies $\mathbf{S}^{-1} = \mathb
 
 The Cholesky decomposition decomposes $\boldsymbol{\Sigma}$ into the product between $\mathbf{C}$ and $\mathbf{C}^\top$ ($\boldsymbol{\Sigma} = \mathbf{C}\mathbf{C}^\top$), where $\mathbf{C}$ is a lower triangular matrix. Note that $\mathbf{C}$ is generally not equal to $\boldsymbol{\Sigma}^{1/2}$. Taking $\mathbf{S}$ to be $\mathbf{C}$, we see that finding the inverse products requires solving $\mathbf{C}^{-1}\mathbf{X}$. Observe that $\mathbf{C}^{-1}\mathbf{X} = \mathbf{A}$ for some matrix $\mathbf{A}$. This implies $\mathbf{X} = \mathbf{C}\mathbf{A}$, which for $\mathbf{A}$ can be efficiently solved using forward substitution because $\mathbf{C}$ is lower triangular. 
 
-The products in this document that involve $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1/2}$ are actually implemented in `spmodel` using $\mathbf{C}$ and $\mathbf{C}^{-1}$ (instead of $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1/2}$). They are written in this document using $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1/2}$ because the underlying concepts are easier to communicate using square root notation.
+The products in this document that involve $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1}$ are actually implemented in `spmodel` using $\mathbf{C}$ and $\mathbf{C}^{-1}$. The products in this document that involve $\boldsymbol{\Sigma}^{-1/2}$ still rely on an eigendecomposition (because recall that generally, $\mathbf{C}^{-1} \mathbf{A} \neq \boldsymbol{\Sigma}^{-1/2} \mathbf{A}$). An example is computing the Pearson residuals.
 
 
 # References {.unnumbered}

@@ -7,7 +7,8 @@
 #'
 #' @return The formula used by a fitted model object.
 #'
-#' @method formula spmod
+#' @name formula.spmodel
+#' @method formula splm
 #' @export
 #'
 #' @examples
@@ -16,6 +17,11 @@
 #'   spcov_type = "exponential", xcoord = x, ycoord = y
 #' )
 #' formula(spmod)
-formula.spmod <- function(x, ...) {
+formula.splm <- function(x, ...) {
   formula(x$formula)
 }
+
+#' @rdname formula.spmodel
+#' @method formula spautor
+#' @export
+formula.spautor <- formula.splm

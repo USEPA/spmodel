@@ -31,10 +31,19 @@
     <loc>/reference/AIC.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/AIC.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/anova.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/anova.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/augment.spmod.html</loc>
+  </url>
+  <url>
+    <loc>/reference/augment.spmodel.html</loc>
   </url>
   <url>
     <loc>/reference/caribou.html</loc>
@@ -43,10 +52,19 @@
     <loc>/reference/coef.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/coef.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/confint.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/confint.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/cooks.distance.spmod.html</loc>
+  </url>
+  <url>
+    <loc>/reference/cooks.distance.spmodel.html</loc>
   </url>
   <url>
     <loc>/reference/covmatrix.html</loc>
@@ -55,16 +73,28 @@
     <loc>/reference/deviance.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/deviance.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/esv.html</loc>
   </url>
   <url>
     <loc>/reference/fitted.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/fitted.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/formula.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/formula.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/glance.spmod.html</loc>
+  </url>
+  <url>
+    <loc>/reference/glance.spmodel.html</loc>
   </url>
   <url>
     <loc>/reference/glances.html</loc>
@@ -73,16 +103,28 @@
     <loc>/reference/hatvalues.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/hatvalues.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/index.html</loc>
   </url>
   <url>
     <loc>/reference/influence.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/influence.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/labels.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/labels.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/logLik.spmod.html</loc>
+  </url>
+  <url>
+    <loc>/reference/logLik.spmodel.html</loc>
   </url>
   <url>
     <loc>/reference/loocv.html</loc>
@@ -91,7 +133,13 @@
     <loc>/reference/model.frame.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/model.frame.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/model.matrix.spmod.html</loc>
+  </url>
+  <url>
+    <loc>/reference/model.matrix.spmodel.html</loc>
   </url>
   <url>
     <loc>/reference/moss.html</loc>
@@ -100,13 +148,22 @@
     <loc>/reference/plot.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/plot.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/predict.spmod.html</loc>
+  </url>
+  <url>
+    <loc>/reference/predict.spmodel.html</loc>
   </url>
   <url>
     <loc>/reference/predict.spmodRF.html</loc>
   </url>
   <url>
     <loc>/reference/print.spmod.html</loc>
+  </url>
+  <url>
+    <loc>/reference/print.spmodel.html</loc>
   </url>
   <url>
     <loc>/reference/pseudoR2.html</loc>
@@ -122,6 +179,9 @@
   </url>
   <url>
     <loc>/reference/residuals.spmod.html</loc>
+  </url>
+  <url>
+    <loc>/reference/residuals.spmodel.html</loc>
   </url>
   <url>
     <loc>/reference/seal.html</loc>
@@ -160,9 +220,21 @@
     <loc>/reference/summary.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/summary.spmodel.html</loc>
+  </url>
+  <url>
     <loc>/reference/tidy.spmod.html</loc>
   </url>
   <url>
+    <loc>/reference/tidy.spmodel.html</loc>
+  </url>
+  <url>
+    <loc>/reference/varcomp.html</loc>
+  </url>
+  <url>
     <loc>/reference/vcov.spmod.html</loc>
+  </url>
+  <url>
+    <loc>/reference/vcov.spmodel.html</loc>
   </url>
 </urlset>

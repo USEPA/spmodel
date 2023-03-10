@@ -10,10 +10,10 @@ glances(object, ..., sort_by = "AICc", decreasing = FALSE)
 \item{object}{Fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
 
 \item{...}{Additional fitted model objects from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}. Ignored
-if \code{object} has class \code{spmod_list}.}
+if \code{object} has class \code{splm_list} or \code{spautor_list}.}
 
 \item{sort_by}{Sort by a \code{glance} statistic (i.e., the name of a column
-output from \code{\link[=glance.spmod]{glance.spmod()}} or the order of model input (\code{sort_by = "order"}).
+output from \code{glance()} or the order of model input (\code{sort_by = "order"}).
 The default is \code{"AICc"}.}
 
 \item{decreasing}{Should \code{sort_by} be decreasing or not? The default is \code{FALSE}.}

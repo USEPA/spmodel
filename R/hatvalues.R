@@ -15,10 +15,11 @@
 #' @return A vector of leverage (hat) values for each observation from the
 #'   fitted model object.
 #'
-#' @method hatvalues spmod
+#' @name hatvalues.spmodel
+#' @method hatvalues splm
 #' @export
 #'
-#' @seealso [cooks.distance()] [influence.spmod()] [residuals.spmod()]
+#' @seealso [cooks.distance.spmodel()] [influence.spmodel()] [residuals.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -26,6 +27,11 @@
 #'   spcov_type = "exponential", xcoord = x, ycoord = y
 #' )
 #' hatvalues(spmod)
-hatvalues.spmod <- function(model, ...) {
+hatvalues.splm <- function(model, ...) {
   model$hatvalues
 }
+
+#' @rdname hatvalues.spmodel
+#' @method hatvalues spautor
+#' @export
+hatvalues.spautor <- hatvalues.splm

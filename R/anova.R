@@ -29,7 +29,6 @@
 #'   Then separate hypothesis tests are conducted. The easiest
 #'   way to obtain all possible coefficients is to run \code{tidy(object)$term}.
 #'
-#'
 #' @details When one fitted model object is present, \code{anova()}
 #'   performs a general linear hypothesis test corresponding to some hypothesis
 #'   specified by a matrix of constraints. If \code{Terms} and \code{L} are not specified,
@@ -57,8 +56,8 @@
 #'   \code{tidy()} can be used
 #'   to obtain tidy tibbles of the \code{anova(object)} output.
 #'
-#'
-#' @method anova spmod
+#' @name anova.spmodel
+#' @method anova splm
 #' @order 1
 #' @export
 #'
@@ -81,7 +80,7 @@
 #'   spcov_type = "none"
 #' )
 #' tidy(anova(spmod, lmod))
-anova.spmod <- function(object, ..., test = TRUE, Terms, L) {
+anova.splm <- function(object, ..., test = TRUE, Terms, L) {
 
 
   # see if one or two models
@@ -174,6 +173,11 @@ anova.spmod <- function(object, ..., test = TRUE, Terms, L) {
   structure(anova_val, class = c(paste("anova", class(object), sep = "."), "data.frame"))
 }
 
+#' @rdname anova.spmodel
+#' @method anova spautor
+#' @export
+anova.spautor <- anova.splm
+
 get_marginal_Chi2 <- function(L, object) {
   # make matrix if a numeric vector
   if (!is.matrix(L)) {
@@ -198,12 +202,12 @@ get_marginal_Chi2 <- function(L, object) {
   Chi2_df
 }
 
-#' @rdname anova.spmod
+#' @rdname anova.spmodel
 #' @param x An object from \code{anova(object)}.
 #'
-#' @method tidy anova.spmod
+#' @method tidy anova.splm
 #' @export
-tidy.anova.spmod <- function(x, ...) {
+tidy.anova.splm <- function(x, ...) {
   if (!is.null(attr(x, "full")) && !is.null(attr(x, "reduced"))) {
     result <- tibble::tibble(full = attr(x, "full"), reduced = attr(x, "reduced"), df = x$Df, statistic = x$Chi2)
   } else {
@@ -214,3 +218,8 @@ tidy.anova.spmod <- function(x, ...) {
   }
   result
 }
+
+#' @rdname anova.spmodel
+#' @method tidy anova.spautor
+#' @export
+tidy.anova.spautor <- tidy.anova.splm

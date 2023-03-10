@@ -103,7 +103,7 @@ spcov_initial <- function(spcov_type, de, ie, range, extra, rotate, scale, known
     "none", "cubic", "pentaspherical", "cosine", "wave", "matern", "car", "sar", "jbessel",
     "gravity", "rquad", "magnetic", "cauchy", "pexponential"
   )) {
-    stop(paste(spcov_type), "is not a valid spatial covariance function")
+    stop(paste(spcov_type, "is not a valid spatial covariance function", sep = " "), call. = FALSE)
   }
 
   # set defaults

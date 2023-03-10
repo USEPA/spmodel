@@ -51,9 +51,13 @@ get_randcov_Zs <- function(data, randcov_names = NULL, ZZt = TRUE, ZtZ = FALSE) 
 }
 
 get_randcov_Z <- function(randcov_name, data, ZZt = TRUE, ZtZ = FALSE) {
+
   bar_split <- unlist(strsplit(randcov_name, " | ", fixed = TRUE))
   Z_reform <- reformulate(bar_split[[2]], intercept = FALSE)
   Z_frame <- model.frame(Z_reform, data = data, drop.unused.levels = FALSE)
+  if (any(! attr(terms(Z_frame), "dataClasses") %in% c("character", "factor"))) {
+    stop("Random effect grouping variables must be categorical or factor.", call. = FALSE)
+  }
   Z_index <- Matrix(model.matrix(Z_reform, Z_frame), sparse = TRUE)
   if (bar_split[[1]] == "1") {
     Z <- Z_index
@@ -62,11 +66,11 @@ get_randcov_Z <- function(randcov_name, data, ZZt = TRUE, ZtZ = FALSE) {
     Z_mod_frame <- model.frame(Z_mod_reform, data = data, drop.unused.levels = FALSE)
     Z_mod <- model.matrix(Z_mod_reform, Z_mod_frame)
     if (NCOL(Z_mod) > 1) {
-      stop("All variable names to the left of | in random must be numeric", call. = FALSE)
+      stop("All variable names to the left of | in random must be numeric.", call. = FALSE)
     }
     Z <- as.vector(Z_mod) * Z_index
   }
-  # find and repalce values not observed
+  # find and replace values not observed
   Z_levels_observed <- which(colSums(abs(Z)) > 0)
   Z <- Z[, Z_levels_observed, drop = FALSE]
   if (ZZt) {

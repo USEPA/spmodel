@@ -18,8 +18,7 @@ if (test_local) {
     expect_true(is.call(getCall(spmod))) # works because there is an object spmod$call
     expect_equal(update(formula(spmod), y ~ 1), y ~ 1) # works because formula(object) works (object has class spmod)
     spmod <- update(spmod, y ~ 1, spcov_type = "spherical")
-    expect_s3_class(spmod, "spmod")
-    expect_equal(spmod$fn, "splm")
+    expect_s3_class(spmod, "splm")
     expect_equal(formula(spmod), y ~ 1)
     expect_s3_class(coefficients(spmod, type = "spcov"), "spherical")
     spmod <- update(spmod, . ~ . + offset(x))
@@ -33,8 +32,7 @@ if (test_local) {
     expect_true(is.call(getCall(spmod))) # works because there is an object spmod$call
     expect_equal(update(formula(spmod), y ~ 1), y ~ 1) # works because formula(object) works (object has class spmod)
     spmod <- update(spmod, y ~ 1, spcov_type = "sar")
-    expect_s3_class(spmod, "spmod")
-    expect_equal(spmod$fn, "spautor")
+    expect_s3_class(spmod, "spautor")
     expect_equal(formula(spmod), y ~ 1)
     expect_s3_class(coefficients(spmod, type = "spcov"), "sar")
     spmod <- update(spmod, . ~ . + offset(x))

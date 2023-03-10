@@ -4,15 +4,15 @@
 #'   \code{resid} is an alias.
 #'
 #' @param object A fitted model object from [splm()] or [spautor()].
-#' @param type \code{"raw"} for raw residuals, \code{"pearson"}
+#' @param type \code{"response"} for response residuals, \code{"pearson"}
 #'   for Pearson residuals, or \code{"standardized"} for standardized residuals.
-#'   The default is \code{"raw"}.
+#'   The default is \code{"response"}.
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #' @param model A fitted model object from [splm()] or [spautor()].
 #'
-#' @details The raw residuals are taken as the response minus the fitted values
+#' @details The response residuals are taken as the response minus the fitted values
 #'   for the response: \eqn{y - X \hat{\beta}}. The Pearson residuals are the
-#'   raw residuals pre-multiplied by their square (Cholesky) root.
+#'   response residuals pre-multiplied by their square (Cholesky) root.
 #'   The standardized residuals are Pearson residuals divided by the square
 #'   root of one minus the leverage (hat) value. The standardized residuals are often used to
 #'   check model assumptions, as they have mean zero and variance approximately one.
@@ -21,7 +21,8 @@
 #'
 #' @return The residuals as a numeric vector.
 #'
-#' @method residuals spmod
+#' @name residuals.spmodel
+#' @method residuals splm
 #' @export
 #'
 #' @examples
@@ -34,24 +35,40 @@
 #' residuals(spmod, type = "pearson")
 #' residuals(spmod, type = "standardized")
 #' rstandard(spmod)
-residuals.spmod <- function(object, type = "raw", ...) {
-  if (type == "raw") {
-    return(object$residuals$raw)
+residuals.splm <- function(object, type = "response", ...) {
+  if (type == "response") {
+    return(object$residuals$response)
   } else if (type == "pearson") {
     return(object$residuals$pearson)
   } else if (type == "standardized") {
     return(object$residuals$standardized)
   } else {
-    stop("residuals must be raw or pearson or standardized")
+    stop("residuals must be response or pearson or standardized")
   }
 }
-#' @rdname residuals.spmod
+#' @rdname residuals.spmodel
+#' @method resid splm
 #' @export
-resid.spmod <- residuals.spmod
+resid.splm <- residuals.splm
 
-#' @rdname residuals.spmod
-#' @method rstandard spmod
+#' @rdname residuals.spmodel
+#' @method residuals spautor
 #' @export
-rstandard.spmod <- function(model, ...) {
-  residuals.spmod(model, type = "standardized")
+residuals.spautor <- residuals.splm
+
+#' @rdname residuals.spmodel
+#' @method resid spautor
+#' @export
+resid.spautor <- residuals.spautor
+
+#' @rdname residuals.spmodel
+#' @method rstandard splm
+#' @export
+rstandard.splm <- function(model, ...) {
+  residuals.splm(model, type = "standardized")
 }
+
+#' @rdname residuals.spmodel
+#' @method rstandard spautor
+#' @export
+rstandard.spautor <- rstandard.splm

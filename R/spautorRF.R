@@ -20,7 +20,7 @@
 #' @param ... Additional named arguments to \code{ranger::ranger} or [spautor()].
 #'
 #' @details The random forest residual spatial linear model is described by
-#'   Fox Et al. (2020). A random forest model is fit to the mean portion of the
+#'   Fox et al. (2020). A random forest model is fit to the mean portion of the
 #'   model specified by \code{formula} using \code{ranger::ranger()}. Residuals
 #'   are computed and used as the response variable in an intercept-only spatial
 #'   linear model fit using [spautor()]. This model object is intended for use with
@@ -31,18 +31,18 @@
 #'   elements include the function call (named \code{call}), the random forest object
 #'   fit to the mean (named \code{ranger}),
 #'   the spatial linear model object fit to the residuals
-#'   (named \code{spmod} or \code{spmod_list}), and an object can contain data for
+#'   (named \code{spautor} or \code{spautor_list}), and an object can contain data for
 #'   locations at which to predict (called \code{newdata}). The \code{newdata}
 #'   object contains the set of
 #'   observations in \code{data} whose response variable is \code{NA}.
 #'   If \code{spcov_type} or \code{spcov_initial} (which are passed to [spautor()])
-#'   are length one, the list has class \code{spmodRF} and the spatial linear
-#'   model object fit to the residuals is called \code{spmod}, which has
-#'   class \code{spmod}. If
+#'   are length one, the list has class \code{spautorRF} and the spatial linear
+#'   model object fit to the residuals is called \code{spautor}, which has
+#'   class \code{spautor}. If
 #'   \code{spcov_type} or \code{spcov_initial} are length greater than one, the
-#'   list has class \code{spmodRF_list} and the spatial linear model object
-#'   fit to the residuals is called \code{spmod_list}, which has class \code{spmod_list}.
-#'   and contains several objects, each with class \code{spmod}.
+#'   list has class \code{spautorRF_list} and the spatial linear model object
+#'   fit to the residuals is called \code{spautor_list}, which has class \code{spautor_list}.
+#'   and contains several objects, each with class \code{spautor}.
 #'
 #' @export
 #'
@@ -115,17 +115,17 @@ spautorRF <- function(formula, data, ...) {
     # putting back in order
     data <- data[order(c(which(!na_index), which(na_index))), , drop = FALSE]
     # perform splm
-    spmod_out <- do.call(spmodel::spautor, c(list(formula = .ranger_resid ~ 1, data = data), spautor_args), envir = penv)
-    if (inherits(spmod_out, "spmod")) {
-      spmod_out$call <- NA
+    spautor_out <- do.call(spmodel::spautor, c(list(formula = .ranger_resid ~ 1, data = data), spautor_args), envir = penv)
+    if (inherits(spautor_out, "spautor")) {
+      spautor_out$call <- NA
       # output list with names and class
-      sprf_out <- structure(list(call = match.call(), ranger = ranger_out, spmod = spmod_out, newdata = newdata), class = "spmodRF")
+      sprf_out <- structure(list(call = match.call(), ranger = ranger_out, spautor = spautor_out, newdata = newdata), class = "spautorRF")
     } else {
-      spmod_out <- lapply(spmod_out, function(x) {
+      spautor_out <- lapply(spautor_out, function(x) {
         x$call <- NA
         x
       })
-      sprf_out <- structure(list(call = match.call(), ranger = ranger_out, spmod_list = spmod_out, newdata = newdata), class = "spmodRF_list")
+      sprf_out <- structure(list(call = match.call(), ranger = ranger_out, spautor_list = spautor_out, newdata = newdata), class = "spautorRF_list")
     }
   }
   # return object

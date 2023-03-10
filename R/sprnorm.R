@@ -109,8 +109,10 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
   ycoord_val <- data[[ycoord]]
 
   # make distance matrix
+  # this should be a counter clockwise rotation as the anisotropy correction
+  # involves a clockwise rotation
   if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
-    new_coords <- transform_anis(
+    new_coords <- transform_anis_inv(
       data = data, xcoord = xcoord, ycoord = ycoord,
       spcov_params[["rotate"]], spcov_params[["scale"]]
     )

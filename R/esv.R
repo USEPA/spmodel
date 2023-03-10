@@ -71,9 +71,23 @@ esv <- function(formula, data, xcoord, ycoord, dist_matrix, bins = 15, cutoff, p
     # non standard evaluation for the x and y coordinates
     xcoord <- substitute(xcoord)
     ycoord <- substitute(ycoord)
+
+    if (missing(xcoord)) {
+      stop("The xcoord argument must be specified.", call. = FALSE)
+    }
+
+    if (!missing(xcoord)) {
+      if (!as.character(xcoord) %in% colnames(data)) {
+        stop("The xcoord argument must match the name of a variable in data.", call. = FALSE)
+      }
+    }
+
     if (missing(ycoord)) {
       dist_matrix <- spdist(data, xcoord)
     } else {
+      if (!as.character(ycoord) %in% colnames(data)) {
+        stop("The ycoord argument must match the name of a variable in data.", call. = FALSE)
+      }
       dist_matrix <- spdist(data, xcoord, ycoord)
     }
   }

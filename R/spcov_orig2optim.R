@@ -11,7 +11,7 @@ spcov_orig2optim <- function(spcov_initial, spcov_profiled, ...) {
 }
 
 #' @export
-spcov_orig2optim.exponential <- function(spcov_initial, spcov_profiled, data_object) { # data object not used for geostatistical models
+spcov_orig2optim.exponential <- function(spcov_initial, spcov_profiled, data_object, ...) { # data object not used for geostatistical models
   # are variance parameters spcov_profiled
   if (spcov_profiled) { # log odds
     ie_prop <- spcov_initial$initial[["ie"]] / (spcov_initial$initial[["de"]] + spcov_initial$initial[["ie"]])
@@ -102,7 +102,7 @@ spcov_orig2optim.rquad <- spcov_orig2optim.exponential
 spcov_orig2optim.magnetic <- spcov_orig2optim.exponential
 
 #' @export
-spcov_orig2optim.matern <- function(spcov_initial, spcov_profiled, data_object) {
+spcov_orig2optim.matern <- function(spcov_initial, spcov_profiled, data_object, ...) {
   # are variance parameters spcov_profiled
   if (spcov_profiled) { # log odds
     ie_prop <- spcov_initial$initial[["ie"]] / (spcov_initial$initial[["de"]] + spcov_initial$initial[["ie"]])
@@ -169,7 +169,7 @@ spcov_orig2optim.matern <- function(spcov_initial, spcov_profiled, data_object) 
   new_spcov_orig2optim_val <- structure(spcov_orig2optim_val, class = class(spcov_initial))
 }
 #' @export
-spcov_orig2optim.cauchy <- function(spcov_initial, spcov_profiled, data_object) {
+spcov_orig2optim.cauchy <- function(spcov_initial, spcov_profiled, data_object, ...) {
   # are variance parameters spcov_profiled
   if (spcov_profiled) { # log odds
     ie_prop <- spcov_initial$initial[["ie"]] / (spcov_initial$initial[["de"]] + spcov_initial$initial[["ie"]])
@@ -230,7 +230,7 @@ spcov_orig2optim.cauchy <- function(spcov_initial, spcov_profiled, data_object) 
   new_spcov_orig2optim_val <- structure(spcov_orig2optim_val, class = class(spcov_initial))
 }
 #' @export
-spcov_orig2optim.pexponential <- function(spcov_initial, spcov_profiled, data_object) {
+spcov_orig2optim.pexponential <- function(spcov_initial, spcov_profiled, data_object, ...) {
   # are variance parameters spcov_profiled
   if (spcov_profiled) { # log odds
     ie_prop <- spcov_initial$initial[["ie"]] / (spcov_initial$initial[["de"]] + spcov_initial$initial[["ie"]])
@@ -294,7 +294,7 @@ spcov_orig2optim.pexponential <- function(spcov_initial, spcov_profiled, data_ob
 }
 
 #' @export
-spcov_orig2optim.car <- function(spcov_initial, spcov_profiled, data_object) {
+spcov_orig2optim.car <- function(spcov_initial, spcov_profiled, data_object, ...) {
   # are variance parameters spcov_profiled
   if (spcov_profiled) {
     if (spcov_initial$initial[["extra"]] == 0 && spcov_initial$is_known[["extra"]]) {

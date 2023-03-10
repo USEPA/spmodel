@@ -30,9 +30,9 @@
 covmatrix <- function(object, newdata, ...) {
   UseMethod("covmatrix", object)
 }
-#' @method covmatrix spmod
+#' @method covmatrix splm
 #' @export
-covmatrix.spmod <- function(object, newdata, ...) {
+covmatrix.splm <- function(object, newdata, ...) {
 
   # spcov
   spcov_params_val <- coef(object, type = "spcov")
@@ -40,105 +40,117 @@ covmatrix.spmod <- function(object, newdata, ...) {
   # randcov
   randcov_params_val <- coef(object, type = "randcov")
 
-  if (object$fn == "splm") {
-
-    if (missing(newdata)) {
-      # coordinate stuff
-      if (object$anisotropy) {
-        new_coords <- transform_anis(object$obdata, object$xcoord, object$ycoord,
-                                     spcov_params_val[["rotate"]], spcov_params_val[["scale"]])
-        dist_matrix <- spdist(xcoord_val = new_coords$xcoord_val, ycoord_val = new_coords$ycoord_val)
-      } else {
-        dist_matrix <- spdist(object$obdata, object$xcoord, object$ycoord)
-      }
-
-      # random effects
-      randcov_names <- get_randcov_names(object$random)
-      randcov_Zs_val <- get_randcov_Zs(object$obdata, randcov_names)
-      randcov_matrix_val <- randcov_matrix(randcov_params_val, randcov_Zs = randcov_Zs_val)
-
-      # partition factor
-      partition_matrix_val <- partition_matrix(object$partition_factor, object$obdata)
-
-      # cov matrix
-      cov_val <- cov_matrix(spcov_params_val, dist_matrix, randcov_params_val,
-                            randcov_Zs_val, partition_matrix = partition_matrix_val)
-
+  if (missing(newdata)) {
+    # coordinate stuff
+    if (object$anisotropy) {
+      new_coords <- transform_anis(object$obdata, object$xcoord, object$ycoord,
+                                   spcov_params_val[["rotate"]], spcov_params_val[["scale"]])
+      dist_matrix <- spdist(xcoord_val = new_coords$xcoord_val, ycoord_val = new_coords$ycoord_val)
     } else {
-      # rename relevant quantities
-      obdata <- object$obdata
-      xcoord <- object$xcoord
-      ycoord <- object$ycoord
-
-      # transform newdata if required
-      if (inherits(newdata, "sf")) {
-        newdata <- suppressWarnings(sf::st_centroid(newdata))
-
-        newdata <- sf_to_df(newdata)
-        names(newdata)[[which(names(newdata) == ".xcoord")]] <- as.character(xcoord) # only relevant if newdata is sf data is not
-        names(newdata)[[which(names(newdata) == ".ycoord")]] <- as.character(ycoord) # only relevant if newdata is sf data is not
-      }
-
-      # transform aniosotropy coordinates
-      # add back in zero column to cover anisotropy (should make anisotropy only available 1-d)
-      if (object$dim_coords == 1) {
-        obdata[[ycoord]] <- 0
-        newdata[[ycoord]] <- 0
-      }
-
-      if (object$anisotropy) { # could just do rotate != 0 || scale != 1
-        obdata_aniscoords <- transform_anis(obdata, xcoord, ycoord,
-                                            rotate = spcov_params_val[["rotate"]],
-                                            scale = spcov_params_val[["scale"]]
-        )
-        obdata[[xcoord]] <- obdata_aniscoords$xcoord_val
-        obdata[[ycoord]] <- obdata_aniscoords$ycoord_val
-        newdata_aniscoords <- transform_anis(newdata, xcoord, ycoord,
-                                             rotate = spcov_params_val[["rotate"]],
-                                             scale = spcov_params_val[["scale"]]
-        )
-        newdata[[xcoord]] <- newdata_aniscoords$xcoord_val
-        newdata[[ycoord]] <- newdata_aniscoords$ycoord_val
-      }
-
-      # coordinate stuff
-      dist_vector <- spdist_vectors(newdata, obdata, xcoord, ycoord, object$dim_coords)
-
-      # random effects
-      randcov_vector_val <- randcov_vector(randcov_params_val, obdata, newdata)
-
-      # partition factor
-      partition_vector_val <- partition_vector(object$partition_factor, obdata, newdata)
-
-      # cov vector
-      cov_val <- cov_vector(spcov_params_val, dist_vector, randcov_vector_val, partition_vector_val)
+      dist_matrix <- spdist(object$obdata, object$xcoord, object$ycoord)
     }
 
-  } else if (object$fn == "spautor") {
-
-    # weights matrix
-    dist_matrix <- object$W
-
-    # random effect
+    # random effects
     randcov_names <- get_randcov_names(object$random)
-    randcov_Zs_val <- get_randcov_Zs(object$data, randcov_names)
+    randcov_Zs_val <- get_randcov_Zs(object$obdata, randcov_names)
     randcov_matrix_val <- randcov_matrix(randcov_params_val, randcov_Zs = randcov_Zs_val)
 
     # partition factor
-    partition_matrix_val <- partition_matrix(object$partition_factor, object$data)
+    partition_matrix_val <- partition_matrix(object$partition_factor, object$obdata)
 
-    # full cov matrix
-    cov_matrix_val <- cov_matrix(spcov_params_val, dist_matrix, randcov_params_val,
-                                 randcov_Zs_val, partition_matrix = partition_matrix_val, object$M)
+    # cov matrix
+    cov_val <- cov_matrix(spcov_params_val, dist_matrix, randcov_params_val,
+                          randcov_Zs_val, partition_matrix = partition_matrix_val)
 
-    if (missing(newdata)) {
-      # observed covariance matrix
-      cov_val <- cov_matrix_val[object$observed_index, object$observed_index, drop = FALSE]
-    } else {
-      # new covariance vector
-      cov_val <- cov_matrix_val[object$missing_index, object$observed_index, drop = FALSE]
+  } else {
+    # rename relevant quantities
+    obdata <- object$obdata
+    xcoord <- object$xcoord
+    ycoord <- object$ycoord
+
+    # transform newdata if required
+    if (inherits(newdata, "sf")) {
+      newdata <- suppressWarnings(sf::st_centroid(newdata))
+
+      newdata <- sf_to_df(newdata)
+      names(newdata)[[which(names(newdata) == ".xcoord")]] <- as.character(xcoord) # only relevant if newdata is sf data is not
+      names(newdata)[[which(names(newdata) == ".ycoord")]] <- as.character(ycoord) # only relevant if newdata is sf data is not
     }
+
+    # transform aniosotropy coordinates
+    # add back in zero column to cover anisotropy (should make anisotropy only available 1-d)
+    if (object$dim_coords == 1) {
+      obdata[[ycoord]] <- 0
+      newdata[[ycoord]] <- 0
+    }
+
+    if (object$anisotropy) { # could just do rotate != 0 || scale != 1
+      obdata_aniscoords <- transform_anis(obdata, xcoord, ycoord,
+                                          rotate = spcov_params_val[["rotate"]],
+                                          scale = spcov_params_val[["scale"]]
+      )
+      obdata[[xcoord]] <- obdata_aniscoords$xcoord_val
+      obdata[[ycoord]] <- obdata_aniscoords$ycoord_val
+      newdata_aniscoords <- transform_anis(newdata, xcoord, ycoord,
+                                           rotate = spcov_params_val[["rotate"]],
+                                           scale = spcov_params_val[["scale"]]
+      )
+      newdata[[xcoord]] <- newdata_aniscoords$xcoord_val
+      newdata[[ycoord]] <- newdata_aniscoords$ycoord_val
+    }
+
+    # coordinate stuff
+    dist_vector <- spdist_vectors(newdata, obdata, xcoord, ycoord, object$dim_coords)
+
+    # random effects
+    randcov_vector_val <- randcov_vector(randcov_params_val, obdata, newdata)
+
+    # partition factor
+    partition_vector_val <- partition_vector(object$partition_factor, obdata, newdata)
+
+    # cov vector
+    cov_val <- cov_vector(spcov_params_val, dist_vector, randcov_vector_val, partition_vector_val)
   }
+
   # return covariance value as a base R matrix (not a Matrix matrix)
   as.matrix(cov_val)
+
+}
+
+#' @method covmatrix spautor
+#' @export
+covmatrix.spautor <- function(object, newdata, ...) {
+
+  # spcov
+  spcov_params_val <- coef(object, type = "spcov")
+
+  # randcov
+  randcov_params_val <- coef(object, type = "randcov")
+
+  # weights matrix
+  dist_matrix <- object$W
+
+  # random effect
+  randcov_names <- get_randcov_names(object$random)
+  randcov_Zs_val <- get_randcov_Zs(object$data, randcov_names)
+  randcov_matrix_val <- randcov_matrix(randcov_params_val, randcov_Zs = randcov_Zs_val)
+
+  # partition factor
+  partition_matrix_val <- partition_matrix(object$partition_factor, object$data)
+
+  # full cov matrix
+  cov_matrix_val <- cov_matrix(spcov_params_val, dist_matrix, randcov_params_val,
+                               randcov_Zs_val, partition_matrix = partition_matrix_val, object$M)
+
+  if (missing(newdata)) {
+    # observed covariance matrix
+    cov_val <- cov_matrix_val[object$observed_index, object$observed_index, drop = FALSE]
+  } else {
+    # new covariance vector
+    cov_val <- cov_matrix_val[object$missing_index, object$observed_index, drop = FALSE]
+  }
+
+  # return covariance value as a base R matrix (not a Matrix matrix)
+  as.matrix(cov_val)
+
 }

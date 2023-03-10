@@ -2,7 +2,7 @@
 #'
 #' @description Predicted values and intervals based on a fitted model object.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object.
 #' @param newdata A data frame or \code{sf} object in which to
 #'   look for variables with which to predict. If a data frame, \code{newdata}
 #'   must contain all variables used by \code{formula(object)} and all variables
@@ -47,18 +47,27 @@
 #'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 #'   that \code{local} is transformed into
 #'   \code{list(size = 50, method = "covariance", parallel = FALSE)}.
-#' @param ... Other arguments. Not used (needed for generic consistency).
+#' @param ... Other arguments. Only used for models fit using \code{splmRF()}
+#'   or \code{spautorRF()} where \code{...} indicates other
+#'   arguments to \code{ranger::predict.ranger()}.
 #'
-#' @details For \code{spmod} objects, the (empirical) best linear unbiased predictions (i.e., Kriging
+#' @details For \code{splm} and \code{spautor} objects, the (empirical) best linear unbiased predictions (i.e., Kriging
 #'   predictions) at each site are returned when \code{interval} is \code{"none"}
 #'   or \code{"prediction"} alongside standard errors. Prediction intervals
 #'   are also returned if \code{interval} is \code{"prediction"}. When
 #'   \code{interval} is \code{"confidence"}, the estimated mean is returned
-#'   alongside standard errors and confidence intervals for the mean. For \code{spmod_list}
-#'   objects, predictions and associated intervals and standard errors are returned
-#'   for each \code{spmod} object.
+#'   alongside standard errors and confidence intervals for the mean. For \code{splm_list}
+#'   and \code{spautor_list} objects, predictions and associated intervals and standard errors are returned
+#'   for each list element.
 #'
-#' @return For \code{spmod} objects, if \code{se.fit} is \code{FALSE}, \code{predict.spmod()} returns
+#'   For \code{splmRF} or \code{spautorRF} objects, random forest spatial residual
+#'   model predictions are computed by combining the random forest prediction with
+#'   the (empirical) best linear unbiased prediction for the residual. Fox et al. (2020)
+#'   call this approach random forest regression Kriging. For \code{splmRF_list}
+#'   or \code{spautorRF} objects,
+#'   predictions are returned for each list element.
+#'
+#' @return For \code{splm} or \code{spautor} objects, if \code{se.fit} is \code{FALSE}, \code{predict()} returns
 #'   a vector of predictions or a matrix of predictions with column names
 #'   \code{fit}, \code{lwr}, and \code{upr} if \code{interval} is \code{"confidence"}
 #'   or \code{"prediction"}. If \code{se.fit} is \code{TRUE}, a list with the following components is returned:
@@ -67,10 +76,14 @@
 #'     \item{\code{se.fit: }}{standard error of each fit}
 #'   }
 #'
-#'   For \code{spmod_list} objects, a list that contains relevant quantities for each
-#'   \code{spmod} object.
+#'   For \code{splm_list} or \code{spautor_list} objects, a list that contains relevant quantities for each
+#'   list element.
 #'
-#' @method predict spmod
+#'   For \code{splmRF} or \code{spautorRF} objects, a vector of predictions. For \code{splmRF_list}
+#'   or \code{spautorRF_list} objects, a list that contains relevant quantities for each list element.
+#'
+#' @name predict.spmodel
+#' @method predict splm
 #' @export
 #'
 #' @examples
@@ -81,8 +94,8 @@
 #' predict(spmod, sulfate_preds)
 #' predict(spmod, sulfate_preds, interval = "prediction")
 #' augment(spmod, newdata = sulfate_preds, interval = "prediction")
-predict.spmod <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                          level = 0.95, local, ...) {
+predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
+                         level = 0.95, local, ...) {
 
   # match interval argument so the three display
   interval <- match.arg(interval)
@@ -96,14 +109,6 @@ predict.spmod <- function(object, newdata, se.fit = FALSE, interval = c("none", 
   if (missing(newdata) && is.null(object$newdata)) {
     stop("No missing data to predict. newdata must be specified in the newdata argument or object$newdata must be non-NULL.", call. = FALSE)
   }
-
-  switch(object$fn,
-    "splm" = predict_splm(object, newdata, se.fit, interval, level, local, ...),
-    "spautor" = predict_spautor(object, se.fit, interval, level, local, ...)
-  )
-}
-predict_splm <- function(object, newdata, se.fit = FALSE, interval,
-                         level = 0.95, local, ...) {
 
   # rename relevant quantities
   obdata <- object$obdata
@@ -156,14 +161,14 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
 
   if (object$anisotropy) { # could just do rotate != 0 || scale != 1
     obdata_aniscoords <- transform_anis(obdata, xcoord, ycoord,
-      rotate = spcov_params_val[["rotate"]],
-      scale = spcov_params_val[["scale"]]
+                                        rotate = spcov_params_val[["rotate"]],
+                                        scale = spcov_params_val[["scale"]]
     )
     obdata[[xcoord]] <- obdata_aniscoords$xcoord_val
     obdata[[ycoord]] <- obdata_aniscoords$ycoord_val
     newdata_aniscoords <- transform_anis(newdata, xcoord, ycoord,
-      rotate = spcov_params_val[["rotate"]],
-      scale = spcov_params_val[["scale"]]
+                                         rotate = spcov_params_val[["rotate"]],
+                                         scale = spcov_params_val[["scale"]]
     )
     newdata[[xcoord]] <- newdata_aniscoords$xcoord_val
     newdata[[ycoord]] <- newdata_aniscoords$ycoord_val
@@ -217,9 +222,9 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
       # comment out here for simple
       reform_bar_list <- lapply(randcov_names, function(randcov_name) {
         bar_split <- unlist(strsplit(randcov_name, " | ", fixed = TRUE))
-        reform_bar2 <- reformulate(paste0("as.numeric(", bar_split[[2]], ")"), intercept = FALSE)
+        reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
         if (bar_split[[1]] != "1") {
-          reform_bar1 <- reformulate(paste0("as.numeric(", bar_split[[1]], ")"), intercept = FALSE)
+          reform_bar1 <- reformulate(bar_split[[1]], intercept = FALSE)
         } else {
           reform_bar1 <- NULL
         }
@@ -229,7 +234,17 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
       names(reform_bar2_list) <- randcov_names
       reform_bar1_list <- lapply(reform_bar_list, function(x) x$reform_bar1)
       names(reform_bar1_list) <- randcov_names
-      Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) as.vector(model.matrix(reform_bar2, obdata)))
+      Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) {
+        reform_bar2_mf <- model.frame(reform_bar2, obdata)
+        reform_bar2_terms <- terms(reform_bar2_mf)
+        reform_bar2_xlev <- .getXlevels(reform_bar2_terms, reform_bar2_mf)
+        reform_bar2_mx <- model.matrix(reform_bar2, obdata)
+        reform_bar2_names <- colnames(reform_bar2_mx)
+        reform_bar2_split <- split(reform_bar2_mx, seq_len(NROW(reform_bar2_mx)))
+        reform_bar2_vals <- reform_bar2_names[vapply(reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+        list(reform_bar2_vals = reform_bar2_vals, reform_bar2_xlev = reform_bar2_xlev)
+      })
+      # Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) as.vector(model.matrix(reform_bar2, obdata)))
       names(Z_index_obdata_list) <- randcov_names
       Z_val_obdata_list <- lapply(reform_bar1_list, function(reform_bar1) {
         if (is.null(reform_bar1)) {
@@ -248,10 +263,19 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
 
     # partition factor stuff
     if (!is.null(object$partition_factor)) {
+
       partition_factor_val <- get_partition_name(labels(terms(object$partition_factor)))
       bar_split <- unlist(strsplit(partition_factor_val, " | ", fixed = TRUE))
-      reform_bar2 <- reformulate(paste0("as.numeric(", bar_split[[2]], ")"), intercept = FALSE)
-      partition_index_obdata <- as.vector(model.matrix(reform_bar2, obdata))
+      reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
+      p_reform_bar2_mf <- model.frame(reform_bar2, obdata)
+      p_reform_bar2_terms <- terms(p_reform_bar2_mf)
+      p_reform_bar2_xlev <- .getXlevels(p_reform_bar2_terms, p_reform_bar2_mf)
+      p_reform_bar2_mx <- model.matrix(reform_bar2, obdata)
+      p_reform_bar2_names <- colnames(p_reform_bar2_mx)
+      p_reform_bar2_split <- split(p_reform_bar2_mx, seq_len(NROW(p_reform_bar2_mx)))
+      p_reform_bar2_vals <- p_reform_bar2_names[vapply(p_reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+      partition_index_obdata <- list(reform_bar2_vals = p_reform_bar2_vals, reform_bar2_xlev = p_reform_bar2_xlev)
+      # partition_index_obdata <- as.vector(model.matrix(reform_bar2, obdata))
     } else {
       reform_bar2 <- NULL
       partition_index_obdata <- NULL
@@ -276,44 +300,44 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
     if (local_list$parallel) {
       cl <- parallel::makeCluster(local_list$ncores)
       pred_splm <- parallel::parLapply(cl, newdata_list, get_pred_splm,
-        se.fit = se.fit,
-        interval = interval, formula = object$formula,
-        obdata = obdata, xcoord = xcoord, ycoord = ycoord,
-        spcov_params_val = spcov_params_val, random = object$random,
-        randcov_params_val = randcov_params_val,
-        reform_bar2_list = reform_bar2_list,
-        Z_index_obdata_list = Z_index_obdata_list,
-        reform_bar1_list = reform_bar1_list,
-        Z_val_obdata_list = Z_val_obdata_list,
-        partition_factor = object$partition_factor,
-        reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
-        cov_lowchol = cov_lowchol,
-        Xmat = model.matrix(object),
-        y = model.response(model.frame(object)), dim_coords = object$dim_coords,
-        betahat = coefficients(object), cov_betahat = vcov(object),
-        contrasts = object$contrasts,
-        local = local_list
+                                       se.fit = se.fit,
+                                       interval = interval, formula = object$formula,
+                                       obdata = obdata, xcoord = xcoord, ycoord = ycoord,
+                                       spcov_params_val = spcov_params_val, random = object$random,
+                                       randcov_params_val = randcov_params_val,
+                                       reform_bar2_list = reform_bar2_list,
+                                       Z_index_obdata_list = Z_index_obdata_list,
+                                       reform_bar1_list = reform_bar1_list,
+                                       Z_val_obdata_list = Z_val_obdata_list,
+                                       partition_factor = object$partition_factor,
+                                       reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
+                                       cov_lowchol = cov_lowchol,
+                                       Xmat = model.matrix(object),
+                                       y = model.response(model.frame(object)), dim_coords = object$dim_coords,
+                                       betahat = coefficients(object), cov_betahat = vcov(object),
+                                       contrasts = object$contrasts,
+                                       local = local_list
       )
       cl <- parallel::stopCluster(cl)
     } else {
       pred_splm <- lapply(newdata_list, get_pred_splm,
-        se.fit = se.fit,
-        interval = interval, formula = object$formula,
-        obdata = obdata, xcoord = xcoord, ycoord = ycoord,
-        spcov_params_val = spcov_params_val, random = object$random,
-        randcov_params_val = randcov_params_val,
-        reform_bar2_list = reform_bar2_list,
-        Z_index_obdata_list = Z_index_obdata_list,
-        reform_bar1_list = reform_bar1_list,
-        Z_val_obdata_list = Z_val_obdata_list,
-        partition_factor = object$partition_factor,
-        reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
-        cov_lowchol = cov_lowchol,
-        Xmat = model.matrix(object),
-        y = model.response(model.frame(object)), dim_coords = object$dim_coords,
-        betahat = coefficients(object), cov_betahat = vcov(object),
-        contrasts = object$contrasts,
-        local = local_list
+                          se.fit = se.fit,
+                          interval = interval, formula = object$formula,
+                          obdata = obdata, xcoord = xcoord, ycoord = ycoord,
+                          spcov_params_val = spcov_params_val, random = object$random,
+                          randcov_params_val = randcov_params_val,
+                          reform_bar2_list = reform_bar2_list,
+                          Z_index_obdata_list = Z_index_obdata_list,
+                          reform_bar1_list = reform_bar1_list,
+                          Z_val_obdata_list = Z_val_obdata_list,
+                          partition_factor = object$partition_factor,
+                          reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
+                          cov_lowchol = cov_lowchol,
+                          Xmat = model.matrix(object),
+                          y = model.response(model.frame(object)), dim_coords = object$dim_coords,
+                          betahat = coefficients(object), cov_betahat = vcov(object),
+                          contrasts = object$contrasts,
+                          local = local_list
       )
     }
 
@@ -344,7 +368,7 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
       lwr <- fit - tstar * se
       upr <- fit + tstar * se
       fit <- cbind(fit, lwr, upr)
-      rownames(fit) <- 1:NROW(fit)
+      row.names(fit) <- 1:NROW(fit)
       if (se.fit) {
         if (add_newdata_rows) {
           row.names(fit) <- object$missing_index
@@ -369,6 +393,7 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
     lwr <- fit - tstar * se
     upr <- fit + tstar * se
     fit <- cbind(fit, lwr, upr)
+    row.names(fit) <- 1:NROW(fit)
     if (se.fit) {
       if (add_newdata_rows) {
         row.names(fit) <- object$missing_index
@@ -384,10 +409,28 @@ predict_splm <- function(object, newdata, se.fit = FALSE, interval,
   } else {
     stop("Interval must be none, confidence, or prediction")
   }
+
 }
 
-predict_spautor <- function(object, se.fit = FALSE, interval,
-                            level = 0.95, local, ...) {
+#' @rdname predict.spmodel
+#' @method predict spautor
+#' @export
+predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
+                         level = 0.95, local, ...) {
+
+  # match interval argument so the three display
+  interval <- match.arg(interval)
+
+  # deal with local
+  if (missing(local)) {
+    local <- NULL
+  }
+
+  # error if newdata missing from arguments and object
+  if (missing(newdata) && is.null(object$newdata)) {
+    stop("No missing data to predict. newdata must be specified in the newdata argument or object$newdata must be non-NULL.", call. = FALSE)
+  }
+
 
 
   # deal with local
@@ -479,11 +522,11 @@ predict_spautor <- function(object, se.fit = FALSE, interval,
         )
       })
       pred_spautor <- parallel::parLapply(cl, cluster_list, get_pred_spautor_parallel,
-        cov_matrix_lowchol, betahat,
-        residuals_pearson,
-        cov_betahat, SqrtSigInv_X,
-        se.fit = se.fit,
-        interval = interval
+                                          cov_matrix_lowchol, betahat,
+                                          residuals_pearson,
+                                          cov_betahat, SqrtSigInv_X,
+                                          se.fit = se.fit,
+                                          interval = interval
       )
       cl <- parallel::stopCluster(cl)
     } else {
@@ -526,7 +569,7 @@ predict_spautor <- function(object, se.fit = FALSE, interval,
       lwr <- fit - tstar * se
       upr <- fit + tstar * se
       fit <- cbind(fit, lwr, upr)
-      rownames(fit) <- 1:NROW(fit)
+      row.names(fit) <- 1:NROW(fit)
       if (se.fit) {
         row.names(fit) <- object$missing_index
         names(se) <- object$missing_index
@@ -546,6 +589,7 @@ predict_spautor <- function(object, se.fit = FALSE, interval,
     lwr <- fit - tstar * se
     upr <- fit + tstar * se
     fit <- cbind(fit, lwr, upr)
+    row.names(fit) <- 1:NROW(fit)
     if (se.fit) {
       row.names(fit) <- object$missing_index
       names(se) <- object$missing_index
@@ -557,6 +601,9 @@ predict_spautor <- function(object, se.fit = FALSE, interval,
   } else {
     stop("Interval must be none, confidence, or prediction")
   }
+
+
+
 }
 
 get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoord, ycoord,
@@ -666,10 +713,10 @@ get_pred_spautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat,
 }
 
 
-#' @name predict.spmod
-#' @method predict spmod_list
+#' @name predict.spmodel
+#' @method predict splm_list
 #' @export
-predict.spmod_list <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
+predict.splm_list <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
                                level = 0.95, local, ...) {
   # match interval argument so the three display
   interval <- match.arg(interval)
@@ -692,92 +739,16 @@ predict.spmod_list <- function(object, newdata, se.fit = FALSE, interval = c("no
   preds
 }
 
-#' @name predict.spmod
-#' @method predict spmod_list
+#' @name predict.spmodel
+#' @method predict spautor_list
 #' @export
-predict.spmod_list <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                               level = 0.95, local, ...) {
-  # match interval argument so the three display
-  interval <- match.arg(interval)
-
-  # deal with local
-  if (missing(local)) {
-    local <- NULL
-  }
-
-  if (missing(newdata)) {
-    preds <- lapply(object, function(x) {
-      predict(x, se.fit = se.fit, interval = interval, level = level, local = local, ...)
-    })
-  } else {
-    preds <- lapply(object, function(x) {
-      predict(x, newdata = newdata, se.fit = se.fit, interval = interval, level = level, local = local, ...)
-    })
-  }
-  names(preds) <- names(object)
-  preds
-}
+predict.spautor_list <- predict.splm_list
 
 
 
 
-
-
-#' Random forest spatial residual model predictions (random forest regression Kriging)
-#'
-#' @description Predicted values based on a random forest spatial residual fitted model object.
-#'
-#' @param object A fitted model object from [splmRF()] or [spautorRF()].
-#' @param newdata A data frame or \code{sf} object in which to
-#'   look for variables with which to predict. If a data frame, \code{newdata}
-#'   must contain all variables used by \code{formula(object)} and all variables
-#'   representing coordinates. If an \code{sf} object, \code{newdata} must contain
-#'   all variables used by \code{formula(object)} and coordinates are obtained
-#'   from the geometry of \code{newdata}. If omitted, missing data from the
-#'   fitted model object are used.
-#' @param local A optional logical or list controlling the big data approximation
-#'   to the spatial residual prediction. If omitted, \code{local}
-#'   is set to \code{TRUE} or \code{FALSE} based on the sample size of the fitted
-#'   model object and/or the prediction size of \code{newdata} -- if the sample
-#'   size or prediction size exceeds 5000, \code{local} is
-#'   set to \code{TRUE}, otherwise it is set to \code{FALSE}. If \code{FALSE}, no big data approximation
-#'   is implemented. If a list is provided, the following arguments detail the big
-#'   data approximation:
-#'   \itemize{
-#'     \item{\code{method}: }{The big data approximation method. If \code{method = "all"},
-#'       all observations are used and \code{size} is ignored. If \code{method = "distance"},
-#'       the \code{size} data observations closest (in terms of Euclidean distance)
-#'       to the observation requiring prediction are used.
-#'       If \code{method = "covariance"}, the \code{size} data observations
-#'       with the highest covariance with the observation requiring prediction are used.
-#'       If random effects and partition factors are not used in estimation and
-#'       the spatial covariance function is monotone decreasing,
-#'       \code{"distance"} and \code{"covariance"} are equivalent. The default
-#'       is \code{"covariance"}. Only used with models fit using [splm()].}
-#'     \item{\code{size}: }{The number of data observations to use when \code{method}
-#'       is \code{"distance"} or \code{"covariance"}. The default is 50. Only used
-#'       with models fit using [splm()].}
-#'     \item{\code{parallel}: }{If \code{TRUE}, parallel processing via the
-#'       parallel package is automatically used. The default is \code{FALSE}.}
-#'     \item{\code{ncores}: }{If \code{parallel = TRUE}, the number of cores to
-#'       parallelize over. The default is the number of available cores on your machine.}
-#'   }
-#'   When \code{local} is a list, at least one list element must be provided to
-#'   initialize default arguments for the other list elements.
-#'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
-#'   that \code{local} is transformed into
-#'   \code{list(size = 50, method = "covariance", parallel = FALSE)}.
-#' @param ... Other arguments to \code{ranger::predict.ranger()}
-#'
-#' @details For \code{spmodRF} objects, the random forest prediction is combined with
-#'   the (empirical) best linear unbiased prediction for the residual. Fox Et al.
-#'   call this approach random forest regression Kriging. For \code{spmodRF_list} objects,
-#'   predictions are returned for each \code{spmodRF} object.
-#'
-#' @return For \code{spmodRF} objects, a vector of predictions. For \code{spmodRF_list}
-#'   objects, a list that contains relevant quantities for each \code{spmodRF} object.
-#'
-#' @method predict spmodRF
+#' @rdname predict.spmodel
+#' @method predict splmRF
 #' @export
 #'
 #' @references
@@ -792,15 +763,15 @@ predict.spmod_list <- function(object, newdata, se.fit = FALSE, interval = c("no
 #' sprfmod <- splmRF(sulfate ~ var, data = sulfate, spcov_type = "exponential")
 #' predict(sprfmod, sulfate_preds)
 #' }
-predict.spmodRF <- function(object, newdata, local, ...) {
+predict.splmRF <- function(object, newdata, local, ...) {
 
   # check to see if ranger installed
   if (!requireNamespace("ranger", quietly = TRUE)) {
-    stop("Install the ranger package before using predict with an splmRF object", call. = FALSE)
+    stop("Install the ranger package before using predict with an splmRF or spautorRF object", call. = FALSE)
   } else {
 
     # find newdata if required
-    if ((missing(newdata) && !is.null(object$newdata)) || object$spmod$fn == "spautor") {
+    if ((missing(newdata) && !is.null(object$newdata))) {
       newdata <- object$newdata
     }
 
@@ -819,26 +790,64 @@ predict.spmodRF <- function(object, newdata, local, ...) {
     if (missing(local)) {
       local <- NULL
     }
-    # do spmod prediction
-    spmod_pred <- do.call(predict, list(object = object$spmod, newdata = newdata, local = local))
+    # do splm prediction
+    splm_pred <- do.call(predict, list(object = object$splm, newdata = newdata, local = local))
 
   }
   # obtain final predictions
-  ranger_pred$predictions + spmod_pred
+  ranger_pred$predictions + splm_pred
+
+
 }
 
-#' @name predict.spmodRF
-#' @method predict spmodRF_list
+#' @rdname predict.spmodel
+#' @method predict spautorRF
 #' @export
-predict.spmodRF_list <- function(object, newdata, local, ...) {
+predict.spautorRF <- function(object, newdata, local, ...) {
 
+  # check to see if ranger installed
+  if (!requireNamespace("ranger", quietly = TRUE)) {
+    stop("Install the ranger package before using predict with an splmRF or spautorRF object", call. = FALSE)
+  } else {
+
+    # find newdata
+    newdata <- object$newdata
+
+
+    # get ... objects
+    dotlist <- as.list(substitute(alist(...)))[-1]
+    dotlist_names <- names(dotlist)
+
+    # hardcode ranger names because of predict.ranger export issue
+    ranger_names <- c("predict.all", "num.trees", "se.method", "quantiles", "what", "seed", "num.threads", "verbose")
+    ranger_args <- dotlist[dotlist_names %in% ranger_names]
+
+    # do random forest prediction
+    ranger_pred <- do.call(predict, c(list(object = object$ranger, data = as.data.frame(newdata), type = "response"), ranger_args))
+
+    # set local if missing
+    if (missing(local)) {
+      local <- NULL
+    }
+    # do spautor prediction
+    spautor_pred <- do.call(predict, list(object = object$spautor, newdata = newdata, local = local))
+
+  }
+  # obtain final predictions
+  ranger_pred$predictions + spautor_pred
+}
+
+#' @name predict.spmodel
+#' @method predict splmRF_list
+#' @export
+predict.splmRF_list <- function(object, newdata, local, ...) {
   # check to see if ranger installed
   if (!requireNamespace("ranger", quietly = TRUE)) {
     stop("Install the ranger package before using predict with an splmRF_list object", call. = FALSE)
   } else {
 
     # find newdata if required
-    if ((missing(newdata) && !is.null(object$newdata)) || object$spmod[[1]]$fn == "spautor") {
+    if ((missing(newdata) && !is.null(object$newdata))) {
       newdata <- object$newdata
     }
 
@@ -857,14 +866,51 @@ predict.spmodRF_list <- function(object, newdata, local, ...) {
     if (missing(local)) {
       local <- NULL
     }
-    # do spmod prediction
-    spmod_pred <- lapply(object$spmod_list, function(x) {
+    # do splm prediction
+    splm_pred <- lapply(object$splm_list, function(x) {
       do.call(predict, list(object = x, newdata = newdata, local = local))
     })
   }
   # obtain final predictions
-  sprf_pred <- lapply(spmod_pred, function(x) ranger_pred$predictions + x)
-  names(sprf_pred) <- names(object$spmod_list)
+  sprf_pred <- lapply(splm_pred, function(x) ranger_pred$predictions + x)
+  names(sprf_pred) <- names(object$splm_list)
   sprf_pred
 }
 
+#' @name predict.spmodel
+#' @method predict spautorRF_list
+#' @export
+predict.spautorRF_list <- function(object, newdata, local, ...) {
+  # check to see if ranger installed
+  if (!requireNamespace("ranger", quietly = TRUE)) {
+    stop("Install the ranger package before using predict with an splmRF_list object", call. = FALSE)
+  } else {
+
+    # find newdata
+    newdata <- object$newdata
+
+    # get ... objects
+    dotlist <- as.list(substitute(alist(...)))[-1]
+    dotlist_names <- names(dotlist)
+
+    # hardcode ranger names because of predict.ranger export issue
+    ranger_names <- c("predict.all", "num.trees", "se.method", "quantiles", "what", "seed", "num.threads", "verbose")
+    ranger_args <- dotlist[dotlist_names %in% ranger_names]
+
+    # do random forest prediction
+    ranger_pred <- do.call(predict, c(list(object = object$ranger, data = as.data.frame(newdata), type = "response"), ranger_args))
+
+    # set local if missing
+    if (missing(local)) {
+      local <- NULL
+    }
+    # do spautor prediction
+    spautor_pred <- lapply(object$spautor_list, function(x) {
+      do.call(predict, list(object = x, newdata = newdata, local = local))
+    })
+  }
+  # obtain final predictions
+  sprf_pred <- lapply(spautor_pred, function(x) ranger_pred$predictions + x)
+  names(sprf_pred) <- names(object$spautor_list)
+  sprf_pred
+}

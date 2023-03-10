@@ -12,7 +12,7 @@ spcov_optim2orig <- function(spcov_orig2optim, par, spcov_profiled, ...) {
 }
 
 #' @export
-spcov_optim2orig.exponential <- function(spcov_orig2optim, par, spcov_profiled, data_object) { # data object not used for geostatistical models
+spcov_optim2orig.exponential <- function(spcov_orig2optim, par, spcov_profiled, data_object, ...) { # data object not used for geostatistical models
   fill_optim_par_val <- fill_optim_par(spcov_orig2optim, par[seq(1, spcov_orig2optim$n_est)])
 
   if (spcov_profiled) {
@@ -60,7 +60,7 @@ spcov_optim2orig.rquad <- spcov_optim2orig.exponential
 spcov_optim2orig.magnetic <- spcov_optim2orig.exponential
 
 #' @export
-spcov_optim2orig.matern <- function(spcov_orig2optim, par, spcov_profiled, data_object) {
+spcov_optim2orig.matern <- function(spcov_orig2optim, par, spcov_profiled, data_object, ...) {
   fill_optim_par_val <- fill_optim_par(spcov_orig2optim, par[seq(1, spcov_orig2optim$n_est)])
 
   if (spcov_profiled) {
@@ -85,7 +85,7 @@ spcov_optim2orig.matern <- function(spcov_orig2optim, par, spcov_profiled, data_
 }
 
 #' @export
-spcov_optim2orig.cauchy <- function(spcov_orig2optim, par, spcov_profiled, data_object) {
+spcov_optim2orig.cauchy <- function(spcov_orig2optim, par, spcov_profiled, data_object, ...) {
   fill_optim_par_val <- fill_optim_par(spcov_orig2optim, par[seq(1, spcov_orig2optim$n_est)])
 
   if (spcov_profiled) {
@@ -108,7 +108,7 @@ spcov_optim2orig.cauchy <- function(spcov_orig2optim, par, spcov_profiled, data_
 }
 
 #' @export
-spcov_optim2orig.pexponential <- function(spcov_orig2optim, par, spcov_profiled, data_object) {
+spcov_optim2orig.pexponential <- function(spcov_orig2optim, par, spcov_profiled, data_object, ...) {
   fill_optim_par_val <- fill_optim_par(spcov_orig2optim, par[seq(1, spcov_orig2optim$n_est)])
 
   if (spcov_profiled) {
@@ -131,7 +131,7 @@ spcov_optim2orig.pexponential <- function(spcov_orig2optim, par, spcov_profiled,
 }
 
 #' @export
-spcov_optim2orig.car <- function(spcov_orig2optim, par, spcov_profiled, data_object) {
+spcov_optim2orig.car <- function(spcov_orig2optim, par, spcov_profiled, data_object, ...) {
   fill_optim_par_val <- fill_optim_par(spcov_orig2optim, par[seq(1, spcov_orig2optim$n_est)])
 
   if (spcov_profiled) {

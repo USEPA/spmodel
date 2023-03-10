@@ -52,6 +52,8 @@ library(ggplot2)
 
 ggplot2 is only installed alongside `spmodel` when `dependencies = TRUE` in `install.packages()`, so check that the package is installed and loaded before reproducing any of these vignette's visualizations. We will also show code that can be used to create interactive visualizations of spatial data with `mapview` [@appelhans2022mapview]. `mapview` also has many backgrounds available that contextualize spatial data with topographical information. Before running the `mapview` code interactively, make sure `mapview` is installed and loaded.
 
+`spmodel` contains various methods for generic functions defined outside of `spmodel`. To find relevant documentation for these methods, run `help("generic.spmodel", "spmodel")` (e.g., `help("fitted.spmodel", "spmodel")`, `help("summary.spmodel", "spmodel")`, `help("plot.spmodel", "spmodel")`, `help("predict.spmodel", "spmodel")`, `help("tidy.spmodel", "spmodel")`, etc.) . We provide more details and examples regarding these methods and generics throughout this vignette. For a full list of `spmodel` functions available, see `spmodel`'s documentation manual.
+
 # The Spatial Linear Model {#sec:theomodel}
 
 Statistical linear models are often parameterized as 
@@ -64,13 +66,13 @@ The model in Equation$~$\ref{eq:lm} assumes the elements of $\mathbf{y}$ are unc
 \begin{equation}\label{eq:splm}
  \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
 \end{equation}
-where $\boldsymbol{\tau}$ is independent of $\boldsymbol{\epsilon}$, $\text{E}(\boldsymbol{\tau}) = \mathbf{0}$, $\text{Cov}(\boldsymbol{\tau}) = \sigma^2_\tau \mathbf{R}$, $\mathbf{R}$ is a matrix that determines the spatial dependence structure in $\mathbf{y}$ and depends on a range parameter, $\phi$. We discuss $\mathbf{R}$ in more detail shortly. The parameter $\sigma^2_\tau$ is called the spatially dependent random error variance or partial sill. The parameter $\sigma^2_\epsilon$ is called the spatially independent random error variance or nugget. These two variance parameters are henceforth more intuitively written as $\sigma^2_{de}$ and $\sigma^2_{ie}$, respectively. The covariance of $\mathbf{y}$ is denoted $\boldsymbol{\Sigma}$ and given by $\sigma^2_{de} \mathbf{R} + \sigma^2_{ie} \mathbf{I}$. The parameters that compose this covariance are typically referenced by the vector $\boldsymbol{\theta}$, which is called the covariance parameter vector.
+where $\boldsymbol{\tau}$ is independent of $\boldsymbol{\epsilon}$, $\text{E}(\boldsymbol{\tau}) = \mathbf{0}$, $\text{Cov}(\boldsymbol{\tau}) = \sigma^2_\tau \mathbf{R}$, $\mathbf{R}$ is a matrix that determines the spatial dependence structure in $\mathbf{y}$ and depends on a range parameter, $\phi$. We discuss $\mathbf{R}$ in more detail shortly. The parameter $\sigma^2_\tau$ is called the spatially dependent random error variance or partial sill. The parameter $\sigma^2_\epsilon$ is called the spatially independent random error variance or nugget. These two variance parameters are henceforth more intuitively written as $\sigma^2_{de}$ and $\sigma^2_{ie}$, respectively. The covariance of $\mathbf{y}$ is denoted $\boldsymbol{\Sigma}$ and given by $\sigma^2_{de} \mathbf{R} + \sigma^2_{ie} \mathbf{I}$. The parameters that compose this covariance are contained in the vector $\boldsymbol{\theta}$, which is called the covariance parameter vector.
 
 Equation$~$\ref{eq:splm} is called the spatial linear model. The spatial linear model applies to both point-referenced and areal (i.e., lattice) data. Spatial data are point-referenced when the elements in $\mathbf{y}$ are observed at point-locations indexed by x-coordinates and y-coordinates on a spatially continuous surface with an infinite number of locations. The `splm()` function is used to fit spatial linear models for point-referenced data (these are sometimes called geostatistical models). One spatial covariance function available in `splm()` is the exponential spatial covariance function, which has an $\mathbf{R}$ matrix given by
 \begin{equation*}
   \mathbf{R} = \exp(-\mathbf{M} / \phi),
 \end{equation*}  
-where $\mathbf{M}$ is a matrix of Euclidean distances among observations. Recall that $\phi$ is the range parameter, controlling the behavior of of the covariance function as a function of distance. Parameterizations for `splm()` spatial covariance types and their $\mathbf{R}$ matrices can be seen by running `help("splm", "spmodel")` or `vignette("technical", "spmodel")`. Some of these spatial covariance types (e.g., Mat$\acute{e}$rn) depend on an extra parameter beyond $\sigma^2_{de}$, $\sigma^2_{ie}$, and $\phi$.
+where $\mathbf{M}$ is a matrix of Euclidean distances among observations. Recall that $\phi$ is the range parameter, controlling the behavior of of the covariance function as a function of distance. Parameterizations for `splm()` spatial covariance types and their $\mathbf{R}$ matrices can be seen by running `help("splm", "spmodel")` or `vignette("technical", "spmodel")`. Some of these spatial covariance types (e.g., Matérn) depend on an extra parameter beyond $\sigma^2_{de}$, $\sigma^2_{ie}$, and $\phi$.
 
 Spatial data are areal when the elements in $\mathbf{y}$ are observed as part of a finite network of polygons whose connections are indexed by a neighborhood structure. For example, the polygons may represent counties in a state that are neighbors if they share at least one boundary. Areal data are often equivalently called lattice data [@cressie1993statistics]. The `spautor()` function is used to fit spatial linear models for areal data (these are sometimes called spatial autoregressive models). One spatial autoregressive covariance function available in `spautor()` is the simultaneous autoregressive spatial covariance function, which has an $\mathbf{R}$ matrix given by
 \begin{equation*}
@@ -148,7 +150,7 @@ The dependent random error variance ($\sigma^2_{de}$) is estimated to be approxi
 ```{r emp_spcov, fig.cap="Empirical spatial covariance of fitted model.", out.width="75%", fig.align="center"}
 plot(spmod, which = 7)
 ```
-We can learn more about the plots available for fitted models by running `help("plot.spmod", "spmodel")`.
+We can learn more about the plots available for fitted models by running `help("plot.splm", "spmodel")`.
 
 
 ## Model-Fit Statistics
@@ -181,12 +183,12 @@ Suppose we want to quantify the difference in model quality between the spatial 
 lmod <- splm(log_Zn ~ log_dist2road, moss, spcov_type = "none")
 ```
 
-We compute the spatial AIC and AICc of the spatial model and non-spatial model by running
+This model is equivalent to one fit using `lm()`. We compute the spatial AIC and AICc of the spatial model and non-spatial model by running
 ```{r}
 AIC(spmod, lmod)
 AICc(spmod, lmod)
 ```
-The noticeably lower AIC and AICc of of the spatial model indicate that it is a better fit to the data than the non-spatial model. 
+The noticeably lower AIC and AICc of of the spatial model indicate that it is a better fit to the data than the non-spatial model. Recall that these AIC and AICc comparisons are valid because both models are fit using restricted maximum likelihood (the default).
 
 Another approach to comparing the fitted models is to perform leave-one-out cross validation [@hastie2009elements]. In leave-one-out cross validation, a single observation is removed from the data, the model is re-fit, and a prediction is made for the held-out observation. Then, a loss metric like mean-squared-prediction error is computed and used to evaluate model fit. The lower the mean-squared-prediction error, the better the model fit. For computational efficiency, leave-one-out cross validation in `spmodel` is performed by first estimating $\boldsymbol{\theta}$ using all the data and then re-estimating $\boldsymbol{\beta}$ for each observation. We perform leave-one-out cross validation for the spatial and non-spatial model by running
 ```{r}
@@ -212,7 +214,7 @@ where $\mathbf{X}^* = \boldsymbol{\Sigma}^{-1/2}\mathbf{X}$ and $\boldsymbol{\Si
 ```{r, eval = FALSE}
 hatvalues(spmod)
 ```
-Larger hat values indicate more leverage. 
+Larger hat values indicate more leverage, and observations with large hat values may be unusual and warrant further investigation. 
 
 The fitted value of an observation is the estimated mean response given the observation's explanatory variable values and the model fit:
 \begin{equation*}
@@ -224,16 +226,16 @@ fitted(spmod)
 ```
 Fitted values for the spatially dependent random errors ($\boldsymbol{\tau}$), spatially independent random errors ($\boldsymbol{\epsilon}$), and random effects can also be obtained via `fitted()` by changing the `type` argument.
 
-The residuals measure each response's deviation from its fitted value. The raw residuals are given by
+The residuals measure each response's deviation from its fitted value. The response residuals are given by
 \begin{equation*}
   \mathbf{e}_{r} = \mathbf{y} - \hat{\mathbf{y}}.
 \end{equation*}
-We compute the raw residuals of the spatial model by running
+We compute the response residuals of the spatial model by running
 ```{r, eval = FALSE}
 residuals(spmod)
 ```
 
-The raw residuals are typically not directly checked for linear model assumptions, as they have covariance closely resembling the covariance of $\mathbf{y}$. Pre-multiplying the residuals by $\boldsymbol{\Sigma}^{-1/2}$ yields the Pearson residuals [@myers2012generalized]:
+The response residuals are typically not directly checked for linear model assumptions, as they have covariance closely resembling the covariance of $\mathbf{y}$. Pre-multiplying the residuals by $\boldsymbol{\Sigma}^{-1/2}$ yields the Pearson residuals [@myers2012generalized]:
 \begin{equation*}
   \mathbf{e}_{p} = \boldsymbol{\Sigma}^{-1/2}\mathbf{e}_{r}.
 \end{equation*}
@@ -275,7 +277,7 @@ For a spatial model, the Cook's distance of the $i$th observation is denoted $\m
 \begin{equation*}
   \mathbf{D}^* = \mathbf{e}_{s}^2 \frac{\text{diag}(\mathbf{H}^*)}{p(1 - \text{diag}(\mathbf{H}^*))} .
 \end{equation*}
-A larger Cook's distance indicates more influence from the observation. We compute Cook's distance by running
+A larger Cook's distance indicates more influence, and observations with large Cook's distance values may be unusual and warrant further investigation. We compute Cook's distance by running
 ```{r, eval = FALSE}
 cooks.distance(spmod)
 ```
@@ -307,7 +309,7 @@ Finally, the `augment()` function augments the original data with model diagnost
 ```{r}
 augment(spmod)
 ```
-By default, only the columns of `data` used to fit the model are returned alongside the diagnostics. All original columns of `data` are returned by setting `drop` to `FALSE`. `augment()` is especially powerful when the data are an `sf` object because model diagnostics can be easily visualized spatially. For example, we could subset the augmented object so that it only includes observations whose standardized residuals have absolute values greater than some cutoff and then visualize them spatially. To learn more about the broom functions for spatial linear models, run `help("tidy.spmod", "spmodel")`, `help("glance.spmod", "spmodel")`, and `help("augment.spmod", "spmodel")`.
+By default, only the columns of `data` used to fit the model are returned alongside the diagnostics. All original columns of `data` are returned by setting `drop` to `FALSE`. `augment()` is especially powerful when the data are an `sf` object because model diagnostics can be easily visualized spatially. For example, we could subset the augmented object so that it only includes observations whose standardized residuals have absolute values greater than some cutoff and then visualize them spatially. To learn more about the broom functions for spatial linear models, run `help("tidy.splm", "spmodel")`, `help("glance.splm", "spmodel")`, and `help("augment.splm", "spmodel")`.
 
 ## An Areal Data Example
 
@@ -339,12 +341,15 @@ sealmod <- spautor(log_trend ~ 1, seal, spcov_type = "car")
 
 If a weight matrix is not provided to `spautor()`, it is calculated internally using queen contiguity. Recall queen contiguity defines two observations as neighbors if they share at least one common boundary. If at least one observation has no neighbors, the `extra` parameter is estimated, which quantifies variability among observations without neighbors. By default, `spautor()` uses row standardization [@ver2018spatial] and assumes an independent error variance (`ie`) of zero. 
 
-We tidy and glance at the fitted model and augment the data by running
+We summarize, tidy, glance at, and augment the fitted model by running
 ```{r}
+summary(sealmod)
 tidy(sealmod)
 glance(sealmod)
 augment(sealmod)
 ```
+
+Note that for `spautor()` models, the `ie` spatial covariance parameter is assumed zero by default (and omitted from the `summary()` output). This default behavior can be overridden by specifying `ie` in the `spcov_initial` argument to `spautor()`. Also note that the pseudo R-squared is zero because there are no explanatory variables in the model (i.e., it is an intercept-only model).
 
 # Prediction {#sec:prediction}
 
@@ -367,7 +372,7 @@ Then we obtain best linear unbiased predictions (Kriging predictions) using `pre
 sulfate_preds$preds <- predict(sulfmod, newdata = sulfate_preds)
 ```
 
-We can then visualize the model predictions (Figure$~$\ref{fig:sulfate}, right) by running
+We can visualize the model predictions (Figure$~$\ref{fig:sulfate}, right) by running
 ```{r, eval = FALSE}
 ggplot(sulfate_preds, aes(color = preds)) +
   geom_sf(size = 2.5) +
@@ -388,7 +393,7 @@ ggplot(sulfate_preds, aes(color = preds)) +
   theme_gray(base_size = 18)
 ```
 
-Before making predictions, it is important to properly specify the `newdata` object. If explanatory variables were used to fit the model, the same explanatory variables must be included in `newdata` with the same names they have in `data`. If `data` is a `data.frame`, coordinates must be included in `newdata` with the same names as they have in `data`. If `data` is an `sf` object, coordinates must be included in `newdata` with the same geometry name as they have in `data`. When using projected coordinates, the projection for `newdata` should be the same as the projection for `data`.
+Before making predictions, it is important to properly specify the `newdata` object. If explanatory variables were used to fit the model, the same explanatory variables must be included in `newdata` with the same names they have in `data`. Additionally, if an explanatory variable is categorical or a factor, the values of this variable in `newdata` must also be values in `data` (e.g., if a categorical variable with values `"A"`, and `"B"` was used to fit the model, the corresponding variable in `newdata` cannot have a value `"C"`). If `data` is a `data.frame`, coordinates must be included in `newdata` with the same names as they have in `data`. If `data` is an `sf` object, coordinates must be included in `newdata` with the same geometry name as they have in `data`. When using projected coordinates, the projection for `newdata` should be the same as the projection for `data`.
 
 Prediction standard errors are returned by setting the `se.fit` argument to `TRUE`:
 ```{r, eval = FALSE}
@@ -478,7 +483,7 @@ glances(spmod, spmod_red)
 ```
 The lower AIC and AICc of the full model compared to the reduced model indicates that the independent random error variance is important to the model. A likelihood ratio test comparing the full and reduced models is also possible using `anova()`.
 
-Another application of fixing spatial covariance parameters involves calculating their profile likelihood confidence intervals [@box1964analysis]. Before calculating a profile likelihood confidence interval for $\boldsymbol{\Theta}_i$, the $i$th element of a general parameter vector $\boldsymbol{\Theta}$, it is necessary to obtain $-2\ell(\hat{\boldsymbol{\Theta}})$, minus twice the log-likelihood evaluated at the estimated parameter vector, $\hat{\boldsymbol{\Theta}}$. Then a $(1 - \alpha)$% profile likelihood confidence interval is then the set of values for $\boldsymbol{\Theta}_i$ such that $2\ell(\hat{\boldsymbol{\Theta}}) - 2\ell(\hat{\boldsymbol{\Theta}}_{-i}) \leq \chi^2_{1, 1 - \alpha}$, where $\ell(\hat{\boldsymbol{\Theta}}_{-i})$ is the value of the log-likelihood maximized after fixing $\boldsymbol{\Theta}_i$ and optimizing over the remaining parameters, $\boldsymbol{\Theta}_{-i}$, and $\chi^2_{1, 1 - \alpha}$ is the $1 - \alpha$ quantile of a chi-squared distribution with one degree of freedom. The result follows from inverting a likelihood ratio test comparing the full model to a reduced model that fixes the value of $\boldsymbol{\Theta}_i$. Because this approach requires refitting the model many times for different fixed values of $\boldsymbol{\Theta}_i$, it can be computationally intensive. This approached can be generalized to yield joint profile likelihood confidence intervals cases when $i$ has dimension greater than one.
+Another application of fixing spatial covariance parameters involves calculating their profile likelihood confidence intervals [@box1964analysis]. Before calculating a profile likelihood confidence interval for $\boldsymbol{\Theta}_i$, the $i$th element of a general parameter vector $\boldsymbol{\Theta}$, it is necessary to obtain $-2\ell(\hat{\boldsymbol{\Theta}})$, minus twice the log-likelihood evaluated at the estimated parameter vector, $\hat{\boldsymbol{\Theta}}$. Then a $(1 - \alpha)$% profile likelihood confidence interval is the set of values for $\boldsymbol{\Theta}_i$ such that $2\ell(\hat{\boldsymbol{\Theta}}) - 2\ell(\hat{\boldsymbol{\Theta}}_{-i}) \leq \chi^2_{1, 1 - \alpha}$, where $\ell(\hat{\boldsymbol{\Theta}}_{-i})$ is the value of the log-likelihood maximized after fixing $\boldsymbol{\Theta}_i$ and optimizing over the remaining parameters, $\boldsymbol{\Theta}_{-i}$, and $\chi^2_{1, 1 - \alpha}$ is the $1 - \alpha$ quantile of a chi-squared distribution with one degree of freedom. The result follows from inverting a likelihood ratio test comparing the full model to a reduced model that fixes the value of $\boldsymbol{\Theta}_i$. Because this approach requires refitting the model many times for different fixed values of $\boldsymbol{\Theta}_i$, it can be computationally intensive. This approached can be generalized to yield joint profile likelihood confidence intervals cases when $i$ has dimension greater than one.
 
 ## Fitting and Predicting for Multiple Models
 
@@ -528,11 +533,11 @@ rand2 <- splm(
 ```
 Note that `sample + (log_dist2road | year)` is shorthand for `(1 | sample) + (log_dist2road | year)`. If only random slopes within a year are desired (and no random intercepts), a `- 1` is given to the relevant portion of the formula: `(log_dist2road - 1 | year)`. When there is more than one term in `random`, each term must be surrounded by parentheses (recall that the random intercept shorthand automatically includes relevant parentheses). More examples of random effect syntax are provided in Appendix$~$\ref{app:rand}.
 
-We glance at the models by running
+We compare the AIC of the models by running
 ```{r}
 glances(rand1, rand2)
 ```
-`rand2` has the lowest AIC and AICc.
+The `rand2` model has the lowest AIC.
 
 It is possible to fix random effect variances using the `randcov_initial` argument, and `randcov_initial` can also be used to set initial values for optimization.
 
@@ -550,7 +555,7 @@ part <- splm(
 
 ## Anisotropy {#sec:anisotropy}
 
-A spatial covariance function for point-referenced data is isotropic if it behaves similarly in all directions (i.e., is independent of direction) as a function of distance. An anisotropic covariance function does not behave similarly in all directions as a function of distance. Consider the spatial covariance imposed by an eastward-moving wind pattern. A one-unit distance in the x-direction likely means something different than a one-unit distance in the y-direction. Figure$~$\ref{fig:anisotropy} shows ellipses for an isotropic and anisotropic covariance function centered at the origin (a distance of zero).
+An isotroptic spatial covariance function (for point-referenced data) behaves similarly in all directions (i.e., is independent of direction) as a function of distance. An anisotropic covariance function does not behave similarly in all directions as a function of distance. Consider the spatial covariance imposed by an eastward-moving wind pattern. A one-unit distance in the x-direction likely means something different than a one-unit distance in the y-direction. Figure$~$\ref{fig:anisotropy} shows ellipses for an isotropic and anisotropic covariance function centered at the origin (a distance of zero).
 ```{r anisotropy, echo = FALSE, out.width = "49%", fig.show = "hold", fig.cap = "Ellipses for an isotropic (left) and anisotropic (right) covariance function centered at the origin. The black outline of each ellipse is a level curve of equal correlation."}
 # PRELIMINARIES 
 r <- 1
@@ -670,7 +675,7 @@ Note that specifying an initial value for `rotate` that is different from zero, 
 
 ## Simulating Spatial Data {#sec:sim_data}
 
-The `sprnorm()` function is used to simulate normal (Gaussian) spatial data. To use `sprnorm()`, the `spcov_params()` function is used to create an `spcov_params` object. The `spcov_params()` function requires the spatial covariance type and and parameter values. We create an `spcov_params` object by running
+The `sprnorm()` function is used to simulate normal (Gaussian) spatial data. To use `sprnorm()`, the `spcov_params()` function is used to create an `spcov_params` object. The `spcov_params()` function requires the spatial covariance type and parameter values. We create an `spcov_params` object by running
 ```{r}
 sim_params <- spcov_params("exponential", de = 5, ie = 1, range = 0.5)
 ```
@@ -709,14 +714,14 @@ The computational cost associated with model fitting is exponential in the sampl
 
 The `local` argument to `splm()` controls the big data options. `local` is a list with several arguments. The arguments to the `local` list control the method used to assign the indexes, the number of observations with the same index, the number of unique indexes, variance adjustments to the covariance matrix of $\hat{\boldsymbol{\beta}}$, whether or not to use parallel processing, and if parallel processing is used, the number of cores.
 
-The simplest way to accommodate big data is to set `local` to `TRUE`. This is shorthand for `local = list(method = "random", size = 50, var_adjust = "theoretical", parallel = FALSE)`, which randomly assigns observations to groups, ensures each group has approximately 50 observations, uses the theoretically-correct variance adjustment, and does not use parallel processing. 
+Big data are most simply accommodated by setting `local` to `TRUE`. This is shorthand for `local = list(method = "random", size = 50, var_adjust = "theoretical", parallel = FALSE)`, which randomly assigns observations to index groups, ensures each index group has approximately 50 observations, uses the theoretically-correct variance adjustment, and does not use parallel processing. 
 ```{r}
 local1 <- splm(sim_response ~ 1, sim_data, spcov_type = "exponential", 
                xcoord = x, ycoord = y, local = TRUE)
 summary(local1)
 ```
 
-Instead of using `local = TRUE`, we can explicitly set `local`. For example, we can fit a model using using k-means clustering [@macqueen1967some]  on the x-coordinates and y-coordinates to create 60 groups (clusters), use the pooled variance adjustment, and use parallel processing with two cores by running
+Instead of using `local = TRUE`, we can explicitly set `local`. For example, we can fit a model using k-means clustering [@macqueen1967classification]  on the x-coordinates and y-coordinates to create 60 groups (clusters), use the pooled variance adjustment, and use parallel processing with two cores by running
 ```{r}
 local2_list <- list(method = "kmeans", groups = 60, var_adjust = "pooled",
                     parallel = TRUE, ncores = 2)

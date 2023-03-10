@@ -5,7 +5,7 @@
 #' @param object A fitted model object from [splm()] or [spautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
-#' @details \code{summary.spmod()} creates a summary of a fitted model object
+#' @details \code{summary()} creates a summary of a fitted model object
 #'   intended to be printed using \code{print()}. This summary contains
 #'   useful information like the original function call, residuals,
 #'   a coefficients table, a pseudo r-squared, and estimated covariance
@@ -14,10 +14,11 @@
 #' @return A list with several fitted model quantities used to create
 #'   informative summaries when printing.
 #'
-#' @method summary spmod
+#' @name summary.spmodel
+#' @method summary splm
 #' @export
 #'
-#' @seealso [print.summary.spmod()]
+#' @seealso [print.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -25,7 +26,7 @@
 #'   spcov_type = "exponential", xcoord = x, ycoord = y
 #' )
 #' summary(spmod)
-summary.spmod <- function(object, ...) {
+summary.splm <- function(object, ...) {
   summary_coefficients_fixed <- data.frame(
     estimates = coef(object, type = "fixed"),
     Std_Error = sqrt(diag(vcov(object, type = "fixed")))
@@ -45,9 +46,13 @@ summary.spmod <- function(object, ...) {
     pseudoR2 = object$pseudoR2,
     vcov = object$vcov,
     is_known = object$is_known,
-    fn = object$fn,
     anisotropy = object$anisotropy
   )
-  new_summary_list <- structure(summary_list, class = "summary.spmod")
+  new_summary_list <- structure(summary_list, class = paste("summary", class(object), sep = "."))
   new_summary_list
 }
+
+#' @rdname summary.spmodel
+#' @method summary spautor
+#' @export
+summary.spautor <- summary.splm

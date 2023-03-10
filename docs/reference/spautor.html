@@ -14,7 +14,7 @@ partition factors, and row standardization."><!-- mathjax --><script src="https:
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -182,8 +182,8 @@ is required, the default is the identity matrix.</p></dd>
 
 <p>A list with many elements that store information about
 the fitted model object. If <code>spcov_type</code> or <code>spcov_initial</code> are
-length one, the list has class <code>spmod</code>. Many generic functions that
-summarize model fit are available for <code>spmod</code> objects, including
+length one, the list has class <code>spautor</code>. Many generic functions that
+summarize model fit are available for <code>spautor</code> objects, including
 <code>AIC</code>, <code>AICc</code>, <code>anova</code>, <code>augment</code>, <code>coef</code>,
 <code>cooks.distance</code>, <code>deviance</code>, <code>fitted</code>, <code>formula</code>,
 <code>glance</code>, <code>glances</code>, <code>hatvalues</code>, <code>influence</code>,
@@ -191,11 +191,11 @@ summarize model fit are available for <code>spmod</code> objects, including
 <code>plot</code>, <code>predict</code>, <code>print</code>, <code>pseudoR2</code>, <code>summary</code>,
 <code>terms</code>, <code>tidy</code>, <code>update</code>, and <code>vcov</code>. If
 <code>spcov_type</code> or <code>spcov_initial</code> are length greater than one, the
-list has class <code>spmod_list</code> and each element in the list has class
-<code>spmod</code>. <code>glances</code> can be used to summarize <code>spmod_list</code></p>
+list has class <code>spautor_list</code> and each element in the list has class
+<code>spautor</code>. <code>glances</code> can be used to summarize <code>spautor_list</code></p>
 
 
-<p>objects, and the aforementioned <code>spmod</code> generics can be used on each
+<p>objects, and the aforementioned <code>spautor</code> generics can be used on each
 individual list element (model fit).</p>
     </div>
     <div class="section level2">

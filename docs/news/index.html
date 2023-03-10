@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,8 +53,37 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.0" id="spmodel-020">spmodel 0.2.0<a class="anchor" aria-label="anchor" href="#spmodel-020"></a></h2><p class="text-muted">CRAN release: 2022-11-11</p>
+<h2 class="pkg-version" data-toc-text="0.3.0" id="spmodel-030">spmodel 0.3.0<a class="anchor" aria-label="anchor" href="#spmodel-030"></a></h2><p class="text-muted">CRAN release: 2023-03-10</p>
 <div class="section level3">
+<h3 id="minor-updates-0-3-0">Minor updates<a class="anchor" aria-label="anchor" href="#minor-updates-0-3-0"></a></h3>
+<ul><li>Added the <code>varcomp</code> function to compare variance components.</li>
+<li>Added an error message when there are <code>NA</code> values in predictors.</li>
+<li>Added an error message when the design (model) matrix is not invertible (i.e., perfect collinearities are detected).</li>
+<li>Added support for plotting anisotropic level curves of equal correlation when the <code>which</code> argument to <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> contains <code>8</code>.</li>
+<li>Renamed <code><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals()</a></code> type <code>raw</code> to <code>response</code> to match <code><a href="https://rdrr.io/r/stats/lm.html" class="external-link">stats::lm()</a></code>.</li>
+<li>Changed class of <code><a href="../reference/splm.html">splm()</a></code> output to <code>"splm"</code> from <code>"spmod"</code> or <code>"splm_list"</code> from <code>"spmod_list"</code>.</li>
+<li>Changed class of <code><a href="../reference/spautor.html">spautor()</a></code> output to <code>"spautor"</code> from <code>"spmod"</code> or <code>"spautor_list"</code> from <code>"spautor_list"</code>.</li>
+<li>Changed class of <code><a href="../reference/splmRF.html">splmRF()</a></code> output to <code>"splmRF"</code> from <code>"spmodRF"</code> or <code>"splmRF_list"</code> from <code>"spmodRF_list"</code>.</li>
+<li>Changed class of <code><a href="../reference/spautorRF.html">spautorRF()</a></code> output to <code>"spautorRF"</code> from <code>"spmodRF"</code> or <code>"spautorRF_list"</code> from <code>"spmodRF_list"</code>.</li>
+<li>Methods corresponding to a generic function defined outside of <code>spmodel</code> are now all documented using an <code>.spmodel</code> suffix, making it easier to find documentation of a particular <code>spmodel</code> method for the generic function of interest.</li>
+<li>Added an error when random effect grouping variables or partition factors are numeric.</li>
+<li>Added an error when random effect or partition factor levels in <code>newdata</code> are not also in <code>data</code>.</li>
+<li>Updated citation information.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-3-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-3-0"></a></h3>
+<ul><li>Fixed a bug that produced irregular spacing in an error message for <code><a href="../reference/spcov_initial.html">spcov_initial()</a></code>.</li>
+<li>Fixed a bug that prevented proper display of row names when calling <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> with <code>interval = "confidence"</code>.</li>
+<li>Fixed a bug that sometimes caused miscalculations in model-fitting and prediction when random effect or partition factor variables were improperly coerced to a different type.</li>
+<li>Fixed bugs that sometimes caused miscalculations in certain model diagnostics.</li>
+<li>Fixed inconsistencies in several non-exported generic functions.</li>
+<li>Fixed a bug that prevented names from appearing with output from certain model diagnostics.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="spmodel-020">spmodel 0.2.0<a class="anchor" aria-label="anchor" href="#spmodel-020"></a></h2><p class="text-muted">CRAN release: 2022-11-11</p>
+<ul><li>
+<code>spmodel</code> v0.3.0 changed the names of <code>spmod</code>, <code>spmodRF</code>, <code>spmod_list</code>, and <code>spmodRF_list</code> objects.</li></ul><div class="section level3">
 <h3 id="minor-updates-0-2-0">Minor updates<a class="anchor" aria-label="anchor" href="#minor-updates-0-2-0"></a></h3>
 <ul><li>
 <code><a href="../reference/splm.html">splm()</a></code> and <code><a href="../reference/spautor.html">spautor()</a></code> allow multiple models to be fit when the <code>spcov_type</code> argument is a vector of length greater than one or the <code>spcov_initial</code> argument is a list (with length greater than one) of <code>spcov_initial</code> objects.<ul><li>The resulting object is a list with class <code>spmod_list</code>. Each element of the list holds a different model fit.</li>
@@ -71,7 +100,7 @@
 <li>Minor documentation updates.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-0-2-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-2-0"></a></h3>
+<h3 id="bug-fixes-0-2-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-2-0"></a></h3>
 <ul><li>Fixed a bug that prevents display of spatial covariance type in summary of <code>spmod</code> objects.</li>
 <li>Fixed a bug that prevented prediction of factor variables when all levels of all factor variables did not appear in <code>newdata</code>.</li>
 </ul></div>

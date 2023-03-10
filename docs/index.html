@@ -8,9 +8,9 @@
 <meta name="description" content="Fit, summarize, and predict for a variety of spatial statistical models
     applied to point-referenced and areal (lattice) data. Parameters
     are estimated using various methods. Additional modeling features include anisotropy,
-    random effects, partition factors, big data approaches, and more. Model-fit statistics are
+    non-spatial random effects, partition factors, big data approaches, and more. Model-fit statistics are
     used to summarize, visualize, and compare models. Predictions at unobserved locations are
-    readily obtainable.">
+    readily obtainable. For additional details, see Dumelle et al. (2023) &lt;doi:10.1371/journal.pone.0282524&gt;.">
 <title>Spatial Statistical Modeling and Prediction • spmodel</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.1.3/bootstrap.min.css" rel="stylesheet">
@@ -20,9 +20,9 @@
 <meta property="og:description" content="Fit, summarize, and predict for a variety of spatial statistical models
     applied to point-referenced and areal (lattice) data. Parameters
     are estimated using various methods. Additional modeling features include anisotropy,
-    random effects, partition factors, big data approaches, and more. Model-fit statistics are
+    non-spatial random effects, partition factors, big data approaches, and more. Model-fit statistics are
     used to summarize, visualize, and compare models. Predictions at unobserved locations are
-    readily obtainable.">
+    readily obtainable. For additional details, see Dumelle et al. (2023) &lt;doi:10.1371/journal.pone.0282524&gt;.">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -36,7 +36,7 @@
     
     <a class="navbar-brand me-2" href="index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,7 +81,7 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="spmodel-spatial-statistical-modeling-and-prediction">spmodel: Spatial Statistical Modeling and Prediction<a class="anchor" aria-label="anchor" href="#spmodel-spatial-statistical-modeling-and-prediction"></a>
 </h1></div>
-<p>spmodel is an R package used to fit, summarize, and predict for a variety spatial of statistical models. Parameters are estimated using various methods. Additional modeling features include anisotropy, random effects, partition factors, big data approaches, and more. Model-fit statistics are used to summarize, visualize, and compare models. Predictions at unobserved locations are readily obtainable.</p>
+<p>spmodel is an R package used to fit, summarize, and predict for a variety spatial of statistical models. Parameters are estimated using various methods, including likelihood-based optimization and weighted least squares based on variograms. Additional modeling features include anisotropy, non-spatial random effects, partition factors, big data approaches, and more. Model-fit statistics are used to summarize, visualize, and compare models. Predictions at unobserved locations are readily obtainable.</p>
 </div>
 <div class="section level1">
 <h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -118,16 +118,21 @@
 <pre><code><span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; To cite spmodel in publications use:</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   Dumelle, Michael., Higham, Matt., and Ver Hoef, Jay M. (2022).</span></span>
-<span><span class="co">#&gt;   spmodel: Spatial Statistical Modeling and Prediction. R package version 0.2.0.</span></span>
+<span><span class="co">#&gt;   Dumelle M, Higham M, Ver Hoef JM (2023). spmodel: Spatial statistical modeling and prediction in R. PLOS ONE, 18(3): e0282524.</span></span>
+<span><span class="co">#&gt;   https://doi.org/10.1371/journal.pone.0282524</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; A BibTeX entry for LaTeX users is</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   @Manual{,</span></span>
-<span><span class="co">#&gt;     title = {spmodel: Spatial Statistical Modeling and Prediction},</span></span>
+<span><span class="co">#&gt;   @Article{,</span></span>
+<span><span class="co">#&gt;     title = {{spmodel}: Spatial statistical modeling and prediction in {R}},</span></span>
 <span><span class="co">#&gt;     author = {Michael Dumelle and Matt Higham and Jay M. {Ver Hoef}},</span></span>
-<span><span class="co">#&gt;     year = {2022},</span></span>
-<span><span class="co">#&gt;     note = {R package version 0.2.0},</span></span>
+<span><span class="co">#&gt;     journal = {PLOS ONE},</span></span>
+<span><span class="co">#&gt;     year = {2023},</span></span>
+<span><span class="co">#&gt;     volume = {18},</span></span>
+<span><span class="co">#&gt;     number = {3},</span></span>
+<span><span class="co">#&gt;     pages = {1--32},</span></span>
+<span><span class="co">#&gt;     doi = {10.1371/journal.pone.0282524},</span></span>
+<span><span class="co">#&gt;     url = {https://doi.org/10.1371/journal.pone.0282524},</span></span>
 <span><span class="co">#&gt;   }</span></span></code></pre>
 </div>
 <div class="section level2">

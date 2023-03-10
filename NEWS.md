@@ -1,3 +1,11 @@
+# spmodel 0.4.0
+
+## Major updates
+
+## Minor updates
+
+## Bug fixes
+
 # spmodel 0.3.0
 
 ## Minor updates

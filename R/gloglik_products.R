@@ -11,7 +11,7 @@ gloglik_products <- function(spcov_params_val, ...) {
 }
 #' @export
 gloglik_products.exponential <- function(spcov_params_val, data_object, estmethod,
-                                         dist_matrix_list, randcov_params_val) {
+                                         dist_matrix_list, randcov_params_val, ...) {
 
 
   # making a covariance matrix
@@ -107,7 +107,7 @@ gloglik_products.pexponential <- gloglik_products.exponential
 
 #' @export
 gloglik_products.car <- function(spcov_params_val, data_object, estmethod,
-                                 dist_matrix_list, randcov_params_val) {
+                                 dist_matrix_list, randcov_params_val, ...) {
   spautor_cov_matrixInv_val <- spautor_cov_matrixInv(
     spcov_params_val, data_object,
     dist_matrix_list, randcov_params_val

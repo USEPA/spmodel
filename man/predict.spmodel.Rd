@@ -141,6 +141,12 @@ that \code{local} is transformed into
 \item{...}{Other arguments. Only used for models fit using \code{splmRF()}
 or \code{spautorRF()} where \code{...} indicates other
 arguments to \code{ranger::predict.ranger()}.}
+
+\item{type}{The scale (\code{response} or \code{link}) of predictions obtained
+using \code{spglm()} or \code{spgautor} objects.}
+
+\item{newdata_size}{The \code{size} value for each observation in \code{newdata}
+used when predicting for the binomial family.}
 }
 \value{
 For \code{splm} or \code{spautor} objects, if \code{se.fit} is \code{FALSE}, \code{predict()} returns

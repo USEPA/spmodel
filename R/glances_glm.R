@@ -21,4 +21,4 @@ glances.spglm <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
 #' @rdname glances.spmodel
 #' @method glances spgautor
 #' @export
-glances.spgautor <- glance.spglm
+glances.spgautor <- glances.spglm

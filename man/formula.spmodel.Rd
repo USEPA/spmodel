@@ -4,7 +4,7 @@
 \alias{formula.spmodel}
 \alias{formula.splm}
 \alias{formula.spautor}
-\alias{fitted.values.spglm}
+\alias{formula.spglm}
 \alias{formula.spgautor}
 \title{Model formulae}
 \usage{
@@ -12,7 +12,7 @@
 
 \method{formula}{spautor}(x, ...)
 
-\method{formula}{spglm}(object, type = "response", ...)
+\method{formula}{spglm}(x, ...)
 
 \method{formula}{spgautor}(x, ...)
 }

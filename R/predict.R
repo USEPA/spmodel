@@ -47,6 +47,10 @@
 #'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 #'   that \code{local} is transformed into
 #'   \code{list(size = 50, method = "covariance", parallel = FALSE)}.
+#' @param type The scale (\code{response} or \code{link}) of predictions obtained
+#'   using \code{spglm()} or \code{spgautor} objects.
+#' @param newdata_size The \code{size} value for each observation in \code{newdata}
+#'   used when predicting for the binomial family.
 #' @param ... Other arguments. Only used for models fit using \code{splmRF()}
 #'   or \code{spautorRF()} where \code{...} indicates other
 #'   arguments to \code{ranger::predict.ranger()}.

@@ -443,8 +443,8 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
     Xmat <- model.matrix(formula, model_frame, contrasts = contrasts)
     y <- model.response(model_frame)
     if (NCOL(y) == 2) {
-      ymodr <- y
-      y <- ymodr[, 1, drop = FALSE]
+      y_modr <- y
+      y <- y_modr[, 1, drop = FALSE]
       size <- rowSums(y_modr)
     } else {
       if (family == "binomial") {

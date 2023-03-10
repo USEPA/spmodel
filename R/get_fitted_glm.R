@@ -1,10 +1,7 @@
 get_fitted_glm <- function(w, data_object) {
 
-
   fitted_link <- as.vector(w)
-  names(fitted_link) <- data_object$observed_index
   fitted_response <- invlink(fitted_link, data_object$family, data_object$size)
-  names(fitted_response) <- data_object$observed_index
   # call latent link?
   fitted_values <- list(response = fitted_response, link = fitted_link)
 

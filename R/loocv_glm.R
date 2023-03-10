@@ -38,7 +38,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
 
     # glm stuff
     dispersion <- as.vector(coef(object, type = "dispersion")) # take class away
-    w <- object$w
+    w <- fitted(object, type = "link")
     size <- object$size
 
     # some products
@@ -82,7 +82,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
   } else {
 
     # get w for later
-    w <- object$w
+    w <- fitted(object, type = "link")
 
     if (local_list$parallel) {
       # turn of parallel as it is used different in predict
@@ -143,7 +143,7 @@ loocv.spgautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ..
 
   # glm stuff
   dispersion <- as.vector(coef(object, type = "dispersion")) # take class away
-  w <- object$w
+  w <- fitted(object, type = "link")
   size <- object$size
 
   # some products

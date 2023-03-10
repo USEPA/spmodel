@@ -129,7 +129,6 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
     sf_column_name = data_object$sf_column_name,
     crs = data_object$crs,
     family = family,
-    w = model_stats$w,
     y = model_stats$y,
     size = model_stats$size
   )

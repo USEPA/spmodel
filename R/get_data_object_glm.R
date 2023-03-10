@@ -439,7 +439,7 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
   if (p < NCOL(X)) {
     stop("Perfect collinearities detected in X. Remove redundant predictors.", call. = FALSE)
   }
-  ones <- rep(1, n)
+  ones <- matrix(1, nrow = n, ncol = 1)
 
   # error if p >= n
   if (p >= n) {

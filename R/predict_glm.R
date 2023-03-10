@@ -229,7 +229,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
                                        y = object$y, dim_coords = object$dim_coords,
                                        betahat = coefficients(object), cov_betahat = vcov(object),
                                        contrasts = object$contrasts,
-                                       local = local_list, family = object$family, w = object$w, size = object$size,
+                                       local = local_list, family = object$family, w = fitted(object, type = "link"), size = object$size,
                                        dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind
       )
       cl <- parallel::stopCluster(cl)
@@ -252,7 +252,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
                           betahat = coefficients(object), cov_betahat = vcov(object),
                           contrasts = object$contrasts,
                           local = local_list, family = object$family,
-                          w = object$w, size = object$size,
+                          w = fitted(object, type = "link"), size = object$size,
                           dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind
       )
     }
@@ -271,7 +271,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
             family = object$family,
             Xmat = model.matrix(object),
             y = object$y,
-            w = object$w,
+            w = fitted(object, type = "link"),
             size = object$size,
             dispersion = dispersion_params_val,
             cov_lowchol = cov_lowchol,
@@ -302,7 +302,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
           family = object$family,
           Xmat = model.matrix(object),
           y = object$y,
-          w = object$w,
+          w = fitted(object, type = "link"),
           size = object$size,
           dispersion = dispersion_params_val,
           cov_lowchol = cov_lowchol,
@@ -585,7 +585,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
     SqrtSigInv_X <- forwardsolve(cov_matrix_lowchol, X)
 
     # find w observed
-    w <- object$w
+    w <- fitted(object, type = "link")
     SqrtSigInv_w <- forwardsolve(cov_matrix_lowchol, w)
 
     # beta hat
@@ -649,7 +649,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
           family = object$family,
           Xmat = model.matrix(object),
           y = object$y,
-          w = object$w,
+          w = fitted(object, type = "link"),
           size = object$size,
           dispersion = dispersion_params_val,
           cov_lowchol = cov_matrix_lowchol,
@@ -674,7 +674,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
         family = object$family,
         Xmat = model.matrix(object),
         y = object$y,
-        w = object$w,
+        w = fitted(object, type = "link"),
         size = object$size,
         dispersion = dispersion_params_val,
         cov_lowchol = cov_matrix_lowchol,

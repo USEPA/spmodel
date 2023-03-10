@@ -2,11 +2,11 @@
 
 ## Minor updates
 
-* Added the `varcomp` function to compare variance components
+* Added the `varcomp` function to compare variance components.
 * Added an error message when there are `NA` values in predictors.
 * Added an error message when the design (model) matrix is not invertible (i.e., perfect collinearities are detected).
 * Added support for plotting anisotropic level curves of equal correlation when the `which` argument to `plot()` contains `8`.
-* Renamed `residuals()` type `raw` to `response` to match `stats::lm()`
+* Renamed `residuals()` type `raw` to `response` to match `stats::lm()`.
 * Changed class of `splm()` output to `"splm"` from `"spmod"` or `"splm_list"` from `"spmod_list"`.
 * Changed class of `spautor()` output to `"spautor"` from `"spmod"` or `"spautor_list"` from `"spautor_list"`.
 * Changed class of `splmRF()` output to `"splmRF"` from `"spmodRF"` or `"splmRF_list"` from `"spmodRF_list"`.
@@ -14,21 +14,20 @@
 * Methods corresponding to a generic function defined outside of `spmodel` are now all documented using
     an `.spmodel` suffix, making it easier to find documentation of a particular
     `spmodel` method for the generic function of interest.
-* Return an error when random effect grouping variables or partition factors are numeric.
-* Return an error when random effect or partition factor levels in `newdata` are not also in `data`.
-* Updated citation information
-
-
+* Added an error when random effect grouping variables or partition factors are numeric.
+* Added an error when random effect or partition factor levels in `newdata` are not also in `data`.
+* Updated citation information.
 
 ## Bug fixes
 
 * Fixed a bug that produced irregular spacing in an error message for `spcov_initial()`.
-* Fixed a bug that prevented proper display of row names when calling `predict()
+* Fixed a bug that prevented proper display of row names when calling `predict()`
     with `interval = "confidence"`.
-* Fixed a bug that caused errors in model-fitting and prediction when random effect or partition factor levels as a result of incorrect coercion among vector types.
-* Fixed bugs that sometimes caused certain model diagnostics to be miscalculated.
-* Fixed several inconsistencies in non-exported generic functions.
-* Fixed a bug that prevented names from appearing with output from certain model diagnostic generic functions.
+* Fixed a bug that sometimes caused miscalculations in model-fitting and prediction
+    when random effect or partition factor variables were improperly coerced to a different type.
+* Fixed bugs that sometimes caused miscalculations in certain model diagnostics.
+* Fixed inconsistencies in several non-exported generic functions.
+* Fixed a bug that prevented names from appearing with output from certain model diagnostics.
 
 # spmodel 0.2.0
 

@@ -2,7 +2,7 @@
 #'
 #' @description Compute a pseudo r-squared for a fitted model object.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param adjust A logical indicating whether the pseudo r-squared
 #'   should be adjusted to account for the number of explanatory variables. The
 #'   default is \code{FALSE}.
@@ -18,6 +18,7 @@
 #'
 #' @return The pseudo r-squared as a numeric vector.
 #'
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -32,6 +33,7 @@ pseudoR2 <- function(object, ...) {
 
 #' @rdname pseudoR2
 #' @method pseudoR2 splm
+#' @order 2
 #' @export
 pseudoR2.splm <- function(object, adjust = FALSE, ...) {
   if (adjust) {
@@ -46,5 +48,6 @@ pseudoR2.splm <- function(object, adjust = FALSE, ...) {
 
 #' @rdname pseudoR2
 #' @method pseudoR2 spautor
+#' @order 3
 #' @export
 pseudoR2.spautor <- pseudoR2.splm

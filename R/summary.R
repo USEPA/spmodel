@@ -16,6 +16,7 @@
 #'
 #' @name summary.spmodel
 #' @method summary splm
+#' @order 1
 #' @export
 #'
 #' @seealso [print.spmodel()]
@@ -54,5 +55,6 @@ summary.splm <- function(object, ...) {
 
 #' @rdname summary.spmodel
 #' @method summary spautor
+#' @order 2
 #' @export
 summary.spautor <- summary.splm

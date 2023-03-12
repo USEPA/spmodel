@@ -4,25 +4,27 @@
 \alias{residuals.spmodel}
 \alias{residuals.splm}
 \alias{resid.splm}
+\alias{rstandard.splm}
 \alias{residuals.spautor}
 \alias{resid.spautor}
-\alias{rstandard.splm}
 \alias{rstandard.spautor}
 \alias{residuals.spglm}
 \alias{resid.spglm}
+\alias{rstandard.spglm}
 \alias{residuals.spgautor}
 \alias{resid.spgautor}
+\alias{rstandard.spgautor}
 \title{Extract fitted model residuals}
 \usage{
 \method{residuals}{splm}(object, type = "response", ...)
 
 \method{resid}{splm}(object, type = "response", ...)
 
+\method{rstandard}{splm}(model, ...)
+
 \method{residuals}{spautor}(object, type = "response", ...)
 
 \method{resid}{spautor}(object, type = "response", ...)
-
-\method{rstandard}{splm}(model, ...)
 
 \method{rstandard}{spautor}(model, ...)
 
@@ -30,9 +32,13 @@
 
 \method{resid}{spglm}(object, type = "deviance", ...)
 
+\method{rstandard}{spglm}(model, ...)
+
 \method{residuals}{spgautor}(object, type = "deviance", ...)
 
 \method{resid}{spgautor}(object, type = "deviance", ...)
+
+\method{rstandard}{spgautor}(model, ...)
 }
 \arguments{
 \item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}

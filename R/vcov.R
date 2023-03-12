@@ -10,6 +10,7 @@
 #'
 #' @name vcov.spmodel
 #' @method vcov splm
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -27,5 +28,6 @@ vcov.splm <- function(object, ...) {
 
 #' @rdname vcov.spmodel
 #' @method vcov spautor
+#' @order 2
 #' @export
 vcov.spautor <- vcov.splm

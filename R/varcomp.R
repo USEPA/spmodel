@@ -17,6 +17,7 @@
 #'   sites; and \code{"ratio"} for the ratio of the variance of the connected
 #'   sites relative to the variance of the unconnected sites.
 #'
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -31,6 +32,7 @@ varcomp <- function(object, ...) {
 
 #' @rdname varcomp
 #' @method varcomp splm
+#' @order 2
 #' @export
 varcomp.splm <- function(object, ...) {
 
@@ -48,6 +50,7 @@ varcomp.splm <- function(object, ...) {
 
 #' @rdname varcomp
 #' @method varcomp spautor
+#' @order 3
 #' @export
 varcomp.spautor <- function(object, ...) {
 

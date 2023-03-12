@@ -1,5 +1,6 @@
 #' @rdname summary.spmodel
 #' @method summary spglm
+#' @order 3
 #' @export
 summary.spglm <- function(object, ...) {
   summary_coefficients_fixed <- data.frame(
@@ -31,5 +32,6 @@ summary.spglm <- function(object, ...) {
 
 #' @rdname summary.spmodel
 #' @method summary spgautor
+#' @order 4
 #' @export
 summary.spgautor <- summary.spglm

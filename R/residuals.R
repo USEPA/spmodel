@@ -23,6 +23,7 @@
 #'
 #' @name residuals.spmodel
 #' @method residuals splm
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -48,21 +49,25 @@ residuals.splm <- function(object, type = "response", ...) {
 }
 #' @rdname residuals.spmodel
 #' @method resid splm
+#' @order 2
 #' @export
 resid.splm <- residuals.splm
 
 #' @rdname residuals.spmodel
 #' @method residuals spautor
+#' @order 4
 #' @export
 residuals.spautor <- residuals.splm
 
 #' @rdname residuals.spmodel
 #' @method resid spautor
+#' @order 5
 #' @export
 resid.spautor <- residuals.spautor
 
 #' @rdname residuals.spmodel
 #' @method rstandard splm
+#' @order 3
 #' @export
 rstandard.splm <- function(model, ...) {
   residuals.splm(model, type = "standardized")
@@ -70,5 +75,6 @@ rstandard.splm <- function(model, ...) {
 
 #' @rdname residuals.spmodel
 #' @method rstandard spautor
+#' @order 6
 #' @export
 rstandard.spautor <- rstandard.splm

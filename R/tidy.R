@@ -17,6 +17,7 @@
 #'
 #' @name tidy.spmodel
 #' @method tidy splm
+#' @order 1
 #' @export
 #'
 #' @seealso [glance.spmodel()] [augment.spmodel()]
@@ -84,6 +85,7 @@ tidy.splm <- function(x, conf.int = FALSE,
 
 #' @rdname tidy.spmodel
 #' @method tidy spautor
+#' @order 2
 #' @export
 tidy.spautor <- function(x, conf.int = FALSE,
                       conf.level = 0.95, effects = "fixed", ...) {

@@ -10,6 +10,7 @@
 #'
 #' @name labels.spmodel
 #' @method labels splm
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -24,5 +25,6 @@ labels.splm <- function(object, ...) {
 
 #' @rdname labels.spmodel
 #' @method labels spautor
+#' @order 2
 #' @export
 labels.spautor <- labels.splm

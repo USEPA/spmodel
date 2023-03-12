@@ -2,7 +2,7 @@
 #'
 #' Create a covariance matrix from a fitted model object.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param newdata If omitted, the covariance matrix of
 #'   the observed data is returned. If provided, \code{newdata} is
 #'   a data frame or \code{sf} object that contains coordinate information
@@ -19,6 +19,7 @@
 #'   data and the observed data, which has dimension m x n, where m is the number of
 #'   new observations and n is the samle size used to fit \code{object}.
 #'
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -30,7 +31,9 @@
 covmatrix <- function(object, newdata, ...) {
   UseMethod("covmatrix", object)
 }
+#' @rdname covmatrix
 #' @method covmatrix splm
+#' @order 2
 #' @export
 covmatrix.splm <- function(object, newdata, ...) {
 
@@ -117,7 +120,9 @@ covmatrix.splm <- function(object, newdata, ...) {
 
 }
 
+#' @rdname covmatrix
 #' @method covmatrix spautor
+#' @order 3
 #' @export
 covmatrix.spautor <- function(object, newdata, ...) {
 

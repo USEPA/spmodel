@@ -11,6 +11,7 @@
 #'
 #' @name model.matrix.spmodel
 #' @method model.matrix splm
+#' @order 1
 #' @export
 #'
 #' @seealso [stats::model.matrix()]
@@ -27,5 +28,6 @@ model.matrix.splm <- function(object, ...) {
 
 #' @rdname model.matrix.spmodel
 #' @method model.matrix spautor
+#' @order 2
 #' @export
 model.matrix.spautor <- model.matrix.splm

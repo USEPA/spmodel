@@ -1,5 +1,10 @@
+#' @param type The scale (\code{response} or \code{link}) of predictions obtained
+#'   using \code{spglm()} or \code{spgautor} objects.
+#' @param newdata_size The \code{size} value for each observation in \code{newdata}
+#'   used when predicting for the binomial family.
 #' @rdname predict.spmodel
 #' @method predict spglm
+#' @order 3
 #' @export
 predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
                          newdata_size, level = 0.95, local, ...) {
@@ -488,6 +493,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
 
 #' @rdname predict.spmodel
 #' @method predict spgautor
+#' @order 4
 #' @export
 predict.spgautor <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
                             newdata_size, level = 0.95, local, ...) {

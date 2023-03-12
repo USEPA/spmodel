@@ -3,7 +3,7 @@
 #' @description Computes confidence intervals for one or more parameters in a fitted
 #'   model object.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param parm A specification of which parameters are to be given confidence
 #'   intervals (a character vector of names). If missing, all parameters are considered.
 #' @param level The confidence level required. The default is \code{0.95}.
@@ -14,6 +14,7 @@
 #'
 #' @name confint.spmodel
 #' @method confint splm
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -44,5 +45,6 @@ confint.splm <- function(object, parm, level = 0.95, ...) {
 
 #' @rdname confint.spmodel
 #' @method confint spautor
+#' @order 2
 #' @export
 confint.spautor <- confint.splm

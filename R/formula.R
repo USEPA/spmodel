@@ -9,6 +9,7 @@
 #'
 #' @name formula.spmodel
 #' @method formula splm
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -23,5 +24,6 @@ formula.splm <- function(x, ...) {
 
 #' @rdname formula.spmodel
 #' @method formula spautor
+#' @order 2
 #' @export
 formula.spautor <- formula.splm

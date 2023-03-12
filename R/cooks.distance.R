@@ -3,7 +3,7 @@
 #' @description Compute the Cook's distance for each observation from a fitted
 #'   model object.
 #'
-#' @param model A fitted model object from [splm()] or [spautor()].
+#' @param model A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @details Cook's distance measures the influence of an observation on a fitted
@@ -16,6 +16,7 @@
 #'
 #' @name cooks.distance.spmodel
 #' @method cooks.distance splm
+#' @order 1
 #' @export
 #'
 #' @seealso [hatvalues.spmodel()] [influence.spmodel()] [residuals.spmodel()]
@@ -32,5 +33,6 @@ cooks.distance.splm <- function(model, ...) {
 
 #' @rdname cooks.distance.spmodel
 #' @method cooks.distance spautor
+#' @order 2
 #' @export
 cooks.distance.spautor <- cooks.distance.splm

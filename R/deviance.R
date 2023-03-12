@@ -2,19 +2,19 @@
 #'
 #' @description Returns the deviance of a fitted model object.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()]
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #'   where \code{estmethod} is \code{"ml"} or \code{"reml"}.
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @details For objects estimated using \code{"ml"} or \code{"reml"},
-#'   the deviance is \eqn{(y - X \beta)^T V (y - X \beta)} for an inverse
-#'   covariance matrix \eqn{V}, analogous
-#'   to residual sums of (whitened) squares.
+#'   the deviance is twice the difference in log-likelihoods between the
+#'   saturated (perfect-fit) model and the fitted model.
 #'
 #' @return The deviance.
 #'
 #' @name deviance.spmodel
 #' @method deviance splm
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -34,5 +34,6 @@ deviance.splm <- function(object, ...) {
 
 #' @rdname deviance.spmodel
 #' @method deviance spautor
+#' @order 2
 #' @export
 deviance.spautor <- deviance.splm

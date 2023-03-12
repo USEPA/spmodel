@@ -4,12 +4,12 @@
 \alias{AIC.spmodel}
 \alias{AIC.splm}
 \alias{AIC.spautor}
+\alias{AIC.spglm}
+\alias{AIC.spgautor}
 \alias{AICc}
 \alias{AICc.splm}
 \alias{AICc.spautor}
-\alias{AIC.spglm}
 \alias{AICc.spglm}
-\alias{AIC.spgautor}
 \alias{AICc.spgautor}
 \title{Compute AIC and AICc of fitted model objects}
 \usage{
@@ -17,22 +17,22 @@
 
 \method{AIC}{spautor}(object, ..., k = 2)
 
+\method{AIC}{spglm}(object, ..., k = 2)
+
+\method{AIC}{spgautor}(object, ..., k = 2)
+
 AICc(object, ..., k = 2)
 
 \method{AICc}{splm}(object, ..., k = 2)
 
 \method{AICc}{spautor}(object, ..., k = 2)
 
-\method{AIC}{spglm}(object, ..., k = 2)
-
 \method{AICc}{spglm}(object, ..., k = 2)
-
-\method{AIC}{spgautor}(object, ..., k = 2)
 
 \method{AICc}{spgautor}(object, ..., k = 2)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}
+\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}
 where \code{estmethod} is \code{"ml"} or \code{"reml"}.}
 
 \item{...}{Optionally more fitted model objects.}

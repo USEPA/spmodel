@@ -27,7 +27,13 @@
 #' @param interval Character indicating the type of confidence interval columns to
 #'   add to the augmented \code{newdata} output. Passed to \code{predict()} and defaults
 #'   to \code{"none"}.
-#' @param ... Additional arguments to \code{predict()} when augmenting \code{newdata}.
+#' @param level Tolerance/confidence level. The default is \code{0.95}.
+#' @param local A list or logical. If a list, specific list elements described
+#'   in [predict.spmodel()] control the big data approximation behavior.
+#'   If a logical, \code{TRUE} chooses default list elements for the list version
+#'   of \code{local} as specified in [predict.spmodel()]. Defaults to \code{FALSE},
+#'   which performs exact computations.
+#' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @details \code{augment()} returns a tibble with the same class as
 #'   \code{data}. That is, if \code{data} is
@@ -64,7 +70,7 @@
 #' @order 1
 #' @export
 #'
-#' @seealso [tidy.spmodel()] [glance.spmodel()]
+#' @seealso [tidy.spmodel()] [glance.spmodel()] [predict.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -80,7 +86,8 @@
 #' augment(spmod_seal)
 #' augment(spmod_seal, newdata = spmod_seal$newdata)
 augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
-                         interval = c("none", "confidence", "prediction"), ...) {
+                         interval = c("none", "confidence", "prediction"), level = 0.95,
+                         local, ...) {
 
   interval <- match.arg(interval)
 
@@ -105,7 +112,9 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
     }
     tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x)))
   } else {
-    preds_newdata <- predict(x, newdata = newdata, se.fit = se_fit, interval = interval, ...)
+    if (missing(local)) local <- NULL
+    preds_newdata <- predict(x, newdata = newdata, se.fit = se_fit, interval = interval,
+                             level = level, local = local)
     if (se_fit) {
       if (interval %in% c("confidence", "prediction")) {
         augment_newdata <- tibble::tibble(
@@ -177,9 +186,11 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
 
 #' @rdname augment.spmodel
 #' @method augment spautor
+#' @order 2
 #' @export
 augment.spautor <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
-                            interval = c("none", "confidence", "prediction"), ...) {
+                            interval = c("none", "confidence", "prediction"),
+                            level = 0.95, local, ...) {
 
   interval <- match.arg(interval)
 
@@ -210,7 +221,9 @@ augment.spautor <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
       tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x)))
     }
   } else {
-    preds_newdata <- predict(x, newdata = newdata, se.fit = se_fit, interval = interval, ...)
+    if (missing(local)) local <- NULL
+    preds_newdata <- predict(x, newdata = newdata, se.fit = se_fit, interval = interval,
+                             level = level, local = local)
     if (se_fit) {
       if (interval %in% c("confidence", "prediction")) {
         augment_newdata <- tibble::tibble(

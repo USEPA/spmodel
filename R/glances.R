@@ -3,8 +3,8 @@
 #' @description \code{glances()} repeatedly calls \code{glance()} on several
 #'   fitted model objects and binds the output together, sorted by a column of interest.
 #'
-#' @param object Fitted model object from [splm()] or [spautor()].
-#' @param ... Additional fitted model objects from [splm()] or [spautor()]. Ignored
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
+#' @param ... Additional fitted model objects. Ignored
 #'   if \code{object} has class \code{splm_list} or \code{spautor_list}.
 #' @param sort_by Sort by a \code{glance} statistic (i.e., the name of a column
 #'   output from \code{glance()} or the order of model input (\code{sort_by = "order"}).
@@ -14,6 +14,7 @@
 #' @return A tibble where each row represents the output of \code{glance()} for
 #'   each fitted model object.
 #'
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -30,7 +31,10 @@
 glances <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
   UseMethod("glances", object)
 }
+
+#' @rdname glances
 #' @method glances splm
+#' @order 2
 #' @export
 glances.splm <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
   model_list <- c(list(object), list(...))
@@ -49,11 +53,15 @@ glances.splm <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
   tibble::as_tibble(model_bind)
 }
 
+#' @rdname glances
 #' @method glances spautor
+#' @order 3
 #' @export
 glances.spautor <- glances.splm
 
+#' @rdname glances
 #' @method glances splm_list
+#' @order 4
 #' @export
 glances.splm_list <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
   model_glance <- lapply(object, function(x) glance(x))
@@ -67,6 +75,8 @@ glances.splm_list <- function(object, ..., sort_by = "AICc", decreasing = FALSE)
   tibble::as_tibble(model_bind)
 }
 
+#' @rdname glances
 #' @method glances spautor_list
+#' @order 5
 #' @export
 glances.spautor_list <- glances.splm_list

@@ -11,6 +11,7 @@
 #'
 #' @name logLik.spmodel
 #' @method logLik splm
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -31,5 +32,6 @@ logLik.splm <- function(object, ...) {
 
 #' @rdname logLik.spmodel
 #' @method logLik spautor
+#' @order 2
 #' @export
 logLik.spautor <- logLik.splm

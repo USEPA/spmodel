@@ -30,6 +30,7 @@
 #'   and \code{se.fit}, a numeric vector with leave-one-out prediction standard
 #'   errors for each observation (if \code{se.fit = TRUE}).
 #'
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -45,6 +46,7 @@ loocv <- function(object, ...) {
 
 #' @rdname loocv
 #' @method loocv splm
+#' @order 2
 #' @export
 loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
 
@@ -147,7 +149,9 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
   cv_output
 }
 
+#' @rdname loocv
 #' @method loocv spautor
+#' @order 3
 #' @export
 loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
 

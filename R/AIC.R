@@ -4,7 +4,7 @@
 #' several fitted model objects for which a log-likelihood
 #' value can be obtained.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()]
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()]
 #'   where \code{estmethod} is \code{"ml"} or \code{"reml"}.
 #' @param ... Optionally more fitted model objects.
 #' @param k The penalty parameter, taken to be 2. Currently not allowed to differ
@@ -128,10 +128,12 @@ AIC.splm <- function(object, ..., k = 2) {
 
 #' @rdname AIC.spmodel
 #' @method AIC spautor
+#' @order 2
 #' @export
 AIC.spautor <- AIC.splm
 
 #' @rdname AIC.spmodel
+#' @order 5
 #' @export
 AICc <- function(object, ..., k = 2) {
   # method dispatch
@@ -140,6 +142,7 @@ AICc <- function(object, ..., k = 2) {
 
 #' @rdname AIC.spmodel
 #' @method AICc splm
+#' @order 6
 #' @export
 AICc.splm <- function(object, ..., k = 2) {
 
@@ -219,5 +222,6 @@ AICc.splm <- function(object, ..., k = 2) {
 
 #' @rdname AIC.spmodel
 #' @method AICc spautor
+#' @order 7
 #' @export
 AICc.spautor <- AICc.splm

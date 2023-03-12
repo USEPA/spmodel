@@ -14,6 +14,8 @@
   newdata = NULL,
   se_fit = FALSE,
   interval = c("none", "confidence", "prediction"),
+  level = 0.95,
+  local,
   ...
 )
 
@@ -23,6 +25,8 @@
   newdata = NULL,
   se_fit = FALSE,
   interval = c("none", "confidence", "prediction"),
+  level = 0.95,
+  local,
   ...
 )
 
@@ -30,8 +34,12 @@
   x,
   drop = TRUE,
   newdata = NULL,
+  type = c("link", "response"),
   se_fit = FALSE,
   interval = c("none", "confidence", "prediction"),
+  newdata_size,
+  level = 0.95,
+  local = local,
   ...
 )
 
@@ -39,8 +47,12 @@
   x,
   drop = TRUE,
   newdata = NULL,
+  type = c("link", "response"),
   se_fit = FALSE,
   interval = c("none", "confidence", "prediction"),
+  newdata_size,
+  level = 0.95,
+  local,
   ...
 )
 }
@@ -64,7 +76,21 @@ defaults to \code{FALSE}.}
 add to the augmented \code{newdata} output. Passed to \code{predict()} and defaults
 to \code{"none"}.}
 
-\item{...}{Additional arguments to \code{predict()} when augmenting \code{newdata}.}
+\item{level}{Tolerance/confidence level. The default is \code{0.95}.}
+
+\item{local}{A list or logical. If a list, specific list elements described
+in \code{\link[=predict.spmodel]{predict.spmodel()}} control the big data approximation behavior.
+If a logical, \code{TRUE} chooses default list elements for the list version
+of \code{local} as specified in \code{\link[=predict.spmodel]{predict.spmodel()}}. Defaults to \code{FALSE},
+which performs exact computations.}
+
+\item{...}{Other arguments. Not used (needed for generic consistency).}
+
+\item{type}{The scale (\code{response} or \code{link}) of predictions obtained
+using \code{spglm()} or \code{spgautor} objects.}
+
+\item{newdata_size}{The \code{size} value for each observation in \code{newdata}
+used when predicting for the binomial family.}
 }
 \value{
 When augmenting the original data set, a tibble with additional columns
@@ -127,5 +153,5 @@ augment(spmod_seal)
 augment(spmod_seal, newdata = spmod_seal$newdata)
 }
 \seealso{
-\code{\link[=tidy.spmodel]{tidy.spmodel()}} \code{\link[=glance.spmodel]{glance.spmodel()}}
+\code{\link[=tidy.spmodel]{tidy.spmodel()}} \code{\link[=glance.spmodel]{glance.spmodel()}} \code{\link[=predict.spmodel]{predict.spmodel()}}
 }

@@ -1,5 +1,6 @@
 #' @rdname print.spmodel
 #' @method print spglm
+#' @order 7
 #' @export
 print.spglm <- function(x, digits = max(3L, getOption("digits") - 3L),
                        ...) {
@@ -57,6 +58,7 @@ print.spglm <- function(x, digits = max(3L, getOption("digits") - 3L),
 
 #' @rdname print.spmodel
 #' @method print spgautor
+#' @order 8
 #' @export
 print.spgautor <- function(x, digits = max(3L, getOption("digits") - 3L),
                           ...) {
@@ -119,6 +121,7 @@ print.spgautor <- function(x, digits = max(3L, getOption("digits") - 3L),
 
 #' @rdname print.spmodel
 #' @method print summary.spglm
+#' @order 9
 #' @export
 print.summary.spglm <- function(x,
                                digits = max(3L, getOption("digits") - 3L),
@@ -179,6 +182,7 @@ print.summary.spglm <- function(x,
 
 #' @rdname print.spmodel
 #' @method print summary.spgautor
+#' @order 10
 #' @export
 print.summary.spgautor <- function(x,
                                   digits = max(3L, getOption("digits") - 3L),
@@ -244,10 +248,12 @@ print.summary.spgautor <- function(x,
 
 #' @rdname print.spmodel
 #' @method print anova.spglm
+#' @order 11
 #' @export
 print.anova.spglm <- print.anova.splm
 
 #' @rdname print.spmodel
 #' @method print anova.spgautor
+#' @order 12
 #' @export
 print.anova.spgautor <- print.anova.spautor

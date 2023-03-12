@@ -1,9 +1,9 @@
 #' Extract fitted model coefficients
 #'
-#' @description coef extracts fitted model coefficients from [splm()] or [spautor()]
+#' @description coef extracts fitted model coefficients from
 #'   fitted model objects. \code{coefficients} is an alias for it.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param type \code{"fixed"} for fixed effect coefficients, \code{"spcov"} for
 #'   spatial covariance parameter coefficients, or \code{"randcov"} for random effect
 #'   variance coefficients. Defaults to \code{"fixed"}. If \code{type = "spcov"}, the
@@ -15,6 +15,7 @@
 #'
 #' @name coef.spmodel
 #' @method coef splm
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -39,15 +40,18 @@ coef.splm <- function(object, type = "fixed", ...) {
 }
 #' @rdname coef.spmodel
 #' @method coefficients splm
+#' @order 2
 #' @export
 coefficients.splm <- coef.splm
 
 #' @rdname coef.spmodel
 #' @method coef spautor
+#' @order 3
 #' @export
 coef.spautor <- coef.splm
 
 #' @rdname coef.spmodel
 #' @method coefficients spautor
+#' @order 4
 #' @export
 coefficients.spautor <- coef.spautor

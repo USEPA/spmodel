@@ -4,6 +4,8 @@
 
 ## Minor updates
 
+* In `augment()`, made the `level` and `local` arguments explicit (rather than being passed to `predict()` via `...`).
+
 ## Bug fixes
 
 # spmodel 0.3.0

@@ -29,7 +29,7 @@
 \method{coefficients}{spgautor}(object, type = "fixed", ...)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
+\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
 \item{type}{\code{"fixed"} for fixed effect coefficients, \code{"spcov"} for
 spatial covariance parameter coefficients, or \code{"randcov"} for random effect
@@ -43,7 +43,7 @@ matching the spatial covariance function used).}
 A named vector of coefficients.
 }
 \description{
-coef extracts fitted model coefficients from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}
+coef extracts fitted model coefficients from
 fitted model objects. \code{coefficients} is an alias for it.
 }
 \examples{

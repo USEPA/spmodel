@@ -4,14 +4,14 @@
 \alias{predict.spmodel}
 \alias{predict.splm}
 \alias{predict.spautor}
+\alias{predict.spglm}
+\alias{predict.spgautor}
 \alias{predict.splm_list}
 \alias{predict.spautor_list}
 \alias{predict.splmRF}
 \alias{predict.spautorRF}
 \alias{predict.splmRF_list}
 \alias{predict.spautorRF_list}
-\alias{predict.spglm}
-\alias{predict.spgautor}
 \title{Model predictions (Kriging)}
 \usage{
 \method{predict}{splm}(
@@ -29,6 +29,30 @@
   newdata,
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
+  level = 0.95,
+  local,
+  ...
+)
+
+\method{predict}{spglm}(
+  object,
+  newdata,
+  type = c("link", "response"),
+  se.fit = FALSE,
+  interval = c("none", "confidence", "prediction"),
+  newdata_size,
+  level = 0.95,
+  local,
+  ...
+)
+
+\method{predict}{spgautor}(
+  object,
+  newdata,
+  type = c("link", "response"),
+  se.fit = FALSE,
+  interval = c("none", "confidence", "prediction"),
+  newdata_size,
   level = 0.95,
   local,
   ...
@@ -61,30 +85,6 @@
 \method{predict}{splmRF_list}(object, newdata, local, ...)
 
 \method{predict}{spautorRF_list}(object, newdata, local, ...)
-
-\method{predict}{spglm}(
-  object,
-  newdata,
-  type = c("link", "response"),
-  se.fit = FALSE,
-  interval = c("none", "confidence", "prediction"),
-  newdata_size,
-  level = 0.95,
-  local,
-  ...
-)
-
-\method{predict}{spgautor}(
-  object,
-  newdata,
-  type = c("link", "response"),
-  se.fit = FALSE,
-  interval = c("none", "confidence", "prediction"),
-  newdata_size,
-  level = 0.95,
-  local,
-  ...
-)
 }
 \arguments{
 \item{object}{A fitted model object.}

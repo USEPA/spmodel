@@ -4,9 +4,9 @@
 #'   summaries from a fitted model object. Glance returns the same number of columns for all models
 #'   and estimation methods. If a particular summary is undefined for a model
 #'   or estimation method (e.g., likelihood statistics for estimation methods
-#'   \code{"sv-wls"} or \code{"sv-cl"}), \code{NA} is returned for that summary.
+#'   \code{"sv-wls"} or \code{"sv-cl"}) of \code{splm()} objects), \code{NA} is returned for that summary.
 #'
-#' @param x A fitted model object from [splm()] or [spautor()].
+#' @param x A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @return A single-row tibble with columns
@@ -24,6 +24,7 @@
 #'
 #' @name glance.spmodel
 #' @method glance splm
+#' @order 1
 #' @export
 #'
 #' @seealso [AIC.spmodel()] [AICc()] [logLik.spmodel()] [deviance.spmodel()] [pseudoR2()] [tidy.spmodel()] [augment.spmodel()]
@@ -52,5 +53,6 @@ glance.splm <- function(x, ...) {
 
 #' @rdname glance.spmodel
 #' @method glance spautor
+#' @order 2
 #' @export
 glance.spautor <- glance.splm

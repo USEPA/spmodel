@@ -4,10 +4,10 @@
 \alias{anova.spmodel}
 \alias{anova.splm}
 \alias{anova.spautor}
-\alias{tidy.anova.splm}
-\alias{tidy.anova.spautor}
 \alias{anova.spglm}
 \alias{anova.spgautor}
+\alias{tidy.anova.splm}
+\alias{tidy.anova.spautor}
 \alias{tidy.anova.spglm}
 \alias{tidy.anova.spgautor}
 \title{Compute analysis of variance and likelihood ratio tests of fitted model objects}
@@ -16,23 +16,22 @@
 
 \method{anova}{spautor}(object, ..., test = TRUE, Terms, L)
 
-\method{tidy}{anova.splm}(x, ...)
-
-\method{tidy}{anova.spautor}(x, ...)
-
 \method{anova}{spglm}(object, ..., test = TRUE, Terms, L)
 
 \method{anova}{spgautor}(object, ..., test = TRUE, Terms, L)
+
+\method{tidy}{anova.splm}(x, ...)
+
+\method{tidy}{anova.spautor}(x, ...)
 
 \method{tidy}{anova.spglm}(x, ...)
 
 \method{tidy}{anova.spgautor}(x, ...)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}}
+\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
-\item{...}{An additional fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}
-(for \code{anova()}).}
+\item{...}{An additional fitted model object.}
 
 \item{test}{A logical value indicating whether p-values from asymptotic Chi-squared
 hypothesis tests should be returned. Defaults to \code{TRUE}.}

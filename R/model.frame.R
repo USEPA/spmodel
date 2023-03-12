@@ -10,6 +10,7 @@
 #'
 #' @name model.frame.spmodel
 #' @method model.frame splm
+#' @order 1
 #' @export
 #'
 #' @seealso [stats::model.frame()]
@@ -27,6 +28,7 @@ model.frame.splm <- function(formula, ...) {
 
 #' @rdname model.frame.spmodel
 #' @method model.frame spautor
+#' @order 2
 #' @export
 model.frame.spautor <- function(formula, ...) {
   model.frame(formula(formula), data = formula$data[formula$observed_index, , drop = FALSE], drop.unused.levels = TRUE, na.action = na.omit)

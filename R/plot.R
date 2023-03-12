@@ -34,6 +34,7 @@
 #'
 #' @name plot.spmodel
 #' @method plot splm
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -214,6 +215,7 @@ plot.splm <- function(x, which, ...) {
 
 #' @rdname plot.spmodel
 #' @method plot spautor
+#' @order 2
 #' @export
 plot.spautor <- function(x, which, ...) {
   if (missing(which)) {

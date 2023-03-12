@@ -17,7 +17,7 @@
 \method{deviance}{spgautor}(object, ...)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}
+\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.
 where \code{estmethod} is \code{"ml"} or \code{"reml"}.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
@@ -30,9 +30,8 @@ Returns the deviance of a fitted model object.
 }
 \details{
 For objects estimated using \code{"ml"} or \code{"reml"},
-the deviance is \eqn{(y - X \beta)^T V (y - X \beta)} for an inverse
-covariance matrix \eqn{V}, analogous
-to residual sums of (whitened) squares.
+the deviance is twice the difference in log-likelihoods between the
+saturated (perfect-fit) model and the fitted model.
 }
 \examples{
 spmod <- splm(z ~ water + tarp,

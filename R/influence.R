@@ -15,6 +15,7 @@
 #'
 #' @name influence.spmodel
 #' @method influence splm
+#' @order 1
 #' @export
 #'
 #' @seealso [augment.spmodel()] [cooks.distance.spmodel()] [hatvalues.spmodel()] [residuals.spmodel()]
@@ -37,5 +38,6 @@ influence.splm <- function(model, ...) {
 
 #' @rdname influence.spmodel
 #' @method influence spautor
+#' @order 2
 #' @export
 influence.spautor <- influence.splm

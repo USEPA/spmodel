@@ -10,6 +10,7 @@
 ## Bug fixes
 
 * Fixed a bug in `spcov_params()` that yielded output with improper names when a named vector was used as an argument.
+* Fixed a bug in `spautor()` that did not properly coerce `M` if given as a matrix (instead of a vector).
 
 # spmodel 0.3.0
 

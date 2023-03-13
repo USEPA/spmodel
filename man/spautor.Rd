@@ -78,14 +78,15 @@ as \code{W} is calculated internally. If calculated internally,
 \item{row_st}{A logical indicating whether row standardization be performed on
 \code{W}. The default is \code{TRUE}.}
 
-\item{M}{M matrix satisfying the car symmetry condition. The car
+\item{M}{\code{M} matrix satisfying the car symmetry condition. The car
 symmetry condition states that \eqn{(I - range * W)^{-1}M} is symmetric, where
 \eqn{I} is an identity matrix, \eqn{range} is a constant that controls the
 spatial dependence, \code{W} is the weights matrix,
 and \eqn{^{-1}} represents the inverse operator.
 \code{M} is required for car models
 when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M},
-is required, the default is the identity matrix.}
+is required, the default is the identity matrix. \code{M} must be diagonal
+or given as a vector or one-column matrix assumed to be the diagonal.}
 
 \item{...}{Other arguments to \code{stats::optim()}.}
 }

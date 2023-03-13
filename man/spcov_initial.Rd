@@ -48,7 +48,7 @@ matches the value given to the \code{spcov_type} argument.
 \description{
 Create a spatial covariance parameter initial object that specifies
 initial and/or known values to use while estimating spatial covariance parameters
-with \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.
+with \code{\link[=splm]{splm()}}, \code{\link[=spglm]{spglm()}}, \code{\link[=spautor]{spautor()}}, or \code{\link[=spgautor]{spgautor()}}.
 }
 \details{
 The \code{spcov_initial} list is later passed to \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.

@@ -64,7 +64,7 @@
 #'
 #' @details The spatial linear model for areal data (i.e., spatial autoregressive model)
 #'   can be written as
-#'   \eqn{y = X \beta + \tau + \epsilon}, where X is the fixed effects design
+#'   \eqn{y = X \beta + \tau + \epsilon}, where \eqn{X} is the fixed effects design
 #'   matrix, \eqn{\beta} are the fixed effects, \eqn{\tau} is random error that is
 #'   spatially dependent, and \eqn{\epsilon} is random error that is spatially
 #'   independent. Together, \eqn{\tau} and \eqn{\epsilon} are modeled using
@@ -101,8 +101,7 @@
 #'   (an \code{NA} value for \code{ie} in \code{spcov_initial} to assume
 #'   \code{ie} is unknown, requiring estimation).
 #'
-#'  \code{random} Details: If random effects are used (the estimation method must be \code{"reml"} or
-#'   \code{"ml"}), the model
+#'  \code{random} Details: If random effects are used, the model
 #'   can be written as \eqn{y = X \beta + Z1u1 + ... Zjuj + \tau + \epsilon},
 #'   where each Z is a random effects design matrix and each u is a random effect.
 #'

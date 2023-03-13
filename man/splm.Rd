@@ -245,8 +245,8 @@ spatial and random effects components is then multiplied element-wise
 \code{local} Details: The big data approximation works by sorting observations into different levels
 of an index variable. Observations in different levels of the index variable
 are assumed to be uncorrelated for the purposes of model fitting. Sparse matrix methods are then implemented
-for significant computational gains. Parallelization further speeds up
-computations. Both the \code{"random"} and \code{"kmeans"} values of \code{method}
+for significant computational gains. Parallelization generally further speeds up
+computations when data sizes are larger than a few thousand. Both the \code{"random"} and \code{"kmeans"} values of \code{method}
 in \code{local} have random components. That means you may get slightly different
 results when using the big data approximation and rerunning \code{splm()} with the same code. For consistent results,
 either set a seed via \code{base::set.seed()} or specify \code{index} to \code{local}.

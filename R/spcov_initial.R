@@ -2,7 +2,7 @@
 #'
 #' @description Create a spatial covariance parameter initial object that specifies
 #'   initial and/or known values to use while estimating spatial covariance parameters
-#'   with [splm()] or [spautor()].
+#'   with [splm()], [spglm()], [spautor()], or [spgautor()].
 #'
 #' @param spcov_type The spatial covariance function type. Available options include
 #'   \code{"exponential"}, \code{"spherical"}, \code{"gaussian"},

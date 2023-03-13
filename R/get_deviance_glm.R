@@ -17,8 +17,8 @@ get_deviance_glm <- function(family, y, fitted_val, size, dispersion) {
   } else if (family == "inverse.gaussian") {
     half_deviance_i <- 0.5 * (y - fitted_val)^2 / (y * fitted_val^2)
   } else if (family == "beta") {
-    constant <- log(gamma(y * dispersion)) + log(gamma((1 - y) * dispersion)) - log(gamma(fitted_val * dispersion)) - log(gamma((1 - fitted_val) * dispersion))
-    half_deviance_i <- constant + fitted_val / y * dispersion * log(y) + (1 - fitted_val) / (1 - y) * dispersion * log(1 - y)
+    constant <- log(gamma(fitted_val * dispersion)) + log(gamma((1 - fitted_val) * dispersion)) - log(gamma(y * dispersion)) - log(gamma((1 - y) * dispersion))
+    half_deviance_i <- constant + (y - fitted_val) * dispersion * log(y) + ((1 - y) - (1 - fitted_val)) * dispersion * log(1 - y)
   }
   deviance_i <- 2 * half_deviance_i
   as.numeric(deviance_i)

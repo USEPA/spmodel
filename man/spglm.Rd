@@ -28,7 +28,7 @@ of the model, with the response to the left of the \code{~} operator and
 the terms on the right, separated by \code{+} operators.}
 
 \item{family}{The generalized linear model family describing the distribution
-of the response variable to be used in the model. Available options
+of the response variable to be used. Available options
 \code{"gaussian"}, \code{"poisson"}, \code{"nbinomial"}, \code{"binomial"},
 \code{"beta"}, \code{"Gamma"}, and \code{"inverse.gaussian"}.
 Can be quoted or unquoted. Note that the \code{family} argument
@@ -173,7 +173,7 @@ individual list element (model fit).
 }
 \description{
 Fit spatial generalized linear models for point-referenced data (i.e.,
-geostatistical models) using
+generalized geostatistical models) using
 a variety of estimation methods, allowing for random effects,
 anisotropy, partition factors, and big data methods.
 }
@@ -202,12 +202,12 @@ The supports for \eqn{y} for each family are given below:
 \itemize{
 \item{family: }{support of \eqn{y}}
 \item{gaussian: }{\eqn{-\infty \le y \le \infty}}
-\item{poisson: }{}
-\item{nbinomial}{}
-\item{binomial}{}
-\item{beta}{}
-\item{Gamma}{}
-\item{inverse.gaussian}{}
+\item{poisson: }{\eqn{0 \le y}; \eqn{y} an integer}
+\item{nbinomial: }{\eqn{0 \le y}; \eqn{y} an integer}
+\item{binomial: }{\eqn{0 \le y}; \eqn{y} an integer}
+\item{beta: }{\eqn{0 < y < 1}}
+\item{Gamma: }{\eqn{0 < y}}
+\item{inverse.gaussian: }{\eqn{0 < y}}
 }
 
 The generalized linear model families
@@ -242,8 +242,12 @@ For the \code{poisson} and \code{binomial} families, \eqn{\phi} is always
 one. Note that this inverse Gaussian parameterization is different than a
 standard inverse Gaussian parameterization, which has variance \eqn{\mu^3 / \lambda}.
 Setting \eqn{\phi = \lambda / \mu} yields our parameterization, which is
-preferred for computational stability. For more on generalized linear model constructions, see McCullagh and
-Nelder (1989). Parameters are estimated using the Laplace approximation.
+preferred for computational stability. Also note that the dispersion parameter
+is often defined in the literature as \eqn{V(\mu) \phi}, where \eqn{V(\mu)} is the variance
+function of the mean. We do not use this parameterization, which is important
+to recognize while interpreting dispersion estimates using \code{spglm()}.
+For more on generalized linear model constructions, see McCullagh and
+Nelder (1989).
 
 Together, \eqn{\tau} and \eqn{\epsilon} are modeled using
 a spatial covariance function, expressed as
@@ -284,6 +288,7 @@ valid in two dimensions.
 \item{\code{reml}: }{Maximize the restricted log-likelihood.}
 \item{\code{ml}: }{Maximize the log-likelihood.}
 }
+Note that the likelihood being optimized is obtained using the Laplace approximation.
 
 \code{anisotropy} Details: By default, all spatial covariance parameters except \code{rotate}
 and \code{scale} as well as all random effect variance parameters
@@ -299,8 +304,7 @@ correction involves first a rotation of the coordinates clockwise by \code{rotat
 scaling of the coordinates' minor axis by the reciprocal of \code{scale}. The spatial
 covariance is then computed using these transformed coordinates.
 
-\code{random} Details: If random effects are used (the estimation method must be \code{"reml"} or
-\code{"ml"}), the model
+\code{random} Details: If random effects are used, the model
 can be written as \eqn{y = X \beta + Z1u1 + ... Zjuj + \tau + \epsilon},
 where each Z is a random effects design matrix and each u is a random effect.
 
@@ -313,8 +317,8 @@ spatial and random effects components is then multiplied element-wise
 \code{local} Details: The big data approximation works by sorting observations into different levels
 of an index variable. Observations in different levels of the index variable
 are assumed to be uncorrelated for the purposes of model fitting. Sparse matrix methods are then implemented
-for significant computational gains. Parallelization further speeds up
-computations. Both the \code{"random"} and \code{"kmeans"} values of \code{method}
+for significant computational gains. Parallelization generally further speeds up
+computations when data sizes are larger than a few thousand. Both the \code{"random"} and \code{"kmeans"} values of \code{method}
 in \code{local} have random components. That means you may get slightly different
 results when using the big data approximation and rerunning \code{splm()} with the same code. For consistent results,
 either set a seed via \code{base::set.seed()} or specify \code{index} to \code{local}.
@@ -329,7 +333,7 @@ stable due to large extremely large variances, scale relevant variables
 so they have variance 1 before optimization.
 }
 \examples{
-spgmod <- spglm(z ~ water + tarp, family = "Gamma", data = caribou,
+spgmod <- spglm(z ~ water + tarp, family = "inverse.gaussian", data = caribou,
   spcov_type = "exponential", xcoord = x, ycoord = y
 )
 summary(spgmod)

@@ -127,7 +127,8 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     scale <- NULL
   }
 
-  spcov_params_val <- c(de = de, ie = ie, range = range, extra = extra, rotate = rotate, scale = scale)
+  spcov_params_val <- c(de = unname(de), ie = unname(ie), range = unname(range),
+                        extra = unname(extra), rotate = unname(rotate), scale = unname(scale))
 
   # the constructor giving the class
   new_spcov_params <- structure(spcov_params_val, class = spcov_type)

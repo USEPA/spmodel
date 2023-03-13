@@ -5,8 +5,11 @@
 ## Minor updates
 
 * In `augment()`, made the `level` and `local` arguments explicit (rather than being passed to `predict()` via `...`).
+* Minor documentation updates
 
 ## Bug fixes
+
+* Fixed a bug in `spcov_params()` that yielded output with improper names when a named vector was used as an argument.
 
 # spmodel 0.3.0
 

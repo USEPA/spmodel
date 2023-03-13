@@ -1,3 +1,59 @@
+#' Create a dispersion parameter initial object
+#'
+#' @description Create a dispersion parameter initial object that specifies
+#'   initial and/or known values to use while estimating the dispersion parameter
+#'   with [spglm()] or [spgautor()].
+#'
+#' @param family The generalized linear model family describing the distribution
+#'   of the response variable to be used. \code{"poisson"}, \code{"nbinomial"}, \code{"binomial"},
+#'   \code{"beta"}, \code{"Gamma"}, and \code{"inverse.gaussian"}.
+#' @param dispersion The value of the dispersion parameter.
+#' @param known A character vector indicating whether the dispersion parameter is to be
+#'   assumed known. The value \code{"dispersion"} or \code{"given"} is assumes
+#'   the dispersion parameter is known.
+#'
+#' @details The \code{dispersion_initial} list is later passed to [spglm()] or [spgautor()].
+#'
+#'   The variance function of an individual \eqn{y} (given \eqn{\mu})
+#'   for each generalized linear model family is given below:
+#'   \itemize{
+#'     \item{family: }{\eqn{Var(y)}}
+#'     \item{poisson: }{\eqn{\mu \phi}}
+#'     \item{nbinomial: }{\eqn{\mu + \mu^2 / \phi}}
+#'     \item{binomial: }{\eqn{n \mu (1 - \mu) \phi}}
+#'     \item{beta: }{\eqn{\mu (1 - \mu) / (1 + \phi)}}
+#'     \item{Gamma: }{\eqn{\mu^2 / \phi}}
+#'     \item{inverse.gaussian: }{\eqn{\mu^2 / \phi}}
+#'   }
+#'   The parameter \eqn{\phi} is a dispersion parameter that influences \eqn{Var(y)}.
+#'   For the \code{poisson} and \code{binomial} families, \eqn{\phi} is always
+#'   one. Note that this inverse Gaussian parameterization is different than a
+#'   standard inverse Gaussian parameterization, which has variance \eqn{\mu^3 / \lambda}.
+#'   Setting \eqn{\phi = \lambda / \mu} yields our parameterization, which is
+#'   preferred for computational stability. Also note that the dispersion parameter
+#'   is often defined in the literature as \eqn{V(\mu) \phi}, where \eqn{V(\mu)} is the variance
+#'   function of the mean. We do not use this parameterization, which is important
+#'   to recognize while interpreting dispersion estimates using \code{spglm()}.
+#'   For more on generalized linear model constructions, see McCullagh and
+#'   Nelder (1989).
+#'
+#'   Note that while \code{"gaussian"} is a family for \code{spglm()} and \code{spautor()},
+#'   it is not available here. This is because the \code{"gaussian"} family
+#'   uses spmodel's spatial linear modeling functions (and implicitly incorporates
+#'   dispersion).
+#'
+#' @return A list with two elements: \code{initial} and \code{is_known}.
+#'   \code{initial} is a named numeric vector indicating the dispersion parameters
+#'   with a specified initial and/or known value. \code{is_known} is a named
+#'   numeric vector indicating whether the dispersion parameters in
+#'   \code{initial} is known or not. The class of the list
+#'   matches the value given to the \code{family} argument.
+#'
+#' @export
+#'
+#' @examples
+#' # known dispersion value 1
+#' dispersion_initial("nbinomial", dispersion = 1, known = "dispersion")
 dispersion_initial <- function(family, dispersion, known) {
 
   # fix family

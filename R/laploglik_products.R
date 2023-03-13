@@ -402,6 +402,11 @@ get_l00 <- function(family, w, y, size, dispersion) {
 
 smw_HInv <- function(AInv, U, CInv) {
   mid <- CInv + t(U) %*% AInv %*% U
+  # solve_mid <- tryCatch(solve(mid), error = function(e) {
+  #   diag(mid) <- diag(mid) + 1e-4 # inverse stability
+  #   solve(mid)
+  # })
+  diag(mid) <- diag(mid) + 1e-4
   # if (all(mid == 0)) diag(mid) <- diag(mid) + 1e-4
   AInv - (AInv %*% U) %*% solve(mid) %*% (t(U) %*% AInv)
 }
@@ -409,7 +414,9 @@ smw_HInv <- function(AInv, U, CInv) {
 smw_mHldet <- function(A_list, AInv, U, C, CInv) {
   Aldet <- sum(unlist(lapply(A_list, function(x) determinant(x, logarithm = TRUE)$modulus))) # must be positive det for -H
   Cldet <- 2 * sum(log(diag(t(chol(C)))))
-  midldet <- determinant(CInv + t(U) %*% AInv %*% U, logarithm = TRUE)$modulus
+  mid <- CInv + t(U) %*% AInv %*% U
+  diag(mid) <- diag(mid) + 1e-4
+  midldet <- determinant(mid, logarithm = TRUE)$modulus
   as.numeric(Aldet + Cldet + midldet)
 }
 

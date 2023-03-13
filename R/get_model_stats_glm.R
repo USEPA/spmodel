@@ -57,11 +57,12 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
                                invcov_betahat_sum, estmethod,
                                ret_mHInv = TRUE)
 
-  w <- w_and_H$w
+  w <- as.vector(w_and_H$w)
   # H <- w_and_H$H
 
   # put w in eigenprods
   w_list <- split(w, sort(data_object$local_index))
+
   Xt_SigInv_w_list <- mapply(
     x = eigenprods_list, w = w_list,
     function(x, w) crossprod(x$SigInv_X, w),
@@ -125,7 +126,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
                                   SigInv_list, SigInv_X_null, cov_betahat_null, Xt_SigInv_X_null, estmethod)
 
 
-  w_null <- w_and_H_null$w
+  w_null <- as.vector(w_and_H_null$w)
 
   fitted_null <- get_fitted_glm(w_null, data_object)$response
 
@@ -232,7 +233,7 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
                                   SigInv, SigInv_X, cov_betahat, Xt_SigInv_X, estmethod,
                                   ret_mHInv = TRUE)
 
-  w <- w_and_H$w
+  w <- as.vector(w_and_H$w)
 
   betahat <- as.numeric(tcrossprod(cov_betahat, SigInv_X) %*% w)
   names(betahat) <- colnames(data_object$X)
@@ -275,7 +276,7 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
                                     SigInv, SigInv_X_null, cov_betahat_null, Xt_SigInv_X_null, estmethod)
 
 
-  w_null <- w_and_H_null$w
+  w_null <- as.vector(w_and_H_null$w)
 
   fitted_null <- get_fitted_glm(w_null, data_object)$response
 

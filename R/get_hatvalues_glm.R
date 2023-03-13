@@ -4,6 +4,11 @@ get_hatvalues_glm <- function(w, X, data_object, dispersion) {
   SqrtVInv_X <- sqrt(V) * X # same as diag(sqrt(V)) %*% X
   cov_vhat <- chol2inv(chol(Matrix::forceSymmetric(crossprod(SqrtVInv_X, SqrtVInv_X))))
   hatvalues <- diag(SqrtVInv_X %*% tcrossprod(cov_vhat, SqrtVInv_X))
+  if (any(hatvalues > 0.999)) {
+    hatvalues_sum <- sum(hatvalues)
+    hatvalues[hatvalues > 0.999] <- 0.999
+    hatvalues <- hatvalues * (hatvalues_sum / sum(hatvalues))
+  }
   as.numeric(hatvalues)
 }
 

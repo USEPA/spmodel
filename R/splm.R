@@ -119,7 +119,7 @@
 #'
 #' @details The spatial linear model for point-referenced data
 #'   (i.e., geostatistical model) can be written as
-#'   \eqn{y = X \beta + \tau + \epsilon}, where X is the fixed effects design
+#'   \eqn{y = X \beta + \tau + \epsilon}, where \eqn{X} is the fixed effects design
 #'   matrix, \eqn{\beta} are the fixed effects, \eqn{\tau} is random error that is
 #'   spatially dependent, and \eqn{\epsilon} is random error that is spatially
 #'   independent. Together, \eqn{\tau} and \eqn{\epsilon} are modeled using
@@ -206,11 +206,11 @@
 #'   length one, the list has class \code{splm}. Many generic functions that
 #'   summarize model fit are available for \code{splm} objects, including
 #'   \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
-#'   \code{cooks.distance}, \code{deviance}, \code{fitted}, \code{formula},
+#'   \code{cooks.distance}, \code{covmatrix}, \code{deviance}, \code{fitted}, \code{formula},
 #'   \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
 #'   \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},
 #'   \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
-#'   \code{terms}, \code{tidy}, \code{update}, and \code{vcov}. If
+#'   \code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
 #'   \code{spcov_type} or \code{spcov_initial} are length greater than one, the
 #'   list has class \code{splm_list} and each element in the list has class
 #'   \code{splm}. \code{glances} can be used to summarize \code{splm_list}

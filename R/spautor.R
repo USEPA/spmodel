@@ -123,11 +123,11 @@
 #'   length one, the list has class \code{spautor}. Many generic functions that
 #'   summarize model fit are available for \code{spautor} objects, including
 #'   \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
-#'   \code{cooks.distance}, \code{deviance}, \code{fitted}, \code{formula},
+#'   \code{cooks.distance}, \code{covmatrix}, \code{deviance}, \code{fitted}, \code{formula},
 #'   \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
 #'   \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},
 #'   \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
-#'   \code{terms}, \code{tidy}, \code{update}, and \code{vcov}. If
+#'   \code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
 #'   \code{spcov_type} or \code{spcov_initial} are length greater than one, the
 #'   list has class \code{spautor_list} and each element in the list has class
 #'   \code{spautor}. \code{glances} can be used to summarize \code{spautor_list}

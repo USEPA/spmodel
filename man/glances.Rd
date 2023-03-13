@@ -8,6 +8,8 @@
 \alias{glances.spautor_list}
 \alias{glances.spglm}
 \alias{glances.spgautor}
+\alias{glances.spglm_list}
+\alias{glances.spgautor_list}
 \title{Glance at many fitted model objects}
 \usage{
 glances(object, ..., sort_by = "AICc", decreasing = FALSE)
@@ -23,6 +25,10 @@ glances(object, ..., sort_by = "AICc", decreasing = FALSE)
 \method{glances}{spglm}(object, ..., sort_by = "AICc", decreasing = FALSE)
 
 \method{glances}{spgautor}(object, ..., sort_by = "AICc", decreasing = FALSE)
+
+\method{glances}{spglm_list}(object, ..., sort_by = "AICc", decreasing = FALSE)
+
+\method{glances}{spgautor_list}(object, ..., sort_by = "AICc", decreasing = FALSE)
 }
 \arguments{
 \item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}

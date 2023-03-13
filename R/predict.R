@@ -717,6 +717,7 @@ get_pred_spautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat,
 
 #' @name predict.spmodel
 #' @method predict splm_list
+#' @order 3
 #' @export
 predict.splm_list <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
                                level = 0.95, local, ...) {
@@ -743,6 +744,7 @@ predict.splm_list <- function(object, newdata, se.fit = FALSE, interval = c("non
 
 #' @name predict.spmodel
 #' @method predict spautor_list
+#' @order 4
 #' @export
 predict.spautor_list <- predict.splm_list
 
@@ -751,6 +753,7 @@ predict.spautor_list <- predict.splm_list
 
 #' @rdname predict.spmodel
 #' @method predict splmRF
+#' @order 5
 #' @export
 #'
 #' @references
@@ -804,6 +807,7 @@ predict.splmRF <- function(object, newdata, local, ...) {
 
 #' @rdname predict.spmodel
 #' @method predict spautorRF
+#' @order 6
 #' @export
 predict.spautorRF <- function(object, newdata, local, ...) {
 
@@ -841,6 +845,7 @@ predict.spautorRF <- function(object, newdata, local, ...) {
 
 #' @name predict.spmodel
 #' @method predict splmRF_list
+#' @order 7
 #' @export
 predict.splmRF_list <- function(object, newdata, local, ...) {
   # check to see if ranger installed
@@ -881,6 +886,7 @@ predict.splmRF_list <- function(object, newdata, local, ...) {
 
 #' @name predict.spmodel
 #' @method predict spautorRF_list
+#' @order 8
 #' @export
 predict.spautorRF_list <- function(object, newdata, local, ...) {
   # check to see if ranger installed

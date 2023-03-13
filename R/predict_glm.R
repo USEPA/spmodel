@@ -4,7 +4,7 @@
 #'   used when predicting for the binomial family.
 #' @rdname predict.spmodel
 #' @method predict spglm
-#' @order 3
+#' @order 9
 #' @export
 predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
                          newdata_size, level = 0.95, local, ...) {
@@ -493,7 +493,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
 
 #' @rdname predict.spmodel
 #' @method predict spgautor
-#' @order 4
+#' @order 10
 #' @export
 predict.spgautor <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
                             newdata_size, level = 0.95, local, ...) {
@@ -757,3 +757,43 @@ get_pred_spgautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat
   s0 <- cluster_list$s0
   get_pred_spgautor(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson_w, cov_betahat, SqrtSigInv_X, se.fit, interval)
 }
+
+#' @name predict.spmodel
+#' @method predict spglm_list
+#' @order 11
+#' @export
+predict.spglm_list <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
+                              newdata_size, level = 0.95, local, ...) {
+
+  type <- match.arg(type)
+  # match interval argument so the three display
+  interval <- match.arg(interval)
+
+  # deal with local
+  if (missing(local)) {
+    local <- NULL
+  }
+
+  # deal with newdata_size
+  if (missing(newdata_size)) {
+    newdata_size <- NULL
+  }
+
+  if (missing(newdata)) {
+    preds <- lapply(object, function(x) {
+      predict(x, type = type, se.fit = se.fit, interval = interval, newdata_size = newdata_size, level = level, local = local, ...)
+    })
+  } else {
+    preds <- lapply(object, function(x) {
+      predict(x, newdata = newdata, type = type, se.fit = se.fit, interval = interval, newdata_size = newdata_size, level = level, local = local, ...)
+    })
+  }
+  names(preds) <- names(object)
+  preds
+}
+
+#' @name predict.spmodel
+#' @method predict spgautor_list
+#' @order 12
+#' @export
+predict.spgautor_list <- predict.spglm_list

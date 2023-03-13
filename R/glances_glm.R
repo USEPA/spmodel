@@ -24,3 +24,15 @@ glances.spglm <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
 #' @order 7
 #' @export
 glances.spgautor <- glances.spglm
+
+#' @rdname glances
+#' @method glances spglm_list
+#' @order 8
+#' @export
+glances.spglm_list <- glances.splm_list
+
+#' @rdname glances
+#' @method glances spgautor_list
+#' @order 9
+#' @export
+glances.spgautor_list <- glances.spautor_list

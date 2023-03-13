@@ -14,13 +14,27 @@ cov_initial_search_glm.exponential <- function(spcov_initial_NA, dispersion_init
 
 
   # find ols sample variance
-  lm_out <- lm(data_object$formula, do.call("rbind", data_object$obdata_list))
-  if (inherits(dispersion_initial_NA, "binomial") && length(summary(lm_out)) == 2) {
-    s2 <- summary(lm_out)[[1]]$sigma^2
-  } else {
-    s2 <- summary(lm_out)$sigma^2
-  }
-  ns2 <- log(1 + 1.2 * s2) # so no negative variances
+  X <- do.call("rbind", data_object$X_list)
+  y <- do.call("rbind", data_object$y_list)
+  y_trans <- log(y + 1)
+  qr_val <- qr(X)
+  R_val <- qr.R(qr_val)
+  betahat <- backsolve(R_val, qr.qty(qr_val, y_trans))
+  # # same as
+  # betahat <- as.vector(solve(R_val) %*% t(qr.Q(qr_val)) %*% y_trans)
+  # # same as
+  # betahat <- solve(t(X) %*% X) %*% t(X) %*% y_trans
+  resid <- y_trans - X %*% betahat
+  s2 <- sum(resid^2) / (data_object$n - data_object$p)
+  ns2 <- 1.2 * s2
+  # # old way
+  # lm_out <- lm(data_object$formula, do.call("rbind", data_object$obdata_list))
+  # if (inherits(dispersion_initial_NA, "binomial") && length(summary(lm_out)) == 2) {
+  #   s2 <- summary(lm_out)[[1]]$sigma^2
+  # } else {
+  #   s2 <- summary(lm_out)$sigma^2
+  # }
+  # ns2 <- log(1 + 1.2 * s2) # so no negative variances
 
   # find sets of starting values
   ## de
@@ -253,13 +267,15 @@ cov_initial_search_glm.none <- function(spcov_initial_NA, dispersion_initial_NA,
                                     dist_matrix_list, weights,
                                     randcov_initial_NA = NULL, esv_dotlist, ...) {
   # find ols sample variance
-  lm_out <- lm(data_object$formula, do.call("rbind", data_object$obdata_list))
-  if (inherits(dispersion_initial_NA, "binomial") && length(summary(lm_out)) == 2) {
-    s2 <- summary(lm_out)[[1]]$sigma^2
-  } else {
-    s2 <- summary(lm_out)$sigma^2
-  }
-  ns2 <- log(1 + 1.2 * s2) # so no negative variances
+  X <- do.call("rbind", data_object$X_list)
+  y <- do.call("rbind", data_object$y_list)
+  y_trans <- log(y + 1)
+  qr_val <- qr(X)
+  R_val <- qr.R(qr_val)
+  betahat <- backsolve(R_val, qr.qty(qr_val, y_trans))
+  resid <- y_trans - X %*% betahat
+  s2 <- sum(resid^2) / (data_object$n - data_object$p)
+  ns2 <- 1.2 * s2
 
   # find sets of starting values
   ## de
@@ -458,14 +474,17 @@ cov_initial_search_glm.none <- function(spcov_initial_NA, dispersion_initial_NA,
 cov_initial_search_glm.matern <- function(spcov_initial_NA, dispersion_initial_NA, estmethod, data_object,
                                       dist_matrix_list, weights,
                                       randcov_initial_NA = NULL, esv_dotlist, ...) {
+
   # find ols sample variance
-  lm_out <- lm(data_object$formula, do.call("rbind", data_object$obdata_list))
-  if (inherits(dispersion_initial_NA, "binomial") && length(summary(lm_out)) == 2) {
-    s2 <- summary(lm_out)[[1]]$sigma^2
-  } else {
-    s2 <- summary(lm_out)$sigma^2
-  }
-  ns2 <- log(1 + 1.2 * s2) # so no negative variances
+  X <- do.call("rbind", data_object$X_list)
+  y <- do.call("rbind", data_object$y_list)
+  y_trans <- log(y + 1)
+  qr_val <- qr(X)
+  R_val <- qr.R(qr_val)
+  betahat <- backsolve(R_val, qr.qty(qr_val, y_trans))
+  resid <- y_trans - X %*% betahat
+  s2 <- sum(resid^2) / (data_object$n - data_object$p)
+  ns2 <- 1.2 * s2
 
 
 
@@ -679,15 +698,15 @@ cov_initial_search_glm.car <- function(spcov_initial_NA, dispersion_initial_NA, 
                                    dist_matrix_list, randcov_initial_NA = NULL, ...) {
 
   # find ols sample variance
-  obdata <- data_object$data[data_object$observed_index, , drop = FALSE]
-  # find ols sample variance
-  lm_out <- lm(data_object$formula, obdata)
-  if (inherits(dispersion_initial_NA, "binomial") && length(summary(lm_out)) == 2) {
-    s2 <- summary(lm_out)[[1]]$sigma^2
-  } else {
-    s2 <- summary(lm_out)$sigma^2
-  }
-  ns2 <- log(1 + 1.2 * s2) # so no negative variances
+  X <- data_object$X
+  y <- data_object$y
+  y_trans <- log(y + 1)
+  qr_val <- qr(X)
+  R_val <- qr.R(qr_val)
+  betahat <- backsolve(R_val, qr.qty(qr_val, y_trans))
+  resid <- y_trans - X %*% betahat
+  s2 <- sum(resid^2) / (data_object$n - data_object$p)
+  ns2 <- 1.2 * s2
 
   # store W as dist_matrix
   # MAKE IT CLEAR DIST_MATRIX_LIST IS NOT A LIST

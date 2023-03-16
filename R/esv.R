@@ -59,6 +59,7 @@ esv <- function(formula, data, xcoord, ycoord, dist_matrix, bins = 15, cutoff, p
   ## convert sf to data frame (point geometry) (1d objects obsolete)
   ### see if data has sf class
   if (inherits(data, "sf")) {
+    data <- suppressWarnings(sf::st_centroid(data))
     data <- sf_to_df(data)
     ### name xcoord ".xcoord" to be used later
     xcoord <- ".xcoord"

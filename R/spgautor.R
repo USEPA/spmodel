@@ -269,10 +269,10 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
     family <- deparse1(substitute(family))
   }
 
-  # Call splm if necessary
+  # Call spautor if necessary
   if (family == "gaussian") {
     call_val <- match.call()
-    call_val[[1]] <- as.symbol("splm")
+    call_val[[1]] <- as.symbol("spautor")
     call_list <- as.list(call_val)
     call_list <- call_list[-which(names(call_list) %in% c("family", "dispersion_initial"))]
     call_val <- as.call(call_list)

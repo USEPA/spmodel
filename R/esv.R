@@ -50,6 +50,17 @@
 #' esv(sulfate ~ 1, sulfate)
 esv <- function(formula, data, xcoord, ycoord, dist_matrix, bins = 15, cutoff, partition_factor) {
 
+  # filter out missing response values
+  na_index <- is.na(data[[all.vars(formula)[1]]])
+  data <- data[!na_index, , drop = FALSE]
+  # finding model frame
+  data_model_frame <- model.frame(formula, data, drop.unused.levels = TRUE, na.action = na.pass)
+  # model matrix with potential NA
+  ob_predictors <- complete.cases(model.matrix(formula, data_model_frame))
+  if (any(!ob_predictors)) {
+    stop("Cannot have NA values in predictors.", call. = FALSE)
+  }
+
   # covert sp to sf
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {

@@ -89,10 +89,10 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
       # turn of parallel as it is used different in predict
       local_list$parallel <- FALSE
       cl <- parallel::makeCluster(local_list$ncores)
-      cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), loocv_local, object, se.fit, local_list)
+      cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), loocv_local_glm, object, se.fit, local_list)
       cl <- parallel::stopCluster(cl)
     } else {
-      cv_predict_val_list <- lapply(seq_len(object$n), loocv_local, object, se.fit, local_list)
+      cv_predict_val_list <- lapply(seq_len(object$n), loocv_local_glm, object, se.fit, local_list)
     }
     if (se.fit) {
       cv_predict_val <- vapply(cv_predict_val_list, function(x) x$fit, numeric(1))
@@ -204,6 +204,7 @@ loocv.spgautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ..
 }
 
 loocv_local_glm <- function(row, object, se.fit, local_list) {
+  object$fitted$link <- object$fitted$link[-row] # w needs to be subset
   newdata <- object$obdata[row, , drop = FALSE]
   object$obdata <- object$obdata[-row, , drop = FALSE]
   predict(object, newdata = newdata, se.fit = se.fit, local = local_list)

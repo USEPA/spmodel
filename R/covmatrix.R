@@ -63,7 +63,8 @@ covmatrix.splm <- function(object, newdata, ...) {
 
     # cov matrix
     cov_val <- cov_matrix(spcov_params_val, dist_matrix, randcov_params_val,
-                          randcov_Zs_val, partition_matrix = partition_matrix_val)
+                          randcov_Zs_val, partition_matrix = partition_matrix_val,
+                          diagtol = object$diagtol)
 
   } else {
     # rename relevant quantities

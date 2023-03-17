@@ -183,6 +183,17 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     stop("The number of fixed effects is at least as large as the number of observations (p >= n). Consider reducing the number of fixed effects and rerunning splm().", call. = FALSE)
   }
 
+  # find s2 for initial values
+  y_trans <- log(y + 1)
+  qr_val <- qr(X)
+  R_val <- qr.R(qr_val)
+  betahat <- backsolve(R_val, qr.qty(qr_val, y_trans))
+  resid <- y_trans - X %*% betahat
+  s2 <- sum(resid^2) / (n - p)
+  # diagtol <- 1e-4
+  diagtol <- min(1e-4, 1e-4 * s2)
+
+
 
   # storing max halfdist
   x_range <- range(obdata[[xcoord]])
@@ -280,7 +291,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     randcov_list = randcov_list, randcov_names = randcov_names,
     sf_column_name = sf_column_name, size = size, terms = terms_val, var_adjust = local$var_adjust,
     X_list = X_list, xcoord = xcoord, xlevels = xlevels, y_list = y_list, ycoord = ycoord,
-    ycoord_orig_name = ycoord_orig_name, ycoord_orig_val = ycoord_orig_val
+    ycoord_orig_name = ycoord_orig_name, ycoord_orig_val = ycoord_orig_val, s2 = s2, diagtol = diagtol
   )
 }
 
@@ -453,6 +464,15 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
     stop("The number of fixed effects is at least as large as the number of observations (p >= n). Consider reducing the number of fixed effects and rerunning spautor().", call. = FALSE)
   }
 
+  # find s2 for initial values
+  y_trans <- log(y + 1)
+  qr_val <- qr(X)
+  R_val <- qr.R(qr_val)
+  betahat <- backsolve(R_val, qr.qty(qr_val, y_trans))
+  resid <- y_trans - X %*% betahat
+  s2 <- sum(resid^2) / (n - p)
+  diagtol <- 0
+
   # store random effects list
   if (is.null(random)) {
     randcov_initial <- NULL
@@ -503,6 +523,6 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
     randcov_initial = randcov_initial, randcov_names = randcov_names, randcov_Zs = randcov_Zs,
     sf_column_name = sf_column_name, size = size, terms = terms_val, W = W, W_rowsums = W_rowsums, M = M,
     rho_lb = rho_lb, rho_ub = rho_ub,
-    X = X, y = y, xlevels = xlevels
+    X = X, y = y, xlevels = xlevels, s2 = s2, diagtol = diagtol
   )
 }

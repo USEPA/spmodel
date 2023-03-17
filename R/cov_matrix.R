@@ -10,11 +10,11 @@
 #' @return A covariance matrix
 #'
 #' @noRd
-cov_matrix <- function(spcov_params, dist_matrix, randcov_params = NULL, randcov_Zs = NULL, partition_matrix = NULL, M = NULL) {
+cov_matrix <- function(spcov_params, dist_matrix, randcov_params = NULL, randcov_Zs = NULL, partition_matrix = NULL, M = NULL, diagtol = 0) {
 
   # spatial
   if (is.null(M)) {
-    cov_matrix_val <- spcov_matrix(spcov_params, dist_matrix)
+    cov_matrix_val <- spcov_matrix(spcov_params, dist_matrix, diagtol = diagtol)
   } else {
     cov_matrix_val <- spcov_matrix(spcov_params, dist_matrix, M)
   }

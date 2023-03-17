@@ -10,18 +10,21 @@ cov_initial_search <- function(spcov_initial_NA, ...) {
 cov_initial_search.exponential <- function(spcov_initial_NA, estmethod, data_object,
                                            dist_matrix_list, weights,
                                            randcov_initial_NA = NULL, esv_dotlist, ...) {
+
+
   # find ols sample variance
-  s2 <- summary(lm(data_object$formula, do.call("rbind", data_object$obdata_list)))$sigma^2
+  s2 <- data_object$s2
   ns2 <- 1.2 * s2
 
-
-
-
   # find sets of starting values
-  ## de
-  de <- ns2 * c(0.1, 0.5, 0.9)
-  ## ie
-  ie <- ns2 * c(0.1, 0.5, 0.9)
+  # ## de
+  # de <- ns2 * c(0.1, 0.5, 0.9)
+  # ## ie
+  # ie <- ns2 * c(0.1, 0.5, 0.9)
+  # de
+  de <- c(0.1, 0.5, 0.9)
+  # ie
+  ie <- c(0.1, 0.5, 0.9)
   ## range
   range <- get_initial_range(class(spcov_initial_NA), data_object$max_halfdist) * c(0.5, 1.5)
   if (data_object$anisotropy) {
@@ -37,7 +40,9 @@ cov_initial_search.exponential <- function(spcov_initial_NA, estmethod, data_obj
 
   # find starting spatial grid
   spcov_grid <- expand.grid(de = de, ie = ie, range = range, rotate = rotate, scale = scale)
-  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == ns2, , drop = FALSE]
+  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
+  spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
+  # spcov_grid <- spcov_grid[abs(spcov_grid$de + spcov_grid$ie - ns2) < sqrt(.Machine$double.eps), , drop = FALSE]
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid
@@ -304,14 +309,14 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
                                     dist_matrix_list, weights,
                                     randcov_initial_NA = NULL, esv_dotlist, ...) {
   # find ols sample variance
-  s2 <- summary(lm(data_object$formula, do.call("rbind", data_object$obdata_list)))$sigma^2
+  s2 <- data_object$s2
   ns2 <- 1.2 * s2
 
   # find sets of starting values
   ## de
   de <- 0
   ## ie
-  ie <- ns2
+  ie <- 1
   ## range
   range <- get_initial_range(class(spcov_initial_NA), NULL)
   ## rotate
@@ -322,7 +327,8 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
 
   # find starting spatial grid
   spcov_grid <- expand.grid(de = de, ie = ie, range = range, rotate = rotate, scale = scale)
-  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == ns2, , drop = FALSE]
+  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
+  spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid
@@ -567,16 +573,15 @@ cov_initial_search.matern <- function(spcov_initial_NA, estmethod, data_object,
                                       dist_matrix_list, weights,
                                       randcov_initial_NA = NULL, esv_dotlist, ...) {
   # find ols sample variance
-  s2 <- summary(lm(data_object$formula, do.call("rbind", data_object$obdata_list)))$sigma^2
+  s2 <- data_object$s2
   ns2 <- 1.2 * s2
 
 
 
   # find sets of starting values
-  ## de
-  de <- ns2 * c(0.1, 0.5, 0.9)
-  ## ie
-  ie <- ns2 * c(0.1, 0.5, 0.9)
+  de <- c(0.1, 0.5, 0.9)
+  # ie
+  ie <- c(0.1, 0.5, 0.9)
   ## range
   range <- get_initial_range(class(spcov_initial_NA), data_object$max_halfdist) * c(0.5, 1.5)
   ## extra
@@ -594,7 +599,8 @@ cov_initial_search.matern <- function(spcov_initial_NA, estmethod, data_object,
 
   # find starting spatial grid
   spcov_grid <- expand.grid(de = de, ie = ie, range = range, extra = extra, rotate = rotate, scale = scale)
-  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == ns2, , drop = FALSE]
+  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
+  spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid
@@ -845,8 +851,9 @@ cov_initial_search.car <- function(spcov_initial_NA, estmethod, data_object,
                                    dist_matrix_list, randcov_initial_NA = NULL, ...) {
 
   # find ols sample variance
-  obdata <- data_object$data[data_object$observed_index, , drop = FALSE]
-  s2 <- summary(lm(data_object$formula, obdata))$sigma^2
+  # obdata <- data_object$data[data_object$observed_index, , drop = FALSE]
+  # s2 <- summary(lm(data_object$formula, obdata))$sigma^2
+  s2 <- data_object$s2
   ns2 <- 1.2 * s2
 
   # store W as dist_matrix
@@ -855,17 +862,18 @@ cov_initial_search.car <- function(spcov_initial_NA, estmethod, data_object,
 
   # find sets of starting values
   ## de
-  de <- ns2 * c(0.1, 0.5, 0.9)
+  de <- c(0.1, 0.5, 0.9)
   ## ie
-  ie <- ns2 * c(0.1, 0.5, 0.9)
+  ie <- c(0.1, 0.5, 0.9)
   ## range
   rho_length <- data_object$rho_ub - data_object$rho_lb
   range <- c(data_object$rho_lb + 0.25 * rho_length, data_object$rho_ub - 0.25 * rho_length)
 
   # find starting spatial grid
   spcov_grid <- expand.grid(de = de, ie = ie, range = range)
+  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
+  spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
   spcov_grid$extra <- spcov_grid$de
-  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == ns2, , drop = FALSE]
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid

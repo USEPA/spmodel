@@ -460,7 +460,8 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
     crs = data_object$crs,
     family = family,
     y = model_stats$y,
-    size = model_stats$size
+    size = model_stats$size,
+    diagtol = data_object$diagtol
   )
 
   new_output <- structure(output, class = "spglm")

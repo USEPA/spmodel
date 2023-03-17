@@ -16,16 +16,11 @@ cov_initial_search_glm.exponential <- function(spcov_initial_NA, dispersion_init
   # find ols sample variance
   X <- do.call("rbind", data_object$X_list)
   y <- do.call("rbind", data_object$y_list)
-  y_trans <- log(y + 1)
-  qr_val <- qr(X)
-  R_val <- qr.R(qr_val)
-  betahat <- backsolve(R_val, qr.qty(qr_val, y_trans))
   # # same as
   # betahat <- as.vector(solve(R_val) %*% t(qr.Q(qr_val)) %*% y_trans)
   # # same as
   # betahat <- solve(t(X) %*% X) %*% t(X) %*% y_trans
-  resid <- y_trans - X %*% betahat
-  s2 <- sum(resid^2) / (data_object$n - data_object$p)
+  s2 <- data_object$s2
   ns2 <- 1.2 * s2
   # # old way
   # lm_out <- lm(data_object$formula, do.call("rbind", data_object$obdata_list))
@@ -37,10 +32,9 @@ cov_initial_search_glm.exponential <- function(spcov_initial_NA, dispersion_init
   # ns2 <- log(1 + 1.2 * s2) # so no negative variances
 
   # find sets of starting values
-  ## de
-  de <- ns2 * c(0.1, 0.5, 0.9)
-  ## ie
-  ie <- ns2 * c(0.1, 0.5, 0.9)
+  de <- c(0.1, 0.5, 0.9)
+  # ie
+  ie <- c(0.1, 0.5, 0.9)
   ## range
   range <- get_initial_range(class(spcov_initial_NA), data_object$max_halfdist) * c(0.5, 1.5)
   if (data_object$anisotropy) {
@@ -56,7 +50,8 @@ cov_initial_search_glm.exponential <- function(spcov_initial_NA, dispersion_init
 
   # find starting spatial grid
   spcov_grid <- expand.grid(de = de, ie = ie, range = range, rotate = rotate, scale = scale)
-  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == ns2, , drop = FALSE]
+  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
+  spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid
@@ -269,19 +264,14 @@ cov_initial_search_glm.none <- function(spcov_initial_NA, dispersion_initial_NA,
   # find ols sample variance
   X <- do.call("rbind", data_object$X_list)
   y <- do.call("rbind", data_object$y_list)
-  y_trans <- log(y + 1)
-  qr_val <- qr(X)
-  R_val <- qr.R(qr_val)
-  betahat <- backsolve(R_val, qr.qty(qr_val, y_trans))
-  resid <- y_trans - X %*% betahat
-  s2 <- sum(resid^2) / (data_object$n - data_object$p)
+  s2 <- data_object$s2
   ns2 <- 1.2 * s2
 
   # find sets of starting values
   ## de
   de <- 0
   ## ie
-  ie <- ns2
+  ie <- 1
   ## range
   range <- get_initial_range(class(spcov_initial_NA), NULL)
   ## rotate
@@ -292,7 +282,8 @@ cov_initial_search_glm.none <- function(spcov_initial_NA, dispersion_initial_NA,
 
   # find starting spatial grid
   spcov_grid <- expand.grid(de = de, ie = ie, range = range, rotate = rotate, scale = scale)
-  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == ns2, , drop = FALSE]
+  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
+  spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid
@@ -478,21 +469,15 @@ cov_initial_search_glm.matern <- function(spcov_initial_NA, dispersion_initial_N
   # find ols sample variance
   X <- do.call("rbind", data_object$X_list)
   y <- do.call("rbind", data_object$y_list)
-  y_trans <- log(y + 1)
-  qr_val <- qr(X)
-  R_val <- qr.R(qr_val)
-  betahat <- backsolve(R_val, qr.qty(qr_val, y_trans))
-  resid <- y_trans - X %*% betahat
-  s2 <- sum(resid^2) / (data_object$n - data_object$p)
+  s2 <- data_object$s2
   ns2 <- 1.2 * s2
 
 
 
   # find sets of starting values
-  ## de
-  de <- ns2 * c(0.1, 0.5, 0.9)
-  ## ie
-  ie <- ns2 * c(0.1, 0.5, 0.9)
+  de <- c(0.1, 0.5, 0.9)
+  # ie
+  ie <- c(0.1, 0.5, 0.9)
   ## range
   range <- get_initial_range(class(spcov_initial_NA), data_object$max_halfdist) * c(0.5, 1.5)
   ## extra
@@ -510,7 +495,8 @@ cov_initial_search_glm.matern <- function(spcov_initial_NA, dispersion_initial_N
 
   # find starting spatial grid
   spcov_grid <- expand.grid(de = de, ie = ie, range = range, extra = extra, rotate = rotate, scale = scale)
-  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == ns2, , drop = FALSE]
+  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
+  spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid
@@ -700,12 +686,7 @@ cov_initial_search_glm.car <- function(spcov_initial_NA, dispersion_initial_NA, 
   # find ols sample variance
   X <- data_object$X
   y <- data_object$y
-  y_trans <- log(y + 1)
-  qr_val <- qr(X)
-  R_val <- qr.R(qr_val)
-  betahat <- backsolve(R_val, qr.qty(qr_val, y_trans))
-  resid <- y_trans - X %*% betahat
-  s2 <- sum(resid^2) / (data_object$n - data_object$p)
+  s2 <- data_object$s2
   ns2 <- 1.2 * s2
 
   # store W as dist_matrix
@@ -714,17 +695,18 @@ cov_initial_search_glm.car <- function(spcov_initial_NA, dispersion_initial_NA, 
 
   # find sets of starting values
   ## de
-  de <- ns2 * c(0.1, 0.5, 0.9)
+  de <- c(0.1, 0.5, 0.9)
   ## ie
-  ie <- ns2 * c(0.1, 0.5, 0.9)
+  ie <- c(0.1, 0.5, 0.9)
   ## range
   rho_length <- data_object$rho_ub - data_object$rho_lb
   range <- c(data_object$rho_lb + 0.25 * rho_length, data_object$rho_ub - 0.25 * rho_length)
 
   # find starting spatial grid
   spcov_grid <- expand.grid(de = de, ie = ie, range = range)
+  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
+  spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
   spcov_grid$extra <- spcov_grid$de
-  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == ns2, , drop = FALSE]
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid

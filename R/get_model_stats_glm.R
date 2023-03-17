@@ -8,7 +8,8 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
     cov_est_object$dist_matrix_list,
     cov_est_object$randcov_params_val,
     data_object$randcov_list,
-    data_object$partition_list
+    data_object$partition_list,
+    diagtol = data_object$diagtol
   )
 
   # find model components

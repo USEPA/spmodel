@@ -235,7 +235,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
                                        betahat = coefficients(object), cov_betahat = vcov(object),
                                        contrasts = object$contrasts,
                                        local = local_list, family = object$family, w = fitted(object, type = "link"), size = object$size,
-                                       dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind
+                                       dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind, diagtol = object$diagtol
       )
       cl <- parallel::stopCluster(cl)
     } else {
@@ -258,7 +258,8 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
                           contrasts = object$contrasts,
                           local = local_list, family = object$family,
                           w = fitted(object, type = "link"), size = object$size,
-                          dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind
+                          dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind,
+                          diagtol = object$diagtol
       )
     }
 
@@ -380,7 +381,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
                           Z_index_obdata_list, reform_bar1_list, Z_val_obdata_list, partition_factor,
                           reform_bar2, partition_index_obdata, cov_lowchol,
                           Xmat, y, betahat, cov_betahat, dim_coords, contrasts, local,
-                          family, w, size, dispersion, predvar_adjust_ind) {
+                          family, w, size, dispersion, predvar_adjust_ind, diagtol) {
 
 
   # storing partition vector
@@ -441,7 +442,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
     partition_matrix_val <- partition_matrix(partition_factor, obdata)
     cov_matrix_val <- cov_matrix(
       spcov_params_val, spdist(obdata, xcoord, ycoord), randcov_params_val,
-      randcov_Zs, partition_matrix_val
+      randcov_Zs, partition_matrix_val, diagtol = diagtol
     )
     cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(cov_matrix_val)))
     model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass)
@@ -570,21 +571,24 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
 
   if (interval %in% c("none", "prediction")) {
 
-    # randcov
+    # # randcov
     randcov_Zs_val <- get_randcov_Zs(randcov_names = names(randcov_params_val), data = object$data)
     # making the partition matrix
     partition_matrix_val <- partition_matrix(object$partition_factor, object$data)
     # making the covariance matrix
     cov_matrix_val <- cov_matrix(spcov_params_val, object$W, randcov_params_val, randcov_Zs_val, partition_matrix_val, object$M)
+    # cov_matrix_val_obs <- covmatrix(object)
 
     # making the covariance vector
     cov_vector_val <- cov_matrix_val[object$missing_index, object$observed_index, drop = FALSE]
+    # cov_vector_val <- covmatrix(object, newdata = object$newdata)
 
     # splitting the covariance vector
     cov_vector_val_list <- split(cov_vector_val, seq_len(NROW(cov_vector_val)))
 
-    # lower triangular cholesky
+    # # lower triangular cholesky
     cov_matrix_lowchol <- t(chol(cov_matrix_val[object$observed_index, object$observed_index, drop = FALSE]))
+    # cov_matrix_lowchol <- t(chol(cov_matrix_val_obs))
 
     # find X observed
     X <- model.matrix(object)

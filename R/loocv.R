@@ -68,21 +68,22 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
   local_list <- get_local_list_prediction(local)
 
   if (local_list$method == "all") {
-    spcov_params_val <- coef(object, type = "spcov")
-    dist_matrix <- spdist(object$obdata, object$xcoord, object$ycoord)
-    randcov_params_val <- coef(object, type = "randcov")
-    if (is.null(object$random)) {
-      randcov_names <- NULL
-      randcov_Zs <- NULL
-    } else {
-      randcov_names <- get_randcov_names(object$random)
-      randcov_Zs <- get_randcov_Zs(object$obdata, randcov_names)
-    }
-    partition_matrix_val <- partition_matrix(object$partition_factor, object$obdata)
-    cov_matrix_val <- cov_matrix(
-      spcov_params_val, dist_matrix, randcov_params_val,
-      randcov_Zs, partition_matrix_val
-    )
+    # spcov_params_val <- coef(object, type = "spcov")
+    # dist_matrix <- spdist(object$obdata, object$xcoord, object$ycoord)
+    # randcov_params_val <- coef(object, type = "randcov")
+    # if (is.null(object$random)) {
+    #   randcov_names <- NULL
+    #   randcov_Zs <- NULL
+    # } else {
+    #   randcov_names <- get_randcov_names(object$random)
+    #   randcov_Zs <- get_randcov_Zs(object$obdata, randcov_names)
+    # }
+    # partition_matrix_val <- partition_matrix(object$partition_factor, object$obdata)
+    # cov_matrix_val <- cov_matrix(
+    #   spcov_params_val, dist_matrix, randcov_params_val,
+    #   randcov_Zs, partition_matrix_val
+    # )
+    cov_matrix_val <- covmatrix(object)
 
     # actually need inverse because of HW blocking
     cov_matrixInv_val <- chol2inv(chol(forceSymmetric(cov_matrix_val)))
@@ -162,22 +163,23 @@ loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...
   local_list <- get_local_list_prediction(local)
 
   # local not used but needed for S3
-  spcov_params_val <- coef(object, type = "spcov")
-  dist_matrix <- object$W
-  randcov_params_val <- coef(object, type = "randcov")
-  if (is.null(object$random)) {
-    randcov_names <- NULL
-    randcov_Zs <- NULL
-  } else {
-    randcov_names <- get_randcov_names(object$random)
-    randcov_Zs <- get_randcov_Zs(object$data, randcov_names)
-  }
-  partition_matrix_val <- partition_matrix(object$partition_factor, object$data)
-  cov_matrix_val <- cov_matrix(
-    spcov_params_val, dist_matrix, randcov_params_val,
-    randcov_Zs, partition_matrix_val, object$M
-  )
-  cov_matrix_obs_val <- cov_matrix_val[object$observed_index, object$observed_index, drop = FALSE]
+  # spcov_params_val <- coef(object, type = "spcov")
+  # dist_matrix <- object$W
+  # randcov_params_val <- coef(object, type = "randcov")
+  # if (is.null(object$random)) {
+  #   randcov_names <- NULL
+  #   randcov_Zs <- NULL
+  # } else {
+  #   randcov_names <- get_randcov_names(object$random)
+  #   randcov_Zs <- get_randcov_Zs(object$data, randcov_names)
+  # }
+  # partition_matrix_val <- partition_matrix(object$partition_factor, object$data)
+  # cov_matrix_val <- cov_matrix(
+  #   spcov_params_val, dist_matrix, randcov_params_val,
+  #   randcov_Zs, partition_matrix_val, object$M
+  # )
+  # cov_matrix_obs_val <- cov_matrix_val[object$observed_index, object$observed_index, drop = FALSE]
+  cov_matrix_obs_val <- covmatrix(object)
 
   # actually need inverse because of HW blocking
   cov_matrixInv_obs_val <- chol2inv(chol(forceSymmetric(cov_matrix_obs_val)))

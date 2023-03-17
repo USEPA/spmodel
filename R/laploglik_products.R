@@ -14,22 +14,23 @@ laploglik_products <- function(spcov_params_val, dispersion_params_val, ...) {
 laploglik_products.exponential <- function(spcov_params_val, dispersion_params_val, data_object, estmethod,
                                          dist_matrix_list, randcov_params_val, ...) {
 
-  if (inherits(spcov_params_val, "none")) {
-    # instability when in smw of H when ie is small enough and the covariance is "none"
-    # spcov_matrix.none does not adequately handle this when de = 0 because max set to 0
-    # maybe another statement after the first max setting to check for zero to get
-    # around this case?
-    if (spcov_params_val[["ie"]] <= 1e-4) {
-      spcov_params_val[["ie"]] <- 1e-4
-    }
-    # if (dispersion_params_val[["dispersion"]] <= 1e-4) {
-    #   dispersion_params_val[["dispersion"]] <- 1e-4
-    # }
-  }
+  # if (inherits(spcov_params_val, "none")) {
+  #   # instability when in smw of H when ie is small enough and the covariance is "none"
+  #   # spcov_matrix.none does not adequately handle this when de = 0 because max set to 0
+  #   # maybe another statement after the first max setting to check for zero to get
+  #   # around this case?
+  #   if (spcov_params_val[["ie"]] <= 1e-4) {
+  #     spcov_params_val[["ie"]] <- 1e-4
+  #   }
+  #   # if (dispersion_params_val[["dispersion"]] <= 1e-4) {
+  #   #   dispersion_params_val[["dispersion"]] <- 1e-4
+  #   # }
+  # }
 
 
   # making a covariance matrix
-  cov_matrix_list <- get_cov_matrix_list(spcov_params_val, dist_matrix_list, randcov_params_val, data_object$randcov_list, data_object$partition_list)
+  cov_matrix_list <- get_cov_matrix_list(spcov_params_val, dist_matrix_list, randcov_params_val, data_object$randcov_list, data_object$partition_list,
+                                         diagtol = data_object$diagtol)
 
 
   # cholesky products
@@ -193,6 +194,9 @@ laploglik_products.sar <- laploglik_products.car
 
 get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod, ret_mHInv = FALSE) {
 
+  # add cov_betahat_Inv stability by same diagonal tolerance as this can have problems too
+  diag(cov_betahat_Inv) <- diag(cov_betahat_Inv) + data_object$diagtol
+
   family <- data_object$family
   SigInv <- Matrix::bdiag(SigInv_list)
   Ptheta <- SigInv - SigInv_X %*% tcrossprod(cov_betahat, SigInv_X)
@@ -245,7 +249,7 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
     # check overshoot on loglik surface
     dnew <- get_d(family, wnew, y, size, dispersion)
     gnew <- dnew - Ptheta %*% wnew
-    if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem", call. = FALSE)
+    if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem. Try rescaling response variable (if continuous) or fix ie at a known non-zero value (via spcov_initial).", call. = FALSE)
     if (max(abs(gnew)) > max(abs(g))) wnew <- w - 0.1 * solveHg
     wdiffmax <- max(abs(wnew - w))
     # update w
@@ -406,7 +410,7 @@ smw_HInv <- function(AInv, U, CInv) {
   #   diag(mid) <- diag(mid) + 1e-4 # inverse stability
   #   solve(mid)
   # })
-  diag(mid) <- diag(mid) + 1e-4
+  # diag(mid) <- diag(mid) + 1e-4
   # if (all(mid == 0)) diag(mid) <- diag(mid) + 1e-4
   AInv - (AInv %*% U) %*% solve(mid) %*% (t(U) %*% AInv)
 }
@@ -415,7 +419,7 @@ smw_mHldet <- function(A_list, AInv, U, C, CInv) {
   Aldet <- sum(unlist(lapply(A_list, function(x) determinant(x, logarithm = TRUE)$modulus))) # must be positive det for -H
   Cldet <- 2 * sum(log(diag(t(chol(C)))))
   mid <- CInv + t(U) %*% AInv %*% U
-  diag(mid) <- diag(mid) + 1e-4
+  # diag(mid) <- diag(mid) + 1e-4
   midldet <- determinant(mid, logarithm = TRUE)$modulus
   as.numeric(Aldet + Cldet + midldet)
 }

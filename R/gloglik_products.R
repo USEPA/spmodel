@@ -15,7 +15,9 @@ gloglik_products.exponential <- function(spcov_params_val, data_object, estmetho
 
 
   # making a covariance matrix
-  cov_matrix_list <- get_cov_matrix_list(spcov_params_val, dist_matrix_list, randcov_params_val, data_object$randcov_list, data_object$partition_list)
+  cov_matrix_list <- get_cov_matrix_list(spcov_params_val, dist_matrix_list, randcov_params_val,
+                                         data_object$randcov_list, data_object$partition_list,
+                                         diagtol = data_object$diagtol)
 
 
   # cholesky products

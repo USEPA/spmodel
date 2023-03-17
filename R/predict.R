@@ -284,15 +284,16 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
 
     # matrix cholesky
     if (local_list$method == "all") {
-      if (!is.null(object$random)) {
-        randcov_names <- get_randcov_names(object$random)
-        randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
-      }
-      partition_matrix_val <- partition_matrix(object$partition_factor, obdata)
-      cov_matrix_val <- cov_matrix(
-        spcov_params_val, spdist(obdata, xcoord, ycoord), randcov_params_val,
-        randcov_Zs, partition_matrix_val
-      )
+      # if (!is.null(object$random)) {
+      #   randcov_names <- get_randcov_names(object$random)
+      #   randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
+      # }
+      # partition_matrix_val <- partition_matrix(object$partition_factor, obdata)
+      # cov_matrix_val <- cov_matrix(
+      #   spcov_params_val, spdist(obdata, xcoord, ycoord), randcov_params_val,
+      #   randcov_Zs, partition_matrix_val
+      # )
+      cov_matrix_val <- covmatrix(object)
       cov_lowchol <- t(chol(cov_matrix_val))
     } else {
       cov_lowchol <- NULL
@@ -317,7 +318,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
                                        y = model.response(model.frame(object)), dim_coords = object$dim_coords,
                                        betahat = coefficients(object), cov_betahat = vcov(object),
                                        contrasts = object$contrasts,
-                                       local = local_list
+                                       local = local_list, diagtol = object$diagtol
       )
       cl <- parallel::stopCluster(cl)
     } else {
@@ -338,7 +339,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
                           y = model.response(model.frame(object)), dim_coords = object$dim_coords,
                           betahat = coefficients(object), cov_betahat = vcov(object),
                           contrasts = object$contrasts,
-                          local = local_list
+                          local = local_list, diagtol = object$diagtol
       )
     }
 
@@ -480,21 +481,24 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none"
 
   if (interval %in% c("none", "prediction")) {
 
-    # randcov
+    # # randcov
     randcov_Zs_val <- get_randcov_Zs(randcov_names = names(randcov_params_val), data = object$data)
     # making the partition matrix
     partition_matrix_val <- partition_matrix(object$partition_factor, object$data)
     # making the covariance matrix
     cov_matrix_val <- cov_matrix(spcov_params_val, object$W, randcov_params_val, randcov_Zs_val, partition_matrix_val, object$M)
+    # cov_matrix_val_obs <- covmatrix(object)
 
     # making the covariance vector
     cov_vector_val <- cov_matrix_val[object$missing_index, object$observed_index, drop = FALSE]
+    # cov_vector_val <- covmatrix(object, newdata = object$newdata)
 
     # splitting the covariance vector
     cov_vector_val_list <- split(cov_vector_val, seq_len(NROW(cov_vector_val)))
 
     # lower triangular cholesky
     cov_matrix_lowchol <- t(chol(cov_matrix_val[object$observed_index, object$observed_index, drop = FALSE]))
+    # cov_matrix_lowchol <- t(chol(cov_matrix_val_obs))
 
     # find X observed
     X <- model.matrix(object)
@@ -612,7 +616,7 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
                           spcov_params_val, random, randcov_params_val, reform_bar2_list,
                           Z_index_obdata_list, reform_bar1_list, Z_val_obdata_list, partition_factor,
                           reform_bar2, partition_index_obdata, cov_lowchol,
-                          Xmat, y, betahat, cov_betahat, dim_coords, contrasts, local) {
+                          Xmat, y, betahat, cov_betahat, dim_coords, contrasts, local, diagtol = diagtol) {
 
 
   # storing partition vector
@@ -665,7 +669,7 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
     partition_matrix_val <- partition_matrix(partition_factor, obdata)
     cov_matrix_val <- cov_matrix(
       spcov_params_val, spdist(obdata, xcoord, ycoord), randcov_params_val,
-      randcov_Zs, partition_matrix_val
+      randcov_Zs, partition_matrix_val, diagtol = diagtol
     )
     cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(cov_matrix_val)))
     model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass)

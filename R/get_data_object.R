@@ -316,12 +316,11 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
       if (inherits(spcov_initial, "sar")) {
         warning("M ignored for sar models", call. = FALSE)
       }
-      if (inherits(M, "matrix")) {
-        if (dim(M)[1] == dim(M)[2]) {
-          M <- diag(M) # take diagonal of matrix
-        } else {
-          M <- as.vector(M) # assume diagonal already given as one-column vector
-        }
+      M <- as.matrix(M) # coerce to matrix from vector, matrix, or Matrix
+      if (dim(M)[1] == dim(M)[2]) {
+        M <- diag(M) # take diagonal of matrix
+      } else {
+        M <- as.vector(M) # assume diagonal already given as one-column vector
       }
     }
   }

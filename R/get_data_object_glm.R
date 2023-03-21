@@ -160,9 +160,12 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     size <- rowSums(y_modr)
   } else {
     if (family == "binomial") {
-      # if (is.factor(y_modr)) {
-      #   y_modr <- ifelse(y_modr == levels(y_modr)[1], 0, 1)
-      # }
+      if (is.factor(y_modr)) {
+        if (length(levels(y_modr)) != 2) {
+          stop("When family is binomial, a factor response must have exactly two levels.", call. = FALSE)
+        }
+        y_modr <- ifelse(y_modr == levels(y_modr)[1], 0, 1)
+      }
       size <- rep(1, n)
     } else {
       size <- NULL
@@ -432,9 +435,12 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
     size <- rowSums(y_modr)
   } else {
     if (family == "binomial") {
-      # if (is.factor(y_modr)) {
-      #   y_modr <- ifelse(y_modr == levels(y_modr)[1], 0, 1)
-      # }
+      if (is.factor(y_modr)) {
+        if (length(levels(y_modr)) != 2) {
+          stop("When family is binomial, a factor response must have exactly two levels.", call. = FALSE)
+        }
+        y_modr <- ifelse(y_modr == levels(y_modr)[1], 0, 1)
+      }
       size <- rep(1, NROW(obdata))
     } else {
       size <- NULL

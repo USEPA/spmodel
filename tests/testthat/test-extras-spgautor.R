@@ -17,6 +17,7 @@ if (test_local) {
   # add variables
   n <- NROW(exdata_poly)
   exdata_poly$bern <- rbinom(n, size = 1, prob = 0.5)
+  exdata_poly$bernfac <- factor(ifelse(exdata_poly$bern == 0, "a", "b"))
   exdata_poly$size <- 5
   exdata_poly$bin <- rbinom(n, size = exdata_poly$size, prob = 0.5)
   exdata_poly$prop <- runif(n)
@@ -34,10 +35,13 @@ if (test_local) {
 
   test_that("the model runs for binomial data", {
     expect_error(spgautor(bern ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml"), NA)
+    expect_error(spgautor(bernfac ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml"), NA)
     expect_error(spgautor(cbind(bin, size) ~ x, family = "binomial", data = exdata_poly, spcov_type = "sar", estmethod = "ml"), NA)
 
     # complicated models
     expect_error(spgautor(bern ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml",
+                          W = W, row_st = FALSE, M = M), NA)
+    expect_error(spgautor(bernfac ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml",
                           W = W, row_st = FALSE, M = M), NA)
     expect_error(spgautor(cbind(bin, size) ~ x, family = "binomial", data = exdata_poly, spcov_type = "sar", estmethod = "ml",
                           random = ~ group), NA)

@@ -17,6 +17,7 @@ if (test_local) {
   # add variables
   n <- NROW(exdata)
   exdata$bern <- rbinom(n, size = 1, prob = 0.5)
+  exdata$bernfac <- factor(ifelse(exdata$bern == 0, "a", "b"))
   exdata$size <- 5
   exdata$bin <- rbinom(n, size = exdata$size, prob = 0.5)
   exdata$prop <- runif(n)
@@ -25,10 +26,12 @@ if (test_local) {
 
   test_that("the model runs for binomial data", {
     expect_error(spglm(bern ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml"), NA)
+    expect_error(spglm(bernfac ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml"), NA)
     expect_error(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml"), NA)
 
     # complicated models
     expect_error(spglm(bern ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~ group, anisotropy = TRUE, local = TRUE), NA)
+    expect_error(spglm(bernfac ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~ group, anisotropy = TRUE, local = TRUE), NA)
     expect_error(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml", partition_factor = ~ group), NA)
   })
 

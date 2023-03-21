@@ -29,6 +29,6 @@ spgautor_checks <- function(family, spcov_type, W_given, data, estmethod) {
   # family must be a character here
   family_valid <- c("binomial", "poisson", "nbinomial", "Gamma", "inverse.gaussian", "beta")
   if (!(family %in% family_valid)) {
-    stop(paste(family, " is not a valid glm family."), call. = FALSE)
+    stop(paste(family, " is not a valid glm family.", sep = ""), call. = FALSE)
   }
 }

@@ -28,11 +28,11 @@ the terms, separated by \code{+} operators, on the right.}
 
 \item{family}{The generalized linear model family describing the distribution
 of the response variable to be used. Available options
-\code{"gaussian"}, \code{"poisson"}, \code{"nbinomial"}, \code{"binomial"},
+\code{"poisson"}, \code{"nbinomial"}, \code{"binomial"},
 \code{"beta"}, \code{"Gamma"}, and \code{"inverse.gaussian"}.
 Can be quoted or unquoted. Note that the \code{family} argument
 only takes a single value, rather than the list structure used by \link[stats:glm]{stats::glm}.
-See Details for more. When \code{family} is \code{"gaussian"}, models are fit using \code{\link[=spautor]{spautor()}}.}
+See Details for more.}
 
 \item{data}{A data frame or \code{sf} object that contains
 the variables in \code{fixed}, \code{random}, and \code{partition_factor},
@@ -139,9 +139,8 @@ matrix, \eqn{\beta} are the fixed effects, \eqn{\tau} is random error that is
 spatially dependent, and \eqn{\epsilon} is random error that is spatially
 independent.
 
-There are seven generalized linear model
-families available: \code{gaussian} assumes \eqn{y} is a Gaussian random
-variable, \code{poisson} assumes \eqn{y} is a Poisson random variable
+There are six generalized linear model
+families available: \code{poisson} assumes \eqn{y} is a Poisson random variable
 \code{nbinomial} assumes \eqn{y} is a negative binomial random
 variable, \code{binomial} assumes \eqn{y} is a binomial random variable,
 \code{beta} assumes \eqn{y} is a beta random variable,
@@ -152,7 +151,6 @@ random variable.
 The supports for \eqn{y} for each family are given below:
 \itemize{
 \item{family: }{support of \eqn{y}}
-\item{gaussian: }{\eqn{-\infty \le y \le \infty}}
 \item{poisson: }{\eqn{0 \le y}; \eqn{y} an integer}
 \item{nbinomial: }{\eqn{0 \le y}; \eqn{y} an integer}
 \item{binomial: }{\eqn{0 \le y}; \eqn{y} an integer}
@@ -166,7 +164,6 @@ and the parameterizations of their link functions are given
 below:
 \itemize{
 \item{family: }{link function}
-\item{gaussian: }{\eqn{g(\mu) = \eta} (identity link)}
 \item{poisson: }{\eqn{g(\mu) = log(\eta)} (log link)}
 \item{nbinomial: }{\eqn{g(\mu) = log(\eta)} (log link)}
 \item{binomial: }{\eqn{g(\mu) = log(\eta / (1 - \eta))} (logit link)}
@@ -179,7 +176,6 @@ The variance function of an individual \eqn{y} (given \eqn{\mu})
 for each generalized linear model family is given below:
 \itemize{
 \item{family: }{\eqn{Var(y)}}
-\item{gaussian: }{\eqn{\phi}}
 \item{poisson: }{\eqn{\mu \phi}}
 \item{nbinomial: }{\eqn{\mu + \mu^2 / \phi}}
 \item{binomial: }{\eqn{n \mu (1 - \mu) \phi}}
@@ -188,7 +184,6 @@ for each generalized linear model family is given below:
 \item{inverse.gaussian: }{\eqn{\mu^2 / \phi}}
 }
 The parameter \eqn{\phi} is a dispersion parameter that influences \eqn{Var(y)}.
-For the \code{gaussian} family, \eqn{\phi = \sigma^2}, the overall variance.
 For the \code{poisson} and \code{binomial} families, \eqn{\phi} is always
 one. Note that this inverse Gaussian parameterization is different than a
 standard inverse Gaussian parameterization, which has variance \eqn{\mu^3 / \lambda}.

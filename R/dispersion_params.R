@@ -31,11 +31,6 @@
 #'   For more on generalized linear model constructions, see McCullagh and
 #'   Nelder (1989).
 #'
-#'   Note that while \code{"gaussian"} is a family for \code{spglm()} and \code{spautor()},
-#'   it is not available here. This is because the \code{"gaussian"} family
-#'   uses spmodel's spatial linear modeling functions (and implicitly incorporates
-#'   dispersion).
-#'
 #' @return A named numeric vector with class \code{family} containing the dispersion.
 #'
 #' @export

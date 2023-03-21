@@ -69,15 +69,17 @@ if (test_local) {
   test_that("the model runs for continuous data", {
     expect_error(spgautor(cont ~ x, family = "Gamma", data = exdata_poly, spcov_type = "car", estmethod = "reml"), NA)
     expect_error(spgautor(cont ~ x, family = inverse.gaussian, data = exdata_poly, spcov_type = "sar", estmethod = "ml"), NA)
-    expect_error(spgautor(cont ~ x, family = gaussian, data = exdata_poly, spcov_type = "car", estmethod = "reml"), NA)
+    # SHOULD BE AN ERROR AS GAUSSIAN FAMILY REMOVED
+    expect_error(spgautor(cont ~ x, family = gaussian, data = exdata_poly, spcov_type = "car", estmethod = "reml"))
 
     # complicated models
     expect_error(spgautor(cont ~ x, family = "Gamma", data = exdata_poly, spcov_type = "car", estmethod = "reml",
                           W = Wbar, row_st = FALSE, M = Mvec), NA)
     expect_error(spgautor(cont ~ x, family = inverse.gaussian, data = exdata_poly, spcov_type = "sar", estmethod = "ml",
                           random = ~ subgroup, partition_factor = ~ group), NA)
+    ## SHOULD BE AN ERROR AS GAUSSIAN FAMILY REMOVED
     expect_error(spgautor(cont ~ x, family = gaussian, data = exdata_poly, spcov_type = "car", estmethod = "reml",
-                          random = ~ subgroup), NA)
+                          random = ~ subgroup))
   })
 
   test_that("the model runs on other data sets", {

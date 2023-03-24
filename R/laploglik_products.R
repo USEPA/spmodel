@@ -249,7 +249,7 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
     # check overshoot on loglik surface
     dnew <- get_d(family, wnew, y, size, dispersion)
     gnew <- dnew - Ptheta %*% wnew
-    if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem. Try rescaling response variable (if continuous) or fix ie at a known non-zero value (via spcov_initial).", call. = FALSE)
+    if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem. Try using a different family, removing extreme observations, rescaling the response variable (if continuous), fixing ie at a known, non-zero value (via spcov_initial), or fixing dispersion at one (via dispersion_initial).", call. = FALSE)
     if (max(abs(gnew)) > max(abs(g))) wnew <- w - 0.1 * solveHg
     wdiffmax <- max(abs(wnew - w))
     # update w

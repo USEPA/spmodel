@@ -289,8 +289,8 @@
 #' @export
 #'
 #' @examples
-#' spgmod <- spglm(z ~ water + tarp, family = "inverse.gaussian", data = caribou,
-#'   spcov_type = "exponential", xcoord = x, ycoord = y
+#' spgmod <- spglm(presence ~ elev, family = "binomial", data = moose,
+#'   spcov_type = "exponential"
 #' )
 #' summary(spgmod)
 #' @references

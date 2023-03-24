@@ -328,8 +328,8 @@ stable due to large extremely large variances, scale relevant variables
 so they have variance 1 before optimization.
 }
 \examples{
-spgmod <- spglm(z ~ water + tarp, family = "inverse.gaussian", data = caribou,
-  spcov_type = "exponential", xcoord = x, ycoord = y
+spgmod <- spglm(presence ~ elev, family = "binomial", data = moose,
+  spcov_type = "exponential"
 )
 summary(spgmod)
 }

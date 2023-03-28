@@ -46,8 +46,12 @@ test_that("generics work spgautor polygon data", {
   # fitted
   expect_vector(fitted(spmod1))
   expect_vector(fitted(spmod1, type = "link"))
+  expect_type(fitted(spmod1, type = "spcov"), "list")
+  expect_null(fitted(spmod1, type = "randcov"))
   expect_vector(fitted.values(spmod1))
   expect_vector(fitted.values(spmod1, type = "link"))
+  expect_type(fitted.values(spmod1, type = "spcov"), "list")
+  expect_null(fitted.values(spmod1, type = "randcov"))
 
   # formula
   expect_type(formula(spmod1), "language")
@@ -181,8 +185,12 @@ test_that("generics work spgautor polygon data with missing", {
   # fitted
   expect_vector(fitted(spmod1))
   expect_vector(fitted(spmod1, type = "link"))
+  expect_type(fitted(spmod1, type = "spcov"), "list")
+  expect_null(fitted(spmod1, type = "randcov"))
   expect_vector(fitted.values(spmod1))
   expect_vector(fitted.values(spmod1, type = "link"))
+  expect_type(fitted.values(spmod1, type = "spcov"), "list")
+  expect_null(fitted.values(spmod1, type = "randcov"))
 
   # formula
   expect_type(formula(spmod1), "language")
@@ -319,8 +327,12 @@ test_that("generics work spgautor polygon data unconnected", {
   # fitted
   expect_vector(fitted(spmod1))
   expect_vector(fitted(spmod1, type = "link"))
+  expect_type(fitted(spmod1, type = "spcov"), "list")
+  expect_null(fitted(spmod1, type = "randcov"))
   expect_vector(fitted.values(spmod1))
   expect_vector(fitted.values(spmod1, type = "link"))
+  expect_type(fitted.values(spmod1, type = "spcov"), "list")
+  expect_null(fitted.values(spmod1, type = "randcov"))
 
   # formula
   expect_type(formula(spmod1), "language")

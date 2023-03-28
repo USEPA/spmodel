@@ -6,8 +6,12 @@ fitted.spglm <- function(object, type = "response", ...) {
     fitted_val <- object$fitted$link
   } else if (type == "response") {
     fitted_val <- object$fitted$response
+  } else if (type == "spcov") {
+    fitted_val <- object$fitted$spcov
+  } else if (type == "randcov") {
+    fitted_val <- object$fitted$randcov
   } else {
-    stop("Invalid type argument. The type argument must be \"response\" or  \"link\".", call. = FALSE)
+    stop("Invalid type argument. The type argument must be \"response\",  \"link\", \"spcov\", or \"randcov\".", call. = FALSE)
   }
   fitted_val
 }

@@ -102,7 +102,11 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
                                        cov_est_object$dispersion_params_val, cov_est_object$randcov_params_val)
 
   # return fitted
-  fitted <- get_fitted_glm(w, data_object)
+  fitted <- get_fitted_spglm(
+    w_list, betahat, cov_est_object$spcov_params_val, data_object,
+    eigenprods_list, cov_est_object$dist_matrix_list,
+    cov_est_object$randcov_params_val
+  )
 
   # return hat values
   hatvalues <- get_hatvalues_glm(w, X, data_object, dispersion)
@@ -129,7 +133,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
 
   w_null <- as.vector(w_and_H_null$w)
 
-  fitted_null <- get_fitted_glm(w_null, data_object)$response
+  fitted_null <- get_fitted_null(w_null, data_object)
 
   # return deviance i
   deviance_i_null <- get_deviance_glm(data_object$family, y, fitted_null, data_object$size, dispersion)
@@ -252,7 +256,10 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
                                        cov_est_object$dispersion_params_val, cov_est_object$randcov_params_val)
 
   # return fitted
-  fitted <- get_fitted_glm(w, data_object)
+  fitted <- get_fitted_spgautor(
+    w, betahat, cov_est_object$spcov_params_val, data_object, eigenprods,
+    cov_est_object$randcov_params_val
+  )
 
   # return hat values
   hatvalues <- get_hatvalues_glm(w, X, data_object, dispersion)
@@ -279,7 +286,7 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
 
   w_null <- as.vector(w_and_H_null$w)
 
-  fitted_null <- get_fitted_glm(w_null, data_object)$response
+  fitted_null <- get_fitted_null(w_null, data_object)
 
   # return deviance i
   deviance_i_null <- get_deviance_glm(data_object$family, y, fitted_null, data_object$size, dispersion)

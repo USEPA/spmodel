@@ -13,6 +13,8 @@
 * Fixed a bug in `spautor()` that did not properly coerce `M` if given as a matrix (instead of a vector).
 * Fixed a bug in `esv()` that prevented coercion of `POLYGON`geometries to `POINT` geometries if `data` was an `sf` object.
 * Fixed a bug in `esv()` that did not remove `NA` values from the response.
+* Fixed a bug in `splm()` and `spautor()` that caused an error when random effects or partition factors were ordered factors.
+* Fixed a bug in `spautor()` that prevented an error from occuring when a partition factor was not categorical or not a factor
 
 # spmodel 0.3.0
 

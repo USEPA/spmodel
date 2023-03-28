@@ -178,6 +178,11 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     stop("Response variable must be numeric", call. = FALSE)
   }
 
+  # error if no variance
+  if (var(y) == 0) {
+    stop("The response has no variability. Model fit unreliable.", call. = FALSE)
+  }
+
   # checks on y
   response_checks_glm(family, y, size)
 
@@ -213,7 +218,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
       stop("Only one variable can be specified in partition_factor.", call. = FALSE)
     }
     partition_mf <- model.frame(partition_factor, obdata)
-    if (any(! attr(terms(partition_mf), "dataClasses") %in% c("character", "factor"))) {
+    if (any(! attr(terms(partition_mf), "dataClasses") %in% c("character", "factor", "ordered"))) {
       stop("Partition factor variable must be categorical or factor.", call. = FALSE)
     }
     partition_factor <- reformulate(partition_factor_labels, intercept = FALSE)
@@ -453,6 +458,11 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
     stop("Response variable must be numeric", call. = FALSE)
   }
 
+  # error if no variance
+  if (var(y) == 0) {
+    stop("The response has no variability. Model fit unreliable.", call. = FALSE)
+  }
+
   # checks on y
   response_checks_glm(family, y, size)
 
@@ -504,12 +514,26 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
   }
 
   # partition matrix error
+  # if (!is.null(partition_factor)) {
+  #   partition_factor_labels <- labels(terms(partition_factor))
+  #   if (length(partition_factor_labels) > 1) {
+  #     stop("Only one variable can be specified in partition_factor.", call. = FALSE)
+  #   }
+  #   partition_factor <- reformulate(paste0("as.character(", partition_factor_labels, ")"), intercept = FALSE)
+  # }
+
+  # coerce to factor
   if (!is.null(partition_factor)) {
     partition_factor_labels <- labels(terms(partition_factor))
     if (length(partition_factor_labels) > 1) {
       stop("Only one variable can be specified in partition_factor.", call. = FALSE)
     }
-    partition_factor <- reformulate(paste0("as.character(", partition_factor_labels, ")"), intercept = FALSE)
+    partition_mf <- model.frame(partition_factor, obdata)
+    if (any(! attr(terms(partition_mf), "dataClasses") %in% c("character", "factor", "ordered"))) {
+      stop("Partition factor variable must be categorical or factor.", call. = FALSE)
+    }
+    partition_factor <- reformulate(partition_factor_labels, intercept = FALSE)
+    # partition_factor <- reformulate(paste0("as.character(", partition_factor_labels, ")"), intercept = FALSE)
   }
 
   # store partition matrix list

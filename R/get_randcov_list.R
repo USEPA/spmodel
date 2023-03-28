@@ -55,7 +55,7 @@ get_randcov_Z <- function(randcov_name, data, ZZt = TRUE, ZtZ = FALSE) {
   bar_split <- unlist(strsplit(randcov_name, " | ", fixed = TRUE))
   Z_reform <- reformulate(bar_split[[2]], intercept = FALSE)
   Z_frame <- model.frame(Z_reform, data = data, drop.unused.levels = FALSE)
-  if (any(! attr(terms(Z_frame), "dataClasses") %in% c("character", "factor"))) {
+  if (any(! attr(terms(Z_frame), "dataClasses") %in% c("character", "factor", "ordered"))) {
     stop("Random effect grouping variables must be categorical or factor.", call. = FALSE)
   }
   Z_index <- Matrix(model.matrix(Z_reform, Z_frame), sparse = TRUE)

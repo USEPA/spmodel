@@ -605,11 +605,11 @@ if (test_local) {
     expect_error(spautor(formula = y ~ x, data = exdata_poly, spcov_initial = spcov_initial_val), NA)
 
     # partition factor with one level and random effects
-    exdata_poly$part <- 1
+    exdata_poly$part <- as.factor(1)
     expect_error(spautor(formula = y ~ x, data = exdata_poly, "car", random = ~group, partition_factor = ~part), NA)
-    exdata_Upoly$part <- 1
+    exdata_Upoly$part <- as.factor(1)
     expect_error(spautor(formula = y ~ x, data = exdata_Upoly, "car", random = ~group, partition_factor = ~part), NA)
-    exdata_Mpoly$part <- 1
+    exdata_Mpoly$part <- as.factor(1)
     expect_error(spautor(formula = y ~ x, data = exdata_Mpoly, "car", random = ~group, partition_factor = ~part), NA)
   })
 
@@ -617,6 +617,11 @@ if (test_local) {
     expect_message(spautor(y ~ x, exdata_poly))
     spcov_initial_val <- spcov_initial("car")
     expect_message(spautor(y ~ x, exdata_poly, "car", spcov_initial = spcov_initial_val))
+  })
+
+  test_that("no variance error works", {
+    exdata_poly$novar <- 1
+    expect_error(spautor(novar ~ x, exdata_poly, "car"))
   })
 
 }

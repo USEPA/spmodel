@@ -12,6 +12,6 @@
 #'   influence kmeans lm logLik model.frame model.matrix model.response na.omit na.pass pchisq
 #'   pnorm predict printCoefmat pt qnorm qqnorm qqline qt quantile
 #'   rbeta rbinom rgamma rnbinom rpois resid
-#'   residuals reformulate rnorm rstandard terms vcov
+#'   residuals reformulate rnorm rstandard terms var vcov
 #' @importFrom tibble tibble as_tibble
 NULL

@@ -1007,6 +1007,11 @@ if (test_local) {
     spmod2$call <- NULL
     expect_equal(spmod1, spmod2)
   })
+
+  test_that("no variance error works", {
+    exdata$novar <- 1
+    expect_error(splm(novar ~ x, exdata, "exponential", xcoord, ycoord))
+  })
 }
 
 

@@ -5,7 +5,7 @@
 \alias{moose}
 \title{Moose counts and presence in Alaska, USA}
 \format{
-An \code{sf} object with 218 rows and 1 column.
+An \code{sf} object with 218 rows and 5 columns.
 \describe{
 \item{elev: }{The elevation.}
 \item{strat: }{A factor representing strata (used for sampling). Can take values \code{L} and \code{M}.}

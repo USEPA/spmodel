@@ -1316,7 +1316,7 @@ if (test_local) {
     expect_vector(predict(sprfmod)[[2]])
   })
 
-  test_that("prediction for slautorRF works", {
+  test_that("prediction for spautorRF works", {
     spcov_type <- "car"
     sprfmod <- spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type)
     expect_vector(predict(sprfmod))
@@ -1326,6 +1326,23 @@ if (test_local) {
     expect_vector(predict(sprfmod))
     expect_vector(predict(sprfmod)[[1]])
     expect_vector(predict(sprfmod)[[2]])
+  })
+
+  test_that("prediction for splm offset works", {
+    exdata$offset <- 2
+    exdata$y2 <- exdata$y - exdata$offset
+    newexdata$offset <- 2
+    spmod1 <- splm(y ~ x + offset(offset), exdata, "exponential", xcoord, ycoord)
+    spmod2 <- splm(y2 ~ x,  exdata, "exponential", xcoord, ycoord)
+    expect_equal(fitted(spmod1), fitted(spmod2))
+  })
+
+  test_that("prediction for spautor offset works", {
+    exdata_Mpoly$offset <- 2
+    exdata_Mpoly$y2 <- exdata_Mpoly$y - exdata_Mpoly$offset
+    spmod1 <- spautor(y ~ x + offset(offset), exdata_Mpoly, "car")
+    spmod2 <- spautor(y2 ~ x,  exdata_Mpoly, "car")
+    expect_equal(fitted(spmod1), fitted(spmod2))
   })
 
   ##############################################################################

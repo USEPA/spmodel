@@ -256,6 +256,11 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
     w <- wnew
   }
 
+  # handle offset
+  if (!is.null(data_object$offset)) {
+    w <- w - data_object$offset
+  }
+
   mHldet <- smw_mHldet(A_list = DSigInv_list, AInv = DSigInv_Inv, U = SigInv_X, C = cov_betahat, CInv = cov_betahat_Inv)
   w_and_H_list <- list(w = w, H = NULL, mHldet = mHldet)
   if (ret_mHInv) {
@@ -294,6 +299,11 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
     wdiffmax <- max(abs(wnew - w))
     # update w
     w <- wnew
+  }
+
+  # handle offset
+  if (!is.null(data_object$offset)) {
+    w <- w + data_object$offset
   }
 
   mHldet <- as.numeric(determinant(-H, logarithm = TRUE)$modulus)

@@ -108,11 +108,18 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
     newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
     newdata_model <- newdata_model[1, , drop = FALSE]
+    # find offset
+    offset <- model.offset(newdata_model_frame)
+    if (!is.null(offset)) {
+      offset <- offset[1]
+    }
     newdata <- newdata[1, , drop = FALSE]
   } else {
     newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
     # assumes that predicted observations are not outside the factor levels
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
+    # find offset
+    offset <- model.offset(newdata_model_frame)
   }
   attr_assign <- attr(newdata_model, "assign")
   attr_contrasts <- attr(newdata_model, "contrasts")
@@ -265,6 +272,10 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
 
     if (interval == "none") {
       fit <- vapply(pred_spglm, function(x) x$fit, numeric(1))
+      # apply offset
+      if (!is.null(offset)) {
+        fit <- fit + offset
+      }
       if (type == "response") {
         fit <- invlink(fit, object$family, newdata_size)
       }
@@ -302,6 +313,10 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
 
     if (interval == "prediction") {
       fit <- vapply(pred_spglm, function(x) x$fit, numeric(1))
+      # apply offset
+      if (!is.null(offset)) {
+        fit <- fit + offset
+      }
       vars <- vapply(pred_spglm, function(x) x$var, numeric(1))
       if (predvar_adjust_all) {
         vars_adj <- get_wts_varw(
@@ -345,6 +360,10 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
   } else if (interval == "confidence") {
     # finding fitted values of the mean parameters
     fit <- as.numeric(newdata_model %*% coef(object))
+    # apply offset
+    if (!is.null(offset)) {
+      fit <- fit + offset
+    }
     newdata_model_list <- split(newdata_model, seq_len(NROW(newdata_model)))
     vars <- as.numeric(vapply(newdata_model_list, function(x) crossprod(x, vcov(object) %*% x), numeric(1)))
     se <- sqrt(vars)
@@ -550,11 +569,18 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
     newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
     newdata_model <- newdata_model[1, , drop = FALSE]
+    # find offset
+    offset <- model.offset(newdata_model_frame)
+    if (!is.null(offset)) {
+      offset <- offset[1]
+    }
     newdata <- newdata[1, , drop = FALSE]
   } else {
     newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
     # assumes that predicted observations are not outside the factor levels
     newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
+    # find offset
+    offset <- model.offset(newdata_model_frame)
   }
   attr_assign <- attr(newdata_model, "assign")
   attr_contrasts <- attr(newdata_model, "contrasts")
@@ -650,6 +676,10 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
 
     if (interval == "none") {
       fit <- vapply(pred_spautor, function(x) x$fit, numeric(1))
+      # apply offset
+      if (!is.null(offset)) {
+        fit <- fit + offset
+      }
       if (type == "response") {
         fit <- invlink(fit, object$family, newdata_size)
       }
@@ -679,6 +709,10 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
 
     if (interval == "prediction") {
       fit <- vapply(pred_spautor, function(x) x$fit, numeric(1))
+      # apply offset
+      if (!is.null(offset)) {
+        fit <- fit + offset
+      }
       vars <- vapply(pred_spautor, function(x) x$var, numeric(1))
       vars_adj <- get_wts_varw(
         family = object$family,
@@ -716,6 +750,10 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
   } else if (interval == "confidence") {
     # finding fitted values of the mean parameters
     fit <- as.numeric(newdata_model %*% coef(object))
+    # apply offset
+    if (!is.null(offset)) {
+      fit <- fit + offset
+    }
     vars <- as.numeric(vapply(newdata_model_list, function(x) crossprod(x, vcov(object) %*% x), numeric(1)))
     se <- sqrt(vars)
     # tstar <- qt(1 - (1 - level) / 2, df = object$n - object$p)

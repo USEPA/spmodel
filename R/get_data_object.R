@@ -146,6 +146,11 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   n <- NROW(X)
   # find response
   y <- as.matrix(model.response(obdata_model_frame), ncol = 1)
+  # adjust response to reflect offset
+  offset <- model.offset(obdata_model_frame)
+  if (!is.null(offset)) {
+    y <- y - as.matrix(offset, ncol = 1)
+  }
 
   # see if response is numeric
   if (!is.numeric(y)) {
@@ -395,6 +400,11 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
   dots$contrasts <- attr(X, "contrasts")
   xlevels <- .getXlevels(terms_val, obdata_model_frame)
   y <- as.matrix(model.response(obdata_model_frame), ncol = 1)
+  # adjust response to reflect offset
+  offset <- model.offset(obdata_model_frame)
+  if (!is.null(offset)) {
+    y <- y - as.matrix(offset, ncol = 1)
+  }
 
   # see if response is numeric
   if (!is.numeric(y)) {

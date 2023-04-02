@@ -5,6 +5,7 @@
 ## Minor updates
 
 * In `augment()`, made the `level` and `local` arguments explicit (rather than being passed to `predict()` via `...`).
+* Added `offset` support for relevant modeling functions.
 * Minor documentation updates
 
 ## Bug fixes

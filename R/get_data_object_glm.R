@@ -173,6 +173,12 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     y <- as.matrix(y_modr, ncol = 1)
   }
 
+  # handle offset
+  offset <- model.offset(obdata_model_frame)
+  if (!is.null(offset)) {
+    offset <- as.matrix(offset, ncol = 1)
+  }
+
   # see if response is numeric
   if (!is.numeric(y)) {
     stop("Response variable must be numeric", call. = FALSE)
@@ -249,6 +255,12 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     size <- as.vector(do.call("rbind", size_list)) # rearranging size by y list
   }
 
+  # organize offset (as a one col matrix)
+  if (!is.null(offset)) {
+    offset <- do.call("rbind", (split.data.frame(offset, local$index)))
+  }
+
+
 
   # store random effects list
   if (is.null(random)) {
@@ -291,7 +303,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     anisotropy = anisotropy, contrasts = dots$contrasts, crs = crs,
     dim_coords = dim_coords, family = family, formula = formula, is_sf = is_sf, local_index = local$index,
     obdata = obdata, obdata_list = obdata_list,
-    observed_index = observed_index, ones_list = ones_list, order = order, n = n,
+    observed_index = observed_index, offset = offset, ones_list = ones_list, order = order, n = n,
     max_halfdist = max_halfdist, missing_index = missing_index, ncores = local$ncores,
     newdata = newdata, p = p, parallel = local$parallel,
     partition_factor_initial = partition_factor, partition_factor = local$partition_factor,
@@ -453,6 +465,12 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
     y <- as.matrix(y_modr, ncol = 1)
   }
 
+  # handle offset
+  offset <- model.offset(obdata_model_frame)
+  if (!is.null(offset)) {
+    offset <- as.matrix(offset, ncol = 1)
+  }
+
   # see if response is numeric
   if (!is.numeric(y)) {
     stop("Response variable must be numeric", call. = FALSE)
@@ -547,7 +565,7 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
     anisotropy = FALSE, contrasts = dots$contrasts, crs = crs, family = family,
     formula = formula, data = data, is_sf = is_sf, is_W_connected = is_W_connected,
     missing_index = missing_index, n = n,
-    obdata = obdata, observed_index = observed_index, ones = ones, newdata = newdata, p = p,
+    obdata = obdata, observed_index = observed_index, offset = offset, ones = ones, newdata = newdata, p = p,
     partition_factor = partition_factor, partition_matrix = partition_matrix,
     randcov_initial = randcov_initial, randcov_names = randcov_names, randcov_Zs = randcov_Zs,
     sf_column_name = sf_column_name, size = size, terms = terms_val, W = W, W_rowsums = W_rowsums, M = M,

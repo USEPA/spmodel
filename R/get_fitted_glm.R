@@ -1,6 +1,6 @@
 get_fitted_null <- function(w, data_object) {
   fitted_link <- as.numeric(w)
-  fitted_response <- invlink(fitted_link, data_object$family, data_object$size)
+  # fitted_response <- invlink(fitted_link, data_object$family, data_object$size)
 }
 
 get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenprods_list,

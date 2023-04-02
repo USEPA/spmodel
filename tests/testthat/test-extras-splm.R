@@ -1012,6 +1012,15 @@ if (test_local) {
     exdata$novar <- 1
     expect_error(splm(novar ~ x, exdata, "exponential", xcoord, ycoord))
   })
+
+  test_that("offset works", {
+    exdata$offset <- 2
+    exdata$y2 <- exdata$y - exdata$offset
+    newexdata$offset <- 2
+    spmod1 <- splm(y ~ x + offset(offset), exdata, "exponential", xcoord, ycoord)
+    spmod2 <- splm(y2 ~ x,  exdata, "exponential", xcoord, ycoord)
+    expect_equal(fitted(spmod1), fitted(spmod2))
+  })
 }
 
 

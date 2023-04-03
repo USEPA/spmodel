@@ -16,6 +16,7 @@
 * Fixed a bug in `esv()` that did not remove `NA` values from the response.
 * Fixed a bug in `splm()` and `spautor()` that caused an error when random effects or partition factors were ordered factors.
 * Fixed a bug in `spautor()` that prevented an error from occuring when a partition factor was not categorical or not a factor
+* Fixed a bug in `covmatrix(object, newdata)` that returned a matrix with improper dimensions when `spcov_type` was `"none"`.
 
 # spmodel 0.3.0
 

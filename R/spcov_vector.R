@@ -51,7 +51,11 @@ spcov_vector.circular <- function(spcov_params, dist_vector) {
 # spcov_vector none
 #' @export
 spcov_vector.none <- function(spcov_params, dist_vector) {
-  spcov_vector_val <- Matrix(0, nrow = 1, ncol = length(dist_vector), sparse = TRUE) # length dist vector
+  if (is.vector(dist_vector)) { # changed to conditional to work with covmatrix(object, newdata)
+    spcov_vector_val <- Matrix(0, nrow = 1, ncol = length(dist_vector), sparse = TRUE) # length dist vector
+  } else {
+    spcov_vector_val <- Matrix(0, nrow = NROW(dist_vector), ncol = NCOL(dist_vector), sparse = TRUE)
+  }
   spcov_vector_val
 }
 

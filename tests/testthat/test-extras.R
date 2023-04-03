@@ -1334,7 +1334,7 @@ if (test_local) {
     newexdata$offset <- 2
     spmod1 <- splm(y ~ x + offset(offset), exdata, "exponential", xcoord, ycoord)
     spmod2 <- splm(y2 ~ x,  exdata, "exponential", xcoord, ycoord)
-    expect_equal(fitted(spmod1), fitted(spmod2))
+    expect_equal(fitted(spmod1), fitted(spmod2) + exdata$offset)
   })
 
   test_that("prediction for spautor offset works", {
@@ -1342,7 +1342,7 @@ if (test_local) {
     exdata_Mpoly$y2 <- exdata_Mpoly$y - exdata_Mpoly$offset
     spmod1 <- spautor(y ~ x + offset(offset), exdata_Mpoly, "car")
     spmod2 <- spautor(y2 ~ x,  exdata_Mpoly, "car")
-    expect_equal(fitted(spmod1), fitted(spmod2))
+    expect_equal(fitted(spmod1), fitted(spmod2) + exdata_Mpoly$offset[!is.na(exdata_Mpoly$y)])
   })
 
   ##############################################################################

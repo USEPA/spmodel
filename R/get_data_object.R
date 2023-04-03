@@ -149,7 +149,8 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   # adjust response to reflect offset
   offset <- model.offset(obdata_model_frame)
   if (!is.null(offset)) {
-    y <- y - as.matrix(offset, ncol = 1)
+    offset <- as.matrix(offset, ncol = 1)
+    y <- y - offset
   }
 
   # see if response is numeric
@@ -220,6 +221,11 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   y_list <- split.data.frame(y, local$index)
   ones_list <- lapply(obdata_list, function(x) matrix(rep(1, nrow(x)), ncol = 1))
 
+  # organize offset (as a one col matrix)
+  if (!is.null(offset)) {
+    offset <- do.call("rbind", (split.data.frame(offset, local$index)))
+  }
+
   # store random effects list
   if (is.null(random)) {
     randcov_initial <- NULL
@@ -261,7 +267,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     anisotropy = anisotropy, contrasts = dots$contrasts, crs = crs,
     dim_coords = dim_coords, formula = formula, is_sf = is_sf, local_index = local$index,
     obdata = obdata, obdata_list = obdata_list,
-    observed_index = observed_index, ones_list = ones_list, order = order, n = n,
+    observed_index = observed_index, offset = offset, ones_list = ones_list, order = order, n = n,
     max_halfdist = max_halfdist, missing_index = missing_index, ncores = local$ncores,
     newdata = newdata, p = p, parallel = local$parallel,
     partition_factor_initial = partition_factor, partition_factor = local$partition_factor,
@@ -403,7 +409,8 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
   # adjust response to reflect offset
   offset <- model.offset(obdata_model_frame)
   if (!is.null(offset)) {
-    y <- y - as.matrix(offset, ncol = 1)
+    offset <- as.matrix(offset, ncol = 1)
+    y <- y - offset
   }
 
   # see if response is numeric
@@ -496,7 +503,7 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
     anisotropy = FALSE, contrasts = dots$contrasts, crs = crs,
     formula = formula, data = data, is_sf = is_sf, is_W_connected = is_W_connected,
     missing_index = missing_index, n = n,
-    obdata = obdata, observed_index = observed_index, ones = ones, newdata = newdata, p = p,
+    obdata = obdata, observed_index = observed_index, offset = offset, ones = ones, newdata = newdata, p = p,
     partition_factor = partition_factor, partition_matrix = partition_matrix,
     randcov_initial = randcov_initial, randcov_names = randcov_names, randcov_Zs = randcov_Zs,
     sf_column_name = sf_column_name, terms = terms_val, W = W, W_rowsums = W_rowsums, M = M,

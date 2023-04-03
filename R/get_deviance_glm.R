@@ -1,8 +1,8 @@
 get_deviance_glm <- function(family, y, fitted_link, size, dispersion, offset) {
 
-  if (!is.null(offset)) {
-    fitted_link <- fitted_link + offset # undo w = w - offset for deviance to match glm
-  }
+  # if (!is.null(offset)) {
+  #   fitted_link <- fitted_link + offset # undo w = w - offset for deviance to match glm
+  # }
 
   fitted_response <- invlink(fitted_link, family, size)
 

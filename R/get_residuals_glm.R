@@ -1,5 +1,10 @@
 get_residuals_glm <- function(w, y, data_object, deviance_i, hatvalues, dispersion) {
 
+  # add offset
+  if (!is.null(data_object$offset)) {
+    w <- w + data_object$offset
+  }
+
   residuals_response <- y - invlink(w, data_object$family, data_object$size)
 
   residuals_deviance <- sign(residuals_response) * sqrt(deviance_i)

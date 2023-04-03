@@ -238,7 +238,7 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
                                   SigInv, SigInv_X, cov_betahat, Xt_SigInv_X, estmethod,
                                   ret_mHInv = TRUE)
 
-  w <- as.vector(w_and_H$w)
+  w <- as.vector(w_and_H$w) # remember this is w - offset so must add offset in relevant places later to match glm
 
   betahat <- as.numeric(tcrossprod(cov_betahat, SigInv_X) %*% w)
   names(betahat) <- colnames(data_object$X)

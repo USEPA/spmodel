@@ -1,12 +1,20 @@
 get_fitted_null <- function(w, data_object) {
   fitted_link <- as.numeric(w)
-  # fitted_response <- invlink(fitted_link, data_object$family, data_object$size)
+  # add offset
+  if (!is.null(data_object$offset)) {
+    fitted_link <- fitted_link + data_object$offset
+  }
+  fitted_response <- invlink(fitted_link, data_object$family, data_object$size)
 }
 
 get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenprods_list,
                            dist_matrix_list, randcov_params = NULL) {
 
   fitted_link <- unname(do.call("c", w_list)) # unlist(w_list, use.names = FALSE)
+  # add offset
+  if (!is.null(data_object$offset)) {
+    fitted_link <- fitted_link + as.vector(data_object$offset)
+  }
   fitted_response <- invlink(fitted_link, data_object$family, data_object$size)
 
   SigInv_r_list <- mapply(x = eigenprods_list, w = w_list, function(x, w) x$SigInv %*% as.matrix(w, ncol = 1) - x$SigInv_X %*% betahat,
@@ -74,6 +82,10 @@ get_fitted_spgautor <- function(w, betahat, spcov_params, data_object, eigenprod
                            dist_matrix_list, randcov_params = NULL) {
 
   fitted_link <- as.numeric(w)
+  # add offset
+  if (!is.null(data_object$offset)) {
+    fitted_link <- fitted_link + as.vector(data_object$offset)
+  }
   fitted_response <- invlink(fitted_link, data_object$family, data_object$size)
 
   dist_matrix <- data_object$W[data_object$observed_index, data_object$observed_index, drop = FALSE]

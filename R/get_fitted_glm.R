@@ -4,6 +4,7 @@ get_fitted_null <- function(w, data_object) {
   if (!is.null(data_object$offset)) {
     fitted_link <- fitted_link + data_object$offset
   }
+  # fitted_link
   fitted_response <- invlink(fitted_link, data_object$family, data_object$size)
 }
 

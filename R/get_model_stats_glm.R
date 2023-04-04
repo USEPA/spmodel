@@ -112,7 +112,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   hatvalues <- get_hatvalues_glm(w, X, data_object, dispersion)
 
   # return deviance i
-  deviance_i <- get_deviance_glm(data_object$family, y, fitted$link, data_object$size, dispersion, data_object$offset)
+  deviance_i <- get_deviance_glm(data_object$family, y, fitted$response, data_object$size, dispersion)
   deviance_i <- pmax(deviance_i, 0) # sometimes numerical instability can cause these to be slightly non-negative
 
   # storing relevant products
@@ -136,7 +136,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   fitted_null <- get_fitted_null(w_null, data_object)
 
   # return deviance i
-  deviance_i_null <- get_deviance_glm(data_object$family, y, fitted_null, data_object$size, dispersion, data_object$offset)
+  deviance_i_null <- get_deviance_glm(data_object$family, y, fitted_null, data_object$size, dispersion)
   deviance_i_null <- pmax(deviance_i_null, 0) # sometimes numerical instability can cause these to be slightly non-negative
 
   deviance <- sum(deviance_i)
@@ -265,7 +265,7 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
   hatvalues <- get_hatvalues_glm(w, X, data_object, dispersion)
 
   # return deviance i
-  deviance_i <- get_deviance_glm(data_object$family, y, fitted$link, data_object$size, dispersion, data_object$offset)
+  deviance_i <- get_deviance_glm(data_object$family, y, fitted$response, data_object$size, dispersion)
   deviance_i <- pmax(deviance_i, 0) # sometimes numerical instability can cause these to be slightly non-negative
 
   # storing relevant products
@@ -289,7 +289,7 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
   fitted_null <- get_fitted_null(w_null, data_object)
 
   # return deviance i
-  deviance_i_null <- get_deviance_glm(data_object$family, y, fitted_null, data_object$size, dispersion, data_object$offset)
+  deviance_i_null <- get_deviance_glm(data_object$family, y, fitted_null, data_object$size, dispersion)
   deviance_i_null <- pmax(deviance_i_null, 0) # sometimes numerical instability can cause these to be slightly non-negative
 
   deviance <- sum(deviance_i)

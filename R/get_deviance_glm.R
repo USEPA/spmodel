@@ -1,10 +1,10 @@
-get_deviance_glm <- function(family, y, fitted_link, size, dispersion, offset) {
+get_deviance_glm <- function(family, y, fitted_response, size, dispersion) {
 
   # if (!is.null(offset)) {
   #   fitted_link <- fitted_link + offset # undo w = w - offset for deviance to match glm
   # }
 
-  fitted_response <- invlink(fitted_link, family, size)
+  # fitted_response <- invlink(fitted_link, family, size)
 
   # faraway p 157
   # y <- pmax(y, 1e-8) # so deviance  Inf is not calculated

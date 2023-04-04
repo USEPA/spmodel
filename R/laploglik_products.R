@@ -303,7 +303,7 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
 
   # handle offset
   if (!is.null(data_object$offset)) {
-    w <- w + data_object$offset
+    w <- w - data_object$offset
   }
 
   mHldet <- as.numeric(determinant(-H, logarithm = TRUE)$modulus)

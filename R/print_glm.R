@@ -131,10 +131,10 @@ print.summary.spglm <- function(x,
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
 
   # pasting the residual summary
-  cat("\nResiduals:\n")
+  cat("\nDeviance Residuals:\n")
   resQ <- c(
-    min(x$residuals$response), quantile(x$residuals$response, p = c(0.25, 0.5, 0.75), na.rm = TRUE),
-    max(x$residuals$response)
+    min(x$residuals$deviance), quantile(x$residuals$deviance, p = c(0.25, 0.5, 0.75), na.rm = TRUE),
+    max(x$residuals$deviance)
   )
   names(resQ) <- c("Min", "1Q", "Median", "3Q", "Max")
   print(resQ, digits = digits)
@@ -192,10 +192,10 @@ print.summary.spgautor <- function(x,
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
 
   # pasting the residual summary
-  cat("\nResiduals:\n")
+  cat("\nDeviance Residuals:\n")
   resQ <- c(
-    min(x$residuals$response), quantile(x$residuals$response, p = c(0.25, 0.5, 0.75), na.rm = TRUE),
-    max(x$residuals$response)
+    min(x$residuals$deviance), quantile(x$residuals$deviance, p = c(0.25, 0.5, 0.75), na.rm = TRUE),
+    max(x$residuals$deviance)
   )
   names(resQ) <- c("Min", "1Q", "Median", "3Q", "Max")
   print(resQ, digits = digits)

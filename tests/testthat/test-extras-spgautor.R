@@ -46,6 +46,8 @@ if (test_local) {
                           W = W, row_st = FALSE, M = M), NA)
     expect_error(spgautor(cbind(bin, size) ~ x + offset(offset), family = "binomial", data = exdata_poly, spcov_type = "sar", estmethod = "ml",
                           random = ~ group), NA)
+    expect_error(spgautor(y > 0 ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml",
+             W = W, row_st = FALSE, M = M), NA)
   })
 
   test_that("the model runs for proportion data", {

@@ -166,6 +166,9 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
         }
         y_modr <- ifelse(y_modr == levels(y_modr)[1], 0, 1)
       }
+      if (is.logical(y_modr)) {
+        y_modr <- ifelse(y_modr, 1, 0) # or as.numeric()
+      }
       size <- rep(1, n)
     } else {
       size <- NULL
@@ -457,6 +460,9 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
           stop("When family is binomial, a factor response must have exactly two levels.", call. = FALSE)
         }
         y_modr <- ifelse(y_modr == levels(y_modr)[1], 0, 1)
+      }
+      if (is.logical(y_modr)) {
+        y_modr <- ifelse(y_modr, 1, 0) # or as.numeric()
       }
       size <- rep(1, NROW(obdata))
     } else {

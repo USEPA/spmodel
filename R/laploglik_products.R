@@ -82,6 +82,10 @@ laploglik_products.exponential <- function(spcov_params_val, dispersion_params_v
   mHldet <- w_and_H$mHldet
 
   betahat <- tcrossprod(cov_betahat, SigInv_X) %*% w
+  # reset w after finding betahat
+  if (!is.null(data_object$offset)) {
+    w <- w + data_object$offset
+  }
   X <- do.call("rbind", data_object$X_list)
   r <- w - X %*% betahat
   rt_SigInv_r <- crossprod(r, SigInv) %*% r
@@ -167,6 +171,10 @@ laploglik_products.car <- function(spcov_params_val, dispersion_params_val, data
   mHldet <- w_and_H$mHldet
 
   betahat <- tcrossprod(cov_betahat, SigInv_X) %*% w
+  # reset w after finding betahat
+  if (!is.null(data_object$offset)) {
+    w <- w + data_object$offset
+  }
   X <- data_object$X
   r <- w - X %*% betahat
   rt_SigInv_r <- crossprod(r, SigInv) %*% r
@@ -177,6 +185,7 @@ laploglik_products.car <- function(spcov_params_val, dispersion_params_val, data
   l01 <- mHldet
   l1 <- Sigldet
   l2 <- as.numeric(rt_SigInv_r)
+
 
   # returning relevant quantities
   if (estmethod == "reml") {

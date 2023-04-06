@@ -23,7 +23,7 @@ if (test_local) {
   exdata$prop <- runif(n)
   exdata$count <- rpois(n, lambda = 5)
   exdata$cont <- rgamma(n, shape = 1, rate = 1)
-  exdata$offset <- 2
+  exdata$offset <- 1.2
 
   test_that("the model runs for binomial data", {
     expect_error(spglm(bern ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml"), NA)
@@ -65,9 +65,9 @@ if (test_local) {
 
 
     # complicated models
-    expect_error(spglm(cont ~ x, family = "Gamma", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "reml",
+    expect_error(spglm(cont ~ x + offset(offset), family = "Gamma", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "reml",
                        random = ~ group + subgroup, local = TRUE), NA)
-    expect_error(spglm(cont ~ x + offset(offset), family = inverse.gaussian, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml", partition_factor = ~ subgroup, anisotropy = TRUE), NA)
+    expect_error(spglm(cont ~ x, family = inverse.gaussian, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml", partition_factor = ~ subgroup, anisotropy = TRUE), NA)
     ## SHOULD BE AN ERROR AS GAUSSIAN FAMILY REMOVED
     expect_error(spglm(cont ~ x, family = gaussian, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "reml",
                        random = ~ group))

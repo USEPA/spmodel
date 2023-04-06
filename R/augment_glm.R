@@ -2,13 +2,16 @@
 #'   using \code{spglm()} or \code{spgautor} objects.
 #' @param newdata_size The \code{size} value for each observation in \code{newdata}
 #'   used when predicting for the binomial family.
+#' @param var_correct A logical indicating whether to return the corrected prediction
+#'   variances when predicting via models fit using \code{spglm()} or \code{spgautor()}. The default is
+#'   \code{TRUE}.
 #' @rdname augment.spmodel
 #' @method augment spglm
 #' @order 3
 #' @export
 augment.spglm <- function(x, drop = TRUE, newdata = NULL, type = c("link", "response"), se_fit = FALSE,
                          interval = c("none", "confidence", "prediction"), newdata_size,
-                         level = 0.95, local = local, ...) {
+                         level = 0.95, local = local, var_correct = TRUE, ...) {
 
   type <- match.arg(type)
   interval <- match.arg(interval)
@@ -37,7 +40,7 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type = c("link", "resp
     if (missing(newdata_size)) newdata_size <- NULL
     if (missing(local)) local <- NULL
     preds_newdata <- predict(x, newdata = newdata, type = type, se.fit = se_fit, interval = interval,
-                             newdata_size = newdata_size, level = level, local = local)
+                             newdata_size = newdata_size, level = level, local = local, var_correct = var_correct)
     if (se_fit) {
       if (interval %in% c("confidence", "prediction")) {
         augment_newdata <- tibble::tibble(
@@ -113,7 +116,7 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type = c("link", "resp
 #' @export
 augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type = c("link", "response"), se_fit = FALSE,
                             interval = c("none", "confidence", "prediction"), newdata_size,
-                            level = 0.95, local, ...) {
+                            level = 0.95, local, var_correct = TRUE, ...) {
 
   type <- match.arg(type)
   interval <- match.arg(interval)
@@ -148,7 +151,7 @@ augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type = c("link", "r
     if (missing(newdata_size)) newdata_size <- NULL
     if (missing(local)) local <- NULL
     preds_newdata <- predict(x, newdata = newdata, type = type, se.fit = se_fit, interval = interval,
-                             newdata_size = newdata_size, level = level, local = local)
+                             newdata_size = newdata_size, level = level, local = local, var_correct = var_correct)
     if (se_fit) {
       if (interval %in% c("confidence", "prediction")) {
         augment_newdata <- tibble::tibble(

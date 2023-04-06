@@ -92,8 +92,12 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   cov_betahat <- as.matrix(cov_betahat)
   wts_beta <- tcrossprod(cov_betahat, SigInv_X)
   betawtsvarw <- wts_beta %*% w_and_H$mHInv %*% t(wts_beta)
-  cov_betahat <- as.matrix(cov_betahat + betawtsvarw)
 
+  cov_betahat_uncorrected <- cov_betahat # save uncorrected cov beta hat
+  rownames(cov_betahat_uncorrected) <- colnames(data_object$X_list[[1]])
+  colnames(cov_betahat_uncorrected) <- colnames(data_object$X_list[[1]])
+
+  cov_betahat <- as.matrix(cov_betahat + betawtsvarw)
   rownames(cov_betahat) <- colnames(data_object$X_list[[1]])
   colnames(cov_betahat) <- colnames(data_object$X_list[[1]])
 
@@ -157,7 +161,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   cooks_distance <- get_cooks_distance_glm(residuals, hatvalues, data_object$p)
 
   # return variance covariance matrices
-  vcov <- get_vcov_glm(cov_betahat) # note this is the adjusted one
+  vcov <- get_vcov_glm(cov_betahat, cov_betahat_uncorrected) # note first argument is the adjusted one
 
   # reorder relevant quantities
   ## fitted
@@ -248,6 +252,11 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
   betawtsvarw <- wts_beta %*% w_and_H$mHInv %*% t(wts_beta)
   cov_betahat <- as.matrix(cov_betahat + betawtsvarw)
 
+  cov_betahat_uncorrected <- cov_betahat # save uncorrected cov beta hat
+  rownames(cov_betahat_uncorrected) <- colnames(data_object$X)
+  colnames(cov_betahat_uncorrected) <- colnames(data_object$X)
+
+  cov_betahat <- as.matrix(cov_betahat + betawtsvarw)
   rownames(cov_betahat) <- colnames(data_object$X)
   colnames(cov_betahat) <- colnames(data_object$X)
 
@@ -320,7 +329,7 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
   names(cooks_distance) <- data_object$observed_index
 
   # return variance covariance matrices
-  vcov <- get_vcov_glm(cov_betahat) # note this is the adjusted one
+  vcov <- get_vcov_glm(cov_betahat, cov_betahat_uncorrected) # note first argument is the adjusted one
 
   # return npar
   npar <- sum(unlist(lapply(cov_est_object$is_known, function(x) length(x) - sum(x)))) # could do sum(!x$is_known)

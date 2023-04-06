@@ -110,7 +110,7 @@ test_that("generics work spglm point data", {
   expect_type(predict(spmod1, newdata = newexdata, interval = "prediction", se.fit = TRUE, local = TRUE), "list")
   expect_true(inherits(predict(spmod1, newdata = newexdata, interval = "confidence", level = 0.9), "matrix"))
   expect_vector(predict(spmod1, newdata = newexdata, type = "response"))
-  expect_type(predict(spmod1, newdata = newexdata, type = "response", interval = "prediction", se.fit = TRUE, local = TRUE), "list")
+  expect_type(predict(spmod1, newdata = newexdata, type = "response", interval = "prediction", se.fit = TRUE, local = TRUE, var_correct = FALSE), "list")
   expect_true(inherits(predict(spmod1, newdata = newexdata, type = "response", interval = "confidence", level = 0.9), "matrix"))
 
   # print
@@ -149,6 +149,7 @@ test_that("generics work spglm point data", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
+  expect_true(inherits(vcov(spmod1, var_correct = FALSE), "matrix"))
 
 })
 
@@ -262,7 +263,7 @@ test_that("generics work spglm point data with missing", {
   expect_type(predict(spmod1, newdata = newexdata, interval = "prediction", se.fit = TRUE, local = TRUE), "list")
   expect_true(inherits(predict(spmod1, newdata = newexdata, interval = "confidence", level = 0.9), "matrix"))
   expect_vector(predict(spmod1, newdata = newexdata, type = "response"))
-  expect_type(predict(spmod1, newdata = newexdata, type = "response", interval = "prediction", se.fit = TRUE, local = TRUE), "list")
+  expect_type(predict(spmod1, newdata = newexdata, type = "response", interval = "prediction", se.fit = TRUE, local = TRUE, var_correct = FALSE), "list")
   expect_true(inherits(predict(spmod1, newdata = newexdata, type = "response", interval = "confidence", level = 0.9), "matrix"))
 
   # print
@@ -301,6 +302,7 @@ test_that("generics work spglm point data with missing", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
+  expect_true(inherits(vcov(spmod1, var_correct = FALSE), "matrix"))
 
 })
 
@@ -413,7 +415,7 @@ test_that("generics work spglm polygon data with missing", {
   expect_type(predict(spmod1, interval = "prediction", se.fit = TRUE, local = TRUE), "list")
   expect_true(inherits(predict(spmod1, interval = "confidence", level = 0.9), "matrix"))
   expect_vector(predict(spmod1, type = "response"))
-  expect_type(predict(spmod1, type = "response", interval = "prediction", se.fit = TRUE, local = TRUE), "list")
+  expect_type(predict(spmod1, type = "response", interval = "prediction", se.fit = TRUE, local = TRUE, var_correct = FALSE), "list")
   expect_true(inherits(predict(spmod1, type = "response", interval = "confidence", level = 0.9), "matrix"))
 
   # print
@@ -452,5 +454,6 @@ test_that("generics work spglm polygon data with missing", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
+  expect_true(inherits(vcov(spmod1, var_correct = FALSE), "matrix"))
 
 })

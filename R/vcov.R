@@ -2,8 +2,11 @@
 #'
 #' @description Calculate variance-covariance matrix for a fitted model object.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
+#' @param var_correct A logical indicating whether to return the corrected variance-covariance
+#'   matrix for models fit using \code{spglm()} or \code{spgautor()}. The default is
+#'   \code{TRUE}.
 #'
 #' @return The variance-covariance matrix of coefficients obtained via \code{coef()}.
 #'   Currently, only the variance-covariance matrix of the fixed effects is supported.

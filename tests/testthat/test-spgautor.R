@@ -134,6 +134,7 @@ test_that("generics work spgautor polygon data", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
+  expect_true(inherits(vcov(spmod1, var_correct = FALSE), "matrix"))
 
 })
 
@@ -240,6 +241,7 @@ test_that("generics work spgautor polygon data with missing", {
   # predict
   expect_vector(predict(spmod1))
   expect_type(predict(spmod1, interval = "prediction", se.fit = TRUE, local = FALSE), "list")
+  expect_type(predict(spmod1, interval = "prediction", se.fit = TRUE, local = FALSE, var_correct = FALSE), "list")
   expect_true(inherits(predict(spmod1, interval = "confidence", level = 0.9), "matrix"))
 
   # print
@@ -278,6 +280,7 @@ test_that("generics work spgautor polygon data with missing", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
+  expect_true(inherits(vcov(spmod1, var_correct = FALSE), "matrix"))
 
 })
 
@@ -415,5 +418,6 @@ test_that("generics work spgautor polygon data unconnected", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
+  expect_true(inherits(vcov(spmod1, var_correct = FALSE), "matrix"))
 
 })

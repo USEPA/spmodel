@@ -2,12 +2,15 @@
 #'   using \code{spglm()} or \code{spgautor} objects.
 #' @param newdata_size The \code{size} value for each observation in \code{newdata}
 #'   used when predicting for the binomial family.
+#' @param var_correct A logical indicating whether to return the corrected prediction
+#'   variances when predicting via models fit using \code{spglm()} or \code{spgautor()}. The default is
+#'   \code{TRUE}.
 #' @rdname predict.spmodel
 #' @method predict spglm
 #' @order 9
 #' @export
 predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                         newdata_size, level = 0.95, local, ...) {
+                         newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
 
 
   # match type argument so the two display
@@ -222,6 +225,12 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
       predvar_adjust_all <- FALSE
     }
 
+    # change predvar adjust based on var correct
+    if (!var_correct) {
+      predvar_adjust_ind <- FALSE
+      predvar_adjust_all <- FALSE
+    }
+
     if (local_list$parallel) {
       cl <- parallel::makeCluster(local_list$ncores)
       pred_spglm <- parallel::parLapply(cl, newdata_list, get_pred_spglm,
@@ -239,7 +248,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
                                        cov_lowchol = cov_lowchol,
                                        Xmat = model.matrix(object),
                                        y = object$y, dim_coords = object$dim_coords,
-                                       betahat = coefficients(object), cov_betahat = vcov(object),
+                                       betahat = coefficients(object), cov_betahat = vcov(object, var_correct = FALSE),
                                        contrasts = object$contrasts,
                                        local = local_list, family = object$family, w = fitted(object, type = "link"), size = object$size,
                                        dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind, diagtol = object$diagtol
@@ -261,7 +270,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
                           cov_lowchol = cov_lowchol,
                           Xmat = model.matrix(object),
                           y = object$y, dim_coords = object$dim_coords,
-                          betahat = coefficients(object), cov_betahat = vcov(object),
+                          betahat = coefficients(object), cov_betahat = vcov(object, var_correct = FALSE),
                           contrasts = object$contrasts,
                           local = local_list, family = object$family,
                           w = fitted(object, type = "link"), size = object$size,
@@ -515,8 +524,9 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
 #' @method predict spgautor
 #' @order 10
 #' @export
-predict.spgautor <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                            newdata_size, level = 0.95, local, ...) {
+predict.spgautor <- function(object, newdata, type = c("link", "response"), se.fit = FALSE,
+                             interval = c("none", "confidence", "prediction"),
+                            newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
 
   # match type argument so the two display
   type <- match.arg(type)
@@ -631,7 +641,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
     residuals_pearson_w <- SqrtSigInv_w - SqrtSigInv_X %*% betahat
 
     # cov beta hat
-    cov_betahat <- vcov(object)
+    cov_betahat <- vcov(object, var_correct = FALSE)
 
     # total var
     total_var_list <- as.list(diag(cov_matrix_val[object$missing_index, object$missing_index, drop = FALSE]))
@@ -685,18 +695,20 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
       }
       if (se.fit) {
         vars <- vapply(pred_spautor, function(x) x$var, numeric(1))
-        vars_adj <- get_wts_varw(
-          family = object$family,
-          Xmat = model.matrix(object),
-          y = object$y,
-          w = fitted(object, type = "link"),
-          size = object$size,
-          dispersion = dispersion_params_val,
-          cov_lowchol = cov_matrix_lowchol,
-          x0 = newdata_model,
-          c0 = cov_vector_val
-        )
-        vars <- vars_adj + vars
+        if (var_correct) {
+          vars_adj <- get_wts_varw(
+            family = object$family,
+            Xmat = model.matrix(object),
+            y = object$y,
+            w = fitted(object, type = "link"),
+            size = object$size,
+            dispersion = dispersion_params_val,
+            cov_lowchol = cov_matrix_lowchol,
+            x0 = newdata_model,
+            c0 = cov_vector_val
+          )
+          vars <- vars_adj + vars
+        }
         se <- sqrt(vars)
         names(fit) <- object$missing_index
         names(se) <- object$missing_index
@@ -714,18 +726,20 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
         fit <- fit + offset
       }
       vars <- vapply(pred_spautor, function(x) x$var, numeric(1))
-      vars_adj <- get_wts_varw(
-        family = object$family,
-        Xmat = model.matrix(object),
-        y = object$y,
-        w = fitted(object, type = "link"),
-        size = object$size,
-        dispersion = dispersion_params_val,
-        cov_lowchol = cov_matrix_lowchol,
-        x0 = newdata_model,
-        c0 = cov_vector_val
-      )
-      vars <- vars_adj + vars
+      if (var_correct) {
+        vars_adj <- get_wts_varw(
+          family = object$family,
+          Xmat = model.matrix(object),
+          y = object$y,
+          w = fitted(object, type = "link"),
+          size = object$size,
+          dispersion = dispersion_params_val,
+          cov_lowchol = cov_matrix_lowchol,
+          x0 = newdata_model,
+          c0 = cov_vector_val
+        )
+        vars <- vars_adj + vars
+      }
       se <- sqrt(vars)
       # tstar <- qt(1 - (1 - level) / 2, df = object$n - object$p)
       tstar <- qnorm(1 - (1 - level) / 2)
@@ -805,7 +819,7 @@ get_pred_spgautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat
 #' @order 11
 #' @export
 predict.spglm_list <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                              newdata_size, level = 0.95, local, ...) {
+                              newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
 
   type <- match.arg(type)
   # match interval argument so the three display
@@ -823,11 +837,11 @@ predict.spglm_list <- function(object, newdata, type = c("link", "response"), se
 
   if (missing(newdata)) {
     preds <- lapply(object, function(x) {
-      predict(x, type = type, se.fit = se.fit, interval = interval, newdata_size = newdata_size, level = level, local = local, ...)
+      predict(x, type = type, se.fit = se.fit, interval = interval, newdata_size = newdata_size, level = level, local = local, var_correct = var_correct, ...)
     })
   } else {
     preds <- lapply(object, function(x) {
-      predict(x, newdata = newdata, type = type, se.fit = se.fit, interval = interval, newdata_size = newdata_size, level = level, local = local, ...)
+      predict(x, newdata = newdata, type = type, se.fit = se.fit, interval = interval, newdata_size = newdata_size, level = level, local = local, var_correct = var_correct, ...)
     })
   }
   names(preds) <- names(object)

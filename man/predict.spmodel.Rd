@@ -73,6 +73,7 @@
   newdata_size,
   level = 0.95,
   local,
+  var_correct = TRUE,
   ...
 )
 
@@ -85,6 +86,7 @@
   newdata_size,
   level = 0.95,
   local,
+  var_correct = TRUE,
   ...
 )
 
@@ -97,6 +99,7 @@
   newdata_size,
   level = 0.95,
   local,
+  var_correct = TRUE,
   ...
 )
 
@@ -109,6 +112,7 @@
   newdata_size,
   level = 0.95,
   local,
+  var_correct = TRUE,
   ...
 )
 }
@@ -173,6 +177,10 @@ using \code{spglm()} or \code{spgautor} objects.}
 
 \item{newdata_size}{The \code{size} value for each observation in \code{newdata}
 used when predicting for the binomial family.}
+
+\item{var_correct}{A logical indicating whether to return the corrected prediction
+variances when predicting via models fit using \code{spglm()} or \code{spgautor()}. The default is
+\code{TRUE}.}
 }
 \value{
 For \code{splm} or \code{spautor} objects, if \code{se.fit} is \code{FALSE}, \code{predict()} returns

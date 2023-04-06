@@ -12,14 +12,18 @@
 
 \method{vcov}{spautor}(object, ...)
 
-\method{vcov}{spglm}(object, ...)
+\method{vcov}{spglm}(object, var_correct = TRUE, ...)
 
-\method{vcov}{spgautor}(object, ...)
+\method{vcov}{spgautor}(object, var_correct = TRUE, ...)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
+\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
+
+\item{var_correct}{A logical indicating whether to return the corrected variance-covariance
+matrix for models fit using \code{spglm()} or \code{spgautor()}. The default is
+\code{TRUE}.}
 }
 \value{
 The variance-covariance matrix of coefficients obtained via \code{coef()}.

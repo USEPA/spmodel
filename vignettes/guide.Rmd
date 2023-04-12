@@ -43,7 +43,7 @@ If using `spmodel` in a formal publication or report, please cite it. Citing `sp
 citation(package = "spmodel")
 ```
 
-There are two additional vignettes in `spmodel`. The first provides an overview of basic features in `spmodel` and can be viewed by running `vignette("basics", "spmodel")`. THe second provides technical details regarding many of the functions in `spmodel` and can be viewed by running `vignette("technical", "spmodel")`.
+There are two additional vignettes in `spmodel`. The first provides an overview of basic features in `spmodel` and can be viewed by running `vignette("basics", "spmodel")`. The second provides technical details regarding many of the functions in `spmodel` and can be viewed by running `vignette("technical", "spmodel")`.
 
 We will create visualizations using `ggplot2` [@wickham2016ggplot2], which we load by running
 ```{r, eval = FALSE}
@@ -462,7 +462,7 @@ augment(sealmod, newdata = sealmod$newdata)
 
 # Advanced Features {#sec:advfeatures}
 
-`spmodel` offers several advanced features for fitting spatial linear models. We briefly discuss some of these features next using the `moss` data and some simulated data. Technical details for each advanced feature can be seen by running `vignette("technical", "spmodel")`.
+`spmodel` offers several advanced features for fitting spatial linear models. We briefly discuss some of these features next using the `moss` data, the `moose` data, and some simulated data. Technical details for each advanced feature can be seen by running `vignette("technical", "spmodel")`.
 
 ## Fixing Spatial Covariance Parameters {#sec:spcov_init}
 
@@ -606,7 +606,7 @@ summary(spmod_anis)
 
 The `rotate` parameter is between zero and $\pi$ radians and represents the angle of a clockwise rotation of the ellipse such that the major axis of the ellipse is the new x-axis and the minor axis of the ellipse is the new y-axis. The `scale` parameter is between zero and one and represents the ratio of the distance between the origin and the edge of the ellipse along the minor axis to the distance between the origin and the edge of the ellipse along the major axis. Figure$~$\ref{fig:anisotropy_fit} shows a transformation that turns an anisotropic ellipse into an isotropic one (i.e., a circle). This transformation requires rotating the coordinates clockwise by `rotate` and then scaling them the reciprocal of `scale`.  The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances.
 
-```{r, anisotropy_fit, echo = FALSE, out.width = "33%", fig.show = "hold", fig.cap = "A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the \\texttt{rotate} parameter (here \\texttt{rotate} is 0.75 radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the \\texttt{scale} parameter (here \\texttt{scale} is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances."}
+```{r, anisotropy_fit, echo = FALSE, out.width = "33%", fig.show = "hold", fig.cap = "A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the \\texttt{rotate} parameter (here \\texttt{rotate} is 0.75$\\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the \\texttt{scale} parameter (here \\texttt{scale} is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances."}
 spcov_params_val <- coef(spmod_anis, type = "spcov")
 # FIRST FIGURE
 theta <- 3 * pi / 4
@@ -708,7 +708,7 @@ The computational cost associated with model fitting is exponential in the sampl
 
 `spmodel` offers big data methods for prediction of point-referenced data or areal data via the `local` argument to `predict()`, capable of quickly predicting hundreds of thousands to millions of observations rather quickly. To show how to use `spmodel` for big data estimation and prediction, we use the `sim_data` data from Section$~$\ref{sec:sim_data}. Because `sim_data` is a `tibble` (`data.frame`) and not an `sf` object, the columns in `data` representing the x-coordinates and y-coordinates must be explicitly provided to `splm()`. 
 
-### Model-fitting
+### Model Fitting {#sec:modelfit-big} 
 
 `spmodel` uses a "local indexing" approximation for big data model fitting of point-referenced data. Observations are first assigned an index. Then for the purposes of model fitting, observations with different indexes are assumed uncorrelated. Assuming observations with different indexes are uncorrelated induces sparsity in the covariance matrix, which greatly reduces the computational time of operations that involve the covariance matrix.
 
@@ -731,7 +731,7 @@ local2 <- splm(sim_response ~ 1, sim_data, spcov_type = "exponential",
 
 Likelihood-based statistics like `AIC()`, `AICc()`, `logLik()`, and `deviance()` should not be used to compare a model fit with a big data approximation to a model fit without a big data approximation, as the two approaches maximize different likelihoods.
 
-### Prediction {#sec:predict}
+### Prediction {#sec:prediction-big}
 
 For point-referenced data, `spmodel` uses a "local neighborhood" approximation for big data prediction. Each prediction is computed using a subset of the observed data instead of all of the observed data. Before further discussing big data prediction, we simulate 1000 locations in the unit square requiring prediction:
 ```{r}
@@ -797,6 +797,140 @@ sprfmod <- splmRF(sulfate ~ var, sulfate, spcov_type = "exponential")
 And we make predictions by running
 ```{r, eval = FALSE}
 predict(sprfmod, newdata = sulfate_preds)
+```
+
+## Spatial Generalized Linear Models {#sec:spglm}
+
+When building spatial linear models, the response vector $\mathbf{y}$ is typically assumed Gaussian (given $\mathbf{X}$). Relaxing this assumption on the distribution of $\mathbf{y}$ yields a rich class of spatial generalized linear models that can describe binary data, proportion data, count data, and skewed data that is parameterized as 
+\begin{equation}\label{eq:spglm}
+g(\boldsymbol{\mu}) = \boldsymbol{\eta} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
+\end{equation}
+where $g(\cdot)$ is called a link function, $\boldsymbol{\mu}$ is the mean of $\mathbf{y}$, and the remaining terms $\mathbf{X}$, $\boldsymbol{\beta}$, $\boldsymbol{\tau}$, $\boldsymbol{\epsilon}$ represent the same quantities as for the spatial linear models (Section$~$\ref{sec:theomodel}). The link function, $g(\cdot)$, "links" a function of $\boldsymbol{\mu}$ to the linear term $\boldsymbol{\eta}$, denoted here as $\mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon}$, which is familiar from spatial linear models. Each link function $g(\cdot)$ has a corresponding inverse link function, $g^{-1}(\cdot)$. The inverse link function "links" a function of $\boldsymbol{\eta}$ to $\boldsymbol{\mu}$.  Notice that for spatial generalized linear models, we are not modeling $\mathbf{y}$ directly as we do for spatial linear models, but rather we are modeling a function of the mean of $\mathbf{y}$. 
+
+Equation$~$\ref{eq:spglm} is called the spatial generalized linear model. `spmodel` allows fitting of spatial generalized linear models when $\mathbf{y}$ is a binomial (or Bernoulli), beta, Poisson, negative binomial, gamma, or inverse Gaussian random variable via the Laplace approximation and restricted maximum likelihood or maximum likelihood. For binomial and beta $\mathbf{y}$, the logit link function is defined as $g(\boldsymbol{\mu}) = log(\frac{\boldsymbol{\mu}}{1 - \boldsymbol{\mu}}) = \boldsymbol{\eta}$, and the inverse logit link function is defined as $g^{-1}(\boldsymbol{\eta}) = \frac{\exp(\boldsymbol{\eta})}{1 + \exp(\boldsymbol{\eta})} = \boldsymbol{\mu}$. For Poisson, negative binomial, gamma, and inverse Gaussian $\mathbf{y}$, the log link function is defined as $g(\boldsymbol{\mu}) = log(\boldsymbol{\mu}) = \boldsymbol{\eta}$, and the inverse log link function is defined as $g^{-1}(\boldsymbol{\eta}) = \exp(\boldsymbol{\eta}) = \boldsymbol{\mu}$. Full parameterizations of these distributions are given in the technical details vignette, which can be viewed by running `vignette("technical", "spmodel")`. 
+
+All advanced features availble in `spmodel` for spatial linear models are also available for spatial generalized linear models. This means that spatial generalized linear models in `spmodel` can accommodate fixing spatial covariance parameters, fitting and predicting for multiple models, random effects (on the link scale), partition factors, anisotropy (on the link scale), simulation, big data, and prediction.
+
+### Model Fitting {#sec:modelfit-glm}
+
+As with spatial linear models, spatial generalized linear models are fit in `spmodel` for point-referenced and areal data. The `spglm()` function is used to fit spatial generalized linear models for point-referenced data, and the `spgautor()` function is used to fit spatial generalized linear models for areal data. `spglm()` and `sugautor()` share similar syntax with `splm()` and `spautor()`, respectively, though one additional argument is required:
+
+* `family`: The generalized linear model family (i.e., the distribution of $\mathbf{y}$). Can be `binomial`, `beta`, `Poisson`, `nbinomial`, `Gamma`, or `inverse.gaussian`.
+    * `family` uses similar syntax as the `family` argument in `glm()`.
+    * One difference between `family` in `spglm()` compared to `family` in `glm()` is that the link function is fixed in `spglm()`.
+    
+As with `splm()` and `spautor()`, the data argument to `spglm()` and `spgautor()` can be an `sf` object or `data.frame` (with appropriate coordinate or weight matrix information). Additionally, all arguments to `splm()` and `spautor()` are also available for `spglm()` and `spgautor()`.
+
+Next we show the basic features and syntax of `spglm()` using the `moose` data. We study the impact of elevation (`elev`) on the total number of moose (`count`) observed at a site location in Alaska. We view the first few rows of the `moose` data by running 
+```{r}
+moose
+```
+
+We can visualize the distribution of moose counts (`count`) by running
+```{r moose, fig.align="center", out.width = "65%", fig.cap = "Distribution of moose counts in the moose data."}
+ggplot(moose, aes(color = count)) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c() + 
+  theme_gray(base_size = 14)
+```
+
+One example of a generalized linear model is a Poisson regression model. Poisson regression models are often used to model count data such as this. To quantify the relationship between counts and elevation, we fit a spatial Poisson regression model (a specific spatial generalized linear model) by running
+```{r}
+poismod <- spglm(count ~ elev, family = "poisson", data  = moose, spcov_type = "exponential")
+```
+
+The estimation method is specified via the `estmethod` argument, which has a default value of `"reml"` for restricted maximum likelihood. The other estimation method is `"ml"` for maximum likelihood.
+
+We summarize the fitted model by running
+```{r}
+summary(poismod)
+```
+
+Similar to summaries of `glm()` objects, summaries of `spglm()` objects include the original function call, deviance residuals, and a coefficients table of fixed effects. The log of the mean counts does not appear to be related to elevation, as evidenced by the large p-value associated with the asymptotic z-test. A pseudo r-squared is also returned, which quantifies the proportion of variability explained by the fixed effects. The spatial covariance parameters and deviance parameter are also returned. The dispersion parameter is estimated in some models and changes mean-variance relationship of $\mathbf{y}$. For Poisson regression models, the dispersion parameter is not estimated and always fixed at one.
+
+We tidy, glance, and augment the fitted model by running
+```{r}
+tidy(poismod)
+```
+
+```{r}
+glance(poismod)
+```
+
+```{r}
+augment(poismod)
+```
+
+### Prediction {#sec:predict-glm}
+
+For spatial generalized linear models, we are predicting the mean of the process generating the observation rather than the observation itself. We make predictions of mean counts at the locations in `moose_preds` by running
+```{r}
+moose_preds$preds <- predict(poismod, newdata = moose_preds, type = "response")
+```
+The type argument specifies whether predictions are returned on the link or response (inverse link) scale.
+
+We visualize these predictions by running
+```{r moose-pred, fig.align="center", out.width = "65%", fig.cap = "Distribution of mean moose predictions in Alaska."}
+ggplot(moose_preds, aes(color = preds)) + 
+  geom_sf(size = 2) +
+  scale_color_viridis_c(limits = c(0, 40)) + 
+  theme_gray(base_size = 14)
+```
+
+These predictions have similar spatial patterns as in the observed counts, as many of the observed counts were zero near locations requiring prediction. Next we remove the model predictions from `moose_preds` and show how `augment()` can be used to obtain the same predictions alongside prediction intervals (on the link scale):
+```{r}
+moose_preds$preds <- NULL
+augment(poismod, newdata = moose_preds, type = "response", interval = "prediction")
+```
+
+### Simulating Spatial Generalized Data {#sec:sim_data-glm}
+
+Several functions exist to simulate spatial generalized data: `sprbinom()` for binomial random variables; `sprbeta()` for beta random variables; `sprpois()` for Poisson random variables; `sprnbinom()` for negative binomial random variables; `sprgamma()` for gamma random variables; and `spinvgauss()` for inverse Gaussian random variables. All of these functions share similar syntax with `sprnorm()` for simulating spatial Gaussian data and require a `spcov_params()` object. The generalized data simulation functions work by first simulating spatial Gaussian data on the link scale. Then this realization is used as the mean by which to simulate the generalized data. 
+
+We recreate `sim_params` and `sim_data` by running
+```{r}
+sim_params <- spcov_params("exponential", de = 5, ie = 1, range = 0.5)
+set.seed(0)
+n <- 3000
+x <- runif(n)
+y <- runif(n)
+sim_coords <- tibble::tibble(x, y)
+```
+
+We simulate a Bernoulli (binomial with size one) random variable by running
+```{r}
+sim_response <- sprbinom(sim_params, data = sim_coords, xcoord = x, ycoord = y)
+sim_data <- tibble::tibble(sim_coords, sim_response = factor(sim_response))
+```
+
+and visualize it by running
+```{r sim-glm, fig.align="center", out.width = "65%", fig.cap = "Spatial binomial data simulated in the unit square.", eval = TRUE}
+ggplot(sim_data, aes(x = x, y = y, color = sim_response)) +
+  geom_point(size = 1.5) +
+  scale_color_viridis_d() + 
+  theme_gray(base_size = 14)
+```
+
+There is noticeable patterning in the response variable (`sim_response`) in the same places where there is noticeable patterning for the spatial Gaussian data. This is expected, as the spatial Gaussian data is used as the to evaluate the mean (proportion) parameter of the binomial data. Thus where the mean parameter is higher, the more likely the binomial observation is a success.
+
+### Additional Examples
+
+We previously showed how to use `spmodel` to model count data via spatial Poisson regression. Recall that `spmodel` can also be used to model count data via spatial negative binomial regression, proportion data via spatial beta regression, binary data via binomial regression, and skewed, positive data via spatial gamma or spatial inverse Gaussian regression. Next we provide examples of fitting a few of these models.
+
+Poisson regression assumes the mean and variance are equal. Often in practice, the variance is larger than the mean. When the variance is larger than the mean, there is said to be overdispersion in the data. Negative binomial regression accounts for overdispersion via an extra dispersion parameter that allows the variance to change separately from the mean (recall the full negative binomial regression parameterization is available in the technical details vignette). We fit a spatial negative binomial regression model to the moose count data by running
+```{r, eval = FALSE}
+nbmod <- spglm(count ~ elev, family = "nbinomial", data = moose, spcov_type = "exponential")
+```
+Running `glances(poismod, nbmod)` shows that the AIC and AICc are lower for the negative binomial model than the Poisson model, suggesting the negative binomial model is a better fit to the data and by consequence, there is evidence of overdispersion in the moose counts.
+
+Binomial (Bernoulli) regression is used to model binary data (successes and failures). The `presence` variable in the `moose` data is equal to 1 (success) if there is at least one moose observed and 0 (failure) otherwise. To quantify the relationship between moose presence and elevation, we fit a spatial binomial regression model by running
+```{r}
+binmod <- spglm(presence ~ elev, family = "binomial", data = moose, spcov_type = "exponential")
+```
+
+Gamma regression is used to model skewed, positive data. Suppose instead of modeling the `sulfate` data using a spatial linear model, we modeled sulfate using spatial gamma regression. We fit a spatial gamma regression model to these data by running
+```{r}
+gammamod <- spglm(sulfate ~ 1, family = "Gamma", data = sulfate, spcov_type = "exponential")
 ```
 
 # Discussion {#sec:discussion}

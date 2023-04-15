@@ -53,6 +53,8 @@ In addition to this document on the technical details of `spmodel`, there are th
    \boldsymbol{\beta} & = \text{Fixed effect parameter vector} \\
    \mathbf{X} & = \text{Design matrix of known explanatory variables (covariates)} \\
    p & = \text{The number of linearly independent columns in } \mathbf{X} \\
+   \boldsymbol{\mu} & = \text{Mean vector} \\
+   \varphi & = \text{Dispersion parameter} \\
    \mathbf{Z} & = \text{Design matrix of known random effect variables} \\
    \boldsymbol{\theta} & = \text{Covariance parameter vector} \\   
    \boldsymbol{\Sigma} & = \text{Covariance matrix evaluated at } \boldsymbol{\theta} \\
@@ -968,21 +970,11 @@ where $\boldsymbol{\mu}$ is the fixed mean. It follows that
 
 ## Simulation Functions
 
-### `sprpois()`
-
-### `sprnbinom()`
-
-### `sprbinom()`
-
-### `sprbeta()`
-
-### `sprgamma()`
-
-### `sprinvgauss()`
-
 ## `vcov()`
 
 ## Distribution Parameteriziations
+
+Below we provide definitions associated with each of the six generalized linear models families available in `spmodel`. Note that the poisson, binomial, gamma, and inverse Gaussian distributions are members of the exponential family, and their deviance is typically expressed as twice the difference in log-likelihoods between the saturated and fitted model times the dispersion parameter. The negative binomial and beta distributions are members of the exponential family when the dispersion parameter ($\vartheta$) is known, and their deviance is typically expressed as just twice the difference in log-likelihoods between the saturated and fitted model. 
 
 ### Poisson Distribution
 
@@ -1004,12 +996,12 @@ Using the inverse log link and writing in terms of $\mu = exp(w)$, the log-likel
 
 The derivative of the Poisson distribution with respect to $w$ is
 \begin{equation*}
-  \frac{d}{d w} \log f(y | \mu) = y - exp(w).
+  \frac{d}{d w} \log f(y | \mu) = y - \exp(w).
 \end{equation*}
 
 The second derivative of the Poisson distribution with respect to $w$ is
 \begin{equation*}
-  \frac{d^2}{d w^2} \log f(y | \mu) = - exp(w).
+  \frac{d^2}{d w^2} \log f(y | \mu) = - \exp(w).
 \end{equation*}
 
 Twice the log-likelihood of the saturated model is 
@@ -1024,18 +1016,240 @@ Twice the log-likelihood of the fitted (observed) model is
 
 Thus the deviance is
 \begin{equation*}
-  2 \sum_i[y_i log(y_i / \hat{\mu}_i) - (y_i - \hat{\mu}_i)].
+  2 \sum_i y_i log(y_i / \hat{\mu}_i) - (y_i - \hat{\mu}_i).
 \end{equation*}
 
 ### Negative Binomial Distribution
 
+The negative binomial distribution is defined as
+\begin{equation*}
+  f(y | \mu, \varphi) = \frac{\Gamma(y + \varphi)}{\Gamma(\varphi) y!} \left( \frac{\mu}{\mu + \varphi} \right)^y \left( \frac{\varphi}{\mu + \varphi} \right)^\varphi,
+\end{equation*}
+where $y$ is a non-negative integer, $\mu > 0$, $\varphi > 0$, $\text{E}(y) = \mu$, and $\text{Var}(y) = \mu + \frac{\mu^2}{\varphi}$. 
+
+The log-likelihood (of a single observation) is defined as
+\begin{equation*}
+  \log f(y | \mu, \varphi) = \log(\Gamma(y + \varphi)) - \log(\Gamma(\varphi)) - \log(y!) + y \log(\mu) - y \log(\mu + \varphi) + \varphi \log(\varphi) - \varphi \log(\mu + \varphi).
+\end{equation*}
+
+Using the inverse log link and writing in terms of $\mu = exp(w)$, the log-likelihood can be written as
+\begin{equation*}
+  \log f(y | \mu) = \log(\Gamma(y + \varphi)) - \log(\Gamma(\varphi)) - \log(y!) + y [w - \log(\exp(w) + \varphi)] + \varphi [\log(\varphi) - \log(\exp(w) + \varphi)].
+\end{equation*}
+
+The derivative of the negative binomial distribution with respect to $w$ is
+\begin{equation*}
+\begin{split}
+  \frac{d}{d w} \log f(y | \mu) & = y\left(1 - \frac{\exp(w)}{\exp(w) + \varphi}\right) + \varphi \left(- \frac{\exp(w)}{\exp(w) + \varphi} \right) \\ 
+  & = \frac{y\varphi}{\exp(w) + \varphi} - \frac{\varphi \exp(w)}{\exp(w) + \varphi} \\
+  & =  \frac{\varphi (y - \exp(w))}{\exp(w) + \varphi}.
+\end{split}
+\end{equation*}
+
+The second derivative of the negative binomial distribution with respect to $w$ is
+\begin{equation*}
+  \frac{d^2}{d w^2} \log f(y | \mu) = - \frac{\varphi \exp(w) (y + \varphi)}{(\varphi + \exp(w))^2}
+\end{equation*}
+
+Twice the log-likelihood of the saturated model is 
+\begin{equation*}
+  2 \log f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \log(\Gamma(y_i + \varphi)) - \log(\Gamma(\varphi)) - \log(y_i!) + y_i \log(y_i) - y_i \log(y_i + \varphi) + \varphi \log(\varphi) - \varphi \log(y_i + \varphi).
+\end{equation*}
+
+Twice the log-likelihood of the fitted (observed) model is
+\begin{equation*}
+  2 \log f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i \log(\Gamma(y_i + \varphi)) - \log(\Gamma(\varphi)) - \log(y_i!) + y_i \log(\hat{\mu}_i) - y_i \log(\hat{\mu}_i + \varphi) + \varphi \log(\varphi) - \varphi \log(\hat{\mu}_i + \varphi).
+\end{equation*}
+
+Thus the deviance is
+\begin{equation*}
+  2 \sum_i y_i [\log(y_i) - \log(y_i + \varphi) - \log(\hat{\mu}_i) + \log(\hat{\mu}_i + \varphi)] + \varphi [ - \log(y_i + \varphi) + \log(\hat{\mu}_i + \varphi)].
+\end{equation*}
+
 ### Binomial Distribution
+
+The binomial distribution is defined as
+\begin{equation*}
+  f(y | \mu, m) = \binom{m}{y} \mu^y (1 - \mu)^{m - y},
+\end{equation*}
+where $m$ is the (known) number of Bernoulli trials, $y$ is a non-negative integer, $0 \le \mu \le 1$, $\text{E}(y) = m\mu$, and $\text{Var}(y) = m\mu (1 - \mu)$. 
+
+The log-likelihood (of a single observation) is defined as
+\begin{equation*}
+  \log f(y | \mu) = \log \left[ \binom{m}{y} \right] + y \log(\mu) + (m - y) \log(1 - \mu).
+\end{equation*}
+
+Using the inverse logit link and writing in terms of $\mu = \exp(w) / (1 + \exp(w))$, the log-likelihood can be written as
+\begin{equation*}
+  \log f(y | \mu) = \log \left[ \binom{m}{y} \right] + y \log(\exp(w) / (1 + \exp(w))) + (m - y) \log(1 - \exp(w) / (1 + \exp(w))).
+\end{equation*}
+
+The derivative of the binomial distribution with respect to $w$ is
+\begin{equation*}
+  \frac{d}{d w} \log f(y | \mu) = y - \frac{m \exp(w)}{1 + \exp(w)}
+\end{equation*}
+
+The second derivative of the binomial distribution with respect to $w$ is
+\begin{equation*}
+  \frac{d^2}{d w^2} \log f(y | \mu) = - \frac{m \exp(w)}{(1 + exp(w))^2}.
+\end{equation*}
+
+Twice the log-likelihood of the saturated model is 
+\begin{equation*}
+  2 \log f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \log \left[ \binom{m_i}{y_i} \right] + y_i \log(y_i) + (m_i - y_i) \log(m_i - y_i).
+\end{equation*}
+
+Twice the log-likelihood of the fitted (observed) model is
+\begin{equation*}
+  2 \log f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i \log \left[ \binom{m_i}{y_i} \right] + y_i \log(m_i\hat{\mu}_i) + (m_i - y_i) \log(m_i - m_i \hat{\mu}_i).
+\end{equation*}
+
+Thus the deviance is
+\begin{equation*}
+  2 \sum_i y_i[ \log(y_i) - \log(m_i \hat{\mu}_i)] + (m_i - y_i)[ \log(m_i - y_i) - \log(m_i - m_i \hat{\mu}_i) ]
+\end{equation*}
 
 ### Beta Distribution
 
+The beta distribution is defined as
+\begin{equation*}
+  f(y | \mu, \varphi) = \frac{\Gamma(\varphi)}{\Gamma(\mu \varphi) \Gamma((1 - \mu)\varphi)} y^{\mu \varphi - 1} (1 - y)^{(1 - \mu)\varphi - 1},
+\end{equation*}
+where $0 < y < 1$, $0 < \mu < 1$, $\text{E}(y) = \mu$, and $\text{Var}(y) = \mu (1 - \mu) / (1 + \varphi)$. 
+
+The log-likelihood (of a single observation) is defined as
+\begin{equation*}
+  \log f(y | \mu) = \log(\Gamma(\varphi)) - \log(\Gamma(\mu \varphi)) - \log(\Gamma((1 - \mu)\varphi)) +  (\mu \varphi - 1) \log(y) + ((1 - \mu)\varphi - 1) \log(1 - y).
+\end{equation*}
+
+Using the inverse logit link and writing in terms of $\mu = exp(w)$, the log-likelihood can be written as
+\begin{equation*}
+\begin{split}
+  \log f(y | \mu, \varphi) & = \log(\Gamma(\varphi)) - \log(\Gamma(\frac{\exp(w)}{1 + \exp(w)} \varphi)) - \log(\Gamma((1 - \frac{\exp(w)}{1 + \exp(w)})\varphi)) \\
+  & +  (\frac{\exp(w)}{1 + \exp(w)} \varphi - 1) \log(y) + ((1 - \frac{\exp(w)}{1 + \exp(w)})\varphi - 1) \log(1 - y).
+\end{split}
+\end{equation*}
+
+It can be shown that the derivative of beta distribution with respect to $w$ is
+\begin{equation*}
+  \frac{d}{d w} \log f(y | \mu) = - \frac{\varphi \exp(w) k_0(w | y, \varphi)}{(1 + \exp(w))^2},
+\end{equation*}
+where $k_0(w | y, \varphi) = \psi^{(0)}(\frac{\varphi \exp(w)}{1 + \exp(w)}) - \psi^{(0)}(\frac{\varphi}{1 + \exp(w)}) + \log( \frac{1}{y} - 1)$ and $\psi^{(0)}$ is the $0th$ derivative of the digamma function.
+
+It can be shown that the second derivative of the beta distribution with respect to $w$ is
+\begin{equation*}
+  \frac{d^2}{d w^2} \log f(y | \mu) = - \frac{\varphi \exp(2w) k_1(w | y, \varphi)}{(1 + exp(w))^4},
+\end{equation*}
+where $k_1(w | y, \varphi) = \varphi [\psi^{(1)}(\frac{\varphi \exp(w)}{1 + \exp(w)}) + \psi^{(1)}( \frac{\varphi}{1 + \exp(w)})] - 2\sinh(w)[k_0(w | y, \varphi) + 2\tanh^{-1}(1 - 2y)]$ and $\psi^{(n)}$ is the $nth$ derivative of the digamma function.
+
+Twice the log-likelihood of the saturated model is 
+\begin{equation*}
+  2 \log f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \log(\Gamma(\varphi)) - \log(\Gamma(y_i \varphi)) - \log(\Gamma((1 - y_i)\varphi)) +  (y_i \varphi - 1) \log(y_i) + ((1 - y_i)\varphi - 1) \log(1 - y_i).
+\end{equation*}
+
+Twice the log-likelihood of the fitted (observed) model is
+\begin{equation*}
+  2 \log f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \log(\Gamma(\varphi)) - \log(\Gamma(\hat{\mu}_i \varphi)) - \log(\Gamma((1 - \hat{\mu}_i)\varphi)) +  (\hat{\mu}_i \varphi - 1) \log(y) + ((1 - \hat{\mu}_i)\varphi - 1) \log(1 - y).
+\end{equation*}
+
+Thus the deviance is
+\begin{equation*}
+  2 \sum_i - \log(\Gamma(y_i \varphi)) - \log(\Gamma((1 - y_i) \varphi )) + \log(\Gamma(\hat{\mu}_i \varphi)) + \log(\Gamma((1 - \hat{\mu}_i) \varphi )) + (y_i - \hat{\mu}_i) \varphi \log(y_i) + (\hat{\mu}_i - y_i) \varphi \log(1 - y_i)
+\end{equation*}
+
 ### Gamma Distribution
 
+The gamma distribution is defined as
+\begin{equation*}
+  f(y | \mu, \varphi) = \frac{1}{\Gamma(\varphi)} \left( \frac{\varphi}{\mu} \right)^\varphi y^{\varphi - 1} \exp(\frac{-y \varphi}{\mu}),
+\end{equation*}
+where $y > 0$, $\mu > 0$, $\text{E}(y) = \mu$, and $\text{Var}(y) = \mu^2/\varphi$. 
+
+The log-likelihood (of a single observation) is defined as
+\begin{equation*}
+  \log f(y | \mu) = - \log(\Gamma(\varphi)) + \varphi [\log(\varphi) - \log(\mu)] + (\varphi - 1) \log(y) - \frac{y \varphi}{\mu}.
+\end{equation*}
+
+Using the inverse log link and writing in terms of $\mu = exp(w)$, the log-likelihood can be written as
+\begin{equation*}
+  \log f(y | \mu) = - \log(\Gamma(\varphi)) \varphi [\log(\varphi) - w] + (\varphi - 1) \log(y) - \frac{y \varphi}{\exp(w)}.
+\end{equation*}
+
+The derivative of the gamma distribution with respect to $w$ is
+\begin{equation*}
+  \frac{d}{d w} \log f(y | \mu) = -\varphi + \frac{\varphi y}{\exp(w)}.
+\end{equation*}
+
+The second derivative of the gamma distribution with respect to $w$ is
+\begin{equation*}
+  \frac{d^2}{d w^2} \log f(y | \mu) = - \frac{\varphi y}{\exp(w)}.
+\end{equation*}
+
+Twice the log-likelihood of the saturated model is 
+\begin{equation*}
+  2 \log f(\mathbf{y} | \boldsymbol{\mu}_s) = - \log(\Gamma(\varphi)) + \varphi [\log(\varphi) - \log(y_i)] + (\varphi - 1) \log(y_i) - \frac{y_i \varphi}{y_i}.
+\end{equation*}
+
+Twice the log-likelihood of the fitted (observed) model is
+\begin{equation*}
+  2 \log f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i y_i - \log(\Gamma(\varphi)) + \varphi [\log(\varphi) - \log(\hat{\mu}_i)] + (\varphi - 1) \log(y_i) - \frac{y_i \varphi}{\hat{\mu}_i}.
+\end{equation*}
+
+Thus the deviance is
+\begin{equation*}
+  2 \sum_i - \log(\frac{y}{\hat{\mu}_i}) + \frac{y - \hat{\mu}_i}{\hat{\mu}_i}
+\end{equation*}
+after scaling by $\varphi$.
+
 ### Inverse Gaussian Distribution
+
+The inverse Gaussian distribution is defined as
+\begin{equation*}
+  f(y | \mu, \varphi) = \sqrt{\frac{\varphi \mu}{2 \pi y^3}} \exp \left( - \frac{\varphi (y - \mu^2}{2 \mu y} \right),
+\end{equation*}
+where $y > 0$, $\mu > 0$, $\text{E}(y) = \mu$, and $\text{Var}(y) = \mu^2/\varphi$. 
+
+The log-likelihood (of a single observation) is defined as
+\begin{equation*}
+  \log f(y | \mu) = \frac{1}{2}[\log(\varphi / 2 \pi y^3)  + \log(\mu)] - \varphi \frac{(y - \mu)^2}{2 \mu y}.
+\end{equation*}
+
+Using the inverse log link and writing in terms of $\mu = exp(w)$, the log-likelihood can be written as
+\begin{equation*}
+  \log f(y | \mu) = \frac{1}{2}[\log(\varphi / 2 \pi y^3)  + w] - \varphi \frac{(y - \exp(w))^2}{2 \exp(w) y}.
+\end{equation*}
+
+The derivative of the gamma distribution with respect to $w$ is
+\begin{equation*}
+  \frac{d}{d w} \log f(y | \mu) = \varphi \left( \frac{y}{2 \exp(w)} - \frac{\exp(w)}{2y} \right) + \frac{1}{2}.
+\end{equation*}
+
+The second derivative of the gamma distribution with respect to $w$ is
+\begin{equation*}
+  \frac{d^2}{d w^2} \log f(y | \mu) = - \frac{\varphi(\exp(2w) + y^2)}{2y\exp(w)}.
+\end{equation*}
+
+Note that this is not a typical parameterization of the inverse Gaussian distribution. The typical parameterization of the inverse Gaussian distribution is
+\begin{equation*}
+ f(y | \mu, \lambda) = \sqrt{\frac{\lambda}{2 \pi y^3}} \exp \left( - \frac{\lambda(y - \mu)^2}{2u^2y} \right),
+\end{equation*}
+where $y > 0$, $\mu > 0$, $\text{E}(y) = \mu$, and $\text{Var}(y) = \mu^3/\lambda$, and $\lambda = \mu \varphi$. 
+
+Twice the log-likelihood of the saturated model is 
+\begin{equation*}
+  2 \log f(\mathbf{y} | \boldsymbol{\mu}_s) = \frac{1}{2} \left( \frac{\lambda}{2 \pi y_i^3} \right)
+\end{equation*}
+
+Twice the log-likelihood of the fitted (observed) model is
+\begin{equation*}
+  2 \log f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \frac{1}{2} \left( \frac{\lambda}{2 \pi y_i^3} \right) - \frac{\lambda (y_i - \hat{\mu}_i)^2}{2 \hat{\mu}_i^2 y_i}.
+\end{equation*}
+
+Thus the deviance is
+\begin{equation*}
+ \sum_i (y_i - \hat{\mu}_i)^2 / (\hat{\mu}_i^2 y_i),
+\end{equation*}
+after scaling by $\lambda$.
 
 # The Empirical Semivariogram (`esv()`) {#sec:esv}
 
@@ -1064,6 +1278,8 @@ So then taking $\mathbf{S} = \mathbf{D}^{1/2}$ implies $\mathbf{S}^{-1} = \mathb
 The Cholesky decomposition decomposes $\boldsymbol{\Sigma}$ into the product between $\mathbf{C}$ and $\mathbf{C}^\top$ ($\boldsymbol{\Sigma} = \mathbf{C}\mathbf{C}^\top$), where $\mathbf{C}$ is a lower triangular matrix. Note that $\mathbf{C}$ is generally not equal to $\boldsymbol{\Sigma}^{1/2}$. Taking $\mathbf{S}$ to be $\mathbf{C}$, we see that finding the inverse products requires solving $\mathbf{C}^{-1}\mathbf{X}$. Observe that $\mathbf{C}^{-1}\mathbf{X} = \mathbf{A}$ for some matrix $\mathbf{A}$. This implies $\mathbf{X} = \mathbf{C}\mathbf{A}$, which for $\mathbf{A}$ can be efficiently solved using forward substitution because $\mathbf{C}$ is lower triangular. 
 
 The products in this document that involve $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1}$ are actually implemented in `spmodel` using $\mathbf{C}$ and $\mathbf{C}^{-1}$. The products in this document that involve $\boldsymbol{\Sigma}^{-1/2}$ still rely on an eigendecomposition (because recall that generally, $\mathbf{C}^{-1} \mathbf{A} \neq \boldsymbol{\Sigma}^{-1/2} \mathbf{A}$). An example is computing the Pearson residuals.
+
+# A Note on Computational Stability
 
 # References {.unnumbered}
 

@@ -203,8 +203,6 @@ laploglik_products.sar <- laploglik_products.car
 
 get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod, ret_mHInv = FALSE) {
 
-  # add cov_betahat_Inv stability by same diagonal tolerance as this can have problems too
-  diag(cov_betahat_Inv) <- diag(cov_betahat_Inv) + data_object$diagtol
 
   family <- data_object$family
   SigInv <- Matrix::bdiag(SigInv_list)
@@ -214,67 +212,119 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
   w <- get_w_init(family, y, dispersion)
   wdiffmax <- Inf
   iter <- 0
-  while (iter < 50 && wdiffmax > 1e-4) {
 
 
-    iter <- iter + 1
-    # compute the d vector
-    d <-  get_d(family, w, y, size, dispersion)
-    # and then the gradient vector
-    g <-  d - Ptheta %*% w
-    # Next, compute H
-    D <- get_D(family, w, y, size, dispersion)
-    D_diag <- diag(D)
-    D_list <- lapply(split(D_diag, sort(data_object$local_index)), function(x) Diagonal(x = x))
-    # cholesky products
-    if (data_object$parallel) {
-      cluster_list <- lapply(seq_along(D_list), function(l) {
-        cluster_list_element <- list(
-          D = D_list[[l]],
-          S = SigInv_list[[l]]
+
+  if (length(SigInv_list) == 1) {
+
+    while (iter < 50 && wdiffmax > 1e-4) {
+
+
+      iter <- iter + 1
+      # compute the d vector
+      d <-  get_d(family, w, y, size, dispersion)
+      # and then the gradient vector
+      g <-  d - Ptheta %*% w
+      # Next, compute H
+      D <- get_D(family, w, y, size, dispersion)
+      H <-  D - Ptheta # not PD but -H is
+      solveHg <- solve(H, g)
+      wnew <- w - solveHg
+      # mH_upchol <- chol(Matrix::forceSymmetric(-H))
+      # solveHg <- backsolve(mH_upchol, forwardsolve(t(mH_upchol), g))
+      # wnew <- w + solveHg # + because -H is already applied
+      # check overshoot on loglik surface
+      dnew <- get_d(family, wnew, y, size, dispersion)
+      gnew <- dnew - Ptheta %*% wnew
+      if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem. Try using a different family, removing extreme observations, rescaling the response variable (if continuous), fixing ie at a known, non-zero value (via spcov_initial), or fixing dispersion at one (via dispersion_initial).", call. = FALSE)
+      if (max(abs(gnew)) > max(abs(g))) wnew <- w - 0.1 * solveHg # + because -H is already applied
+      # if (max(abs(gnew)) > max(abs(g))) wnew <- w + 0.1 * solveHg
+      wdiffmax <- max(abs(wnew - w))
+      # update w
+      w <- wnew
+    }
+
+    mHldet <- as.numeric(determinant(-H, logarithm = TRUE)$modulus)
+    # mHldet <- 2 * sum(log(diag(mH_upchol)))
+    w_and_H_list <- list(w = w, H = NULL, mHldet = mHldet)
+    if (ret_mHInv) {
+      # not done above because this is only for model stats and solve(H) slower than solve(H, g)
+      HInv <- solve(H)
+      w_and_H_list$mHInv <- -HInv
+      # mHInv <- chol2inv(mH_upchol)
+      # w_and_H_list$mHInv <- mHInv
+    }
+
+
+
+  } else {
+
+    # add cov_betahat_Inv stability by same diagonal tolerance as this can have problems too
+    diag(cov_betahat_Inv) <- diag(cov_betahat_Inv) + data_object$diagtol
+
+    while (iter < 50 && wdiffmax > 1e-4) {
+
+      iter <- iter + 1
+      # compute the d vector
+      d <-  get_d(family, w, y, size, dispersion)
+      # and then the gradient vector
+      g <-  d - Ptheta %*% w
+      # Next, compute H
+      D <- get_D(family, w, y, size, dispersion)
+      D_diag <- diag(D)
+      D_list <- lapply(split(D_diag, sort(data_object$local_index)), function(x) Diagonal(x = x))
+      # cholesky products
+      if (data_object$parallel) {
+        cluster_list <- lapply(seq_along(D_list), function(l) {
+          cluster_list_element <- list(
+            D = D_list[[l]],
+            S = SigInv_list[[l]]
+          )
+        })
+        DSigInv_list <- parallel::parLapply(data_object$cl, cluster_list, get_DSigInv_parallel)
+        names(DSigInv_list) <- names(D_list)
+      } else {
+        DSigInv_list <- mapply(
+          D = D_list, S = SigInv_list,
+          function(D, S) get_DSigInv(D, S),
+          SIMPLIFY = FALSE
         )
-      })
-      DSigInv_list <- parallel::parLapply(data_object$cl, cluster_list, get_DSigInv_parallel)
-      names(DSigInv_list) <- names(D_list)
-    } else {
-      DSigInv_list <- mapply(
-        D = D_list, S = SigInv_list,
-        function(D, S) get_DSigInv(D, S),
-        SIMPLIFY = FALSE
-      )
+      }
+
+      if (data_object$parallel) {
+        cluster_list <- DSigInv_list
+        DSigInv_Inv_list <- parallel::parLapply(data_object$cl, cluster_list, solve)
+        names(DSigInv_Inv_list) <- names(D_list)
+      } else {
+        DSigInv_Inv_list <- lapply(DSigInv_list, function(x) solve(x))
+      }
+      DSigInv_Inv <- Matrix::bdiag(DSigInv_Inv_list)
+      HInv <- smw_HInv(AInv = DSigInv_Inv, U = SigInv_X, CInv = cov_betahat_Inv)
+      solveHg <- HInv %*% g
+      wnew <- w - solveHg
+      # check overshoot on loglik surface
+      dnew <- get_d(family, wnew, y, size, dispersion)
+      gnew <- dnew - Ptheta %*% wnew
+      if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem. Try using a different family, removing extreme observations, rescaling the response variable (if continuous), fixing ie at a known, non-zero value (via spcov_initial), or fixing dispersion at one (via dispersion_initial).", call. = FALSE)
+      if (max(abs(gnew)) > max(abs(g))) wnew <- w - 0.1 * solveHg
+      wdiffmax <- max(abs(wnew - w))
+      # update w
+      w <- wnew
     }
 
-    if (data_object$parallel) {
-      cluster_list <- DSigInv_list
-      DSigInv_Inv_list <- parallel::parLapply(data_object$cl, cluster_list, solve)
-      names(DSigInv_Inv_list) <- names(D_list)
-    } else {
-      DSigInv_Inv_list <- lapply(DSigInv_list, function(x) solve(x))
+    mHldet <- smw_mHldet(A_list = DSigInv_list, AInv = DSigInv_Inv, U = SigInv_X, C = cov_betahat, CInv = cov_betahat_Inv)
+    w_and_H_list <- list(w = w, H = NULL, mHldet = mHldet)
+    if (ret_mHInv) {
+      w_and_H_list$mHInv <- -HInv
     }
-    DSigInv_Inv <- Matrix::bdiag(DSigInv_Inv_list)
-    HInv <- smw_HInv(AInv = DSigInv_Inv, U = SigInv_X, CInv = cov_betahat_Inv)
-    solveHg <- HInv %*% g
-    wnew <- w - solveHg
-    # check overshoot on loglik surface
-    dnew <- get_d(family, wnew, y, size, dispersion)
-    gnew <- dnew - Ptheta %*% wnew
-    if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem. Try using a different family, removing extreme observations, rescaling the response variable (if continuous), fixing ie at a known, non-zero value (via spcov_initial), or fixing dispersion at one (via dispersion_initial).", call. = FALSE)
-    if (max(abs(gnew)) > max(abs(g))) wnew <- w - 0.1 * solveHg
-    wdiffmax <- max(abs(wnew - w))
-    # update w
-    w <- wnew
   }
+
 
   # handle offset
   if (!is.null(data_object$offset)) {
-    w <- w - data_object$offset
+    w_and_H_list$w <- w_and_H_list$w - data_object$offset
   }
 
-  mHldet <- smw_mHldet(A_list = DSigInv_list, AInv = DSigInv_Inv, U = SigInv_X, C = cov_betahat, CInv = cov_betahat_Inv)
-  w_and_H_list <- list(w = w, H = NULL, mHldet = mHldet)
-  if (ret_mHInv) {
-    w_and_H_list$mHInv <- -HInv
-  }
   w_and_H_list
 }
 
@@ -300,28 +350,36 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
     H <-  D - Ptheta # not PD but -H is
     solveHg <- solve(H, g)
     wnew <- w - solveHg
+    # mH_upchol <- chol(Matrix::forceSymmetric(-H))
+    # solveHg <- backsolve(mH_upchol, forwardsolve(t(mH_upchol), g))
+    # wnew <- w + solveHg # + because -H is already applied
     # check overshoot on loglik surface
     dnew <- get_d(family, wnew, y, size, dispersion)
     gnew <- dnew - Ptheta %*% wnew
-    if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem", call. = FALSE)
+    if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem. Try using a different family, removing extreme observations, rescaling the response variable (if continuous), fixing ie at a known, non-zero value (via spcov_initial), or fixing dispersion at one (via dispersion_initial).", call. = FALSE)
     if (max(abs(gnew)) > max(abs(g))) wnew <- w - 0.1 * solveHg
+    # if (max(abs(gnew)) > max(abs(g))) wnew <- w + 0.1 * solveHg
     wdiffmax <- max(abs(wnew - w))
     # update w
     w <- wnew
   }
 
-  # handle offset
-  if (!is.null(data_object$offset)) {
-    w <- w - data_object$offset
-  }
-
   mHldet <- as.numeric(determinant(-H, logarithm = TRUE)$modulus)
+  # mHldet <- 2 * sum(log(diag(mH_upchol)))
   w_and_H_list <- list(w = w, H = NULL, mHldet = mHldet)
   if (ret_mHInv) {
     # not done above because this is only for model stats and solve(H) slower than solve(H, g)
     HInv <- solve(H)
     w_and_H_list$mHInv <- -HInv
+    # mHInv <- chol2inv(mH_upchol)
+    # w_and_H_list$mHInv <- mHInv
   }
+
+  # handle offset
+  if (!is.null(data_object$offset)) {
+    w_and_H_list$w <- w_and_H_list$w - data_object$offset
+  }
+
   w_and_H_list
 }
 

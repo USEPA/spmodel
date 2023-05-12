@@ -921,7 +921,6 @@ Poisson regression assumes the mean and variance are equal. Often in practice, t
 ```{r, eval = FALSE}
 nbmod <- spglm(count ~ elev, family = "nbinomial", data = moose, spcov_type = "exponential")
 ```
-Running `glances(poismod, nbmod)` shows that the AIC and AICc are lower for the negative binomial model than the Poisson model, suggesting the negative binomial model is a better fit to the data and by consequence, there is evidence of overdispersion in the moose counts.
 
 Binomial (Bernoulli) regression is used to model binary data (successes and failures). The `presence` variable in the `moose` data is equal to 1 (success) if there is at least one moose observed and 0 (failure) otherwise. To quantify the relationship between moose presence and elevation, we fit a spatial binomial regression model by running
 ```{r}

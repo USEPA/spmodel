@@ -243,9 +243,9 @@ When building spatial linear models, the response vector $\mathbf{y}$ is typical
 \begin{equation*}
 g(\boldsymbol{\mu}) = \boldsymbol{\eta} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
 \end{equation*}
-where $g(\cdot)$ is called a link function, $\boldsymbol{\mu}$ is the mean of $\mathbf{y}$, and the remaining terms $\mathbf{X}$, $\boldsymbol{\beta}$, $\boldsymbol{\tau}$, $\boldsymbol{\epsilon}$ represent the same quantities as for the spatial linear models (Section$~$\ref{sec:splm}). The link function, $g(\cdot)$, "links" a function of $\boldsymbol{\mu}$ to the linear term $\boldsymbol{\eta}$, denoted here as $\mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon}$, which is familiar from spatial linear models. Each link function $g(\cdot)$ has a corresponding inverse link function, $g^{-1}(\cdot)$. The inverse link function "links" a function of $\boldsymbol{\eta}$ to $\boldsymbol{\mu}$.  Notice that for spatial generalized linear models, we are not modeling $\mathbf{y}$ directly as we do for spatial linear models, but rather we are modeling a function of the mean of $\mathbf{y}$. Next we discuss the specific distributions modeled and link functions used in `spmodel`.
+where $g(\cdot)$ is called a link function, $\boldsymbol{\mu}$ is the mean of $\mathbf{y}$, and the remaining terms $\mathbf{X}$, $\boldsymbol{\beta}$, $\boldsymbol{\tau}$, $\boldsymbol{\epsilon}$ represent the same quantities as for the spatial linear models (Section$~$\ref{sec:splm}). The link function, $g(\cdot)$, "links" a function of $\boldsymbol{\mu}$ to the linear term $\boldsymbol{\eta}$, denoted here as $\mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon}$, which is familiar from spatial linear models. Each link function $g(\cdot)$ has a corresponding inverse link function, $g^{-1}(\cdot)$. The inverse link function "links" a function of $\boldsymbol{\eta}$ to $\boldsymbol{\mu}$ (and applies element-wise to each vector).  Notice that for spatial generalized linear models, we are not modeling $\mathbf{y}$ directly as we do for spatial linear models, but rather we are modeling a function of the mean of $\mathbf{y}$. Also notice that $\boldsymbol{\eta}$ is unconstrained but $\boldsymbol{\mu}$ is usually constrained in some way (e.g., positive). Next we discuss the specific distributions modeled and link functions used in `spmodel`.
 
-`spmodel` allows fitting of spatial generalized linear models when $\mathbf{y}$ is a binomial (or Bernoulli), beta, Poisson, negative binomial, gamma, or inverse Gaussian random variable. For binomial and beta $\mathbf{y}$, the logit link function is defined as $g(\boldsymbol{\mu}) = log(\frac{\boldsymbol{\mu}}{1 - \boldsymbol{\mu}}) = \boldsymbol{\eta}$, and the inverse logit link function is defined as $g^{-1}(\boldsymbol{\eta}) = \frac{\exp(\boldsymbol{\eta})}{1 + \exp(\boldsymbol{\eta})} = \boldsymbol{\mu}$. For Poisson, negative binomial, gamma, and inverse Gaussian $\mathbf{y}$, the log link function is defined as $g(\boldsymbol{\mu}) = log(\boldsymbol{\mu}) = \boldsymbol{\eta}$, and the inverse log link function is defined as $g^{-1}(\boldsymbol{\eta}) = \exp(\boldsymbol{\eta}) = \boldsymbol{\mu}$.
+`spmodel` allows fitting of spatial generalized linear models when $\mathbf{y}$ is a binomial (or Bernoulli), beta, Poisson, negative binomial, gamma, or inverse Gaussian random vector. For binomial and beta $\mathbf{y}$, the logit link function is defined as $g(\boldsymbol{\mu}) = log(\frac{\boldsymbol{\mu}}{1 - \boldsymbol{\mu}}) = \boldsymbol{\eta}$, and the inverse logit link function is defined as $g^{-1}(\boldsymbol{\eta}) = \frac{\exp(\boldsymbol{\eta})}{1 + \exp(\boldsymbol{\eta})} = \boldsymbol{\mu}$. For Poisson, negative binomial, gamma, and inverse Gaussian $\mathbf{y}$, the log link function is defined as $g(\boldsymbol{\mu}) = log(\boldsymbol{\mu}) = \boldsymbol{\eta}$, and the inverse log link function is defined as $g^{-1}(\boldsymbol{\eta}) = \exp(\boldsymbol{\eta}) = \boldsymbol{\mu}$.
 
 As with spatial linear models, spatial generalized linear models are fit in `spmodel` for point-referenced and areal data. The `spglm()` function is used to fit spatial generalized linear models for point-referenced data, and the `spgautor()` function is used to fit spatial generalized linear models for areal data. Though this vignette focuses on point-referenced data, `spmodel`'s other vignettes discuss spatial generalized linear models for areal data.
 
@@ -274,7 +274,7 @@ poismod <- spglm(count ~ elev, family = "poisson", data  = moose, spcov_type = "
 
 The estimation method is specified via the `estmethod` argument, which has a default value of `"reml"` for restricted maximum likelihood. The other estimation method is `"ml"` for maximum likelihood.
 
-Printing `poismod` shows the function call, the estimated fixed effect coefficients (on the link scale), the estimated spatial covariance parameters, and a dispersion parameter. The dispersion parameter is estimated in some models and changes mean-variance relationship of $\mathbf{y}$. For Poisson regression models, the dispersion parameter is not estimated and always fixed at one.
+Printing `poismod` shows the function call, the estimated fixed effect coefficients (on the link scale), the estimated spatial covariance parameters, and a dispersion parameter. The dispersion parameter is estimated in some models and changes the mean-variance relationship of $\mathbf{y}$. For Poisson regression models, the dispersion parameter is not estimated and always fixed at one.
 ```{r}
 print(poismod)
 ```
@@ -286,7 +286,7 @@ We summarize the fitted model by running
 summary(poismod)
 ```
 
-Similar to summaries of `glm()` objects, summaries of `spglm()` objects include the original function call, deviance residuals, and a coefficients table of fixed effects. The log of the mean counts does not appear to be related to elevation, as evidenced by the large p-value associated with the asymptotic z-test. A pseudo r-squared is also returned, which quantifies the proportion of variability explained by the fixed effects. The spatial covariance parameters and deviance parameter are also returned. 
+Similar to summaries of `glm()` objects, summaries of `spglm()` objects include the original function call, summary statistics of the deviance residuals, and a coefficients table of fixed effects. The log of mean counts does not appear to be related to elevation, as evidenced by the large p-value associated with the asymptotic z-test. A pseudo r-squared is also returned, which quantifies the proportion of variability explained by the fixed effects. The spatial covariance parameters and dispersion parameter are also returned. 
 
 The `tidy()`, `glance()`, and `augment()` functions behave similarly for `spglm()` objects as they did for `splm()` objects. 
 
@@ -328,7 +328,7 @@ ggplot(moose_preds, aes(color = preds)) +
   scale_color_viridis_c(limits = c(0, 40))
 ```
 
-These predictions have similar spatial patterns as in the observed counts, as many of the observed counts were zero near locations requiring prediction. Next we remove the model predictions from `moose_preds` and show how `augment()` can be used to obtain the same predictions alongside prediction intervals (on the link scale):
+These predictions have similar spatial patterns as in the observed counts, as many of the observed counts were zero near locations requiring prediction. Next we remove the model predictions from `moose_preds` and show how `augment()` can be used to obtain the same predictions alongside prediction intervals (on the response scale):
 ```{r}
 moose_preds$preds <- NULL
 augment(poismod, newdata = moose_preds, type = "response", interval = "prediction")
@@ -336,9 +336,9 @@ augment(poismod, newdata = moose_preds, type = "response", interval = "predictio
 
 ## An Additional Example    
 
-We can revisit the `sulfate` data and instead model `log_Zn` as a gamma random variable. We fit a spatial generalized linear model regressing sulfate on an intercept using the `Gamma` family and a spherical spatial covariance function by running
+We can revisit the `sulfate` data and instead model `sulfate` as a gamma random variable. We fit a spatial generalized linear model regressing sulfate on an intercept using the `Gamma` family and a spherical spatial covariance function by running
 ```{r}
-gsulfmod <- spglm(sulfate ~ 1, family = "Gamma", data = sulfate, spcov_type = "exponential")
+gsulfmod <- spglm(sulfate ~ 1, family = "Gamma", data = sulfate, spcov_type = "spherical")
 ```
 
 We summarize the fitted model by running

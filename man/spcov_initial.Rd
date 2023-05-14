@@ -76,12 +76,12 @@ eigenvalue of \code{W} and the reciprocal of the minimum eigenvalue of
 \item{cosine: }{\eqn{cos(\eta)}}
 \item{wave: }{\eqn{sin(\eta) / \eta * I(h > 0) + I(h = 0)}}
 \item{jbessel: }{\eqn{Bj(h * range)}, Bj is Bessel-J function}
-\item{gravity: }{\eqn{(1 + \eta^2)^(-0.5)}}
-\item{rquad: }{\eqn{(1 + \eta^2)^-1}}
-\item{magnetic: }{\eqn{(1 + \eta^2)^-1.5}}
+\item{gravity: }{\eqn{(1 + \eta^2)^{-0.5}}}
+\item{rquad: }{\eqn{(1 + \eta^2)^{-1}}}
+\item{magnetic: }{\eqn{(1 + \eta^2)^{-1.5}}}
 \item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
 \item{cauchy: }{\eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}}
-\item{pexponential: }{\eqn{exp(h^{extra/range)}}, \eqn{0 < extra \leq 2}}
+\item{pexponential: }{\eqn{exp(h^{extra}/range)}, \eqn{0 < extra \le 2}}
 \item{car: }{\eqn{(I - range * W)^{-1} * M}, weights matrix \eqn{W},
 symmetry condition matrix \eqn{M}, observations with no neighbors
 are given a unique variance

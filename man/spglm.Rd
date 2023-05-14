@@ -270,7 +270,7 @@ for \eqn{h} distance between observations:
 \item{magnetic: }{\eqn{(1 + \eta^2)^{-1.5}}}
 \item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
 \item{cauchy: }{\eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}}
-\item{pexponential: }{\eqn{exp(h^{extra/range)}}, \eqn{0 < extra \le 2}}
+\item{pexponential: }{\eqn{exp(h^{extra}/range)}, \eqn{0 < extra \le 2}}
 \item{none: }{\eqn{0}}
 }
 

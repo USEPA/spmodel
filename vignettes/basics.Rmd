@@ -243,7 +243,7 @@ When building spatial linear models, the response vector $\mathbf{y}$ is typical
 \begin{equation*}
 g(\boldsymbol{\mu}) = \boldsymbol{\eta} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
 \end{equation*}
-where $g(\cdot)$ is called a link function, $\boldsymbol{\mu}$ is the mean of $\mathbf{y}$, and the remaining terms $\mathbf{X}$, $\boldsymbol{\beta}$, $\boldsymbol{\tau}$, $\boldsymbol{\epsilon}$ represent the same quantities as for the spatial linear models (Section$~$\ref{sec:splm}). The link function, $g(\cdot)$, "links" a function of $\boldsymbol{\mu}$ to the linear term $\boldsymbol{\eta}$, denoted here as $\mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon}$, which is familiar from spatial linear models. Each link function $g(\cdot)$ has a corresponding inverse link function, $g^{-1}(\cdot)$. The inverse link function "links" a function of $\boldsymbol{\eta}$ to $\boldsymbol{\mu}$ (and applies element-wise to each vector).  Notice that for spatial generalized linear models, we are not modeling $\mathbf{y}$ directly as we do for spatial linear models, but rather we are modeling a function of the mean of $\mathbf{y}$. Also notice that $\boldsymbol{\eta}$ is unconstrained but $\boldsymbol{\mu}$ is usually constrained in some way (e.g., positive). Next we discuss the specific distributions modeled and link functions used in `spmodel`.
+where $g(\cdot)$ is called a link function, $\boldsymbol{\mu}$ is the mean of $\mathbf{y}$, and the remaining terms $\mathbf{X}$, $\boldsymbol{\beta}$, $\boldsymbol{\tau}$, $\boldsymbol{\epsilon}$ represent the same quantities as for the spatial linear models (Section$~$\ref{sec:splm}). The link function, $g(\cdot)$, "links" a function of $\boldsymbol{\mu}$ to the linear term $\boldsymbol{\eta}$, denoted here as $\mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon}$, which is familiar from spatial linear models. Note that the linking of $\boldsymbol{\mu}$ to $\boldsymbol{\eta}$ applies element-wise to each vector. Each link function $g(\cdot)$ has a corresponding inverse link function, $g^{-1}(\cdot)$. The inverse link function "links" a function of $\boldsymbol{\eta}$ to $\boldsymbol{\mu}$.  Notice that for spatial generalized linear models, we are not modeling $\mathbf{y}$ directly as we do for spatial linear models, but rather we are modeling a function of the mean of $\mathbf{y}$. Also notice that $\boldsymbol{\eta}$ is unconstrained but $\boldsymbol{\mu}$ is usually constrained in some way (e.g., positive). Next we discuss the specific distributions modeled and link functions used in `spmodel`.
 
 `spmodel` allows fitting of spatial generalized linear models when $\mathbf{y}$ is a binomial (or Bernoulli), beta, Poisson, negative binomial, gamma, or inverse Gaussian random vector. For binomial and beta $\mathbf{y}$, the logit link function is defined as $g(\boldsymbol{\mu}) = log(\frac{\boldsymbol{\mu}}{1 - \boldsymbol{\mu}}) = \boldsymbol{\eta}$, and the inverse logit link function is defined as $g^{-1}(\boldsymbol{\eta}) = \frac{\exp(\boldsymbol{\eta})}{1 + \exp(\boldsymbol{\eta})} = \boldsymbol{\mu}$. For Poisson, negative binomial, gamma, and inverse Gaussian $\mathbf{y}$, the log link function is defined as $g(\boldsymbol{\mu}) = log(\boldsymbol{\mu}) = \boldsymbol{\eta}$, and the inverse log link function is defined as $g^{-1}(\boldsymbol{\eta}) = \exp(\boldsymbol{\eta}) = \boldsymbol{\mu}$.
 
@@ -251,7 +251,7 @@ As with spatial linear models, spatial generalized linear models are fit in `spm
 
 The `spglm()` function is quite similar to the `splm()` function, though one additional argument is required:
 
-* `family`: The generalized linear model family (i.e., the distribution of $\mathbf{y}$). Can be `binomial`, `beta`, `Poisson`, `nbinomial`, `Gamma`, or `inverse.gaussian`.
+* `family`: The generalized linear model family (i.e., the distribution of $\mathbf{y}$). Can be `binomial`, `beta`, `poisson`, `nbinomial`, `Gamma`, or `inverse.gaussian`.
     * `family` uses similar syntax as the `family` argument in `glm()`.
     * One difference between `family` in `spglm()` compared to `family` in `glm()` is that the link function is fixed in `spglm()`.
     
@@ -274,7 +274,7 @@ poismod <- spglm(count ~ elev, family = "poisson", data  = moose, spcov_type = "
 
 The estimation method is specified via the `estmethod` argument, which has a default value of `"reml"` for restricted maximum likelihood. The other estimation method is `"ml"` for maximum likelihood.
 
-Printing `poismod` shows the function call, the estimated fixed effect coefficients (on the link scale), the estimated spatial covariance parameters, and a dispersion parameter. The dispersion parameter is estimated in some models and changes the mean-variance relationship of $\mathbf{y}$. For Poisson regression models, the dispersion parameter is not estimated and always fixed at one.
+Printing `poismod` shows the function call, the estimated fixed effect coefficients (on the link scale), the estimated spatial covariance parameters, and a dispersion parameter. The dispersion parameter is estimated in some spatial generalized linear models and changes the mean-variance relationship of $\mathbf{y}$. For Poisson regression models, the dispersion parameter is not estimated and is always fixed at one.
 ```{r}
 print(poismod)
 ```
@@ -288,9 +288,7 @@ summary(poismod)
 
 Similar to summaries of `glm()` objects, summaries of `spglm()` objects include the original function call, summary statistics of the deviance residuals, and a coefficients table of fixed effects. The log of mean counts does not appear to be related to elevation, as evidenced by the large p-value associated with the asymptotic z-test. A pseudo r-squared is also returned, which quantifies the proportion of variability explained by the fixed effects. The spatial covariance parameters and dispersion parameter are also returned. 
 
-The `tidy()`, `glance()`, and `augment()` functions behave similarly for `spglm()` objects as they did for `splm()` objects. 
-
-We tidy the fixed effects (on the link scale) by running 
+The `tidy()`, `glance()`, and `augment()` functions behave similarly for `spglm()` objects as they do for `splm()` objects. We tidy the fixed effects (on the link scale) by running 
 ```{r}
 tidy(poismod)
 ```
@@ -319,9 +317,7 @@ For spatial generalized linear models, we are predicting the mean of the process
 ```{r}
 moose_preds$preds <- predict(poismod, newdata = moose_preds, type = "response")
 ```
-The type argument specifies whether predictions are returned on the link or response (inverse link) scale.
-
-We visualize these predictions by running
+The type argument specifies whether predictions are returned on the link or response (inverse link) scale. We visualize these predictions by running
 ```{r}
 ggplot(moose_preds, aes(color = preds)) + 
   geom_sf(size = 2) +
@@ -415,9 +411,17 @@ Here we list some commonly used `spmodel` functions.
 * `residuals()`: Compute residuals.
 * `spautor()`: Fit a spatial linear model for areal data (i.e., spatial autoregressive model).
 * `spautorRF()`: Fit a random forest spatial residual model for areal data.
+* `spgautor()`: Fit a spatial generalized linear model for areal data (i.e., spatial generalized autoregressive model).
 * `splm()`: Fit a spatial linear model for point-referenced data (i.e., geostatistical model).
 * `splmRF()`: Fit a random forest spatial residual model for point-referenced data.
+* `spglm()`: Fit a spatial generalized linear model for point-referenced data (i.e., generalized geostatistical model).
+* `sprbeta()`: Simulate spatially correlated beta random variables.
+* `sprbinom()`: Simulate spatially correlated binomial (Bernoulli) random variables.
+* `sprgamma()`: Simulate spatially correlated gamma random variables.
+* `sprinvgauss()`: Simulate spatially correlated inverse Gaussian random variables.
+* `sprnbinom()`: Simulate spatially correlated negative binomial random variables.
 * `sprnorm()`: Simulate spatially correlated normal (Gaussian) random variables.
+* `sprpois()`: Simulate spatially correlated Poisson random variables.
 * `summary()`: Summarize fitted models.
 * `tidy()`: Tidy fitted models.
 * `varcomp()`: Compare variance components.

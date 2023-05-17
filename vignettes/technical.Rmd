@@ -828,7 +828,7 @@ When computing the empirical semivariogram using `esv()`, semivariances are igno
 
 ### Big Data (`splm()` only) {#sec:bigdata-lm}
 
-Big data model-fitting is accommodated in `spmodel` using a "local indexing" approach. Suppose there are $m$ unique indexes, and each observation is in one index. Then $\boldsymbol{\Sigma}$ can be represented blockwise as
+Big data model-fitting is accommodated in `spmodel` using a "local" spatial indexing (SPIN) approach [@ver2023indexing]. Suppose there are $m$ unique indexes, and each observation is in one index. Then $\boldsymbol{\Sigma}$ can be represented blockwise as
 \begin{equation}\label{eq:full_cov}
   \boldsymbol{\Sigma} = 
   \begin{bmatrix}
@@ -912,35 +912,35 @@ where $\boldsymbol{\mu}$ is the fixed mean. It follows that
 
 ## `AIC()` and `AICc()` {#sec:aic-glm}
 
-`AIC()` and `AICc()` for spatial generalized linear models are defined the same as for spatial linear models (Section$~$\ref{sec:aic-lm}).
+`AIC()` and `AICc()` for spatial generalized linear models is defined the same as for spatial linear models (Section$~$\ref{sec:aic-lm}).
 
 ## `anova()` {#sec:anova-glm}
 
-`anova()` for spatial generalized linear models are defined the same as for spatial linear models (Section$~$\ref{sec:anova-lm}).
+`anova()` for spatial generalized linear models is defined the same as for spatial linear models (Section$~$\ref{sec:anova-lm}).
 
 ## `coef()` {#sec:coef-glm}
 
-`coef()` for spatial generalized linear models are defined the same as for spatial linear models (Section$~$\ref{sec:coef-lm}).
+`coef()` for spatial generalized linear models is defined the same as for spatial linear models (Section$~$\ref{sec:coef-lm}).
 
 ## `confint()` {#sec:confint-glm}
 
-`confint()` for spatial generalized linear models are defined the same as for spatial linear models (Section$~$\ref{sec:confint-lm}).
+`confint()` for spatial generalized linear models is defined the same as for spatial linear models (Section$~$\ref{sec:confint-lm}).
 
 ## `cooks.distance()`  {#sec:cooks-glm}
 
-The Cook's distance is obtained by finding the standard generalized linear model Cook's distance after conditioning on $\mathbf{w}$. That is, after conditioning on $\mathbf{w}$ the Cook's distance is
+The Cook's distance is defined as the standard generalized linear model Cook's distance after conditioning on $\mathbf{w}$. That is, after conditioning on $\mathbf{w}$, the Cook's distance is
 \begin{equation}
 \frac{\mathbf{e}_p^2}{p}\frac{diag(\mathbf{H}_c)}{1 - diag(\mathbf{H}_c)},
 \end{equation}
-where $\mathbf{e}_p^2$ are the Pearson residuals, $diag(\mathbf{H}_c)$ is the diagonal of the hat matrix conditional on $\mathbf{w}$ given by $\mathbf{H}_c = \mathbf{X}_v (\mathbf{X}_v^\top\mathbf{X}_v)^{-1} \mathbf{X}_v^\top$ is the leverage (hat) matrix conditional on $\mathbf{w}$, $\mathbf{X}_v = \mathbf{V}^{1/2}\mathbf{X}$, and $\mathbf{V}$ is a diagonal matrix with $i$th diagonal element equal to $\text{Var}(\text{w}_i)$.
+where $\mathbf{e}_p^2$ are the Pearson residuals, $diag(\mathbf{H}_c)$ is the diagonal of the leverage (hat) matrix conditional on $\mathbf{w}$ and given by $\mathbf{H}_c = \mathbf{X}_v (\mathbf{X}_v^\top\mathbf{X}_v)^{-1} \mathbf{X}_v^\top$, where $\mathbf{X}_v = \mathbf{V}^{1/2}\mathbf{X}$ and $\mathbf{V}$ is a diagonal matrix with $i$th diagonal element equal to $\text{Var}(w_i)$.
 
 ## `deviance()` {#sec:deviance-glm}
 
-The deviance returned by `spmodel` is the deviance of the fitted model conditional on $\mathbf{w}$ (i.e., the deviance of the conditional model). This deviance is derived by taking the deviance definitions from Section$~$\ref{sec:distributions-glm} and evaluating $\mu_i$ at $w_i$.
+The deviance is defined conditional on $\mathbf{w}$ (i.e., we find the deviance of the conditional model). It is derived by taking the deviance definitions from Section$~$\ref{sec:distributions-glm} and evaluating $\mu_i$ at $w_i$.
 
 ## `fitted()` {#sec:fitted-glm}
 
-The fitted values for the response on the link scale (`type = "link"`) are given by $\mathbf{w}$. The fitted values for the response on the response scale (`type = "response"`) are given by $g^{-1}(\mathbf{w})$. The fitted values for the spatial random errors (`type = "spcov"`) and random effects (`type = "randcov"`) are derived similarly as for spatial linear models (Section$~$\ref{sec:fitted-glm}) but treat $\mathbf{w}$ as the response instead of $\mathbf{y}$.
+The fitted values on the link scale (`type = "link"`) are given by $\mathbf{w}$. The fitted values on the response scale (`type = "response"`) are given by $g^{-1}(\mathbf{w})$. The fitted values for the spatial random errors (`type = "spcov"`) and random effects (`type = "randcov"`) are derived similarly as for spatial linear models (Section$~$\ref{sec:fitted-glm}) but treat $\mathbf{w}$ as the response instead of $\mathbf{y}$ (and are on the link scale).
 
 ## `hatvalues()` {#sec:hatvalues-glm}
 
@@ -972,7 +972,7 @@ Building from the empirical best linear unbiased predictions (i.e., empirical Kr
 \end{equation}
 These predictions are given on the response (inverse link) scale (`type = "response"`) as $g^{-1}(\mathbf{\dot{w}}_u)$.
 
-Similar to the covariance matrix of $\hat{\boldsymbol{\beta}}$, the covariance matrix of $\mathbf{\dot{w}}_u$ requires an adjustment to account for the fact that the $\mathbf{w}$ are not actually observed. First let $\boldsymbol{\Lambda} = \mathbf{X}_u^\top \mathbf{B} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}_o^{-1} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X} \mathbf{B}$ and $\mathbf{B} = (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \hat{\boldsymbol{\Sigma}}_o^{-1}$ and note that $\mathbf{\dot{w}}_u = \Lambda \hat{\mathbf{w}}_o$. Using the law of conditional variance and conditioning on $\mathbf{w}_o$ as if we had observed them, it follows that
+Similar to the covariance matrix of $\hat{\boldsymbol{\beta}}$, the covariance matrix of $\mathbf{\dot{w}}_u$ requires an adjustment to account for the fact that the $\mathbf{w}$ are not actually observed. First let $\boldsymbol{\Lambda} = \mathbf{X}_u \mathbf{B} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}_o^{-1} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o \mathbf{B}$ and $\mathbf{B} = (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \hat{\boldsymbol{\Sigma}}_o^{-1}$, and note that $\mathbf{\dot{w}}_u = \Lambda \hat{\mathbf{w}}_o$. Using the law of conditional variance and conditioning on $\mathbf{w}_o$ as if we had observed them, it follows that
 \begin{equation*}
   \text{Cov}(\hat{\mathbf{w}}_u - \mathbf{w}_u) = \text{Cov}(\Lambda \hat{\mathbf{w}}_o - \mathbf{w}_u) = \text{E}_{\mathbf{w}_o}[\text{Cov}(\Lambda \hat{\mathbf{w}}_o - \mathbf{w}_u | \mathbf{w}_o)] + \text{Cov}_{\mathbf{w}_o}[\text{E}(\Lambda \hat{\mathbf{w}}_o - \mathbf{w}_u | \mathbf{w}_o)],
 \end{equation*}
@@ -1002,38 +1002,38 @@ The extra step required to obtain $\hat{\boldsymbol{\Sigma}}^{-1}_o$, $\hat{\bol
 
 ### Big Data {#sec:bigdata-predict-glm}
 
-`predict()` for big data spatial generalized linear models are defined similarly as for big data spatial linear models (Section$~$\ref{sec:bigdata-predict-glm}), except that $\mathbf{w}$ are subset or predicted (instead of $\mathbf{y}$) to find $\check{\mathbf{w}}_o$ (instead of $\check{\mathbf{y}}_o$). It standard errors are required, $\check{\mathbf{H}}_o$ is also found.
+`predict()` for big data spatial generalized linear models is defined similarly as for big data spatial linear models (Section$~$\ref{sec:bigdata-predict-glm}), except that $\mathbf{w}$ are subset or predicted (instead of $\mathbf{y}$) to find $\check{\mathbf{w}}_o$ (instead of $\check{\mathbf{y}}_o$). It standard errors are required, $\check{\mathbf{H}}_o$ is also found.
 
 ## `pseudoR2()` {#sec:pr2-glm}
 
-`pseudoR2()` for spatial generalized linear models are defined the same as for spatial linear models (Section$~$\ref{sec:pr2-lm}).
+`pseudoR2()` for spatial generalized linear models is defined the same as for spatial linear models (Section$~$\ref{sec:pr2-lm}).
 
 ## `residuals()` {#sec:residuals-glm}
 
-Residuals are obtained by applying standard generalized linear model definitions after conditioning on $\mathbf{w}$.
+The residuals are obtained by applying standard generalized linear model definitions after conditioning on $\mathbf{w}$.
 
 When `type = "response"`, response residuals are returned:
 \begin{equation*}
- \mathbf{e}_{r} = \mathbf{y} - \mathbf{w}.
+ \mathbf{e}_{r} = \mathbf{y} - g^{-1}(\mathbf{w}).
 \end{equation*}
 
 When `type = "pearson"`, Pearson residuals are returned:
 \begin{equation*}
  \mathbf{e}_{p} = \mathbf{V}^{-1/2}\mathbf{e}_{r},
 \end{equation*}
-where $\mathbf{V}$ is a diagonal matrix with $i$th diagonal element equal to $\text{Var}(\text{w}_i)$.
+where $\mathbf{V}$ is a diagonal matrix with $i$th diagonal element equal to $\text{Var}(w_i)$.
 
 When `type = "deviance"`, deviance residuals are returned:
 \begin{equation*}
  \mathbf{e}_{d} = \text{sign}(\mathbf{e}_r) \sqrt{\text{deviance}_i},
 \end{equation*}
-where $\text{deviance}_i$ is the deviance of $\text{y}_i$ (conditional on $\text{w}_i$).
+where $\text{deviance}_i$ is the deviance of $y_i$ (conditional on $w_i$).
 
 When `type = "standardized"`, standardized residuals are returned:
 \begin{equation*}
  \mathbf{e}_{s} = \frac{\mathbf{e}_{d}}{\sqrt{1 - diag(\mathbf{H}_c)}},
 \end{equation*}
-where $diag(\mathbf{H}_c)$ is the diagonal of the hat matrix conditional on $\mathbf{w}$ given by $\mathbf{H}_c \equiv \mathbf{X}_v (\mathbf{X}_v^\top\mathbf{X}_v)^{-1} \mathbf{X}_v^\top$, where $\mathbf{X}_v = \mathbf{V}^{1/2}\mathbf{X}$.
+where $diag(\mathbf{H}_c)$ is the diagonal of the leverage (hat) matrix conditional on $\mathbf{w}$ and given by $\mathbf{H}_c \equiv \mathbf{X}_v (\mathbf{X}_v^\top\mathbf{X}_v)^{-1} \mathbf{X}_v^\top$, where $\mathbf{X}_v = \mathbf{V}^{1/2}\mathbf{X}$.
 
 For more on the motivation of residuals in `spmodel`, see Section$~$\ref{sec:residuals-lm}.
 
@@ -1051,11 +1051,11 @@ Covariance functions for `spglm()` are defined the same as covariance functions 
 
 ### Model-fitting {#sec:estimation-glm}
 
-For spatial linear models, it is relatively straightforward to marginalize over $\boldsymbol{\beta}$ and the random components to obtain a distribution of only the data ($\mathbf{y}$) and covariance parameters ($\boldsymbol{\theta}$) -- this is the REML likelihood (Section$~$\ref{sec:estimation-lm}). For spatial generalized linear models, this is more challenging. First define $\mathbf{w} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon}$. Note that $\mathbf{w}$ is a latent effect that is not actually observed. Our goal is to marginalize the joint distribution of $\mathbf{y}$ and $\mathbf{w}$ over $\mathbf{w}$ to obtain a distribution of only the data ($\mathbf{y}$), a dispersion parameter ($\phi$), and covariance parameters ($\boldsymbol{\theta}$). To accomplish this feat, we use the Laplace approximation. We briefly describe this approach next, but it is described in full detail in @ver2023marginal. 
+For spatial linear models, it is relatively straightforward to marginalize over $\boldsymbol{\beta}$ and the random components to obtain a distribution of only the data ($\mathbf{y}$) and covariance parameters ($\boldsymbol{\theta}$) -- this is the REML likelihood (Section$~$\ref{sec:estimation-lm}). For spatial generalized linear models, this is more challenging. First define $\mathbf{w} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon}$. Note that $\mathbf{w}$ is a latent effect that is not actually observed. Our goal is to marginalize the joint distribution of $\mathbf{y}$ and $\mathbf{w}$ over $\mathbf{w}$ (and $\boldsymbol{\beta}$) to obtain a distribution of only the data ($\mathbf{y}$), a dispersion parameter ($\phi$), and covariance parameters ($\boldsymbol{\theta}$). To accomplish this feat, we use the Laplace approximation. We briefly describe this approach next, but it is described in full detail in @ver2023marginal. 
 
 The marginal distribution of interest can be written hierarchically as
 \begin{equation*}
-  [\mathbf{y}|\mathbf{X}, \phi, \boldsymbol{\theta}] = \int_w [\mathbf{y} | g^{-1}(\mathbf{w}), \phi] [\mathbf{w} | \mathbf{X}, \boldsymbol{\theta}] d\mathbf{w} .
+  [\mathbf{y}|\mathbf{X}, \phi, \boldsymbol{\theta}] = \int_\mathbf{w} [\mathbf{y} | g^{-1}(\mathbf{w}), \phi] [\mathbf{w} | \mathbf{X}, \boldsymbol{\theta}] d\mathbf{w} .
 \end{equation*}
 The term $[\mathbf{y}|g^{-1}(\mathbf{w}), \phi]$ is likelihood of the generalized linear model with mean function $g^{-1}(\mathbf{w})$, and the term $[\mathbf{w}|\mathbf{X}, \boldsymbol{\theta}]$ is the restricted log likelihood for $\mathbf{w}$ given the covariance parameters. 
 
@@ -1065,7 +1065,7 @@ Next define $\ell_\mathbf{w} = \ln([\mathbf{y} | g^{-1}(\mathbf{w}), \phi] [\mat
 \end{equation*}
 If $\mathbf{a}$ is the value at which $\mathbf{g} = \mathbf{0}$, then 
 \begin{equation*}
-  \int_\mathbf{w} \exp(\ell_\mathbf{w}) d\mathbf{w} \approx exp(\ell_\mathbf{a}) \int_w \exp \left(-\frac{1}{2} (\mathbf{w} - \mathbf{a})^\top (- \mathbf{H})(\mathbf{w} - \mathbf{a}) \right) d\mathbf{w} = \exp(\ell_\mathbf{a}) (2 \pi)^{n/2} |-\mathbf{H}_a|^{-1/2}, 
+  \int_\mathbf{w} \exp(\ell_\mathbf{w}) d\mathbf{w} \approx \exp(\ell_\mathbf{a}) \int_\mathbf{w} \exp \left(-\frac{1}{2} (\mathbf{w} - \mathbf{a})^\top (- \mathbf{H})(\mathbf{w} - \mathbf{a}) \right) d\mathbf{w} = \exp(\ell_\mathbf{a}) (2 \pi)^{n/2} |-\mathbf{H}_a|^{-1/2}, 
 \end{equation*}
 where $\mathbf{H}_a$ is the Hessian evaluated at $\mathbf{a}$ and $|\cdot|$ is the determinant operator. The previous result follows from the normalizing constant of a Gaussian distribution with kernel $\exp(\frac{1}{2} (\mathbf{w} - \mathbf{a})^\top [(- \mathbf{H})^{-1}]^{-1}(\mathbf{w} - \mathbf{a}))$. Finally, we arrive at
 \begin{equation*}
@@ -1099,17 +1099,17 @@ Next the Newton-Rhapson algorithm can be used to maximize $\ell_{\mathbf{w}}$, w
 \end{equation*}
 where $0 < \alpha \leq 1$. Typically, $\alpha = 1$, but it can be lowered if the $\mathbf{g}$ is unstable. Generally, the Newton-Rhapson converges rapidly. The value of $\mathbf{w}$ at convergence is defined as $\mathbf{a}$.
 
-It follows that finding $\phi$ and $\boldsymbol{\theta}$ for unknown $\mathbf{a}$ requires a doubly-iterative algorithm. First, a value of $\mathbf{a}$ is proposed (e.g., $\mathbf{a} = \mathbf{0}$). Then given $\mathbf{a}_0$, the Laplace log-likelihood is maximized, yielding $\hat{\phi}_0$ and $\hat{\boldsymbol{\theta}}_0$. Then given $\phi_0$ and $\boldsymbol{\theta}_0$, $\ell_{\mathbf{w}}$ is maximized, yielding $\mathbf{a}_1$. Then given $\mathbf{a}_1$, the Laplace log-likelihood is maximized, yielding $\hat{\phi}_1$ and $\hat{\boldsymbol{\theta}}_1$. Then given $\phi_1$ and $\boldsymbol{\theta}_1$, $\ell_{\mathbf{w}}$ is maximized, yielding $\mathbf{a}_2$. This process continues until convergence, yielding optimized values for $\phi$ and $\boldsymbol{\theta}$ and a value of $\mathbf{a}$ determined using these optimized values. 
+It follows that finding $\phi$ and $\boldsymbol{\theta}$ for unknown $\mathbf{a}$ requires a doubly-iterative algorithm. First, a value of $\mathbf{a}$ is proposed (e.g., $\mathbf{a} = \mathbf{0}$). Then given $\mathbf{a}_0$, the Laplace log-likelihood is maximized, yielding $\hat{\phi}_0$ and $\hat{\boldsymbol{\theta}}_0$. Then given $\hat{\phi}_0$ and $\hat{\boldsymbol{\theta}}_0$, $\ell_{\mathbf{w}}$ is maximized, yielding $\mathbf{a}_1$. Then given $\mathbf{a}_1$, the Laplace log-likelihood is maximized, yielding $\hat{\phi}_1$ and $\hat{\boldsymbol{\theta}}_1$. Then given $\hat{\phi}_1$ and $\hat{\boldsymbol{\theta}}_1$, $\ell_{\mathbf{w}}$ is maximized, yielding $\mathbf{a}_2$. This process continues until convergence, yielding optimized values for $\phi$ and $\boldsymbol{\theta}$ and a value of $\mathbf{a}$ determined using these optimized values. 
 
-Note that the Laplace approximation incorporates a likelihood, and as a result, the only estimation methods available via the `estmethod` argument are `"reml"` (the default) and `"ml"`. Fitting spatial generalized linear models requires a doubly-iterative algorithm, which makes it far more computationally expensive than fitting spatial linear models.
+Note that the Laplace approximation incorporates a likelihood, and as a result, the only estimation methods available via the `estmethod` argument are `"reml"` (the default) and `"ml"`. The doubly-iterative algorithm used to fit spatial generalized linear models is far more computationally expensive than fitting spatial linear models.
 
 ### Optimization {#sec:optim-glm}
 
-Optimization for `spglm()` and `spgautor()` works as it does for `splm()` and `spautor()` (Section$~$\ref{sec:optim-lm}), with one additional step. The convergence criteria for $\mathbf{w}$ (within each covariance parameter iteration) is achieved when the largest absolute value of $\mathbf{w}_k - \mathbf{w}_{k - 1}$ is less than $10^{-4}$ or $k > 50$ ($k$ indexes the Newton-Rhapson iterations).
+Optimization for `spglm()` and `spgautor()` works as it does for `splm()` and `spautor()` (Section$~$\ref{sec:optim-lm}), with one additional step. The convergence criteria for $\mathbf{w}$ (within each covariance parameter iteration) is achieved when the largest absolute value of $\mathbf{w}_k - \mathbf{w}_{k - 1}$ is less than $1/10^4$ or $k > 50$ ($k$ indexes the Newton-Rhapson iterations).
 
 #### Grid Search {#sec:grid-glm}
 
-The grid search for `spglm()` and `spgautor()` works as it does for `splm()` and `spautor()` (Section$~$\ref{sec:grid-lm}) For negative binomial, beta, gamma, and inverse Gaussian families, the initial value of the dispersion parameter is set to one. Note that for `spglm()` and `spgautor()`, the grid search initial values are on the link scale and the grid search sample variance is calculated regressing $\log(\mathbf{y} + 1)$ on $\mathbf{X}$ instead of $\mathbf{y}$ on $\mathbf{X}$.
+The grid search for `spglm()` and `spgautor()` works as it does for `splm()` and `spautor()` (Section$~$\ref{sec:grid-lm}) except that for `spglm()` and `spgautor()`, the grid search initial values are on the link scale and the grid search sample variance is calculated regressing $\log(\mathbf{y} + 1)$ on $\mathbf{X}$ instead of $\mathbf{y}$ on $\mathbf{X}$. For negative binomial, beta, gamma, and inverse Gaussian families, the initial value of the dispersion parameter is set to one. 
 
 ### Hypothesis Testing {#sec:testing-glm}
 
@@ -1125,19 +1125,19 @@ $(\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1}$, the usual form for
 
 ### Random Effects (`spglm()` only) {#sec:random-glm}
 
-Random effects for spatial generalized linear models are defined the same as for spatial linear models (Section$~$\ref{sec:random-glm}). Note that random effects for spatial generalized linear models are on the link scale.
+Random effects for spatial generalized linear models are defined the same as for spatial linear models (Section$~$\ref{sec:random-lm}). Note that random effects for spatial generalized linear models are on the link scale.
 
 ### Anisotropy (`spglm()` only) {#sec:anisotropy-glm}
 
-Anisotropy for spatial generalized linear models are defined the same as for spatial linear models (Section$~$\ref{sec:anisotropy-glm}). Note that anisotropy parameters for spatial generalized linear models are on the link scale.
+Anisotropy for spatial generalized linear models are defined the same as for spatial linear models (Section$~$\ref{sec:anisotropy-lm}). Note that anisotropy parameters for spatial generalized linear models are on the link scale.
 
 ### Partition Factors {#sec:partition-glm}
 
-Partition factors for spatial generalized linear models are defined the same as for spatial linear models (Section$~$\ref{sec:partition-glm}).
+Partition factors for spatial generalized linear models are defined the same as for spatial linear models (Section$~$\ref{sec:partition-lm}).
 
 ### Big Data (`spglm()` only) {#sec:bigdata-glm}
 
-Big data model-fitting for spatial generalized linear models in many ways the same as for spatial linear models (Section$~$\ref{sec:bigdata-lm}). The `local` argument behaves the same for spatial generalized linear models as it is for spatial linear models. This is because fundamentally, the "local indexing" approach to representing $\boldsymbol{\Sigma}$ blockwise is still applied and serves as the basis for massive computational gains when fitting spatial generalized linear models. 
+Big data model-fitting for spatial generalized linear models in many ways the same as for spatial linear models (Section$~$\ref{sec:bigdata-lm}). The `local` argument behaves the same for spatial generalized linear models as it is for spatial linear models. This is because fundamentally, the "local" spatial indexing (SPIN) approach to representing $\boldsymbol{\Sigma}$ blockwise is still applied and serves as the basis for massive computational gains when fitting spatial generalized linear models [@ver2023indexing]. 
 
 The additional step is required to fit big data spatial generalized linear models involves efficiently manipulating the Hessian, $\mathbf{H}$, to obtain its inverse and log determinant. Before providing further details, we review the Sherman-Morrison-Woodbury (SMW) formula  [@sherman1949adjustment; @sherman1950adjustment; @woodbury1950inverting]. The SMW formula states that for an $n \times n$ matrix $\mathbf{A}$, an $n \times k$ matrix $\mathbf{U}$, a $k \times k$ matrix $\mathbf{C}$, and a $k \times n$ matrix $\mathbf{V}$,
 \begin{equation*}
@@ -1151,7 +1151,7 @@ The determinant result above implies
 \begin{equation*}
   \ln|\mathbf{A} + \mathbf{U} \mathbf{C} \mathbf{V}| = \ln|\mathbf{A}| + \ln|\mathbf{C}| + \ln|\mathbf{C}^{-1} + \mathbf{V}\mathbf{A}^{-1}\mathbf{U}|.
 \end{equation*}
-The SMW formula is important because if the inverse and log determinant of $\mathbf{A}$ is efficient to compute, then the inverse and log determinant of the desired sum can also be efficient to compute because except for $\mathbf{A}^{-1}$ and $\mathbf{|A|}$, this sum only depends on $k \times k$ inverses and log determinants.
+The SMW formula is important because if the inverse and log determinant of $\mathbf{A}$ is efficient to compute, then the inverse and log determinant of the desired sum can also be efficient to compute. This is because except for $\mathbf{A}^{-1}$ and $\mathbf{|A|}$, the SMW formula only depends on $k \times k$ inverses and log determinants.
 
 Recall (Section$~$\ref{sec:estimation-glm}) that the Hessian can be written as
 \begin{equation*}
@@ -1159,7 +1159,7 @@ Recall (Section$~$\ref{sec:estimation-glm}) that the Hessian can be written as
 \end{equation*}
 Because $\boldsymbol{\Sigma}$ can be represented blockwise, $\boldsymbol{\Sigma}^{-1}$ can be represented blockwise and thus the inverse and log determinant can be efficiently computed. Because $\mathbf{D}$ is diagonal, $\mathbf{D} - \boldsymbol{\Sigma}^{-1}$ can be represented blockwise and thus the inverse and log determinant can be efficiently computed. Then the SMW formula can be used, taking $\mathbf{A} = \mathbf{D} - \boldsymbol{\Sigma}^{-1}$, $\mathbf{U} = \boldsymbol{\Sigma}^{-1} \mathbf{X}$, $\mathbf{C} = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1}$, and $\mathbf{V} = \mathbf{X}^\top \boldsymbol{\Sigma}^{-1}$.
 
-Fitting big data spatial generalized linear models requires a doubly-iterative algorithm, which makes it far more computationally expensive than fitting big data spatial linear models.
+As previously mentioned (Section$~$\ref{sec:estimation-glm}), fitting big data spatial generalized linear models requires a doubly-iterative algorithm. This makes it far more computationally expensive than fitting big data spatial linear models.
 
 ## Simulation Functions (`sprpois()`, `sprnbinom()`, `sprbinom()`, `sprbeta()`, `sprgamma()`, `sprinvgauss()`) {#sec:sim-fns}
 
@@ -1189,7 +1189,7 @@ The log-likelihood (of a single observation) is defined as
   \log f(y | \mu) = y \log(\mu) - \mu - \log(y!).
 \end{equation*}
 
-Using the inverse log link and writing in terms of $\mu = exp(w)$, the log-likelihood can be written as
+Using the inverse log link and writing in terms of $\mu = \exp(w)$, the log-likelihood can be written as
 \begin{equation*}
   \log f(y | \mu) = yw - \exp(w) - \log(y!).
 \end{equation*}
@@ -1503,7 +1503,7 @@ The products in this document that involve $\boldsymbol{\Sigma}^{1/2}$ and $\bol
 
 # A Note on Computational Stability {#sec:computational}
 
-Spatial covariance matrices that have approximately no independent error variance ($\sigma^2_{ie}$) can have unstable inverses. When this occurs, a small value can be added to the diagonal of the covariance matrix (via updating $\sigma^2_{ie}$) to impose some computational stability. In `spmodel`, if $\sigma^2_{ie}$ is approximately zero, a small amount is added to the diagonal of the covariance matrix. Specifically, for spatial linear models, $\sigma^2_{ie, up} = \text{max}(\sigma^2_{ie}, \sigma^2_{de}/1000)$, where $\sigma^2_{ie, up}$ denotes an "updated" version of $\sigma^2_{ie}$. For spatial generalized linear models, $\sigma^2_{ie, up} = \text{max}(\sigma^2_{ie}, \sigma^2_{de}/1000, d)$, where $d = \text{max}(1/1000, s^2/1000)$, where $s^2$ is the sample variance of a linear regression of $\log(\mathbf{y} + 1)$ on $\mathbf{X}$. This value of $\sigma^2_{ie, up}$ is also added to the diagonal of $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X} + \mathbf{X}^\top \boldsymbol{\Sigma}^{-1} (\mathbf{D} - \boldsymbol{\Sigma}^{-1})^{-1} \boldsymbol{\Sigma}^{-1} \mathbf{X}$, used via the Sherman-Morrison-Woodbury formula required to efficiently invert the Hessian, $\mathbf{H}$, when using "local indexing" for big data. For more on stability of spatial covariance matrices, see @diamond1984robustness, @posa1989conditioning, @odowd1991conditioning, @ababou1994condition, @booker1999rigorous, @martin2005use, @bivand2013sp, and @ver2018kriging, among others. 
+Spatial covariance matrices that have approximately no independent error variance ($\sigma^2_{ie}$) can have unstable inverses. When this occurs, a small value can be added to the diagonal of the covariance matrix (via updating $\sigma^2_{ie}$) to impose some computational stability. In `spmodel`, if $\sigma^2_{ie}$ is approximately zero, a small amount is added to the diagonal of the covariance matrix. Specifically, for spatial linear models, $\sigma^2_{ie, up} = \text{max}(\sigma^2_{ie}, \sigma^2_{de}/10^4)$, where $\sigma^2_{ie, up}$ denotes an "updated" version of $\sigma^2_{ie}$. For spatial generalized linear models, $\sigma^2_{ie, up} = \text{max}(\sigma^2_{ie}, \sigma^2_{de}/10^4, d)$, where $d = \text{max}(1/10^4, s^2/10^4)$, where $s^2$ is the sample variance of a linear regression of $\log(\mathbf{y} + 1)$ on $\mathbf{X}$. This value of $\sigma^2_{ie, up}$ is also added to the diagonal of $\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X} + \mathbf{X}^\top \boldsymbol{\Sigma}^{-1} (\mathbf{D} - \boldsymbol{\Sigma}^{-1})^{-1} \boldsymbol{\Sigma}^{-1} \mathbf{X}$, used via the Sherman-Morrison-Woodbury formula required to efficiently invert the Hessian, $\mathbf{H}$, when using spatial indexing for big data. For more on stability of spatial covariance matrices, see @diamond1984robustness, @posa1989conditioning, @odowd1991conditioning, @ababou1994condition, @booker1999rigorous, @martin2005use, @bivand2013sp, and @ver2018kriging, among others. 
 
 # References {.unnumbered}
 

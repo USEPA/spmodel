@@ -3,7 +3,7 @@
 #' @description Provides basic quantities which are used in forming
 #'   a wide variety of diagnostics for checking the quality of fitted model objects.
 #'
-#' @param model A fitted model object from [splm()] or [spautor()].
+#' @param model A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @details This function calls [residuals.spmodel()], [hatvalues.spmodel()],

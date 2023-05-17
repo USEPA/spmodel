@@ -51,11 +51,11 @@ initial and/or known values to use while estimating spatial covariance parameter
 with \code{\link[=splm]{splm()}}, \code{\link[=spglm]{spglm()}}, \code{\link[=spautor]{spautor()}}, or \code{\link[=spgautor]{spgautor()}}.
 }
 \details{
-The \code{spcov_initial} list is later passed to \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.
+The \code{spcov_initial} list is later passed to \code{\link[=splm]{splm()}}, \code{\link[=spglm]{spglm()}}, \code{\link[=spautor]{spautor()}}, or \code{\link[=spgautor]{spgautor()}}.
 \code{NA} values can be given for \code{ie}, \code{rotate}, and \code{scale}, which lets
-\code{\link[=splm]{splm()}} and \code{\link[=spautor]{spautor()}} find initial values for parameters that are sometimes
-otherwise assumed known (e.g., \code{rotate} and \code{scale} with \code{\link[=splm]{splm()}}
-and \code{ie} with \code{\link[=spautor]{spautor()}}).
+these functions find initial values for parameters that are sometimes
+otherwise assumed known (e.g., \code{rotate} and \code{scale} with \code{\link[=splm]{splm()}} and \code{\link[=spglm]{spglm()}}
+and \code{ie} with \code{\link[=spautor]{spautor()}} and \code{\link[=spgautor]{spgautor()}}).
 The spatial covariance functions can be generally expressed as
 \eqn{de * R + ie * I}, where \eqn{de} is \code{de} above, \eqn{R}
 is a matrix that controls the spatial dependence structure among observations,

@@ -19,7 +19,7 @@ are used directly. If an \code{sf} object is
 provided with \code{POLYGON} geometries, the x-coordinates and y-coordinates
 are taken as the centroids of each polygon.}
 
-\item{...}{Additional named arguments to \code{ranger::ranger()} or \code{\link[=splm]{splm()}}.}
+\item{...}{Additional named arguments to \code{\link[ranger:ranger]{ranger::ranger()}} or \code{\link[=splm]{splm()}}.}
 }
 \value{
 A list with several elements to be used with \code{predict()}. These
@@ -41,7 +41,7 @@ and contains several objects, each with class \code{splm}.
 
 An \code{splmRF} object to be used with \code{predict()}. There are
 three elements: \code{ranger}, the output from fitting the mean model with
-\code{ranger::ranger()}; \code{splm}, the output from fitting the spatial
+\code{\link[ranger:ranger]{ranger::ranger()}}; \code{splm}, the output from fitting the spatial
 linear model to the ranger residuals; and \code{newdata}, the \code{newdata}
 object, if relevant.
 }

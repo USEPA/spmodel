@@ -33,10 +33,10 @@
 #'       If random effects and partition factors are not used in estimation and
 #'       the spatial covariance function is monotone decreasing,
 #'       \code{"distance"} and \code{"covariance"} are equivalent. The default
-#'       is \code{"covariance"}. Only used with models fit using [splm()].}
+#'       is \code{"covariance"}. Only used with models fit using [splm()] or [spglm()].}
 #'     \item{\code{size}: }{The number of data observations to use when \code{method}
 #'       is \code{"distance"} or \code{"covariance"}. The default is 50. Only used
-#'       with models fit using [splm()].}
+#'       with models fit using [splm()] or [spglm()].}
 #'     \item{\code{parallel}: }{If \code{TRUE}, parallel processing via the
 #'       parallel package is automatically used. The default is \code{FALSE}.}
 #'     \item{\code{ncores}: }{If \code{parallel = TRUE}, the number of cores to

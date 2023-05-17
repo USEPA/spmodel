@@ -2,7 +2,7 @@
 #'
 #' @description Tidy a fitted model object into a summarized tibble.
 #'
-#' @param x A fitted model object from [splm()] or [spautor()]
+#' @param x A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param conf.int Logical indicating whether or not to include a confidence interval
 #'   in the tidied output. The default is \code{FALSE}.
 #' @param conf.level The confidence level to use for the confidence interval if

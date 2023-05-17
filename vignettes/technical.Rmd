@@ -1174,7 +1174,7 @@ The uncorrected variance-covariance matrix (`var_correct = FALSE`) is given by
 
 ## Distribution Parameteriziations {#sec:distributions-glm}
 
-Below we provide definitions associated with each of the six generalized linear models families available in `spmodel`. Note that the poisson, binomial, gamma, and inverse Gaussian distributions are members of the exponential family, and their deviance is typically expressed as twice the difference in log-likelihoods between the saturated and fitted model times the dispersion parameter. The negative binomial and beta distributions are members of the exponential family when the dispersion parameter ($\vartheta$) is known, and their deviance is typically expressed as just twice the difference in log-likelihoods between the saturated and fitted model. 
+Below we provide definitions associated with each of the six generalized linear models families available in `spmodel`. Note that the poisson, binomial, gamma, and inverse Gaussian distributions are members of the exponential family, and their deviance is typically expressed as twice the difference in log-likelihoods between the saturated and fitted model times the dispersion parameter (consistent with `glm()`. The negative binomial and beta distributions are members of the exponential family when the dispersion parameter ($\vartheta$) is known, and their deviance is typically expressed as just twice the difference in log-likelihoods between the saturated and fitted model (consistent with `glm.nb()` from `MASS` [@venables2002mass] for negative binomial regression and `betareg()` from `statmod` [@cribari2010beta] for beta regression). 
 
 ### Poisson Distribution {#sec:poisson}
 
@@ -1322,7 +1322,7 @@ The log-likelihood (of a single observation) is defined as
   \log f(y | \mu) = \log(\Gamma(\varphi)) - \log(\Gamma(\mu \varphi)) - \log(\Gamma((1 - \mu)\varphi)) +  (\mu \varphi - 1) \log(y) + ((1 - \mu)\varphi - 1) \log(1 - y).
 \end{equation*}
 
-Using the inverse logit link and writing in terms of $\mu = exp(w)$, the log-likelihood can be written as
+Using the inverse logit link and writing in terms of $\mu = \exp(w)$, the log-likelihood can be written as
 \begin{equation*}
 \begin{split}
   \log f(y | \mu, \varphi) & = \log(\Gamma(\varphi)) - \log(\Gamma(\frac{\exp(w)}{1 + \exp(w)} \varphi)) - \log(\Gamma((1 - \frac{\exp(w)}{1 + \exp(w)})\varphi)) \\
@@ -1349,13 +1349,15 @@ Twice the log-likelihood of the saturated model is
 
 Twice the log-likelihood of the fitted (observed) model is
 \begin{equation*}
-  2 \log f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \log(\Gamma(\varphi)) - \log(\Gamma(\hat{\mu}_i \varphi)) - \log(\Gamma((1 - \hat{\mu}_i)\varphi)) +  (\hat{\mu}_i \varphi - 1) \log(y) + ((1 - \hat{\mu}_i)\varphi - 1) \log(1 - y).
+  2 \log f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \log(\Gamma(\varphi)) - \log(\Gamma(\hat{\mu}_i \varphi)) - \log(\Gamma((1 - \hat{\mu}_i)\varphi)) +  (\hat{\mu}_i \varphi - 1) \log(y_i) + ((1 - \hat{\mu}_i)\varphi - 1) \log(1 - y_i).
 \end{equation*}
 
 Thus the deviance is
 \begin{equation*}
   2 \sum_i - \log(\Gamma(y_i \varphi)) - \log(\Gamma((1 - y_i) \varphi )) + \log(\Gamma(\hat{\mu}_i \varphi)) + \log(\Gamma((1 - \hat{\mu}_i) \varphi )) + (y_i - \hat{\mu}_i) \varphi \log(y_i) + (\hat{\mu}_i - y_i) \varphi \log(1 - y_i)
 \end{equation*}
+
+Sometimes the deviance contribution from the $i$th observation can be computationally unstable and yield a negative value [@espinheira2008beta]. This can happen, for example, when $y_i$ is close to zero or one. When this happens, the deviance contribution is truncated to zero to reflect the fact that the theoretical deviance contribution must be non-negative.
 
 ### Gamma Distribution {#sec:gamma}
 

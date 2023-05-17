@@ -117,7 +117,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
 
   # return deviance i
   deviance_i <- get_deviance_glm(data_object$family, y, fitted$response, data_object$size, dispersion)
-  deviance_i <- pmax(deviance_i, 0) # sometimes numerical instability can cause these to be slightly non-negative
+  deviance_i <- pmax(deviance_i, 0) # sometimes numerical instability can cause these to be slightly negative
 
   # storing relevant products
   SigInv_X_null <- do.call("rbind", lapply(eigenprods_list, function(x) x$SigInv_ones))

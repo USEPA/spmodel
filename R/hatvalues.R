@@ -3,7 +3,7 @@
 #' @description Compute the leverage (hat) value for each observation from a fitted
 #'   model object.
 #'
-#' @param model A fitted model object from [splm()] or [spautor()].
+#' @param model A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @details Leverage values measure how far an observation's explanatory variables
@@ -20,7 +20,7 @@
 #' @order 1
 #' @export
 #'
-#' @seealso [cooks.distance.spmodel()] [influence.spmodel()] [residuals.spmodel()]
+#' @seealso [augment.spmodel()] [cooks.distance.spmodel()] [influence.spmodel()] [residuals.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,

@@ -16,13 +16,13 @@
 #'   covariance parameters are assumed unknown, requiring estimation.
 #'   \code{spcov_type} is not required (and is
 #'   ignored) if \code{spcov_initial} is provided.  Multiple values can be
-#'   provided in a character vector. Then \code{splm()} is called iteratively
+#'   provided in a character vector. Then \code{spautor()} is called iteratively
 #'   for each element and a list is returned for each model fit.
 #'   The default for \code{spcov_type} is \code{"car"}.
 #' @param spcov_initial An object from [spcov_initial()] specifying initial and/or
 #'   known values for the spatial covariance parameters.
 #'   Not required if \code{spcov_type} is provided. Multiple [spcov_initial()]
-#'   objects can be provided in a list. Then \code{splm()} is called iteratively
+#'   objects can be provided in a list. Then \code{spautor()} is called iteratively
 #'   for each element and a list is returned for each model fit.
 #' @param estmethod The estimation method. Available options include
 #'   \code{"reml"} for restricted maximum likelihood and \code{"ml"} for maximum

@@ -17,7 +17,7 @@
 \method{logLik}{spgautor}(object, ...)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}} where \code{estmethod}
+\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}} where \code{estmethod}
 is \code{"ml"} or \code{"reml"}.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}

@@ -45,7 +45,7 @@
 #'   they were a \code{newdata} object by providing \code{x$newdata} to the
 #'   \code{newdata} argument (where \code{x} is the name of the fitted model
 #'   object). This is the only way to compute predictions for
-#'   [spautor()] fitted model objects.
+#'   [spautor()] and [spgautor()] fitted model objects.
 #'
 #' @return When augmenting the original data set, a tibble with additional columns
 #'   \itemize{

@@ -237,9 +237,9 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
 
   # find index
   if (is.null(local)) {
-    if (n > 5000) {
+    if (n > 3000) {
       local <- TRUE
-      message("Because the sample size exceeds 5000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun splm() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+      message("Because the sample size exceeds 3000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun splm() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
     } else {
       local <- FALSE
     }

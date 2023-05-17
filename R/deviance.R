@@ -2,7 +2,7 @@
 #'
 #' @description Returns the deviance of a fitted model object.
 #'
-#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()],
 #'   where \code{estmethod} is \code{"ml"} or \code{"reml"}.
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'

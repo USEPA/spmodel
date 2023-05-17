@@ -43,5 +43,5 @@ spmod <- splm(z ~ water + tarp,
 cooks.distance(spmod)
 }
 \seealso{
-\code{\link[=hatvalues.spmodel]{hatvalues.spmodel()}} \code{\link[=influence.spmodel]{influence.spmodel()}} \code{\link[=residuals.spmodel]{residuals.spmodel()}}
+\code{\link[=augment.spmodel]{augment.spmodel()}} \code{\link[=hatvalues.spmodel]{hatvalues.spmodel()}} \code{\link[=influence.spmodel]{influence.spmodel()}} \code{\link[=residuals.spmodel]{residuals.spmodel()}}
 }

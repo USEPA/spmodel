@@ -22,7 +22,7 @@ functions.
 }
 \details{
 Names of the random effects should match eligible names given to
-\code{random} in \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}. While with the \code{random}
+\code{random} in modeling functions. While with the \code{random}
 argument to these functions, an
 intercept is implicitly assumed, with \code{randcov_params}, an intercept must be
 explicitly specified. That is, while with \code{random}, \code{x | group}

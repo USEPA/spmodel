@@ -16,7 +16,7 @@
 #'   are used directly. If an \code{sf} object is
 #'   provided with \code{POLYGON} geometries, the x-coordinates and y-coordinates
 #'   are taken as the centroids of each polygon.
-#' @param ... Additional named arguments to \code{ranger::ranger()} or [splm()].
+#' @param ... Additional named arguments to [ranger::ranger()] or [splm()].
 #'
 #' @details The random forest residual spatial linear model is described by
 #'   Fox et al. (2020). A random forest model is fit to the mean portion of the
@@ -46,7 +46,7 @@
 #'
 #' An \code{splmRF} object to be used with \code{predict()}. There are
 #'   three elements: \code{ranger}, the output from fitting the mean model with
-#'   \code{ranger::ranger()}; \code{splm}, the output from fitting the spatial
+#'   [ranger::ranger()]; \code{splm}, the output from fitting the spatial
 #'   linear model to the ranger residuals; and \code{newdata}, the \code{newdata}
 #'   object, if relevant.
 #'

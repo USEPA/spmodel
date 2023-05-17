@@ -2,7 +2,7 @@
 #'
 #' @description Create a random effects (co)variance parameter initial object that specifies
 #'   initial and/or known values to use while estimating random effect variances
-#'   with [splm()] or [spautor()].
+#'   with modeling functions.
 #'
 #' @param ... Arguments to \code{randcov_params()}.
 #' @param known A character vector indicating which random effect variances are to be

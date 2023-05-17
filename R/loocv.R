@@ -3,7 +3,7 @@
 #' @description Perform leave-one-out cross validation with options for computationally
 #'   efficient approximations for big data.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param cv_predict A logical indicating whether the leave-one-out fitted values
 #'   should be returned. Defaults to \code{FALSE}.
 #' @param se.fit A logical indicating whether the leave-one-out

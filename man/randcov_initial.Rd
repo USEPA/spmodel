@@ -23,7 +23,7 @@ logical vector indicating whether the random effect variances in
 \description{
 Create a random effects (co)variance parameter initial object that specifies
 initial and/or known values to use while estimating random effect variances
-with \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.
+with modeling functions.
 }
 \details{
 A random effect is specified as \eqn{Zu}, where \eqn{Z} is the random

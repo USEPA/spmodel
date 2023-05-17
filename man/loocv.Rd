@@ -19,7 +19,7 @@ loocv(object, ...)
 \method{loocv}{spgautor}(object, cv_predict = FALSE, se.fit = FALSE, local, ...)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
+\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 

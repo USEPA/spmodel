@@ -2,11 +2,21 @@
 
 ## Major updates
 
+* Added an `spglm()` function to fit spatial generalized linear models for point-referenced data (i.e., generalized geostatistical models).
+    * `spglm()` syntax is very similar to `splm()` syntax.
+    * Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian families are accommodated.
+    * `spglm()` fitted model objects use the same generics as `splm()` fitted model objects.
+* Added an `spgautor()` function to fit spatial generalized linear models for areal data (i.e., generalized autoregressive models).
+    * `spgautor()` syntax is very similar to `spautor()` syntax.
+    * Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian families are accommodated.
+    * `spgautor()` fitted model objects use the same generics as `spautor()` fitted model objects.
+
 ## Minor updates
 
 * In `augment()`, made the `level` and `local` arguments explicit (rather than being passed to `predict()` via `...`).
 * Added `offset` support for relevant modeling functions.
-* Minor documentation updates
+* Minor documentation updates.
+* Minor vignette updates.
 
 ## Bug fixes
 

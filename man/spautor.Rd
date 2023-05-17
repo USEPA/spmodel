@@ -34,14 +34,14 @@ available in Details. When \code{spcov_type} is specified, relevant spatial
 covariance parameters are assumed unknown, requiring estimation.
 \code{spcov_type} is not required (and is
 ignored) if \code{spcov_initial} is provided.  Multiple values can be
-provided in a character vector. Then \code{splm()} is called iteratively
+provided in a character vector. Then \code{spautor()} is called iteratively
 for each element and a list is returned for each model fit.
 The default for \code{spcov_type} is \code{"car"}.}
 
 \item{spcov_initial}{An object from \code{\link[=spcov_initial]{spcov_initial()}} specifying initial and/or
 known values for the spatial covariance parameters.
 Not required if \code{spcov_type} is provided. Multiple \code{\link[=spcov_initial]{spcov_initial()}}
-objects can be provided in a list. Then \code{splm()} is called iteratively
+objects can be provided in a list. Then \code{spautor()} is called iteratively
 for each element and a list is returned for each model fit.}
 
 \item{estmethod}{The estimation method. Available options include

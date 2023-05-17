@@ -29,7 +29,7 @@
 \method{fitted.values}{spgautor}(object, type = "response", ...)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
+\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
 \item{type}{\code{"response"} for fitted values of the response, \code{"spcov"}
 for fitted values of the spatial random errors, or \code{"randcov"} for

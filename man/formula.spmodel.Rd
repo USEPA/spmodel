@@ -17,7 +17,7 @@
 \method{formula}{spgautor}(x, ...)
 }
 \arguments{
-\item{x}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
+\item{x}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 }

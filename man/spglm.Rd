@@ -51,7 +51,7 @@ are taken as the centroids of each polygon.}
 \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 and \code{"none"}. Parameterizations of each spatial covariance type are
 available in Details. Multiple spatial covariance types can be provided as
-a character vector, and then \code{splm()} is called iteratively for each
+a character vector, and then \code{spglm()} is called iteratively for each
 element and a list is returned for each model fit. The default for
 \code{spcov_type} is \code{"exponential"}. When \code{spcov_type} is
 specified, all unknown spatial covariance parameters are estimated.
@@ -65,7 +65,7 @@ Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 
 \item{spcov_initial}{An object from \code{\link[=spcov_initial]{spcov_initial()}} specifying initial and/or
 known values for the spatial covariance parameters. Multiple \code{\link[=spcov_initial]{spcov_initial()}}
-objects can be provided in a list. Then \code{splm()} is called iteratively
+objects can be provided in a list. Then \code{spglm()} is called iteratively
 for each element and a list is returned for each model fit.}
 
 \item{dispersion_initial}{An object from \code{\link[=dispersion_initial]{dispersion_initial()}} specifying
@@ -108,7 +108,7 @@ from different levels of the partition factor are uncorrelated.}
 \item{local}{An optional logical or list controlling the big data approximation.
 If omitted, \code{local} is set
 to \code{TRUE} or \code{FALSE} based on the sample size (the number of
-non-missing observations in \code{data}) -- if the sample size exceeds 5,000,
+non-missing observations in \code{data}) -- if the sample size exceeds 3,000,
 \code{local} is set to \code{TRUE}. Otherwise it is set to \code{FALSE}.
 If \code{FALSE}, no big data approximation is implemented.
 If a list is provided, the following arguments detail the big
@@ -152,13 +152,13 @@ If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 that \code{local} is transformed into
 \code{list(size = 50, method = "random", var_adjust = "theoretical", parallel = FALSE)}.}
 
-\item{...}{Other arguments to \code{\link[=esv]{esv()}} or \code{stats::optim()}.}
+\item{...}{Other arguments to \code{\link[=esv]{esv()}} or \code{\link[stats:optim]{stats::optim()}}.}
 }
 \value{
 A list with many elements that store information about
 the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
-length one, the list has class \code{splm}. Many generic functions that
-summarize model fit are available for \code{splm} objects, including
+length one, the list has class \code{spglm}. Many generic functions that
+summarize model fit are available for \code{spglm} objects, including
 \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
 \code{cooks.distance}, \code{covmatrix}, \code{deviance}, \code{fitted}, \code{formula},
 \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
@@ -166,9 +166,9 @@ summarize model fit are available for \code{splm} objects, including
 \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
 \code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
 \code{spcov_type} or \code{spcov_initial} are length greater than one, the
-list has class \code{splm_list} and each element in the list has class
-\code{splm}. \code{glances} can be used to summarize \code{splm_list}
-objects, and the aforementioned \code{splm} generics can be used on each
+list has class \code{spglm_list} and each element in the list has class
+\code{spglm}. \code{glances} can be used to summarize \code{spglm_list}
+objects, and the aforementioned \code{spglm} generics can be used on each
 individual list element (model fit).
 }
 \description{
@@ -240,7 +240,7 @@ Setting \eqn{\phi = \lambda / \mu} yields our parameterization, which is
 preferred for computational stability. Also note that the dispersion parameter
 is often defined in the literature as \eqn{V(\mu) \phi}, where \eqn{V(\mu)} is the variance
 function of the mean. We do not use this parameterization, which is important
-to recognize while interpreting dispersion estimates using \code{spglm()}.
+to recognize while interpreting dispersion estimates.
 For more on generalized linear model constructions, see McCullagh and
 Nelder (1989).
 
@@ -315,7 +315,7 @@ are assumed to be uncorrelated for the purposes of model fitting. Sparse matrix 
 for significant computational gains. Parallelization generally further speeds up
 computations when data sizes are larger than a few thousand. Both the \code{"random"} and \code{"kmeans"} values of \code{method}
 in \code{local} have random components. That means you may get slightly different
-results when using the big data approximation and rerunning \code{splm()} with the same code. For consistent results,
+results when using the big data approximation and rerunning \code{spglm()} with the same code. For consistent results,
 either set a seed via \code{base::set.seed()} or specify \code{index} to \code{local}.
 
 Observations with \code{NA} response values are removed for model

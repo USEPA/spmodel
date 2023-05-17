@@ -19,7 +19,7 @@
 #' @order 1
 #' @export
 #'
-#' @seealso [hatvalues.spmodel()] [influence.spmodel()] [residuals.spmodel()]
+#' @seealso [augment.spmodel()] [hatvalues.spmodel()] [influence.spmodel()] [residuals.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,

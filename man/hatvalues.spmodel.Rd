@@ -17,7 +17,7 @@
 \method{hatvalues}{spgautor}(model, ...)
 }
 \arguments{
-\item{model}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
+\item{model}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 }
@@ -44,5 +44,5 @@ spmod <- splm(z ~ water + tarp,
 hatvalues(spmod)
 }
 \seealso{
-\code{\link[=cooks.distance.spmodel]{cooks.distance.spmodel()}} \code{\link[=influence.spmodel]{influence.spmodel()}} \code{\link[=residuals.spmodel]{residuals.spmodel()}}
+\code{\link[=augment.spmodel]{augment.spmodel()}} \code{\link[=cooks.distance.spmodel]{cooks.distance.spmodel()}} \code{\link[=influence.spmodel]{influence.spmodel()}} \code{\link[=residuals.spmodel]{residuals.spmodel()}}
 }

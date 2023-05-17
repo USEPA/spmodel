@@ -24,13 +24,13 @@
 #'   covariance parameters are assumed unknown, requiring estimation.
 #'   \code{spcov_type} is not required (and is
 #'   ignored) if \code{spcov_initial} is provided.  Multiple values can be
-#'   provided in a character vector. Then \code{splm()} is called iteratively
+#'   provided in a character vector. Then \code{spgautor()} is called iteratively
 #'   for each element and a list is returned for each model fit.
 #'   The default for \code{spcov_type} is \code{"car"}.
 #' @param spcov_initial An object from [spcov_initial()] specifying initial and/or
 #'   known values for the spatial covariance parameters.
 #'   Not required if \code{spcov_type} is provided. Multiple [spcov_initial()]
-#'   objects can be provided in a list. Then \code{spautor()} is called iteratively
+#'   objects can be provided in a list. Then \code{spgautor()} is called iteratively
 #'   for each element and a list is returned for each model fit.
 #' @param dispersion_initial An object from [dispersion_initial()] specifying
 #'   initial and/or known values for the dispersion parameter for the
@@ -73,7 +73,7 @@
 #'   when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M},
 #'   is required, the default is the identity matrix. \code{M} must be diagonal
 #'   or given as a vector or one-column matrix assumed to be the diagonal.
-#' @param ... Other arguments to \code{stats::optim()}.
+#' @param ... Other arguments to [stats::optim()].
 #'
 #' @details The spatial generalized linear model for areal data
 #'   (i.e., spatial generalized autoregressive model) can be written as
@@ -137,7 +137,7 @@
 #'   preferred for computational stability. Also note that the dispersion parameter
 #'   is often defined in the literature as \eqn{V(\mu) \phi}, where \eqn{V(\mu)} is the variance
 #'   function of the mean. We do not use this parameterization, which is important
-#'   to recognize while interpreting dispersion estimates using \code{spglm()}.
+#'   to recognize while interpreting dispersion parameter estimates.
 #'   For more on generalized linear model constructions, see McCullagh and
 #'   Nelder (1989).
 #'
@@ -172,7 +172,7 @@
 #'   By default, all spatial covariance parameters except \code{ie}
 #'   as well as all random effect variance parameters
 #'   are assumed unknown, requiring estimation. \code{ie} is assumed zero and known by default
-#'   (in contrast to models fit using [splm()], where \code{ie} is assumed
+#'   (in contrast to models fit using [spglm()], where \code{ie} is assumed
 #'   unknown by default). To change this default behavior, specify \code{spcov_initial}
 #'   (an \code{NA} value for \code{ie} in \code{spcov_initial} to assume
 #'   \code{ie} is unknown, requiring estimation).
@@ -190,13 +190,13 @@
 #'   Observations with \code{NA} response values are removed for model
 #'   fitting, but their values can be predicted afterwards by running
 #'   \code{predict(object)}. This is the only way to perform prediction for
-#'   \code{spautor()} models (i.e., the prediction locations must be known prior
+#'   \code{spgautor()} models (i.e., the prediction locations must be known prior
 #'   to estimation).
 #'
 #' @return A list with many elements that store information about
 #'   the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
-#'   length one, the list has class \code{spautor}. Many generic functions that
-#'   summarize model fit are available for \code{spautor} objects, including
+#'   length one, the list has class \code{spgautor}. Many generic functions that
+#'   summarize model fit are available for \code{spgautor} objects, including
 #'   \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
 #'   \code{cooks.distance}, \code{covmatrix}, \code{deviance}, \code{fitted}, \code{formula},
 #'   \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
@@ -204,9 +204,9 @@
 #'   \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
 #'   \code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
 #'   \code{spcov_type} or \code{spcov_initial} are length greater than one, the
-#'   list has class \code{spautor_list} and each element in the list has class
-#'   \code{spautor}. \code{glances} can be used to summarize \code{spautor_list}
-#'   objects, and the aforementioned \code{spautor} generics can be used on each
+#'   list has class \code{spgautor_list} and each element in the list has class
+#'   \code{spgautor}. \code{glances} can be used to summarize \code{spgautor_list}
+#'   objects, and the aforementioned \code{spgautor} generics can be used on each
 #'   individual list element (model fit).
 #'
 #' @note This function does not perform any internal scaling. If optimization is not
@@ -231,6 +231,10 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
 
   if (!missing(spcov_type) && !missing(spcov_initial)) {
     message("Both spcov_type and spcov_initial provided. spcov_initial overriding spcov_type.")
+  }
+
+  if (!missing(family) && !missing(dispersion_initial)) {
+    message("Both family and dispersion_initial provided. dispersion_initial overriding family.")
   }
 
   # iterate if needed

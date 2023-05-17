@@ -44,14 +44,14 @@ available in Details. When \code{spcov_type} is specified, relevant spatial
 covariance parameters are assumed unknown, requiring estimation.
 \code{spcov_type} is not required (and is
 ignored) if \code{spcov_initial} is provided.  Multiple values can be
-provided in a character vector. Then \code{splm()} is called iteratively
+provided in a character vector. Then \code{spgautor()} is called iteratively
 for each element and a list is returned for each model fit.
 The default for \code{spcov_type} is \code{"car"}.}
 
 \item{spcov_initial}{An object from \code{\link[=spcov_initial]{spcov_initial()}} specifying initial and/or
 known values for the spatial covariance parameters.
 Not required if \code{spcov_type} is provided. Multiple \code{\link[=spcov_initial]{spcov_initial()}}
-objects can be provided in a list. Then \code{spautor()} is called iteratively
+objects can be provided in a list. Then \code{spgautor()} is called iteratively
 for each element and a list is returned for each model fit.}
 
 \item{dispersion_initial}{An object from \code{\link[=dispersion_initial]{dispersion_initial()}} specifying
@@ -103,13 +103,13 @@ when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M},
 is required, the default is the identity matrix. \code{M} must be diagonal
 or given as a vector or one-column matrix assumed to be the diagonal.}
 
-\item{...}{Other arguments to \code{stats::optim()}.}
+\item{...}{Other arguments to \code{\link[stats:optim]{stats::optim()}}.}
 }
 \value{
 A list with many elements that store information about
 the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
-length one, the list has class \code{spautor}. Many generic functions that
-summarize model fit are available for \code{spautor} objects, including
+length one, the list has class \code{spgautor}. Many generic functions that
+summarize model fit are available for \code{spgautor} objects, including
 \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
 \code{cooks.distance}, \code{covmatrix}, \code{deviance}, \code{fitted}, \code{formula},
 \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
@@ -117,9 +117,9 @@ summarize model fit are available for \code{spautor} objects, including
 \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
 \code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
 \code{spcov_type} or \code{spcov_initial} are length greater than one, the
-list has class \code{spautor_list} and each element in the list has class
-\code{spautor}. \code{glances} can be used to summarize \code{spautor_list}
-objects, and the aforementioned \code{spautor} generics can be used on each
+list has class \code{spgautor_list} and each element in the list has class
+\code{spgautor}. \code{glances} can be used to summarize \code{spgautor_list}
+objects, and the aforementioned \code{spgautor} generics can be used on each
 individual list element (model fit).
 }
 \description{
@@ -191,7 +191,7 @@ Setting \eqn{\phi = \lambda / \mu} yields our parameterization, which is
 preferred for computational stability. Also note that the dispersion parameter
 is often defined in the literature as \eqn{V(\mu) \phi}, where \eqn{V(\mu)} is the variance
 function of the mean. We do not use this parameterization, which is important
-to recognize while interpreting dispersion estimates using \code{spglm()}.
+to recognize while interpreting dispersion parameter estimates.
 For more on generalized linear model constructions, see McCullagh and
 Nelder (1989).
 
@@ -226,7 +226,7 @@ Note that the likelihood being optimized is obtained using the Laplace approxima
 By default, all spatial covariance parameters except \code{ie}
 as well as all random effect variance parameters
 are assumed unknown, requiring estimation. \code{ie} is assumed zero and known by default
-(in contrast to models fit using \code{\link[=splm]{splm()}}, where \code{ie} is assumed
+(in contrast to models fit using \code{\link[=spglm]{spglm()}}, where \code{ie} is assumed
 unknown by default). To change this default behavior, specify \code{spcov_initial}
 (an \code{NA} value for \code{ie} in \code{spcov_initial} to assume
 \code{ie} is unknown, requiring estimation).
@@ -244,7 +244,7 @@ spatial and random effects components is then multiplied element-wise
 Observations with \code{NA} response values are removed for model
 fitting, but their values can be predicted afterwards by running
 \code{predict(object)}. This is the only way to perform prediction for
-\code{spautor()} models (i.e., the prediction locations must be known prior
+\code{spgautor()} models (i.e., the prediction locations must be known prior
 to estimation).
 }
 \note{

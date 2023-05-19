@@ -33,7 +33,7 @@ library(spmodel)
 # Introduction {#sec:introduction}
 
 
-`spmodel` is an \textbf{\textsf{R}} package used to fit, summarize, and predict for a variety of spatial statistical models. The vignette provides an introduction to both the basic and advanced features of the `spmodel` package coupled with a brief theoretical explanation of the methods. In Section$~$\ref{sec:theomodel}, we give a brief theoretical introduction to spatial linear models. In Section$~$\ref{sec:modelfit}, we outline the variety of methods used to estimate the parameters of spatial linear models. In Section$~$\ref{sec:prediction}, we explain how to obtain predictions at unobserved locations. In Section$~$\ref{sec:advfeatures}, we detail some advanced modeling features, including random effects, partition factors, anisotropy, and big data approaches. In Section$~$\ref{sec:discussion}, we end with a short discussion. Before proceeding, we load `spmodel` by running
+`spmodel` is an \textbf{\textsf{R}} package used to fit, summarize, and predict for a variety of spatial statistical models. The vignette provides an introduction to both the basic and advanced features of the `spmodel` package coupled with a brief theoretical explanation of the methods. In Section$~$\ref{sec:theomodel}, we give a brief theoretical introduction to spatial linear models. In Section$~$\ref{sec:modelfit}, we outline the variety of methods used to estimate the parameters of spatial linear models. In Section$~$\ref{sec:prediction}, we explain how to obtain predictions at unobserved locations. In Section$~$\ref{sec:advfeatures}, we detail some advanced modeling features, including random effects, partition factors, anisotropy, big data approaches, and spatial generalized linear models. In Section$~$\ref{sec:discussion}, we end with a short discussion. Before proceeding, we load `spmodel` by running
 ```{r, eval = FALSE}
 library(spmodel)
 ```
@@ -210,7 +210,7 @@ For a spatial model, the leverage of the $i$th observation is the $i$th diagonal
 \begin{equation*}
   \mathbf{H}^* = (\mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X})^{-1} \mathbf{X}^{* \top}) ,
 \end{equation*}
-where $\mathbf{X}^* = \boldsymbol{\Sigma}^{-1/2}\mathbf{X}$ and $\boldsymbol{\Sigma}^{-1/2}$ is the inverse matrix square root of the covariance matrix, $\boldsymbol{\Sigma}$ [@montgomery2021introduction]. The spatial hat matrix can be viewed as the non-spatial hat matrix applied $\mathbf{X}^*$ instead of $\mathbf{X}$. We compute the hat values (leverage) by running
+where $\mathbf{X}^* = \boldsymbol{\Sigma}^{-1/2}\mathbf{X}$ and $\boldsymbol{\Sigma}^{-1/2}$ is the inverse square root of the covariance matrix, $\boldsymbol{\Sigma}$ [@montgomery2021introduction]. The spatial hat matrix can be viewed as the non-spatial hat matrix applied $\mathbf{X}^*$ instead of $\mathbf{X}$. We compute the hat values (leverage) by running
 ```{r, eval = FALSE}
 hatvalues(spmod)
 ```
@@ -247,9 +247,7 @@ The covariance of $\mathbf{e}_{p}$ is $(\mathbf{I} - \mathbf{H}^*)$, which is ap
 \begin{equation*}
   \mathbf{e}_{s} = \frac{\mathbf{e}_{p}}{\sqrt{(1 - \text{diag}(\mathbf{H}^*))}},
 \end{equation*}
-where $\text{diag}(\mathbf{H}^*)$ denotes the diagonal of $\mathbf{H}^*$.
-
-We compute the standardized residuals of the spatial model by running
+where $\text{diag}(\mathbf{H}^*)$ denotes the diagonal of $\mathbf{H}^*$. We compute the standardized residuals of the spatial model by running
 ```{r, eval = FALSE}
 residuals(spmod, type = "standardized")
 ```
@@ -492,7 +490,7 @@ Fitting multiple models is possible with a single call to `splm()` or `spautor()
 spmods <- splm(sulfate ~ 1, sulfate, spcov_type = c("exponential", "spherical", "none"))
 ```
 
-Then `glances()`is used to glance at each fitted model object:
+Then `glances()` is used to glance at each fitted model object:
 ```{r}
 glances(spmods)
 ```
@@ -704,13 +702,15 @@ Note that the output from `coef(object, type = "spcov")` is a `spcov_params` obj
 
 ## Big Data
 
-The computational cost associated with model fitting is exponential in the sample size for all estimation methods. For maximum likelihood and restricted maximum likelihood, the computational cost of estimating $\boldsymbol{\theta}$ is cubic. For semivariogram weighted least squares and semivariogram composite likelihood, the computational cost of estimating $\boldsymbol{\theta}$ is quadratic. The computational cost associated with estimating $\boldsymbol{\beta}$ and prediction is cubic in the model-fitting sample size, regardless of estimation method. Typically, samples sizes approaching 10,000 make the computational cost of model fitting and prediction infeasible, which necessitates the use of big data methods. `spmodel` offers big data methods for model fitting of point-referenced data via the `local` argument to `splm()`. The method is capable of quickly fitting models with hundreds of thousands to millions of observations. Because of the neighborhood structure of areal data, the big data methods used for point-referenced data do not apply to areal data. Thus, there is no big data method for areal data or `local` argument to `spautor()`, so model fitting sample sizes cannot be too large
+The computational cost associated with model fitting is exponential in the sample size for all estimation methods. For maximum likelihood and restricted maximum likelihood, the computational cost of estimating $\boldsymbol{\theta}$ is cubic. For semivariogram weighted least squares and semivariogram composite likelihood, the computational cost of estimating $\boldsymbol{\theta}$ is quadratic. The computational cost associated with estimating $\boldsymbol{\beta}$ and prediction is cubic in the model-fitting sample size, regardless of estimation method. Typically, samples sizes approaching 10,000 make the computational cost of model fitting and prediction infeasible, which necessitates the use of big data methods. `spmodel` offers big data methods for model fitting of point-referenced data via the `local` argument to `splm()`. The method is capable of quickly fitting models with hundreds of thousands of observations. Because of the neighborhood structure of areal data, the big data methods used for point-referenced data do not apply to areal data. Thus, there is no big data method for areal data or `local` argument to `spautor()`, so model fitting sample sizes cannot be too large
 
-`spmodel` offers big data methods outlined in @ver2023indexing for prediction of point-referenced data or areal data via the `local` argument to `predict()`, capable of predicting hundreds of thousands of observations rather quickly. To show how to use `spmodel` for big data estimation and prediction, we use the `sim_data` data from Section$~$\ref{sec:sim_data}. Because `sim_data` is a `tibble` (`data.frame`) and not an `sf` object, the columns in `data` representing the x-coordinates and y-coordinates must be explicitly provided to `splm()`. 
+`spmodel` offers big data methods for prediction of point-referenced data or areal data via the `local` argument to `predict()`. This method is capable of quickly predicting hundreds of thousands of observations. To show how to use `spmodel` for big data estimation and prediction, we use the `sim_data` data from Section$~$\ref{sec:sim_data}. Because `sim_data` is a `tibble` (`data.frame`) and not an `sf` object, the columns in `data` representing the x-coordinates and y-coordinates must be explicitly provided to `splm()`. 
+
+Next we briefly discuss model fitting and prediction for big data in `spmodel`, but further details are provided by @ver2023indexing.
 
 ### Model Fitting {#sec:modelfit-big} 
 
-`spmodel` uses a "local" spatial indexing (SPIN) approach [@ver2023indexing] for big data model fitting of point-referenced data. Observations are first assigned an index. Then for the purposes of model fitting, observations with different indexes are assumed uncorrelated. Assuming observations with different indexes are uncorrelated induces sparsity in the covariance matrix, which greatly reduces the computational time of operations that involve the covariance matrix.
+`spmodel` uses a "local spatial indexing" (SPIN) approach for big data model fitting of point-referenced data. Observations are first assigned an index. Then for the purposes of model fitting, observations with different indexes are assumed uncorrelated. Assuming observations with different indexes are uncorrelated induces sparsity in the covariance matrix, which greatly reduces the computational time of operations that involve the covariance matrix.
 
 The `local` argument to `splm()` controls the big data options. `local` is a list with several arguments. The arguments to the `local` list control the method used to assign the indexes, the number of observations with the same index, the number of unique indexes, variance adjustments to the covariance matrix of $\hat{\boldsymbol{\beta}}$, whether or not to use parallel processing, and if parallel processing is used, the number of cores.
 
@@ -733,7 +733,7 @@ Likelihood-based statistics like `AIC()`, `AICc()`, `logLik()`, and `deviance()`
 
 ### Prediction {#sec:prediction-big}
 
-For point-referenced data, `spmodel` uses a "local" neighborhood approach for big data prediction. Each prediction is computed using a subset of the observed data instead of all of the observed data. Before further discussing big data prediction, we simulate 1000 locations in the unit square requiring prediction:
+For point-referenced data, `spmodel` uses a "local neighborhood" approach for big data prediction. Each prediction is computed using a subset of the observed data instead of all of the observed data. Before further discussing big data prediction, we simulate 1000 locations in the unit square requiring prediction:
 ```{r}
 n_pred <- 1000
 x <- runif(n_pred)
@@ -821,66 +821,66 @@ As with spatial linear models, spatial generalized linear models are fit in `spm
     
 As with `splm()` and `spautor()`, the data argument to `spglm()` and `spgautor()` can be an `sf` object or `data.frame` (with appropriate coordinate or weight matrix information). Additionally, all arguments to `splm()` and `spautor()` are also available for `spglm()` and `spgautor()`.
 
-Next we show the basic features and syntax of `spglm()` using the `moose` data. We study the impact of elevation (`elev`) on the total number of moose (`count`) observed at a site location in Alaska. We view the first few rows of the `moose` data by running 
+Next we show the basic features and syntax of `spglm()` using the `moose` data. We study the impact of elevation (`elev`) on the presence of moose (`presence`) observed at a site location in Alaska. `presence` equals one if at least one moose was observed at the site and zero otherwise. We view the first few rows of the `moose` data by running 
 ```{r}
 moose
 ```
 
-We can visualize the distribution of moose counts (`count`) by running
-```{r moose, fig.align="center", out.width = "65%", fig.cap = "Distribution of moose counts in the moose data."}
-ggplot(moose, aes(color = count)) +
+We can visualize the distribution of moose presence (`presence`) by running
+```{r moose, fig.align="center", out.width = "65%", fig.cap = "Distribution of moose presence in Alaska. presence equals one if at least one moose was observed at the site and zero otherwise."}
+ggplot(moose, aes(color = presence)) +
   geom_sf(size = 2) +
-  scale_color_viridis_c() + 
+  scale_color_viridis_d() +
   theme_gray(base_size = 14)
 ```
 
-One example of a generalized linear model is a Poisson regression model. Poisson regression models are often used to model count data such as this. To quantify the relationship between counts and elevation, we fit a spatial Poisson regression model (a specific spatial generalized linear model) by running
+One example of a generalized linear model is a binomial (e.g., logistic) regression model. Binomial regression models are often used to model presence data such as this. To quantify the relationship between moose presence and elevation, we fit a spatial binomial regression model (a specific spatial generalized linear model) by running
 ```{r}
-poismod <- spglm(count ~ elev, family = "poisson", data  = moose, spcov_type = "exponential")
+binmod <- spglm(presence ~ elev, family = "binomial", data  = moose, spcov_type = "exponential")
 ```
 
 The estimation method is specified via the `estmethod` argument, which has a default value of `"reml"` for restricted maximum likelihood. The other estimation method is `"ml"` for maximum likelihood.
 
 We summarize the fitted model by running
 ```{r}
-summary(poismod)
+summary(binmod)
 ```
 
-Similar to summaries of `glm()` objects, summaries of `spglm()` objects include the original function call, summary statistics of the deviance residuals, and a coefficients table of fixed effects. The log of mean counts does not appear to be related to elevation, as evidenced by the large p-value associated with the asymptotic z-test. A pseudo r-squared is also returned, which quantifies the proportion of variability explained by the fixed effects. The spatial covariance parameters and dispersion parameter are also returned. The dispersion parameter is estimated in some spatial generalized linear models and changes the mean-variance relationship of $\mathbf{y}$. For Poisson regression models, the dispersion parameter is not estimated and is always fixed at one.
+Similar to summaries of `glm()` objects, summaries of `spglm()` objects include the original function call, summary statistics of the deviance residuals, and a coefficients table of fixed effects. The logit of moose presence probability does not appear to be related to elevation, as evidenced by the large p-value associated with the asymptotic z-test. A pseudo r-squared is also returned, which quantifies the proportion of variability explained by the fixed effects. The spatial covariance parameters and dispersion parameter are also returned. The dispersion parameter is estimated in some spatial generalized linear models and changes the mean-variance relationship of $\mathbf{y}$. For binomial regression models, the dispersion parameter is not estimated and is always fixed at one.
 
 We tidy, glance, and augment the fitted model by running
 ```{r}
-tidy(poismod)
+tidy(binmod)
 ```
 
 ```{r}
-glance(poismod)
+glance(binmod)
 ```
 
 ```{r}
-augment(poismod)
+augment(binmod)
 ```
 
 ### Prediction {#sec:predict-glm}
 
-For spatial generalized linear models, we are predicting the mean of the process generating the observation rather than the observation itself. We make predictions of mean counts at the locations in `moose_preds` by running
+For spatial generalized linear models, we are predicting the mean of the process generating the observation rather than the observation itself. We make predictions of moose presence probability at the locations in `moose_preds` by running
 ```{r}
-moose_preds$preds <- predict(poismod, newdata = moose_preds, type = "response")
+moose_preds$preds <- predict(binmod, newdata = moose_preds, type = "response")
 ```
 The type argument specifies whether predictions are returned on the link or response (inverse link) scale.
 
 We visualize these predictions by running
-```{r moose-pred, fig.align="center", out.width = "65%", fig.cap = "Distribution of mean moose predictions in Alaska."}
+```{r moose-pred, fig.align="center", out.width = "65%", fig.cap = "Distribution of moose presence probability predictions in Alaska."}
 ggplot(moose_preds, aes(color = preds)) + 
   geom_sf(size = 2) +
-  scale_color_viridis_c(limits = c(0, 40)) + 
+  scale_color_viridis_c(limits = c(0, 1)) + 
   theme_gray(base_size = 14)
 ```
 
-These predictions have similar spatial patterns as in the observed counts, as many of the observed counts were zero near locations requiring prediction. Next we remove the model predictions from `moose_preds` and show how `augment()` can be used to obtain the same predictions alongside prediction intervals (on the response scale):
+These predictions have similar spatial patterns as moose presence the observed data. Next we remove the model predictions from `moose_preds` and show how `augment()` can be used to obtain the same predictions alongside prediction intervals (on the response scale):
 ```{r}
 moose_preds$preds <- NULL
-augment(poismod, newdata = moose_preds, type = "response", interval = "prediction")
+augment(binmod, newdata = moose_preds, type = "response", interval = "prediction")
 ```
 
 ### Simulating Spatial Generalized Data {#sec:sim_data-glm}
@@ -907,7 +907,7 @@ and visualize it by running
 ```{r sim-glm, fig.align="center", out.width = "65%", fig.cap = "Spatial binomial data simulated in the unit square.", eval = TRUE}
 ggplot(sim_data, aes(x = x, y = y, color = sim_response)) +
   geom_point(size = 1.5) +
-  scale_color_viridis_d() + 
+  scale_color_viridis_d() +
   theme_gray(base_size = 14)
 ```
 
@@ -915,21 +915,24 @@ There is noticeable patterning in the response variable (`sim_response`) in the 
 
 ### Additional Examples
 
-We previously showed how to use `spmodel` to model count data via spatial Poisson regression. Recall that `spmodel` can also be used to model count data via spatial negative binomial regression, proportion data via spatial beta regression, binary data via binomial regression, and skewed, positive data via spatial gamma or spatial inverse Gaussian regression. Next we provide examples of fitting a few of these models.
+We previously showed how to use `spmodel` to model binary data via spatial binomial regression. Recall that `spmodel` can also be used to model count data via spatial Poisson regression or spatial negative binomial regression, proportion data via spatial beta regression, and skewed, positive data via spatial gamma regression or spatial inverse Gaussian regression. Next we provide examples of fitting a few of these models.
 
-Poisson regression assumes the mean and variance are equal. Often in practice, the variance is larger than the mean. When the variance is larger than the mean, there is said to be overdispersion in the data. Negative binomial regression accounts for overdispersion via an extra dispersion parameter that allows the variance to change separately from the mean (recall the full negative binomial regression parameterization is available in the technical details vignette). We fit a spatial negative binomial regression model to the moose count data by running
+Poisson regression is used to model count data. To quantify the relationship between moose counts (`count`) and elevation, we fit a spatial Poisson regression model and make predictions by running
+```{r, eval = FALSE}
+poismod <- spglm(count ~ elev, family = "poisson", data = moose, spcov_type = "exponential")
+predict(poismod, newdata = moose_preds)
+```
+
+Poisson regression assumes the mean and variance are equal. Often in practice, the variance is larger than the mean. When the variance is larger than the mean, there is said to be overdispersion in the data. Negative binomial regression accounts for overdispersion via an extra dispersion parameter that allows the variance to change separately from the mean (recall the full negative binomial regression parameterization is available in the technical details vignette). We fit a spatial negative binomial regression model to the moose count data and make predictions by running
 ```{r, eval = FALSE}
 nbmod <- spglm(count ~ elev, family = "nbinomial", data = moose, spcov_type = "exponential")
+predict(nbmod, newdata = moose_preds)
 ```
 
-Binomial (Bernoulli) regression is used to model binary data (successes and failures). The `presence` variable in the `moose` data is equal to 1 (success) if there is at least one moose observed and 0 (failure) otherwise. To quantify the relationship between moose presence and elevation, we fit a spatial binomial regression model by running
-```{r}
-binmod <- spglm(presence ~ elev, family = "binomial", data = moose, spcov_type = "exponential")
-```
-
-Gamma regression is used to model skewed, positive data. Suppose instead of modeling the `sulfate` data using a spatial linear model, we modeled sulfate using spatial gamma regression. We fit a spatial gamma regression model to these data by running
+Gamma regression is used to model skewed, positive data. Suppose instead of modeling the `sulfate` data using a spatial linear model, we modeled sulfate using spatial gamma regression. We fit a spatial gamma regression model to the sulfate data and make predictions by running
 ```{r}
 gammamod <- spglm(sulfate ~ 1, family = "Gamma", data = sulfate, spcov_type = "exponential")
+predict(gammamod, newdata = sulfate_preds)
 ```
 
 # Discussion {#sec:discussion}

@@ -72,7 +72,7 @@ from different levels of the partition factor are uncorrelated.}
 
 \item{W}{Weight matrix specifying the neighboring structure used.
 Not required if \code{data} is an \code{sf} polygon object,
-as \code{W} is calculated internally. If calculated internally,
+as \code{W} is calculated internally using queen contiguity. If calculated internally,
 \code{W} is computed using \code{sf::st_intersects()}.}
 
 \item{row_st}{A logical indicating whether row standardization be performed on

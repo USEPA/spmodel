@@ -56,7 +56,7 @@ for each element and a list is returned for each model fit.}
 
 \item{dispersion_initial}{An object from \code{\link[=dispersion_initial]{dispersion_initial()}} specifying
 initial and/or known values for the dispersion parameter for the
-\code{"nbinomial"}, \code{"Gamma"}, and \code{"inverse.gaussian"} families.
+\code{"nbinomial"}, \code{"beta"}, \code{"Gamma"}, and \code{"inverse.gaussian"} families.
 \code{family} is ignored if \code{dispersion_initial} is provided.}
 
 \item{estmethod}{The estimation method. Available options include
@@ -87,7 +87,7 @@ from different levels of the partition factor are uncorrelated.}
 
 \item{W}{Weight matrix specifying the neighboring structure used.
 Not required if \code{data} is an \code{sf} polygon object,
-as \code{W} is calculated internally. If calculated internally,
+as \code{W} is calculated internally using queen contiguity. If calculated internally,
 \code{W} is computed using \code{sf::st_intersects()}.}
 
 \item{row_st}{A logical indicating whether row standardization be performed on

@@ -45,7 +45,7 @@ For more on generalized linear model constructions, see McCullagh and
 Nelder (1989).
 }
 \examples{
-dispersion_params("beta", dispersion = 1)#'
+dispersion_params("beta", dispersion = 1)
 }
 \references{
 McCullagh P. and Nelder, J. A. (1989) \emph{Generalized Linear Models}. London: Chapman and Hall.

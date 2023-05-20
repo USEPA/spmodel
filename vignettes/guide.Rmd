@@ -813,9 +813,9 @@ All advanced features availble in `spmodel` for spatial linear models are also a
 
 ### Model Fitting {#sec:modelfit-glm}
 
-As with spatial linear models, spatial generalized linear models are fit in `spmodel` for point-referenced and areal data. The `spglm()` function is used to fit spatial generalized linear models for point-referenced data, and the `spgautor()` function is used to fit spatial generalized linear models for areal data. `spglm()` and `sugautor()` share similar syntax with `splm()` and `spautor()`, respectively, though one additional argument is required:
+As with spatial linear models, spatial generalized linear models are fit in `spmodel` for point-referenced and areal data. The `spglm()` function is used to fit spatial generalized linear models for point-referenced data, and the `spgautor()` function is used to fit spatial generalized linear models for areal data. `spglm()` and `spgautor()` share similar syntax with `splm()` and `spautor()`, respectively, though one additional argument is required:
 
-* `family`: The generalized linear model family (i.e., the distribution of $\mathbf{y}$). Can be `binomial`, `beta`, `poisson`, `nbinomial`, `Gamma`, or `inverse.gaussian`.
+* `family`: The generalized linear model family (i.e., the distribution of $\mathbf{y}$). `family` can be `binomial`, `beta`, `poisson`, `nbinomial`, `Gamma`, or `inverse.gaussian`.
     * `family` uses similar syntax as the `family` argument in `glm()`.
     * One difference between `family` in `spglm()` compared to `family` in `glm()` is that the link function is fixed in `spglm()`.
     
@@ -937,7 +937,7 @@ predict(gammamod, newdata = sulfate_preds)
 
 # Discussion {#sec:discussion}
 
-Throughout this vignette, we have shown how to use `spmodel` to fit, summarize, and predict for a variety of spatial statistical models. Spatial linear models for point-referenced data (i.e., geostatistical models) are fit using the `splm()` function while spatial linear models for areal data (i.e., spatial autoregressive models) are fit using the `spautor()` function. Several model-fit statistics and diagnostics are available. The broom functions `tidy()` and `glance()` are used to tidy and glance at a fitted model. The broom function `augment()` is used to augment `data` with model diagnostics and augment `newdata` with predictions. Several advanced features are available to accommodate fixed covariance parameter values, random effects, partition factors, anisotropy, simulated data, and big data approximations for model fitting and prediction.
+Throughout this vignette, we have shown how to use `spmodel` to fit, summarize, and predict for a variety of spatial statistical models. Spatial linear models for point-referenced data (i.e., geostatistical models) are fit using the `splm()` function while spatial linear models for areal data (i.e., spatial autoregressive models) are fit using the `spautor()` function. Spatial generalized linear models for point-referenced data (i.e., generalized geostatistical models) are fit using the `spglm()` function while spatial generalized linear models for areal data (i.e., spatial generalized autoregressive models) are fit using the `spgautor()` function. Several model-fit statistics and diagnostics are available. The broom functions `tidy()` and `glance()` are used to tidy and glance at a fitted model. The broom function `augment()` is used to augment `data` with model diagnostics and augment `newdata` with predictions. Several advanced features are available to accommodate fixed covariance parameter values, random effects, partition factors, anisotropy, simulated data, big data approximations, and random forests for model fitting and prediction.
 
 We appreciate feedback from users regarding `spmodel`. To learn more about how to provide feedback or contribute to `spmodel`, please visit our GitHub repository at [https://github.com/USEPA/spmodel](https://github.com/USEPA/spmodel).
 

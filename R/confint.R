@@ -11,6 +11,8 @@
 #'
 #' @return Gaussian-based confidence intervals (two-sided and equal-tailed) for the
 #'   fixed effect coefficients based on the confidence level specified by \code{level}.
+#'   For [spglm()] or [spgautor()] fitted model objects, confidence intervals are
+#'   on the link scale.
 #'
 #' @name confint.spmodel
 #' @method confint splm

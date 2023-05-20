@@ -36,7 +36,7 @@
 #' @export
 #'
 #' @examples
-#' dispersion_params("beta", dispersion = 1)#'
+#' dispersion_params("beta", dispersion = 1)
 #' @references
 #' McCullagh P. and Nelder, J. A. (1989) \emph{Generalized Linear Models}. London: Chapman and Hall.
 dispersion_params <- function(family, dispersion) {

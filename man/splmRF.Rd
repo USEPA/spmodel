@@ -58,7 +58,7 @@ Fox et al. (2020). A random forest model is fit to the mean portion of the
 model specified by \code{formula} using \code{ranger::ranger()}. Residuals
 are computed and used as the response variable in an intercept-only spatial
 linear model fit using \code{\link[=splm]{splm()}}. This model object is intended for use with
-\code{predict()} for perform prediction, also called random forest
+\code{predict()} to perform prediction, also called random forest
 regression Kriging.
 }
 \note{

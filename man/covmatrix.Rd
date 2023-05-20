@@ -19,7 +19,7 @@ covmatrix(object, newdata, ...)
 \method{covmatrix}{spgautor}(object, newdata, ...)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
+\item{object}{A fitted model object (e.g., \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}).}
 
 \item{newdata}{If omitted, the covariance matrix of
 the observed data is returned. If provided, \code{newdata} is

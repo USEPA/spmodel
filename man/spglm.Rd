@@ -70,7 +70,7 @@ for each element and a list is returned for each model fit.}
 
 \item{dispersion_initial}{An object from \code{\link[=dispersion_initial]{dispersion_initial()}} specifying
 initial and/or known values for the dispersion parameter for the
-\code{"nbinomial"}, \code{"Gamma"}, and \code{"inverse.gaussian"} families.
+\code{"nbinomial"}, \code{"beta"}, \code{"Gamma"}, and \code{"inverse.gaussian"} families.
 \code{family} is ignored if \code{dispersion_initial} is provided.}
 
 \item{estmethod}{The estimation method. Available options include

@@ -29,6 +29,8 @@ intervals (a character vector of names). If missing, all parameters are consider
 \value{
 Gaussian-based confidence intervals (two-sided and equal-tailed) for the
 fixed effect coefficients based on the confidence level specified by \code{level}.
+For \code{\link[=spglm]{spglm()}} or \code{\link[=spgautor]{spgautor()}} fitted model objects, confidence intervals are
+on the link scale.
 }
 \description{
 Computes confidence intervals for one or more parameters in a fitted

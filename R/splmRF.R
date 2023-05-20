@@ -23,7 +23,7 @@
 #'   model specified by \code{formula} using \code{ranger::ranger()}. Residuals
 #'   are computed and used as the response variable in an intercept-only spatial
 #'   linear model fit using [splm()]. This model object is intended for use with
-#'   \code{predict()} for perform prediction, also called random forest
+#'   \code{predict()} to perform prediction, also called random forest
 #'   regression Kriging.
 #'
 #' @return A list with several elements to be used with \code{predict()}. These

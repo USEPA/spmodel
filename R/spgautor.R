@@ -34,7 +34,7 @@
 #'   for each element and a list is returned for each model fit.
 #' @param dispersion_initial An object from [dispersion_initial()] specifying
 #'   initial and/or known values for the dispersion parameter for the
-#'   \code{"nbinomial"}, \code{"Gamma"}, and \code{"inverse.gaussian"} families.
+#'   \code{"nbinomial"}, \code{"beta"}, \code{"Gamma"}, and \code{"inverse.gaussian"} families.
 #'   \code{family} is ignored if \code{dispersion_initial} is provided.
 #' @param estmethod The estimation method. Available options include
 #'   \code{"reml"} for restricted maximum likelihood and \code{"ml"} for maximum
@@ -60,7 +60,7 @@
 #'   from different levels of the partition factor are uncorrelated.
 #' @param W Weight matrix specifying the neighboring structure used.
 #'   Not required if \code{data} is an \code{sf} polygon object,
-#'   as \code{W} is calculated internally. If calculated internally,
+#'   as \code{W} is calculated internally using queen contiguity. If calculated internally,
 #'   \code{W} is computed using \code{sf::st_intersects()}.
 #' @param row_st A logical indicating whether row standardization be performed on
 #'   \code{W}. The default is \code{TRUE}.

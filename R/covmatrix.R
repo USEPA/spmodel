@@ -2,7 +2,7 @@
 #'
 #' Create a covariance matrix from a fitted model object.
 #'
-#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
+#' @param object A fitted model object (e.g., [splm()], [spautor()], [spglm()], or [spgautor()]).
 #' @param newdata If omitted, the covariance matrix of
 #'   the observed data is returned. If provided, \code{newdata} is
 #'   a data frame or \code{sf} object that contains coordinate information

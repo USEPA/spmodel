@@ -1,5 +1,4 @@
 dispersion_initial_NA <- function(dispersion_initial, data_object) {
-
   dispersion_names <- c("dispersion")
   if (data_object$family %in% c("poisson", "binomial")) {
     dispersion_initial <- dispersion_initial(data_object$family, 1, known = "dispersion")

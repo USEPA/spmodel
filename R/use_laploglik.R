@@ -1,5 +1,5 @@
 use_laploglik <- function(spcov_initial, dispersion_initial, data_object, estmethod, dist_matrix_list, spcov_profiled,
-                        randcov_initial = NULL, randcov_profiled = NULL, optim_dotlist) {
+                          randcov_initial = NULL, randcov_profiled = NULL, optim_dotlist) {
 
 
   # transforming to optim paramters (log odds or log scale)
@@ -55,8 +55,8 @@ use_laploglik <- function(spcov_initial, dispersion_initial, data_object, estmet
   #
   # transforming to original scale
   randcov_orig_val <- randcov_optim2orig(randcov_orig2optim_val, spcov_orig2optim_val, par,
-                                         randcov_profiled = randcov_profiled,
-                                         spcov_optim2orig = spcov_params_val
+    randcov_profiled = randcov_profiled,
+    spcov_optim2orig = spcov_params_val
   )
 
   # need to deal with list if randcov_profiled as sp variance changes

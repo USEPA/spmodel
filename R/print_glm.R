@@ -3,18 +3,18 @@
 #' @order 7
 #' @export
 print.spglm <- function(x, digits = max(3L, getOption("digits") - 3L),
-                       ...) {
+                        ...) {
   cat("\nCall:\n", paste(deparse(x$call),
-                         sep = "\n",
-                         collapse = "\n"
+    sep = "\n",
+    collapse = "\n"
   ), "\n\n", sep = "")
 
   cat("\n")
 
   cat("Coefficients (fixed):\n")
   print.default(format(coef(x, type = "fixed"), digits = digits),
-                print.gap = 2L,
-                quote = FALSE
+    print.gap = 2L,
+    quote = FALSE
   )
 
   cat("\n")
@@ -30,16 +30,16 @@ print.spglm <- function(x, digits = max(3L, getOption("digits") - 3L),
 
   cat(paste("\nCoefficients (", class(coef(x, type = "spcov")), " spatial covariance):\n", sep = ""))
   print.default(format(spcoef, digits = digits),
-                print.gap = 2L,
-                quote = FALSE
+    print.gap = 2L,
+    quote = FALSE
   )
 
   cat("\n")
 
   cat(paste("\nCoefficients (Dispersion for ", class(coef(x, type = "dispersion")), " family):\n", sep = ""))
   print.default(format(unclass(coef(x, type = "dispersion")), digits = digits),
-                print.gap = 2L,
-                quote = FALSE
+    print.gap = 2L,
+    quote = FALSE
   )
 
   cat("\n")
@@ -47,8 +47,8 @@ print.spglm <- function(x, digits = max(3L, getOption("digits") - 3L),
   if (length(coef(x, type = "randcov"))) {
     cat("Coefficients (random effects):\n")
     print.default(format(coef(x, type = "randcov"), digits = digits),
-                  print.gap = 2L,
-                  quote = FALSE
+      print.gap = 2L,
+      quote = FALSE
     )
 
     cat("\n")
@@ -61,18 +61,18 @@ print.spglm <- function(x, digits = max(3L, getOption("digits") - 3L),
 #' @order 8
 #' @export
 print.spgautor <- function(x, digits = max(3L, getOption("digits") - 3L),
-                          ...) {
+                           ...) {
   cat("\nCall:\n", paste(deparse(x$call),
-                         sep = "\n",
-                         collapse = "\n"
+    sep = "\n",
+    collapse = "\n"
   ), "\n\n", sep = "")
 
   cat("\n")
 
   cat("Coefficients (fixed):\n")
   print.default(format(coef(x, type = "fixed"), digits = digits),
-                print.gap = 2L,
-                quote = FALSE
+    print.gap = 2L,
+    quote = FALSE
   )
 
   cat("\n")
@@ -93,16 +93,16 @@ print.spgautor <- function(x, digits = max(3L, getOption("digits") - 3L),
 
   cat(paste("\nCoefficients (", class(coef(x, type = "spcov")), " spatial covariance):\n", sep = ""))
   print.default(format(spcoef, digits = digits),
-                print.gap = 2L,
-                quote = FALSE
+    print.gap = 2L,
+    quote = FALSE
   )
 
   cat("\n")
 
   cat(paste("\nCoefficients (Dispersion for ", class(coef(x, type = "dispersion")), " family):\n", sep = ""))
   print.default(format(unclass(coef(x, type = "dispersion")), digits = digits),
-                print.gap = 2L,
-                quote = FALSE
+    print.gap = 2L,
+    quote = FALSE
   )
 
   cat("\n")
@@ -110,8 +110,8 @@ print.spgautor <- function(x, digits = max(3L, getOption("digits") - 3L),
   if (length(coef(x, type = "randcov"))) {
     cat("Coefficients (random effects):\n")
     print.default(format(coef(x, type = "randcov"), digits = digits),
-                  print.gap = 2L,
-                  quote = FALSE
+      print.gap = 2L,
+      quote = FALSE
     )
 
     cat("\n")
@@ -124,9 +124,9 @@ print.spgautor <- function(x, digits = max(3L, getOption("digits") - 3L),
 #' @order 9
 #' @export
 print.summary.spglm <- function(x,
-                               digits = max(3L, getOption("digits") - 3L),
-                               signif.stars = getOption("show.signif.stars"),
-                               ...) {
+                                digits = max(3L, getOption("digits") - 3L),
+                                signif.stars = getOption("show.signif.stars"),
+                                ...) {
   # pasting the formula call
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
 
@@ -185,9 +185,9 @@ print.summary.spglm <- function(x,
 #' @order 10
 #' @export
 print.summary.spgautor <- function(x,
-                                  digits = max(3L, getOption("digits") - 3L),
-                                  signif.stars = getOption("show.signif.stars"),
-                                  ...) {
+                                   digits = max(3L, getOption("digits") - 3L),
+                                   signif.stars = getOption("show.signif.stars"),
+                                   ...) {
   # pasting the formula call
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
 

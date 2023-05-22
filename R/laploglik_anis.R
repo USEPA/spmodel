@@ -1,6 +1,6 @@
 laploglik_anis <- function(par, spcov_orig2optim, dispersion_orig2optim, data_object, estmethod,
-                         spcov_profiled, randcov_orig2optim = NULL,
-                         randcov_profiled = NULL) {
+                           spcov_profiled, randcov_orig2optim = NULL,
+                           randcov_profiled = NULL) {
 
   # dispersion first then remove
   dispersion_orig_val <- dispersion_optim2orig(dispersion_orig2optim, par)
@@ -16,8 +16,8 @@ laploglik_anis <- function(par, spcov_orig2optim, dispersion_orig2optim, data_ob
 
   # transforming to original scale
   randcov_orig_val <- randcov_optim2orig(randcov_orig2optim, spcov_orig2optim, par,
-                                         randcov_profiled = randcov_profiled,
-                                         spcov_optim2orig = spcov_params_val
+    randcov_profiled = randcov_profiled,
+    spcov_optim2orig = spcov_params_val
   )
 
 
@@ -33,7 +33,7 @@ laploglik_anis <- function(par, spcov_orig2optim, dispersion_orig2optim, data_ob
   # quadrant 1
   ## make distance matrix
   new_coords_list_q1 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-                               rotate = spcov_params_val[["rotate"]], scale = spcov_params_val[["scale"]]
+    rotate = spcov_params_val[["rotate"]], scale = spcov_params_val[["scale"]]
   )
 
   dist_matrix_list_q1 <- lapply(new_coords_list_q1, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
@@ -49,7 +49,7 @@ laploglik_anis <- function(par, spcov_orig2optim, dispersion_orig2optim, data_ob
 
 
   new_coords_list_q2 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-                               rotate = abs(pi - spcov_params_val[["rotate"]]), scale = spcov_params_val[["scale"]]
+    rotate = abs(pi - spcov_params_val[["rotate"]]), scale = spcov_params_val[["scale"]]
   )
   dist_matrix_list_q2 <- lapply(new_coords_list_q2, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
 
@@ -61,8 +61,8 @@ laploglik_anis <- function(par, spcov_orig2optim, dispersion_orig2optim, data_ob
 
   # find -2loglik
   minustwolaploglik_q2 <- get_minustwolaploglik(lapll_prods_q2, estmethod, data_object$n,
-                                          data_object$p,
-                                          spcov_profiled = spcov_profiled, randcov_profiled = randcov_profiled
+    data_object$p,
+    spcov_profiled = spcov_profiled, randcov_profiled = randcov_profiled
   )
 
   minustwolaploglik <- min(c(minustwolaploglik_q1, minustwolaploglik_q2))

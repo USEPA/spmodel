@@ -115,7 +115,7 @@ splmRF <- function(formula, data, ...) {
 
     # get ... objects
     splm_names <- names(formals(spmodel::splm))
-    splm_args <-  call_list[names(call_list) %in% splm_names]
+    splm_args <- call_list[names(call_list) %in% splm_names]
     # find residuals
     data$.ranger_resid <- resp - ranger_out$predictions
     # perform splm
@@ -134,5 +134,4 @@ splmRF <- function(formula, data, ...) {
   }
   # return object
   sprf_out
-
 }

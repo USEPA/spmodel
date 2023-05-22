@@ -30,7 +30,7 @@
 #' tidy(spmod)
 #' tidy(spmod, effects = "spcov")
 tidy.splm <- function(x, conf.int = FALSE,
-                       conf.level = 0.95, effects = "fixed", ...) {
+                      conf.level = 0.95, effects = "fixed", ...) {
   if (effects == "fixed") {
     result <- tibble::as_tibble(summary(x)$coefficients$fixed,
       rownames = "term"
@@ -67,7 +67,6 @@ tidy.splm <- function(x, conf.int = FALSE,
       which_ie <- which(result$term == "ie")
       result <- result[which_ie, , drop = FALSE]
     }
-
   } else if (effects == "randcov") {
     if (is.null(summary(x)$coefficients$randcov)) {
       result <- NULL
@@ -88,10 +87,10 @@ tidy.splm <- function(x, conf.int = FALSE,
 #' @order 2
 #' @export
 tidy.spautor <- function(x, conf.int = FALSE,
-                      conf.level = 0.95, effects = "fixed", ...) {
+                         conf.level = 0.95, effects = "fixed", ...) {
   if (effects == "fixed") {
     result <- tibble::as_tibble(summary(x)$coefficients$fixed,
-                                rownames = "term"
+      rownames = "term"
     )
     colnames(result) <- c(
       "term", "estimate", "std.error",
@@ -100,8 +99,8 @@ tidy.spautor <- function(x, conf.int = FALSE,
 
     if (conf.int) {
       ci <- tibble::as_tibble(confint(x,
-                                      level = conf.level,
-                                      type = "fixed"
+        level = conf.level,
+        type = "fixed"
       ),
       rownames = "term"
       )
@@ -111,7 +110,7 @@ tidy.spautor <- function(x, conf.int = FALSE,
   } else if (effects == "spcov") {
     spcoef <- coefficients(x, type = "spcov")
     result <- tibble::as_tibble(unclass(spcoef),
-                                rownames = "term"
+      rownames = "term"
     )
     colnames(result) <- c("term", "estimate")
     result$is_known <- x$is_known$spcov
@@ -127,13 +126,12 @@ tidy.spautor <- function(x, conf.int = FALSE,
       which_extra <- which(result$term == "extra")
       result <- result[-c(which_extra), , drop = FALSE]
     }
-
   } else if (effects == "randcov") {
     if (is.null(summary(x)$coefficients$randcov)) {
       result <- NULL
     } else {
       result <- tibble::as_tibble(summary(x)$coefficients$randcov,
-                                  rownames = "term"
+        rownames = "term"
       )
       colnames(result) <- c("term", "estimate")
       result$is_known <- x$is_known$randcov

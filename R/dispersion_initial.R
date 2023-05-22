@@ -83,7 +83,7 @@ dispersion_initial <- function(family, dispersion, known) {
   }
 
   new_dispersion_initial <- structure(list(initial = dispersion_params_given, is_known = is_known),
-                                      class = family)
+    class = family
+  )
   new_dispersion_initial
-
 }

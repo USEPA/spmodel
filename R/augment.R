@@ -88,7 +88,6 @@
 augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
                          interval = c("none", "confidence", "prediction"), level = 0.95,
                          local, ...) {
-
   interval <- match.arg(interval)
 
   # set data and newdata
@@ -113,8 +112,10 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
     tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x)))
   } else {
     if (missing(local)) local <- NULL
-    preds_newdata <- predict(x, newdata = newdata, se.fit = se_fit, interval = interval,
-                             level = level, local = local)
+    preds_newdata <- predict(x,
+      newdata = newdata, se.fit = se_fit, interval = interval,
+      level = level, local = local
+    )
     if (se_fit) {
       if (interval %in% c("confidence", "prediction")) {
         augment_newdata <- tibble::tibble(
@@ -149,7 +150,6 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
     }
 
     if (inherits(newdata, "sf")) {
-
       newdata <- suppressWarnings(sf::st_centroid(newdata))
 
       newdata <- sf_to_df(newdata)
@@ -191,7 +191,6 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
 augment.spautor <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
                             interval = c("none", "confidence", "prediction"),
                             level = 0.95, local, ...) {
-
   interval <- match.arg(interval)
 
   # set data and newdata
@@ -222,8 +221,10 @@ augment.spautor <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
     }
   } else {
     if (missing(local)) local <- NULL
-    preds_newdata <- predict(x, newdata = newdata, se.fit = se_fit, interval = interval,
-                             level = level, local = local)
+    preds_newdata <- predict(x,
+      newdata = newdata, se.fit = se_fit, interval = interval,
+      level = level, local = local
+    )
     if (se_fit) {
       if (interval %in% c("confidence", "prediction")) {
         augment_newdata <- tibble::tibble(

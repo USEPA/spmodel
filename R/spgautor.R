@@ -221,7 +221,7 @@
 #' @references
 #' McCullagh P. and Nelder, J. A. (1989) \emph{Generalized Linear Models}. London: Chapman and Hall.
 spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersion_initial,
-                    estmethod = "reml", random, randcov_initial, partition_factor, W, row_st = TRUE, M, ...) {
+                     estmethod = "reml", random, randcov_initial, partition_factor, W, row_st = TRUE, M, ...) {
 
   # set car as default if nothing specified
   if (missing(spcov_type) && missing(spcov_initial)) {
@@ -318,8 +318,9 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
   )
 
   cov_est_object <- cov_estimate_laploglik_spgautor(data_object, formula,
-                                                 spcov_initial, dispersion_initial, estmethod,
-                                                 optim_dotlist = get_optim_dotlist(...))
+    spcov_initial, dispersion_initial, estmethod,
+    optim_dotlist = get_optim_dotlist(...)
+  )
 
   model_stats <- get_model_stats_spgautor(cov_est_object, data_object, estmethod)
 
@@ -362,5 +363,4 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
 
   new_output <- structure(output, class = "spgautor")
   new_output
-
 }

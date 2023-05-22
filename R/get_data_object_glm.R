@@ -1,5 +1,5 @@
 get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, ycoord, estmethod,
-                                 anisotropy, random, randcov_initial, partition_factor, local, ...) {
+                                  anisotropy, random, randcov_initial, partition_factor, local, ...) {
 
 
 
@@ -227,7 +227,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
       stop("Only one variable can be specified in partition_factor.", call. = FALSE)
     }
     partition_mf <- model.frame(partition_factor, obdata)
-    if (any(! attr(terms(partition_mf), "dataClasses") %in% c("character", "factor", "ordered"))) {
+    if (any(!attr(terms(partition_mf), "dataClasses") %in% c("character", "factor", "ordered"))) {
       stop("Partition factor variable must be categorical or factor.", call. = FALSE)
     }
     partition_factor <- reformulate(partition_factor_labels, intercept = FALSE)
@@ -319,8 +319,8 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
 }
 
 get_data_object_spgautor <- function(formula, family, data, spcov_initial,
-                                    estmethod, W, M, random, randcov_initial,
-                                    partition_factor, row_st, ...) {
+                                     estmethod, W, M, random, randcov_initial,
+                                     partition_factor, row_st, ...) {
   ## convert sp to sf object
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
@@ -553,7 +553,7 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
       stop("Only one variable can be specified in partition_factor.", call. = FALSE)
     }
     partition_mf <- model.frame(partition_factor, obdata)
-    if (any(! attr(terms(partition_mf), "dataClasses") %in% c("character", "factor", "ordered"))) {
+    if (any(!attr(terms(partition_mf), "dataClasses") %in% c("character", "factor", "ordered"))) {
       stop("Partition factor variable must be categorical or factor.", call. = FALSE)
     }
     partition_factor <- reformulate(partition_factor_labels, intercept = FALSE)

@@ -49,7 +49,6 @@ loocv <- function(object, ...) {
 #' @order 2
 #' @export
 loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
-
   if (missing(local)) {
     local <- NULL
   }
@@ -97,16 +96,16 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
     if (local_list$parallel) {
       cl <- parallel::makeCluster(local_list$ncores)
       cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv,
-                                                 Sig = cov_matrix_val,
-                                                 SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
-                                                 SigInv_yX = SigInv_yX, se.fit = se.fit
+        Sig = cov_matrix_val,
+        SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
+        SigInv_yX = SigInv_yX, se.fit = se.fit
       )
       cl <- parallel::stopCluster(cl)
     } else {
       cv_predict_val_list <- lapply(seq_len(object$n), get_loocv,
-                                    Sig = cov_matrix_val,
-                                    SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
-                                    SigInv_yX = SigInv_yX, se.fit = se.fit
+        Sig = cov_matrix_val,
+        SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
+        SigInv_yX = SigInv_yX, se.fit = se.fit
       )
     }
     # cv_predict_val <- unlist(cv_predict_val_list)
@@ -155,7 +154,6 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
 #' @order 3
 #' @export
 loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
-
   if (missing(local)) {
     local <- NULL
   }
@@ -192,16 +190,16 @@ loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...
   if (local_list$parallel) {
     cl <- parallel::makeCluster(local_list$ncores)
     cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv,
-                                               Sig = cov_matrix_obs_val,
-                                               SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
-                                               SigInv_yX = SigInv_yX, se.fit = se.fit
+      Sig = cov_matrix_obs_val,
+      SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
+      SigInv_yX = SigInv_yX, se.fit = se.fit
     )
     cl <- parallel::stopCluster(cl)
   } else {
     cv_predict_val_list <- lapply(seq_len(object$n), get_loocv,
-                                  Sig = cov_matrix_obs_val,
-                                  SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
-                                  SigInv_yX = SigInv_yX, se.fit = se.fit
+      Sig = cov_matrix_obs_val,
+      SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
+      SigInv_yX = SigInv_yX, se.fit = se.fit
     )
   }
   # cv_predict_val <- unlist(cv_predict_val_list)
@@ -223,7 +221,6 @@ loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...
     }
   }
   cv_output
-
 }
 
 loocv_local <- function(row, object, se.fit, local_list) {

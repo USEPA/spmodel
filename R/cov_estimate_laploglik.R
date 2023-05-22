@@ -10,7 +10,7 @@
 #'
 #' @noRd
 cov_estimate_laploglik_spglm <- function(data_object, formula, spcov_initial,
-                                       dispersion_initial, estmethod, optim_dotlist) {
+                                         dispersion_initial, estmethod, optim_dotlist) {
 
 
   # make NA spcov_initial
@@ -55,12 +55,12 @@ cov_estimate_laploglik_spglm <- function(data_object, formula, spcov_initial,
     } else {
       if (data_object$anisotropy) {
         cov_estimate_val <- use_laploglik_anis(spcov_initial_val, dispersion_initial_val, data_object, estmethod,
-                                             spcov_profiled = FALSE, optim_dotlist = optim_dotlist
+          spcov_profiled = FALSE, optim_dotlist = optim_dotlist
         )
       } else {
         cov_estimate_val <- use_laploglik(spcov_initial_val, dispersion_initial_val, data_object, estmethod,
-                                        dist_matrix_list,
-                                        spcov_profiled = FALSE, optim_dotlist = optim_dotlist
+          dist_matrix_list,
+          spcov_profiled = FALSE, optim_dotlist = optim_dotlist
         )
       }
     }
@@ -97,15 +97,15 @@ cov_estimate_laploglik_spglm <- function(data_object, formula, spcov_initial,
     } else {
       if (data_object$anisotropy) {
         cov_estimate_val <- use_laploglik_anis(spcov_initial_val, dispersion_initial_val, data_object, estmethod,
-                                             spcov_profiled = FALSE,
-                                             randcov_initial = randcov_initial_val, randcov_profiled = FALSE,
-                                             optim_dotlist = optim_dotlist
+          spcov_profiled = FALSE,
+          randcov_initial = randcov_initial_val, randcov_profiled = FALSE,
+          optim_dotlist = optim_dotlist
         )
       } else {
         cov_estimate_val <- use_laploglik(spcov_initial_val, dispersion_initial_val, data_object, estmethod,
-                                        dist_matrix_list = dist_matrix_list, spcov_profiled = FALSE,
-                                        randcov_initial = randcov_initial_val, randcov_profiled = FALSE,
-                                        optim_dotlist = optim_dotlist
+          dist_matrix_list = dist_matrix_list, spcov_profiled = FALSE,
+          randcov_initial = randcov_initial_val, randcov_profiled = FALSE,
+          optim_dotlist = optim_dotlist
         )
       }
     }
@@ -113,8 +113,8 @@ cov_estimate_laploglik_spglm <- function(data_object, formula, spcov_initial,
 }
 
 cov_estimate_laploglik_spgautor <- function(data_object, formula, spcov_initial,
-                                         dispersion_initial, estmethod,
-                                         optim_dotlist) {
+                                            dispersion_initial, estmethod,
+                                            optim_dotlist) {
   # make NA spcov_initial
   spcov_initial_NA_val <- spcov_initial_NA_glm(data_object$family, spcov_initial, is_W_connected = data_object$is_W_connected)
   # dispersion ie confounded in comment below
@@ -154,8 +154,8 @@ cov_estimate_laploglik_spgautor <- function(data_object, formula, spcov_initial,
       cov_estimate_val <- use_laploglik_known(spcov_initial_val, dispersion_initial_val, data_object, estmethod, dist_matrix_list, randcov_initial = NULL)
     } else {
       cov_estimate_val <- use_laploglik(spcov_initial_val, dispersion_initial_val, data_object, estmethod,
-                                        dist_matrix_list,
-                                        spcov_profiled = FALSE, optim_dotlist = optim_dotlist
+        dist_matrix_list,
+        spcov_profiled = FALSE, optim_dotlist = optim_dotlist
       )
     }
   } else {
@@ -189,9 +189,9 @@ cov_estimate_laploglik_spgautor <- function(data_object, formula, spcov_initial,
       cov_estimate_val <- use_laploglik_known(spcov_initial_val, dispersion_initial_val, data_object, estmethod, dist_matrix_list, randcov_initial_val)
     } else {
       cov_estimate_val <- use_laploglik(spcov_initial_val, dispersion_initial_val, data_object, estmethod,
-                                        dist_matrix_list = dist_matrix_list, spcov_profiled = FALSE,
-                                        randcov_initial = randcov_initial_val, randcov_profiled = FALSE,
-                                        optim_dotlist = optim_dotlist
+        dist_matrix_list = dist_matrix_list, spcov_profiled = FALSE,
+        randcov_initial = randcov_initial_val, randcov_profiled = FALSE,
+        optim_dotlist = optim_dotlist
       )
     }
   }

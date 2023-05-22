@@ -105,7 +105,7 @@ spautorRF <- function(formula, data, ...) {
 
     # get ... objects
     spautor_names <- names(formals(spmodel::spautor))
-    spautor_args <-  call_list[names(call_list) %in% spautor_names]
+    spautor_args <- call_list[names(call_list) %in% spautor_names]
     # find residuals
     data$.ranger_resid <- resp - ranger_out$predictions
     newdata$.ranger_resid <- NA

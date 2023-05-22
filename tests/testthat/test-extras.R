@@ -373,7 +373,7 @@ if (test_local) {
 
   test_that("covmatrix works geostatistical", {
     spcov_type <- "exponential"
-    spmod <- splm(y ~ x, exdata_M, spcov_type = spcov_type, xcoord = xcoord, ycoord = ycoord, random = ~ group)
+    spmod <- splm(y ~ x, exdata_M, spcov_type = spcov_type, xcoord = xcoord, ycoord = ycoord, random = ~group)
     expect_equal(c(99, 99), dim(covmatrix(spmod)))
     expect_equal(c(1, 99), dim(covmatrix(spmod, newdata = spmod$newdata)))
     expect_equal(c(10, 99), dim(covmatrix(spmod, newdata = newexdata)))
@@ -381,14 +381,14 @@ if (test_local) {
 
   test_that("covmatrix works autoregressive", {
     spcov_type <- "car"
-    spmod <- spautor(y ~ x, exdata_Mpoly, spcov_type = spcov_type, random = ~ group)
+    spmod <- spautor(y ~ x, exdata_Mpoly, spcov_type = spcov_type, random = ~group)
     expect_equal(c(48, 48), dim(covmatrix(spmod)))
     expect_equal(c(1, 48), dim(covmatrix(spmod, newdata = spmod$newdata)))
   })
 
   test_that("covmatrix works geostatistical", {
     spcov_type <- "exponential"
-    spmod <- splm(y ~ x, exdata_M, spcov_type = spcov_type, xcoord = xcoord, ycoord = ycoord, partition_factor = ~ group)
+    spmod <- splm(y ~ x, exdata_M, spcov_type = spcov_type, xcoord = xcoord, ycoord = ycoord, partition_factor = ~group)
     expect_equal(c(99, 99), dim(covmatrix(spmod)))
     expect_equal(c(1, 99), dim(covmatrix(spmod, newdata = spmod$newdata)))
     expect_equal(c(10, 99), dim(covmatrix(spmod, newdata = newexdata)))
@@ -396,7 +396,7 @@ if (test_local) {
 
   test_that("covmatrix works autoregressive", {
     spcov_type <- "car"
-    spmod <- spautor(y ~ x, exdata_Mpoly, spcov_type = spcov_type, partition_factor = ~ group)
+    spmod <- spautor(y ~ x, exdata_Mpoly, spcov_type = spcov_type, partition_factor = ~group)
     expect_equal(c(48, 48), dim(covmatrix(spmod)))
     expect_equal(c(1, 48), dim(covmatrix(spmod, newdata = spmod$newdata)))
   })
@@ -830,7 +830,6 @@ if (test_local) {
       expect_equal(length(loocv(spmod, se.fit = TRUE, local = list(parallel = TRUE, ncores = 2))), 2)
     }
     expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE, local = list(parallel = TRUE, ncores = 2))), 3)
-
   })
 
   ##############################################################################
@@ -1333,7 +1332,7 @@ if (test_local) {
     exdata$y2 <- exdata$y - exdata$offset
     newexdata$offset <- 2
     spmod1 <- splm(y ~ x + offset(offset), exdata, "exponential", xcoord, ycoord)
-    spmod2 <- splm(y2 ~ x,  exdata, "exponential", xcoord, ycoord)
+    spmod2 <- splm(y2 ~ x, exdata, "exponential", xcoord, ycoord)
     expect_equal(fitted(spmod1), fitted(spmod2) + exdata$offset)
   })
 
@@ -1341,7 +1340,7 @@ if (test_local) {
     exdata_Mpoly$offset <- 2
     exdata_Mpoly$y2 <- exdata_Mpoly$y - exdata_Mpoly$offset
     spmod1 <- spautor(y ~ x + offset(offset), exdata_Mpoly, "car")
-    spmod2 <- spautor(y2 ~ x,  exdata_Mpoly, "car")
+    spmod2 <- spautor(y2 ~ x, exdata_Mpoly, "car")
     expect_equal(fitted(spmod1), fitted(spmod2) + exdata_Mpoly$offset[!is.na(exdata_Mpoly$y)])
   })
 
@@ -1457,8 +1456,8 @@ if (test_local) {
     spcov_params_val <- spcov_params("exponential", de = 1, ie = 1, range = 1)
     randcov_params_val <- randcov_params(group = 1)
     expect_vector(sprnorm(spcov_params_val,
-                          data = exdata, xcoord = xcoord, ycoord = ycoord,
-                          random = ~group, randcov_params = randcov_params_val
+      data = exdata, xcoord = xcoord, ycoord = ycoord,
+      random = ~group, randcov_params = randcov_params_val
     ))
   })
 
@@ -1488,8 +1487,8 @@ if (test_local) {
     spcov_params_val <- spcov_params("none", ie = 1)
     randcov_params_val <- randcov_params(group = 1)
     expect_vector(sprnorm(spcov_params_val,
-                          data = exdata, xcoord = xcoord, ycoord = ycoord,
-                          random = ~group, randcov_params = randcov_params_val
+      data = exdata, xcoord = xcoord, ycoord = ycoord,
+      random = ~group, randcov_params = randcov_params_val
     ))
   })
 
@@ -1498,8 +1497,8 @@ if (test_local) {
     expect_vector(sprnorm(spcov_params_val, data = exdata_poly))
     randcov_params_val <- randcov_params(group = 1)
     expect_vector(sprnorm(spcov_params_val,
-                          data = exdata_poly, xcoord = xcoord, ycoord = ycoord,
-                          random = ~group, randcov_params = randcov_params_val
+      data = exdata_poly, xcoord = xcoord, ycoord = ycoord,
+      random = ~group, randcov_params = randcov_params_val
     ))
   })
 
@@ -1689,8 +1688,10 @@ if (test_local) {
   })
 
   test_that("varcomp works geostatistical random", {
-    spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord,
-                  ycoord = ycoord, estmethod = "reml", random = ~ group)
+    spmod <- splm(y ~ x, exdata,
+      spcov_type = "exponential", xcoord = xcoord,
+      ycoord = ycoord, estmethod = "reml", random = ~group
+    )
     varcomp_val <- varcomp(spmod)
     expect_equal(NROW(varcomp_val), 4)
     expect_equal(sum(varcomp_val$proportion), 1)
@@ -1704,7 +1705,7 @@ if (test_local) {
   })
 
   test_that("varcomp works autoregressive random", {
-    spmod <- spautor(y ~ x, exdata_poly, spcov_type = "car", estmethod = "reml", random = ~ group)
+    spmod <- spautor(y ~ x, exdata_poly, spcov_type = "car", estmethod = "reml", random = ~group)
     varcomp_val <- varcomp(spmod)
     expect_equal(NROW(varcomp_val), 4)
     expect_equal(sum(varcomp_val$proportion), 1)
@@ -1721,7 +1722,7 @@ if (test_local) {
   })
 
   test_that("varcomp works unconnected autoregressive random", {
-    spmod <- spautor(y ~ x, exdata_Upoly, spcov_type = "car", estmethod = "reml", random = ~ group)
+    spmod <- spautor(y ~ x, exdata_Upoly, spcov_type = "car", estmethod = "reml", random = ~group)
     varcomp_val <- varcomp(spmod)
     expect_equal(NROW(varcomp_val$connected), 4)
     expect_equal(sum(varcomp_val$connected$proportion), 1)

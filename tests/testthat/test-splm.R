@@ -1,7 +1,6 @@
 # SPMODEL PACKAGE NEEDS TO BE INSTALLED VIA DEVTOOLS::INSTALL() BEFORE RUNNING TESTS IF THOSE TESTS HAVE PARALLELIZATION
 
 test_that("generics work splm point data", {
-
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
 
@@ -142,11 +141,9 @@ test_that("generics work splm point data", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
-
 })
 
 test_that("generics work splm point data with missing", {
-
   load(file = system.file("extdata", "exdata_M.rda", package = "spmodel"))
   load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
 
@@ -288,11 +285,9 @@ test_that("generics work splm point data with missing", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
-
 })
 
 test_that("generics work splm polygon data with missing", {
-
   load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
 
   spmod1 <- splm(y ~ x, exdata_Mpoly, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
@@ -432,5 +427,4 @@ test_that("generics work splm polygon data with missing", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
-
 })

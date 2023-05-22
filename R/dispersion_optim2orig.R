@@ -1,6 +1,4 @@
 dispersion_optim2orig <- function(dispersion_orig2optim, par) {
-
-
   dispersion_is_known <- dispersion_orig2optim$is_known
 
   # don't actually use fill_optim_par function

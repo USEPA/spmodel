@@ -328,7 +328,8 @@ stable due to large extremely large variances, scale relevant variables
 so they have variance 1 before optimization.
 }
 \examples{
-spgmod <- spglm(presence ~ elev, family = "binomial", data = moose,
+spgmod <- spglm(presence ~ elev,
+  family = "binomial", data = moose,
   spcov_type = "exponential"
 )
 summary(spgmod)

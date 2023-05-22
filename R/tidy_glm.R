@@ -3,10 +3,10 @@
 #' @order 3
 #' @export
 tidy.spglm <- function(x, conf.int = FALSE,
-                      conf.level = 0.95, effects = "fixed", ...) {
+                       conf.level = 0.95, effects = "fixed", ...) {
   if (effects == "fixed") {
     result <- tibble::as_tibble(summary(x)$coefficients$fixed,
-                                rownames = "term"
+      rownames = "term"
     )
     colnames(result) <- c(
       "term", "estimate", "std.error",
@@ -15,8 +15,8 @@ tidy.spglm <- function(x, conf.int = FALSE,
 
     if (conf.int) {
       ci <- tibble::as_tibble(confint(x,
-                                      level = conf.level,
-                                      type = "fixed"
+        level = conf.level,
+        type = "fixed"
       ),
       rownames = "term"
       )
@@ -26,7 +26,7 @@ tidy.spglm <- function(x, conf.int = FALSE,
   } else if (effects == "spcov") {
     spcoef <- coefficients(x, type = "spcov")
     result <- tibble::as_tibble(unclass(spcoef),
-                                rownames = "term"
+      rownames = "term"
     )
     colnames(result) <- c("term", "estimate")
     result$is_known <- x$is_known$spcov
@@ -40,10 +40,9 @@ tidy.spglm <- function(x, conf.int = FALSE,
       which_ie <- which(result$term == "ie")
       result <- result[which_ie, , drop = FALSE]
     }
-
   } else if (effects == "dispersion") {
     result <- tibble::as_tibble(unclass(summary(x)$coefficients$dispersion),
-                                rownames = "term"
+      rownames = "term"
     )
     colnames(result) <- c("term", "estimate")
     result$is_known <- x$is_known$dispersion
@@ -52,7 +51,7 @@ tidy.spglm <- function(x, conf.int = FALSE,
       result <- NULL
     } else {
       result <- tibble::as_tibble(summary(x)$coefficients$randcov,
-                                  rownames = "term"
+        rownames = "term"
       )
       colnames(result) <- c("term", "estimate")
       result$is_known <- x$is_known$randcov
@@ -67,10 +66,10 @@ tidy.spglm <- function(x, conf.int = FALSE,
 #' @order 4
 #' @export
 tidy.spgautor <- function(x, conf.int = FALSE,
-                         conf.level = 0.95, effects = "fixed", ...) {
+                          conf.level = 0.95, effects = "fixed", ...) {
   if (effects == "fixed") {
     result <- tibble::as_tibble(summary(x)$coefficients$fixed,
-                                rownames = "term"
+      rownames = "term"
     )
     colnames(result) <- c(
       "term", "estimate", "std.error",
@@ -79,8 +78,8 @@ tidy.spgautor <- function(x, conf.int = FALSE,
 
     if (conf.int) {
       ci <- tibble::as_tibble(confint(x,
-                                      level = conf.level,
-                                      type = "fixed"
+        level = conf.level,
+        type = "fixed"
       ),
       rownames = "term"
       )
@@ -90,7 +89,7 @@ tidy.spgautor <- function(x, conf.int = FALSE,
   } else if (effects == "spcov") {
     spcoef <- coefficients(x, type = "spcov")
     result <- tibble::as_tibble(unclass(spcoef),
-                                rownames = "term"
+      rownames = "term"
     )
     colnames(result) <- c("term", "estimate")
     result$is_known <- x$is_known$spcov
@@ -106,10 +105,9 @@ tidy.spgautor <- function(x, conf.int = FALSE,
       which_extra <- which(result$term == "extra")
       result <- result[-c(which_extra), , drop = FALSE]
     }
-
   } else if (effects == "dispersion") {
     result <- tibble::as_tibble(unclass(summary(x)$coefficients$dispersion),
-                                rownames = "term"
+      rownames = "term"
     )
     colnames(result) <- c("term", "estimate")
     result$is_known <- x$is_known$dispersion
@@ -118,7 +116,7 @@ tidy.spgautor <- function(x, conf.int = FALSE,
       result <- NULL
     } else {
       result <- tibble::as_tibble(summary(x)$coefficients$randcov,
-                                  rownames = "term"
+        rownames = "term"
       )
       colnames(result) <- c("term", "estimate")
       result$is_known <- x$is_known$randcov

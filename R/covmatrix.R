@@ -46,8 +46,10 @@ covmatrix.splm <- function(object, newdata, ...) {
   if (missing(newdata)) {
     # coordinate stuff
     if (object$anisotropy) {
-      new_coords <- transform_anis(object$obdata, object$xcoord, object$ycoord,
-                                   spcov_params_val[["rotate"]], spcov_params_val[["scale"]])
+      new_coords <- transform_anis(
+        object$obdata, object$xcoord, object$ycoord,
+        spcov_params_val[["rotate"]], spcov_params_val[["scale"]]
+      )
       dist_matrix <- spdist(xcoord_val = new_coords$xcoord_val, ycoord_val = new_coords$ycoord_val)
     } else {
       dist_matrix <- spdist(object$obdata, object$xcoord, object$ycoord)
@@ -63,9 +65,10 @@ covmatrix.splm <- function(object, newdata, ...) {
 
     # cov matrix
     cov_val <- cov_matrix(spcov_params_val, dist_matrix, randcov_params_val,
-                          randcov_Zs_val, partition_matrix = partition_matrix_val,
-                          diagtol = object$diagtol)
-
+      randcov_Zs_val,
+      partition_matrix = partition_matrix_val,
+      diagtol = object$diagtol
+    )
   } else {
     # rename relevant quantities
     obdata <- object$obdata
@@ -90,14 +93,14 @@ covmatrix.splm <- function(object, newdata, ...) {
 
     if (object$anisotropy) { # could just do rotate != 0 || scale != 1
       obdata_aniscoords <- transform_anis(obdata, xcoord, ycoord,
-                                          rotate = spcov_params_val[["rotate"]],
-                                          scale = spcov_params_val[["scale"]]
+        rotate = spcov_params_val[["rotate"]],
+        scale = spcov_params_val[["scale"]]
       )
       obdata[[xcoord]] <- obdata_aniscoords$xcoord_val
       obdata[[ycoord]] <- obdata_aniscoords$ycoord_val
       newdata_aniscoords <- transform_anis(newdata, xcoord, ycoord,
-                                           rotate = spcov_params_val[["rotate"]],
-                                           scale = spcov_params_val[["scale"]]
+        rotate = spcov_params_val[["rotate"]],
+        scale = spcov_params_val[["scale"]]
       )
       newdata[[xcoord]] <- newdata_aniscoords$xcoord_val
       newdata[[ycoord]] <- newdata_aniscoords$ycoord_val
@@ -118,7 +121,6 @@ covmatrix.splm <- function(object, newdata, ...) {
 
   # return covariance value as a base R matrix (not a Matrix matrix)
   as.matrix(cov_val)
-
 }
 
 #' @rdname covmatrix
@@ -146,7 +148,9 @@ covmatrix.spautor <- function(object, newdata, ...) {
 
   # full cov matrix
   cov_matrix_val <- cov_matrix(spcov_params_val, dist_matrix, randcov_params_val,
-                               randcov_Zs_val, partition_matrix = partition_matrix_val, object$M)
+    randcov_Zs_val,
+    partition_matrix = partition_matrix_val, object$M
+  )
 
   if (missing(newdata)) {
     # observed covariance matrix
@@ -158,5 +162,4 @@ covmatrix.spautor <- function(object, newdata, ...) {
 
   # return covariance value as a base R matrix (not a Matrix matrix)
   as.matrix(cov_val)
-
 }

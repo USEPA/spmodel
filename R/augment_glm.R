@@ -10,9 +10,8 @@
 #' @order 3
 #' @export
 augment.spglm <- function(x, drop = TRUE, newdata = NULL, type = c("link", "response"), se_fit = FALSE,
-                         interval = c("none", "confidence", "prediction"), newdata_size,
-                         level = 0.95, local = local, var_correct = TRUE, ...) {
-
+                          interval = c("none", "confidence", "prediction"), newdata_size,
+                          level = 0.95, local = local, var_correct = TRUE, ...) {
   type <- match.arg(type)
   interval <- match.arg(interval)
 
@@ -39,8 +38,10 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type = c("link", "resp
   } else {
     if (missing(newdata_size)) newdata_size <- NULL
     if (missing(local)) local <- NULL
-    preds_newdata <- predict(x, newdata = newdata, type = type, se.fit = se_fit, interval = interval,
-                             newdata_size = newdata_size, level = level, local = local, var_correct = var_correct)
+    preds_newdata <- predict(x,
+      newdata = newdata, type = type, se.fit = se_fit, interval = interval,
+      newdata_size = newdata_size, level = level, local = local, var_correct = var_correct
+    )
     if (se_fit) {
       if (interval %in% c("confidence", "prediction")) {
         augment_newdata <- tibble::tibble(
@@ -75,7 +76,6 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type = c("link", "resp
     }
 
     if (inherits(newdata, "sf")) {
-
       newdata <- suppressWarnings(sf::st_centroid(newdata))
 
       newdata <- sf_to_df(newdata)
@@ -94,13 +94,13 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type = c("link", "resp
     # sf installed
     if (inherits(newdata, "sf")) {
       tibble_out <- sf::st_as_sf(tibble_out,
-                                 sf_column_name = x$sf_column_name,
-                                 crs = x$crs
+        sf_column_name = x$sf_column_name,
+        crs = x$crs
       )
     } else {
       tibble_out <- sf::st_as_sf(tibble_out,
-                                 coords = c(x$xcoord, x$ycoord),
-                                 crs = x$crs
+        coords = c(x$xcoord, x$ycoord),
+        crs = x$crs
       ) # may want to double check this for mismatching geometry names
       # i.e. geometry names that are not geometry
     }
@@ -115,9 +115,8 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type = c("link", "resp
 #' @order 4
 #' @export
 augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type = c("link", "response"), se_fit = FALSE,
-                            interval = c("none", "confidence", "prediction"), newdata_size,
-                            level = 0.95, local, var_correct = TRUE, ...) {
-
+                             interval = c("none", "confidence", "prediction"), newdata_size,
+                             level = 0.95, local, var_correct = TRUE, ...) {
   type <- match.arg(type)
   interval <- match.arg(interval)
 
@@ -150,8 +149,10 @@ augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type = c("link", "r
   } else {
     if (missing(newdata_size)) newdata_size <- NULL
     if (missing(local)) local <- NULL
-    preds_newdata <- predict(x, newdata = newdata, type = type, se.fit = se_fit, interval = interval,
-                             newdata_size = newdata_size, level = level, local = local, var_correct = var_correct)
+    preds_newdata <- predict(x,
+      newdata = newdata, type = type, se.fit = se_fit, interval = interval,
+      newdata_size = newdata_size, level = level, local = local, var_correct = var_correct
+    )
     if (se_fit) {
       if (interval %in% c("confidence", "prediction")) {
         augment_newdata <- tibble::tibble(
@@ -184,12 +185,11 @@ augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type = c("link", "r
   if (x$is_sf) {
     # sf installed
     tibble_out <- sf::st_as_sf(tibble_out,
-                               sf_column_name = x$sf_column_name,
-                               crs = x$crs
+      sf_column_name = x$sf_column_name,
+      crs = x$crs
     )
     names(tibble_out)[names(tibble_out) == "geometry"] <- x$sf_column_name
     sf::st_geometry(tibble_out) <- x$sf_column_name
   }
   tibble_out
 }
-

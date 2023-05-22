@@ -31,7 +31,6 @@
 #' sprpois(spcov_params_val, data = caribou, xcoord = x, ycoord = y)
 #' sprpois(spcov_params_val, samples = 5, data = caribou, xcoord = x, ycoord = y)
 sprpois <- function(spcov_params, mean = 0, samples = 1, data, randcov_params, partition_factor, ...) {
-
   n <- NROW(data)
   call_val <- match.call()
   call_val[[1]] <- as.symbol("sprnorm")
@@ -45,6 +44,4 @@ sprpois <- function(spcov_params, mean = 0, samples = 1, data, randcov_params, p
     sprpois_val <- rpois(n, mu)
   }
   sprpois_val
-
 }
-

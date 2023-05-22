@@ -161,7 +161,6 @@ plot.splm <- function(x, which, ...) {
 
   # plot 7
   if (7 %in% which) {
-
     h <- seq(0, x$max_dist, length.out = 1000)
     spcoef <- coefficients(x, type = "spcov")
     spcov_vector_val <- spcov_vector(spcoef, h)

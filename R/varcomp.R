@@ -35,7 +35,6 @@ varcomp <- function(object, ...) {
 #' @order 2
 #' @export
 varcomp.splm <- function(object, ...) {
-
   PR2 <- pseudoR2(object)
   spcov_coef <- coef(object, type = "spcov")
   de <- spcov_coef[["de"]]
@@ -53,7 +52,6 @@ varcomp.splm <- function(object, ...) {
 #' @order 3
 #' @export
 varcomp.spautor <- function(object, ...) {
-
   PR2 <- pseudoR2(object)
   spcov_coef <- coef(object, type = "spcov")
   de <- spcov_coef[["de"]]

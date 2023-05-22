@@ -5,7 +5,6 @@ test_that("blank test", {
 test_local <- FALSE # FALSE for CRAN
 
 if (test_local) {
-
   set.seed(1)
 
   # SPMODEL PACKAGE NEEDS TO BE INSTALLED VIA DEVTOOLS::INSTALL() BEFORE RUNNING TESTS IF THOSE TESTS HAVE PARALLELIZATION
@@ -40,14 +39,22 @@ if (test_local) {
     expect_error(spgautor(cbind(bin, size) ~ x, family = "binomial", data = exdata_poly, spcov_type = "sar", estmethod = "ml"), NA)
 
     # complicated models
-    expect_error(spgautor(bern ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml",
-                          W = W, row_st = FALSE, M = M), NA)
-    expect_error(spgautor(bernfac ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml",
-                          W = W, row_st = FALSE, M = M), NA)
-    expect_error(spgautor(cbind(bin, size) ~ x + offset(offset), family = "binomial", data = exdata_poly, spcov_type = "sar", estmethod = "ml",
-                          random = ~ group), NA)
-    expect_error(spgautor(y > 0 ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml",
-             W = W, row_st = FALSE, M = M), NA)
+    expect_error(spgautor(bern ~ x,
+      family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml",
+      W = W, row_st = FALSE, M = M
+    ), NA)
+    expect_error(spgautor(bernfac ~ x,
+      family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml",
+      W = W, row_st = FALSE, M = M
+    ), NA)
+    expect_error(spgautor(cbind(bin, size) ~ x + offset(offset),
+      family = "binomial", data = exdata_poly, spcov_type = "sar", estmethod = "ml",
+      random = ~group
+    ), NA)
+    expect_error(spgautor(y > 0 ~ x,
+      family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml",
+      W = W, row_st = FALSE, M = M
+    ), NA)
   })
 
   test_that("the model runs for proportion data", {
@@ -55,22 +62,29 @@ if (test_local) {
     expect_error(spgautor(prop ~ x, family = beta, data = exdata_poly, spcov_type = "sar", estmethod = "reml"), NA)
 
     # complicated models
-    expect_error(spgautor(prop ~ x, family = "beta", data = exdata_poly, spcov_type = "car", estmethod = "reml",
-                          random = ~ group + subgroup), NA)
-    expect_error(spgautor(prop ~ x + offset(offset), family = beta, data = exdata_poly, spcov_type = "sar", estmethod = "reml",
-                          W = W, partition_factor = ~ group), NA)
+    expect_error(spgautor(prop ~ x,
+      family = "beta", data = exdata_poly, spcov_type = "car", estmethod = "reml",
+      random = ~ group + subgroup
+    ), NA)
+    expect_error(spgautor(prop ~ x + offset(offset),
+      family = beta, data = exdata_poly, spcov_type = "sar", estmethod = "reml",
+      W = W, partition_factor = ~group
+    ), NA)
   })
 
   test_that("the model runs for count data", {
-
     expect_error(spgautor(count ~ x, family = poisson, data = exdata_poly, spcov_type = "sar", estmethod = "reml"), NA)
     expect_error(spgautor(count ~ x, family = "nbinomial", data = exdata_poly, spcov_type = "car", estmethod = "ml"), NA)
 
     # complicated models
-    expect_error(spgautor(count ~ x, family = poisson, data = exdata_poly, spcov_type = "sar", estmethod = "reml",
-                          random = ~ (x | subgroup)), NA)
-    expect_error(spgautor(count ~ x + offset(offset), family = "nbinomial", data = exdata_poly, spcov_type = "car", estmethod = "ml",
-                          W = Wbar, row_st = FALSE, M = Mvec), NA)
+    expect_error(spgautor(count ~ x,
+      family = poisson, data = exdata_poly, spcov_type = "sar", estmethod = "reml",
+      random = ~ (x | subgroup)
+    ), NA)
+    expect_error(spgautor(count ~ x + offset(offset),
+      family = "nbinomial", data = exdata_poly, spcov_type = "car", estmethod = "ml",
+      W = Wbar, row_st = FALSE, M = Mvec
+    ), NA)
   })
 
   test_that("the model runs for continuous data", {
@@ -80,13 +94,19 @@ if (test_local) {
     expect_error(spgautor(cont ~ x, family = gaussian, data = exdata_poly, spcov_type = "car", estmethod = "reml"))
 
     # complicated models
-    expect_error(spgautor(cont ~ x + offset(offset), family = "Gamma", data = exdata_poly, spcov_type = "car", estmethod = "reml",
-                          W = Wbar, row_st = FALSE, M = Mvec), NA)
-    expect_error(spgautor(cont ~ x, family = inverse.gaussian, data = exdata_poly, spcov_type = "sar", estmethod = "ml",
-                          random = ~ subgroup, partition_factor = ~ group), NA)
+    expect_error(spgautor(cont ~ x + offset(offset),
+      family = "Gamma", data = exdata_poly, spcov_type = "car", estmethod = "reml",
+      W = Wbar, row_st = FALSE, M = Mvec
+    ), NA)
+    expect_error(spgautor(cont ~ x,
+      family = inverse.gaussian, data = exdata_poly, spcov_type = "sar", estmethod = "ml",
+      random = ~subgroup, partition_factor = ~group
+    ), NA)
     ## SHOULD BE AN ERROR AS GAUSSIAN FAMILY REMOVED
-    expect_error(spgautor(cont ~ x, family = gaussian, data = exdata_poly, spcov_type = "car", estmethod = "reml",
-                          random = ~ subgroup))
+    expect_error(spgautor(cont ~ x,
+      family = gaussian, data = exdata_poly, spcov_type = "car", estmethod = "reml",
+      random = ~subgroup
+    ))
   })
 
   test_that("the model runs on other data sets", {
@@ -94,17 +114,17 @@ if (test_local) {
     expect_error(spgautor(abs(y) ~ x, family = Gamma, data = exdata_Upoly, spcov_type = "sar", estmethod = "reml"), NA)
 
     # complicated models
-    expect_error(spgautor(abs(y) ~ x, family = "Gamma", data = exdata_Mpoly, spcov_type = "car", estmethod = "reml",
-                          W = W, partition_factor = ~ subgroup), NA)
+    expect_error(spgautor(abs(y) ~ x,
+      family = "Gamma", data = exdata_Mpoly, spcov_type = "car", estmethod = "reml",
+      W = W, partition_factor = ~subgroup
+    ), NA)
 
     W <- sf::st_intersects(exdata_Upoly, sparse = FALSE)
     diag(W) <- 0
     W <- 1 * Matrix::Matrix(W, sparse = TRUE)
-    expect_error(spgautor(abs(y) ~ x, family = Gamma, data = exdata_Upoly, spcov_type = "sar", estmethod = "reml",
-                          W = W, random = ~ subgroup), NA)
-
+    expect_error(spgautor(abs(y) ~ x,
+      family = Gamma, data = exdata_Upoly, spcov_type = "sar", estmethod = "reml",
+      W = W, random = ~subgroup
+    ), NA)
   })
-
-
-
 }

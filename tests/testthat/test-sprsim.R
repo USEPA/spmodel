@@ -1,5 +1,4 @@
 test_that("splm and spglm type sims work", {
-
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   load(system.file("extdata", "exdata_poly.rda", package = "spmodel"))
   load(system.file("extdata", "exdata_Upoly.rda", package = "spmodel"))
@@ -36,7 +35,6 @@ test_that("splm and spglm type sims work", {
 })
 
 test_that("spautor and spgautor type sims work", {
-
   load(system.file("extdata", "exdata_poly.rda", package = "spmodel"))
   load(system.file("extdata", "exdata_Upoly.rda", package = "spmodel"))
 

@@ -48,7 +48,7 @@ dispersion_params <- function(family, dispersion) {
 
   dispersion_checks(family, dispersion)
   # running after dispersion check
-  if (! family %in% c("poisson", "nbinomial", "binomial", "beta", "Gamma", "inverse.gaussian")) {
+  if (!family %in% c("poisson", "nbinomial", "binomial", "beta", "Gamma", "inverse.gaussian")) {
     stop(paste(family, " is not a valid glm family for this function.", sep = ""), call. = FALSE)
   }
 

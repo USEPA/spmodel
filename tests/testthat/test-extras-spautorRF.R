@@ -5,7 +5,6 @@ test_that("blank test", {
 test_local <- FALSE # FALSE for CRAN
 
 if (test_local) {
-
   set.seed(1)
 
   load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
@@ -45,7 +44,5 @@ if (test_local) {
         expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_initial = spcov_initial_val, estmethod = "ml"), NA)
       })
     }
-
   }
-
 }

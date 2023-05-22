@@ -9,8 +9,7 @@ get_fitted_null <- function(w, data_object) {
 }
 
 get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenprods_list,
-                           dist_matrix_list, randcov_params = NULL) {
-
+                             dist_matrix_list, randcov_params = NULL) {
   fitted_link <- unname(do.call("c", w_list)) # unlist(w_list, use.names = FALSE)
   # add offset
   if (!is.null(data_object$offset)) {
@@ -18,8 +17,10 @@ get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenpr
   }
   fitted_response <- invlink(fitted_link, data_object$family, data_object$size)
 
-  SigInv_r_list <- mapply(x = eigenprods_list, w = w_list, function(x, w) x$SigInv %*% as.matrix(w, ncol = 1) - x$SigInv_X %*% betahat,
-                          SIMPLIFY = FALSE)
+  SigInv_r_list <- mapply(
+    x = eigenprods_list, w = w_list, function(x, w) x$SigInv %*% as.matrix(w, ncol = 1) - x$SigInv_X %*% betahat,
+    SIMPLIFY = FALSE
+  )
 
   # cov params no de   (set ie portion to zero because BLUP only uses cov(dependent error))
   spcov_params_de_only <- spcov_params
@@ -76,12 +77,10 @@ get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenpr
     spcov = list(de = fitted_de, ie = fitted_ie),
     randcov = fitted_randcov
   )
-
 }
 
 get_fitted_spgautor <- function(w, betahat, spcov_params, data_object, eigenprods,
-                           dist_matrix_list, randcov_params = NULL) {
-
+                                dist_matrix_list, randcov_params = NULL) {
   fitted_link <- as.numeric(w)
   # add offset
   if (!is.null(data_object$offset)) {
@@ -126,7 +125,7 @@ get_fitted_spgautor <- function(w, betahat, spcov_params, data_object, eigenprod
       names(fitted_randcov) <- names(randcov_params)
     } else {
       index <- unname(model.response(model.frame(reformulate("1", response = labels(terms(data_object$partition_factor))),
-                                                 data = data_object$obdata
+        data = data_object$obdata
       )))
       index_val <- unique(index)
       ob_randcov_Zs <- get_randcov_Zs(data_object$obdata, names(randcov_params), ZZt = FALSE)
@@ -161,11 +160,9 @@ get_fitted_spgautor <- function(w, betahat, spcov_params, data_object, eigenprod
     spcov = list(de = fitted_de, ie = fitted_ie),
     randcov = fitted_randcov
   )
-
 }
 
 invlink <- function(fitted_link, family, size) {
-
   if (family == "poisson") {
     fitted <- exp(fitted_link)
   } else if (family == "binomial") {

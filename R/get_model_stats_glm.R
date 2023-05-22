@@ -54,9 +54,10 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
 
   # newton rhapson
   w_and_H <- get_w_and_H_spglm(data_object, dispersion,
-                               SigInv_list, SigInv_X, cov_betahat_noadjust,
-                               invcov_betahat_sum, estmethod,
-                               ret_mHInv = TRUE)
+    SigInv_list, SigInv_X, cov_betahat_noadjust,
+    invcov_betahat_sum, estmethod,
+    ret_mHInv = TRUE
+  )
 
   w <- as.vector(w_and_H$w)
   # H <- w_and_H$H
@@ -77,7 +78,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   )
 
   betahat <- as.numeric(cov_betahat_noadjust %*%
-                          Reduce("+", Xt_SigInv_w_list))
+    Reduce("+", Xt_SigInv_w_list))
   names(betahat) <- colnames(data_object$X_list[[1]])
 
   cov_betahat <- cov_betahat_adjust(
@@ -102,8 +103,10 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   colnames(cov_betahat) <- colnames(data_object$X_list[[1]])
 
   # return coefficients
-  coefficients <- get_coefficients_glm(betahat, cov_est_object$spcov_params_val,
-                                       cov_est_object$dispersion_params_val, cov_est_object$randcov_params_val)
+  coefficients <- get_coefficients_glm(
+    betahat, cov_est_object$spcov_params_val,
+    cov_est_object$dispersion_params_val, cov_est_object$randcov_params_val
+  )
 
   # return fitted
   fitted <- get_fitted_spglm(
@@ -131,8 +134,10 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   cov_betahat_null <- chol2inv(Xt_SigInv_X_upchol_null)
 
   # newton rhapson
-  w_and_H_null <- get_w_and_H_spglm(data_object, dispersion,
-                                  SigInv_list, SigInv_X_null, cov_betahat_null, Xt_SigInv_X_null, estmethod)
+  w_and_H_null <- get_w_and_H_spglm(
+    data_object, dispersion,
+    SigInv_list, SigInv_X_null, cov_betahat_null, Xt_SigInv_X_null, estmethod
+  )
 
 
   w_null <- as.vector(w_and_H_null$w)
@@ -239,8 +244,9 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
 
   # newton rhapson
   w_and_H <- get_w_and_H_spgautor(data_object, dispersion,
-                                  SigInv, SigInv_X, cov_betahat, Xt_SigInv_X, estmethod,
-                                  ret_mHInv = TRUE)
+    SigInv, SigInv_X, cov_betahat, Xt_SigInv_X, estmethod,
+    ret_mHInv = TRUE
+  )
 
   w <- as.vector(w_and_H$w) # remember this is w - offset so must add offset in relevant places later to match glm
 
@@ -261,8 +267,10 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
   colnames(cov_betahat) <- colnames(data_object$X)
 
   # return coefficients
-  coefficients <- get_coefficients_glm(betahat, cov_est_object$spcov_params_val,
-                                       cov_est_object$dispersion_params_val, cov_est_object$randcov_params_val)
+  coefficients <- get_coefficients_glm(
+    betahat, cov_est_object$spcov_params_val,
+    cov_est_object$dispersion_params_val, cov_est_object$randcov_params_val
+  )
 
   # return fitted
   fitted <- get_fitted_spgautor(
@@ -289,8 +297,10 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
   cov_betahat_null <- chol2inv(Xt_SigInv_X_upchol_null)
 
   # newton rhapson
-  w_and_H_null <- get_w_and_H_spgautor(data_object, dispersion,
-                                    SigInv, SigInv_X_null, cov_betahat_null, Xt_SigInv_X_null, estmethod)
+  w_and_H_null <- get_w_and_H_spgautor(
+    data_object, dispersion,
+    SigInv, SigInv_X_null, cov_betahat_null, Xt_SigInv_X_null, estmethod
+  )
 
 
   w_null <- as.vector(w_and_H_null$w)
@@ -349,5 +359,4 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
     y = y,
     size = data_object$size
   )
-
 }

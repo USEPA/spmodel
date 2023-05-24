@@ -52,7 +52,8 @@ library(ggplot2)
 
 ggplot2 is only installed alongside `spmodel` when `dependencies = TRUE` in `install.packages()`, so check that the package is installed and loaded before reproducing any of these vignette's visualizations. We will also show code that can be used to create interactive visualizations of spatial data with `mapview` [@appelhans2022mapview]. `mapview` also has many backgrounds available that contextualize spatial data with topographical information. Before running the `mapview` code interactively, make sure `mapview` is installed and loaded.
 
-`spmodel` contains various methods for generic functions defined outside of `spmodel`. To find relevant documentation for these methods, run `help("generic.spmodel", "spmodel")` (e.g., `help("fitted.spmodel", "spmodel")`, `help("summary.spmodel", "spmodel")`, `help("plot.spmodel", "spmodel")`, `help("predict.spmodel", "spmodel")`, `help("tidy.spmodel", "spmodel")`, etc.) . We provide more details and examples regarding these methods and generics throughout this vignette. For a full list of `spmodel` functions available, see `spmodel`'s documentation manual.
+`spmodel` contains various methods for generic functions defined outside of `spmodel`. To find relevant documentation for these methods, run `help("generic.spmodel", "spmodel")` (e.g., `help("summary.spmodel", "spmodel")`, `help("predict.spmodel", "spmodel")`, etc.).
+Note that `?generic.spmodel` is shorthand for `help("generic.spmodel", "spmodel")`. We provide more details and examples regarding these methods and generics throughout this vignette. For a full list of `spmodel` functions available, see `spmodel`'s documentation manual.
 
 # The Spatial Linear Model {#sec:theomodel}
 
@@ -78,7 +79,7 @@ Spatial data are areal when the elements in $\mathbf{y}$ are observed as part of
 \begin{equation*}
   \mathbf{R} = [(\mathbf{I} - \phi \mathbf{W})(\mathbf{I} - \phi \mathbf{W})^\top]^{-1},
 \end{equation*}
-where $\mathbf{W}$ is a weight matrix describing the neighborhood structure in $\mathbf{y}$. Paremertizations for `spautor()` spatial covariance types and their $\mathbf{R}$ matrices can be seen by running `help("spautor", "spmodel")` or `vignette("technical", "spmodel")`.
+where $\mathbf{W}$ is a weight matrix describing the neighborhood structure in $\mathbf{y}$. Parameterizations for `spautor()` spatial covariance types and their $\mathbf{R}$ matrices can be seen by running `help("spautor", "spmodel")` or `vignette("technical", "spmodel")`.
 
 One way to define $\mathbf{W}$ is through queen contiguity [@anselin2010geoda]. Two observations are queen contiguous if they share a boundary. The $ij$th element of $\mathbf{W}$ is then one if observation $i$ and observation $j$ are queen contiguous and zero otherwise. Observations are not considered neighbors with themselves, so each diagonal element of $\mathbf{W}$ is zero. 
 
@@ -103,7 +104,7 @@ We can learn more about `moss` by running `help("moss", "spmodel")`, and we can 
 
 ```{r log_zn, fig.cap="Distribution of log zinc concentration in the moss data.", out.width = "65%", fig.align="center"}
 ggplot(moss, aes(color = log_Zn)) +
-  geom_sf(size = 2) +
+  geom_sf() +
   scale_color_viridis_c() +
   theme_gray(base_size = 14)
 ```
@@ -188,9 +189,9 @@ This model is equivalent to one fit using `lm()`. We compute the spatial AIC and
 AIC(spmod, lmod)
 AICc(spmod, lmod)
 ```
-The noticeably lower AIC and AICc of of the spatial model indicate that it is a better fit to the data than the non-spatial model. Recall that these AIC and AICc comparisons are valid because both models are fit using restricted maximum likelihood (the default).
+The noticeably lower AIC and AICc of the spatial model indicate that it is a better fit to the data than the non-spatial model. Recall that these AIC and AICc comparisons are valid because both models are fit using restricted maximum likelihood (the default).
 
-Another approach to comparing the fitted models is to perform leave-one-out cross validation [@hastie2009elements]. In leave-one-out cross validation, a single observation is removed from the data, the model is re-fit, and a prediction is made for the held-out observation. Then, a loss metric like mean-squared-prediction error is computed and used to evaluate model fit. The lower the mean-squared-prediction error, the better the model fit. For computational efficiency, leave-one-out cross validation in `spmodel` is performed by first estimating $\boldsymbol{\theta}$ using all the data and then re-estimating $\boldsymbol{\beta}$ for each observation. We perform leave-one-out cross validation for the spatial and non-spatial model by running
+Another approach to comparing the fitted models is to perform leave-one-out cross validation [@hastie2009elements]. In leave-one-out cross validation, a single observation is removed from the data, the model is re-fit, and a prediction is made for the held-out observation. Then, a loss metric like mean-squared-prediction error is computed and used to evaluate model fit. The lower the mean-squared-prediction error, the better the model fit. For computational efficiency, leave-one-out cross validation in `spmodel` is performed by first estimating $\boldsymbol{\theta}$ using all the data and then re-estimating only $\boldsymbol{\beta}$ as we predict each removed observation. We perform leave-one-out cross validation for the spatial and non-spatial model by running
 ```{r}
 loocv(spmod)
 loocv(lmod)
@@ -210,7 +211,7 @@ For a spatial model, the leverage of the $i$th observation is the $i$th diagonal
 \begin{equation*}
   \mathbf{H}^* = (\mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X})^{-1} \mathbf{X}^{* \top}) ,
 \end{equation*}
-where $\mathbf{X}^* = \boldsymbol{\Sigma}^{-1/2}\mathbf{X}$ and $\boldsymbol{\Sigma}^{-1/2}$ is the inverse square root of the covariance matrix, $\boldsymbol{\Sigma}$ [@montgomery2021introduction]. The spatial hat matrix can be viewed as the non-spatial hat matrix applied $\mathbf{X}^*$ instead of $\mathbf{X}$. We compute the hat values (leverage) by running
+where $\mathbf{X}^* = \boldsymbol{\Sigma}^{-1/2}\mathbf{X}$ and $\boldsymbol{\Sigma}^{-1/2}$ is the inverse square root of the covariance matrix, $\boldsymbol{\Sigma}$ [@montgomery2021introduction]. The spatial hat matrix can be viewed as the non-spatial hat matrix applied to $\mathbf{X}^*$ instead of $\mathbf{X}$. We compute the hat values (leverage) by running
 ```{r, eval = FALSE}
 hatvalues(spmod)
 ```
@@ -490,19 +491,24 @@ Fitting multiple models is possible with a single call to `splm()` or `spautor()
 spmods <- splm(sulfate ~ 1, sulfate, spcov_type = c("exponential", "spherical", "none"))
 ```
 
-Then `glances()` is used to glance at each fitted model object:
+`spmods` is list whose names indicate the spatial covariance type and whose values indicate the model fit for that spatial covariance type. Generic functions can be called individually for each list element. For example, we can augment the the model fit using the exponential covariance function with diagnostics by running
+```{r}
+augment(spmods$exponential)
+```
+
+Or we can find the AIC of the model fit using the spherical covariance function by running
+```{r}
+AIC(spmods$spherical)
+```
+
+The `glances()` and `predict()` functions can work directly with `spmods`, calling `glances()` and `predict()` on each list element and then organizing the results. We glance at each fitted model object by running
 ```{r}
 glances(spmods)
 ```
 
-And `predict()` is used to predict `newdata` separately fo each fitted model object:
+We predict `newdata` separately for each fitted model object by running
 ```{r, eval = FALSE}
 predict(spmods, newdata = sulfate_preds)
-```
-
-Currently, `glances()` and `predict()` are the only `spmodel` generic functions that operate on an object that contains multiple model fits. Generic functions that operate on individual models can still be called when the argument is an individual model object. For example, we can compute the AIC of the model fit using the exponential covariance function by running
-```{r}
-AIC(spmods$exponential)
 ```
 
 ## Random Effects
@@ -541,7 +547,7 @@ It is possible to fix random effect variances using the `randcov_initial` argume
 
 ## Partition Factors
 
-A partition factor is a variable that allows observations to be uncorrelated when they are from different levels of the partition factor. Partition factors are specified in `spmodel` by providing a formula with a single variable to the `partition_factor` argument. Suppose that for the `moss` data, we would observations in different years (`year`) to be uncorrelated. We fit a model that treats year as a partition factor by running
+A partition factor is a variable that allows observations to be uncorrelated when they are from different levels of the partition factor. Partition factors are specified in `spmodel` by providing a formula with a single variable to the `partition_factor` argument. Suppose that for the `moss` data, we want observations in different years (`year`) to be uncorrelated. We fit a model that treats year as a partition factor by running
 ```{r, eval = FALSE}
 part <- splm(
   log_Zn ~ log_dist2road,
@@ -702,7 +708,7 @@ Note that the output from `coef(object, type = "spcov")` is a `spcov_params` obj
 
 ## Big Data
 
-The computational cost associated with model fitting is exponential in the sample size for all estimation methods. For maximum likelihood and restricted maximum likelihood, the computational cost of estimating $\boldsymbol{\theta}$ is cubic. For semivariogram weighted least squares and semivariogram composite likelihood, the computational cost of estimating $\boldsymbol{\theta}$ is quadratic. The computational cost associated with estimating $\boldsymbol{\beta}$ and prediction is cubic in the model-fitting sample size, regardless of estimation method. Typically, samples sizes approaching 10,000 make the computational cost of model fitting and prediction infeasible, which necessitates the use of big data methods. `spmodel` offers big data methods for model fitting of point-referenced data via the `local` argument to `splm()`. The method is capable of quickly fitting models with hundreds of thousands of observations. Because of the neighborhood structure of areal data, the big data methods used for point-referenced data do not apply to areal data. Thus, there is no big data method for areal data or `local` argument to `spautor()`, so model fitting sample sizes cannot be too large
+The computational cost associated with model fitting is exponential in the sample size for all estimation methods. For maximum likelihood and restricted maximum likelihood, the computational cost of estimating $\boldsymbol{\theta}$ is cubic. For semivariogram weighted least squares and semivariogram composite likelihood, the computational cost of estimating $\boldsymbol{\theta}$ is quadratic. The computational cost associated with estimating $\boldsymbol{\beta}$ and prediction is cubic, regardless of estimation method. Typically, samples sizes approaching 10,000 make the computational cost of model fitting and prediction infeasible, which necessitates the use of big data methods. `spmodel` offers big data methods for model fitting of point-referenced data via the `local` argument to `splm()`. The method is capable of quickly fitting models with hundreds of thousands of observations. Because of the neighborhood structure of areal data, the big data methods used for point-referenced data do not apply to areal data. Thus, there is no big data method for areal data or `local` argument to `spautor()`, so model fitting sample sizes cannot be too large
 
 `spmodel` offers big data methods for prediction of point-referenced data or areal data via the `local` argument to `predict()`. This method is capable of quickly predicting hundreds of thousands of observations. To show how to use `spmodel` for big data estimation and prediction, we use the `sim_data` data from Section$~$\ref{sec:sim_data}. Because `sim_data` is a `tibble` (`data.frame`) and not an `sf` object, the columns in `data` representing the x-coordinates and y-coordinates must be explicitly provided to `splm()`. 
 
@@ -714,7 +720,11 @@ Next we briefly discuss model fitting and prediction for big data in `spmodel`, 
 
 The `local` argument to `splm()` controls the big data options. `local` is a list with several arguments. The arguments to the `local` list control the method used to assign the indexes, the number of observations with the same index, the number of unique indexes, variance adjustments to the covariance matrix of $\hat{\boldsymbol{\beta}}$, whether or not to use parallel processing, and if parallel processing is used, the number of cores.
 
-Big data are most simply accommodated by setting `local` to `TRUE`. This is shorthand for `local = list(method = "random", size = 50, var_adjust = "theoretical", parallel = FALSE)`, which randomly assigns observations to index groups, ensures each index group has approximately 50 observations, uses the theoretically-correct variance adjustment, and does not use parallel processing. 
+Big data are most simply accommodated by setting `local` to `TRUE`. This is shorthand for
+
+`local = list(method = "random", size = 50, var_adjust = "theoretical", parallel = FALSE)`,
+
+which randomly assigns observations to index groups, ensures each index group has approximately 50 observations, uses the theoretically-correct variance adjustment, and does not use parallel processing. 
 ```{r}
 local1 <- splm(sim_response ~ 1, sim_data, spcov_type = "exponential", 
                xcoord = x, ycoord = y, local = TRUE)
@@ -809,7 +819,7 @@ where $g(\cdot)$ is called a link function, $\boldsymbol{\mu}$ is the mean of $\
 
 Equation$~$\ref{eq:spglm} is called the spatial generalized linear model. `spmodel` allows fitting of spatial generalized linear models when $\mathbf{y}$ is a binomial (or Bernoulli), beta, Poisson, negative binomial, gamma, or inverse Gaussian random vector via the Laplace approximation and restricted maximum likelihood estimation or maximum likelihood estimation --  @ver2023marginal provide further details. For binomial and beta $\mathbf{y}$, the logit link function is defined as $g(\boldsymbol{\mu}) = \log(\frac{\boldsymbol{\mu}}{1 - \boldsymbol{\mu}}) = \boldsymbol{\eta}$, and the inverse logit link function is defined as $g^{-1}(\boldsymbol{\eta}) = \frac{\exp(\boldsymbol{\eta})}{1 + \exp(\boldsymbol{\eta})} = \boldsymbol{\mu}$. For Poisson, negative binomial, gamma, and inverse Gaussian $\mathbf{y}$, the log link function is defined as $g(\boldsymbol{\mu}) = log(\boldsymbol{\mu}) = \boldsymbol{\eta}$, and the inverse log link function is defined as $g^{-1}(\boldsymbol{\eta}) = \exp(\boldsymbol{\eta}) = \boldsymbol{\mu}$. Full parameterizations of these distributions are given in the technical details vignette, which can be viewed by running `vignette("technical", "spmodel")`. 
 
-All advanced features availble in `spmodel` for spatial linear models are also available for spatial generalized linear models. This means that spatial generalized linear models in `spmodel` can accommodate fixing spatial covariance parameters, fitting and predicting for multiple models, random effects (on the link scale), partition factors, anisotropy (on the link scale), simulation, big data, and prediction.
+All advanced features available in `spmodel` for spatial linear models are also available for spatial generalized linear models. This means that spatial generalized linear models in `spmodel` can accommodate fixing spatial covariance parameters, fitting and predicting for multiple models, random effects (on the link scale), partition factors, anisotropy (on the link scale), simulation, big data, and prediction.
 
 ### Model Fitting {#sec:modelfit-glm}
 
@@ -834,9 +844,10 @@ ggplot(moose, aes(color = presence)) +
   theme_gray(base_size = 14)
 ```
 
-One example of a generalized linear model is a binomial (e.g., logistic) regression model. Binomial regression models are often used to model presence data such as this. To quantify the relationship between moose presence and elevation, we fit a spatial binomial regression model (a specific spatial generalized linear model) by running
+One example of a generalized linear model is a binomial (e.g., logistic) regression model. Binomial regression models are often used to model presence data such as these. To quantify the relationship between moose presence and elevation, we fit a spatial binomial regression model (a specific spatial generalized linear model) by running
 ```{r}
-binmod <- spglm(presence ~ elev, family = "binomial", data  = moose, spcov_type = "exponential")
+binmod <- spglm(presence ~ elev, family = "binomial",
+                data  = moose, spcov_type = "exponential")
 ```
 
 The estimation method is specified via the `estmethod` argument, which has a default value of `"reml"` for restricted maximum likelihood. The other estimation method is `"ml"` for maximum likelihood.
@@ -863,7 +874,7 @@ augment(binmod)
 
 ### Prediction {#sec:predict-glm}
 
-For spatial generalized linear models, we are predicting the mean of the process generating the observation rather than the observation itself. We make predictions of moose presence probability at the locations in `moose_preds` by running
+For spatial generalized linear models, we are predicting the mean of the process generating the observation (which includes the spatial effects) rather than the observation itself. We make predictions of moose presence probability at the locations in `moose_preds` by running
 ```{r}
 moose_preds$preds <- predict(binmod, newdata = moose_preds, type = "response")
 ```
@@ -885,7 +896,7 @@ augment(binmod, newdata = moose_preds, type = "response", interval = "prediction
 
 ### Simulating Spatial Generalized Data {#sec:sim_data-glm}
 
-Several functions exist to simulate spatial generalized data: `sprbinom()` for binomial random variables; `sprbeta()` for beta random variables; `sprpois()` for Poisson random variables; `sprnbinom()` for negative binomial random variables; `sprgamma()` for gamma random variables; and `spinvgauss()` for inverse Gaussian random variables. All of these functions share similar syntax with `sprnorm()` for simulating spatial Gaussian data and require a `spcov_params()` object. The generalized data simulation functions work by first simulating spatial Gaussian data on the link scale. Then this realization is used as the mean by which to simulate the generalized data. 
+Several functions exist to simulate spatial generalized data: `sprbinom()` for binomial random variables; `sprbeta()` for beta random variables; `sprpois()` for Poisson random variables; `sprnbinom()` for negative binomial random variables; `sprgamma()` for gamma random variables; and `spinvgauss()` for inverse Gaussian random variables. All of these functions share similar syntax with `sprnorm()` for simulating spatial Gaussian data and require a `spcov_params()` object. The generalized data simulation functions work by first simulating spatial Gaussian data on the link scale. Then this realization is used as the mean by which to simulate the spatial generalized linear model data. 
 
 We recreate `sim_params` and `sim_data` by running
 ```{r}
@@ -911,7 +922,7 @@ ggplot(sim_data, aes(x = x, y = y, color = sim_response)) +
   theme_gray(base_size = 14)
 ```
 
-There is noticeable patterning in the response variable (`sim_response`) in the same places where there is noticeable patterning for the spatial Gaussian data. This is expected, as the spatial Gaussian data are used to inform the mean (proportion) parameter of the binomial data. Thus where the mean (proportion) parameter is higher, the more likely the binomial observation is a success.
+There is noticeable patterning in the response variable (`sim_response`) in the same places where there is noticeable patterning for the spatial Gaussian data. This is expected, as the spatial Gaussian data are used to inform the mean (proportion) parameter of the binomial data. Thus where the mean (proportion) parameter is higher, the more likely the binomial observation takes on the value one (successes are usually coded as a one).
 
 ### Additional Examples
 
@@ -919,19 +930,22 @@ We previously showed how to use `spmodel` to model binary data via spatial binom
 
 Poisson regression is used to model count data. To quantify the relationship between moose counts (`count`) and elevation, we fit a spatial Poisson regression model and make predictions by running
 ```{r, eval = FALSE}
-poismod <- spglm(count ~ elev, family = "poisson", data = moose, spcov_type = "exponential")
+poismod <- spglm(count ~ elev, family = "poisson",
+                 data = moose, spcov_type = "exponential")
 predict(poismod, newdata = moose_preds)
 ```
 
 Poisson regression assumes the mean and variance are equal. Often in practice, the variance is larger than the mean. When the variance is larger than the mean, there is said to be overdispersion in the data. Negative binomial regression accounts for overdispersion via an extra dispersion parameter that allows the variance to change separately from the mean (recall the full negative binomial regression parameterization is available in the technical details vignette). We fit a spatial negative binomial regression model to the moose count data and make predictions by running
 ```{r, eval = FALSE}
-nbmod <- spglm(count ~ elev, family = "nbinomial", data = moose, spcov_type = "exponential")
+nbmod <- spglm(count ~ elev, family = "nbinomial",
+               data = moose, spcov_type = "exponential")
 predict(nbmod, newdata = moose_preds)
 ```
 
 Gamma regression is used to model skewed, positive data. Suppose instead of modeling the `sulfate` data using a spatial linear model, we modeled sulfate using spatial gamma regression. We fit a spatial gamma regression model to the sulfate data and make predictions by running
 ```{r}
-gammamod <- spglm(sulfate ~ 1, family = "Gamma", data = sulfate, spcov_type = "exponential")
+gammamod <- spglm(sulfate ~ 1, family = "Gamma",
+                  data = sulfate, spcov_type = "exponential")
 predict(gammamod, newdata = sulfate_preds)
 ```
 

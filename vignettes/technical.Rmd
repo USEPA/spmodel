@@ -1113,7 +1113,7 @@ The grid search for `spglm()` and `spgautor()` works as it does for `splm()` and
 
 ### Hypothesis Testing {#sec:testing-glm}
 
-Hypothesis testing for spatial generalized linear models is defined the same as for spatial linear models (Section$~$\ref{sec:testing-lm}). That is, the hypothesis tests are asymptotic z-tests based on the normal (Gaussian) distribution (Wald tests). The null hypothesis for the test associated with each $\hat{\beta}_i$ is that $\beta_i = 0$. The spatial genearlized linear models, $\text{Cov}(\hat{\boldsymbol{\beta}})$ requires an adjustment to account for the fact that the $\mathbf{w}$ are not actually observed. First let $\mathbf{B} = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \boldsymbol{\Sigma}^{-1}$ and note that $\hat{\boldsymbol{\beta}} = \mathbf{B}\mathbf{w}$. Using the law of conditional variance and conditioning on $\mathbf{w}$ as if we had observed them, it follows that 
+Hypothesis testing for spatial generalized linear models is defined the same as for spatial linear models (Section$~$\ref{sec:testing-lm}). That is, the hypothesis tests are asymptotic z-tests based on the normal (Gaussian) distribution (Wald tests). The null hypothesis for the test associated with each $\hat{\beta}_i$ is that $\beta_i = 0$. The spatial generalized linear models, $\text{Cov}(\hat{\boldsymbol{\beta}})$ requires an adjustment to account for the fact that the $\mathbf{w}$ are not actually observed. First let $\mathbf{B} = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \boldsymbol{\Sigma}^{-1}$ and note that $\hat{\boldsymbol{\beta}} = \mathbf{B}\mathbf{w}$. Using the law of conditional variance and conditioning on $\mathbf{w}$ as if we had observed them, it follows that 
 \begin{equation*}
   \text{Cov}(\mathbf{B} \hat{\mathbf{w}}) = \text{E}_\mathbf{w}[\text{Cov}(\mathbf{B}\hat{\mathbf{w}} | \mathbf{w})] + \text{Cov}_\mathbf{w}[\text{E}(\mathbf{B}\hat{\mathbf{w}} | \mathbf{w})]
 \end{equation*}
@@ -1172,7 +1172,7 @@ The uncorrected variance-covariance matrix (`var_correct = FALSE`) is given by
   $\text{Cov}(\hat{\boldsymbol{\beta}}) = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1}$.
 
 
-## Distribution Parameteriziations {#sec:distributions-glm}
+## Distribution Parameterizations {#sec:distributions-glm}
 
 Below we provide definitions associated with each of the six generalized linear models families available in `spmodel`. Note that the poisson, binomial, gamma, and inverse Gaussian distributions are members of the exponential family, and their deviance is typically expressed as twice the difference in log-likelihoods between the saturated and fitted model times the dispersion parameter (consistent with `glm()`). The negative binomial and beta distributions are members of the exponential family when the dispersion parameter ($\varphi$) is known, and their deviance is typically expressed as just twice the difference in log-likelihoods between the saturated and fitted model (consistent with `glm.nb()` from `MASS` [@venables2002mass] for negative binomial regression and `betareg()` from `statmod` [@cribari2010beta] for beta regression). 
 

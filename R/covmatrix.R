@@ -17,7 +17,7 @@
 #'   data, which has dimension n x n, where n is the sample size used to fit \code{object}.
 #'   If \code{newdata} is provided, the covariance matrix between the unobserved (new)
 #'   data and the observed data, which has dimension m x n, where m is the number of
-#'   new observations and n is the samle size used to fit \code{object}.
+#'   new observations and n is the sample size used to fit \code{object}.
 #'
 #' @order 1
 #' @export

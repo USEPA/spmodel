@@ -93,7 +93,7 @@ moss
 We can visualize the distribution of log zinc concentration (`log_Zn`) by running
 ```{r}
 ggplot(moss, aes(color = log_Zn)) +
-  geom_sf(size = 2) +
+  geom_sf() +
   scale_color_viridis_c()
 ```
 
@@ -271,7 +271,8 @@ ggplot(moose, aes(color = presence)) +
 
 One example of a generalized linear model is a binomial (e.g., logistic) regression model. Binomial regression models are often used to model presence data such as this. To quantify the relationship between moose presence and elevation, we fit a spatial binomial regression model (a specific spatial generalized linear model) by running
 ```{r}
-binmod <- spglm(presence ~ elev, family = "binomial", data  = moose, spcov_type = "exponential")
+binmod <- spglm(presence ~ elev, family = "binomial",
+                data  = moose, spcov_type = "exponential")
 ```
 
 The estimation method is specified via the `estmethod` argument, which has a default value of `"reml"` for restricted maximum likelihood. The other estimation method is `"ml"` for maximum likelihood.
@@ -377,7 +378,8 @@ Here we list some commonly used `spmodel` functions.
 
 For a full list of `spmodel` functions alongside their documentation, see the documentation manual.
 Documentation for methods of generic functions that are defined outside of `spmodel` can be found
-by running `?generic.spmodel` (e.g., `?fitted.spmodel`, `?predict.spmodel`, `?summary.spmodel`, etc.).
+by running `help("generic.spmodel", "spmodel")` (e.g., `help("summary.spmodel", "spmodel")`, `help("predict.spmodel", "spmodel")`, etc.).
+Note that `?generic.spmodel` is shorthand for `help("generic.spmodel", "spmodel")`.
 
 # References {.unnumbered}
 

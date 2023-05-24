@@ -255,7 +255,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
   ones_list <- lapply(obdata_list, function(x) matrix(rep(1, nrow(x)), ncol = 1))
   if (!is.null(size)) {
     size_list <- split(size, local$index) # just split because vector not matrix
-    size <- as.vector(do.call("rbind", size_list)) # rearranging size by y list
+    size <- as.vector(do.call("c", size_list)) # rearranging size by y list
   }
 
   # organize offset (as a one col matrix)

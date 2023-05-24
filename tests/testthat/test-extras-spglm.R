@@ -32,6 +32,8 @@ if (test_local) {
 
     # complicated models
     expect_error(spglm(bern ~ x + offset(offset), family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~group, anisotropy = TRUE, local = TRUE), NA)
+    # check when data have an unequal number of local observations
+    expect_error(spglm(bern ~ x + offset(offset), family = binomial, data = exdata[-1, , drop = FALSE], xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~group, anisotropy = TRUE, local = TRUE), NA)
     expect_error(spglm(bernfac ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~group, anisotropy = TRUE, local = TRUE), NA)
     expect_error(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml", partition_factor = ~group), NA)
   })

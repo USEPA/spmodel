@@ -27,6 +27,7 @@
 * Fixed a bug in `splm()` and `spautor()` that caused an error when random effects or partition factors were ordered factors.
 * Fixed a bug in `spautor()` that prevented an error from occurring when a partition factor was not categorical or not a factor
 * Fixed a bug in `covmatrix(object, newdata)` that returned a matrix with improper dimensions when `spcov_type` was `"none"`.
+* Fixed a bug in `predict()` that caused an error when at least one level of a fixed effect factor was not observed within a local neighborhood (when the `local` method was `"covariance"` or `"distance")`.
 
 # spmodel 0.3.0
 

@@ -250,7 +250,8 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
         betahat = coefficients(object), cov_betahat = vcov(object, var_correct = FALSE),
         contrasts = object$contrasts,
         local = local_list, family = object$family, w = fitted(object, type = "link"), size = object$size,
-        dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind, diagtol = object$diagtol
+        dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind,
+        xlevels = object$xlevels, diagtol = object$diagtol
       )
       cl <- parallel::stopCluster(cl)
     } else {
@@ -274,7 +275,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
         local = local_list, family = object$family,
         w = fitted(object, type = "link"), size = object$size,
         dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind,
-        diagtol = object$diagtol
+        xlevels = object$xlevels, diagtol = object$diagtol
       )
     }
 
@@ -408,7 +409,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
                            Z_index_obdata_list, reform_bar1_list, Z_val_obdata_list, partition_factor,
                            reform_bar2, partition_index_obdata, cov_lowchol,
                            Xmat, y, betahat, cov_betahat, dim_coords, contrasts, local,
-                           family, w, size, dispersion, predvar_adjust_ind, diagtol) {
+                           family, w, size, dispersion, predvar_adjust_ind, xlevels, diagtol) {
 
 
   # storing partition vector
@@ -473,7 +474,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
       diagtol = diagtol
     )
     cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(cov_matrix_val)))
-    model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass)
+    model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass, xlev = xlevels)
     Xmat <- model.matrix(formula, model_frame, contrasts = contrasts)
     y <- model.response(model_frame)
     if (NCOL(y) == 2) {

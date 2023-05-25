@@ -325,7 +325,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
         offset = model.offset(model.frame(object)), dim_coords = object$dim_coords,
         betahat = coefficients(object), cov_betahat = vcov(object),
         contrasts = object$contrasts,
-        local = local_list, diagtol = object$diagtol
+        local = local_list, xlevels = object$xlevels, diagtol = object$diagtol
       )
       cl <- parallel::stopCluster(cl)
     } else {
@@ -347,7 +347,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
         offset = model.offset(model.frame(object)), dim_coords = object$dim_coords,
         betahat = coefficients(object), cov_betahat = vcov(object),
         contrasts = object$contrasts,
-        local = local_list, diagtol = object$diagtol
+        local = local_list, xlevels = object$xlevels, diagtol = object$diagtol
       )
     }
 
@@ -651,7 +651,8 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
                           spcov_params_val, random, randcov_params_val, reform_bar2_list,
                           Z_index_obdata_list, reform_bar1_list, Z_val_obdata_list, partition_factor,
                           reform_bar2, partition_index_obdata, cov_lowchol,
-                          Xmat, y, offset, betahat, cov_betahat, dim_coords, contrasts, local, diagtol = diagtol) {
+                          Xmat, y, offset, betahat, cov_betahat, dim_coords, contrasts, local, xlevels, diagtol = diagtol) {
+
 
 
   # storing partition vector
@@ -708,7 +709,7 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
       diagtol = diagtol
     )
     cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(cov_matrix_val)))
-    model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass)
+    model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass, xlev = xlevels)
     Xmat <- model.matrix(formula, model_frame, contrasts = contrasts)
     y <- model.response(model_frame)
     offset <- model.offset(model_frame)

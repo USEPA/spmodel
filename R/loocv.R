@@ -5,9 +5,12 @@
 #'
 #' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param cv_predict A logical indicating whether the leave-one-out fitted values
-#'   should be returned. Defaults to \code{FALSE}.
+#'   should be returned. Defaults to \code{FALSE}. If \code{object} is from [spglm()] or [spgautor()],
+#'   the fitted values returned are on the link scale.
 #' @param se.fit A logical indicating whether the leave-one-out
 #'   prediction standard errors should be returned. Defaults to \code{FALSE}.
+#'   If \code{object} is from [spglm()] or [spgautor()],
+#'   the standard errors correspond to the fitted values returned on the link scale.
 #' @param local A list or logical. If a list, specific list elements described
 #'   in [predict.spmodel()] control the big data approximation behavior.
 #'   If a logical, \code{TRUE} chooses default list elements for the list version

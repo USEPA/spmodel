@@ -20,10 +20,11 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
   }
   local_list <- get_local_list_prediction(local)
 
+  y <- object$y
+
   if (local_list$method == "all") {
     cov_matrix_val <- covmatrix(object)
     X <- model.matrix(object)
-    y <- object$y
     cholprods <- get_cholprods_glm(cov_matrix_val, X, y)
     # actually need inverse because of HW blocking
     SigInv <- chol2inv(cholprods$Sig_lowchol)
@@ -97,17 +98,19 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
     }
   }
 
+  cv_predict_val_invlink <- invlink(cv_predict_val, object$family, object$size)
+
   if (cv_predict) {
     if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val - w)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
+      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
     } else {
-      cv_output <- list(mspe = mean((cv_predict_val - w)^2), cv_predict = as.vector(cv_predict_val))
+      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val))
     }
   } else {
     if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val - w)^2), se.fit = as.vector(cv_predict_se))
+      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), se.fit = as.vector(cv_predict_se))
     } else {
-      cv_output <- mean((cv_predict_val - w)^2)
+      cv_output <- mean((cv_predict_val_invlink - y)^2)
     }
   }
   cv_output
@@ -179,17 +182,19 @@ loocv.spgautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ..
     cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
   }
 
+  cv_predict_val_invlink <- invlink(cv_predict_val, object$family, object$size)
+
   if (cv_predict) {
     if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val - w)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
+      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
     } else {
-      cv_output <- list(mspe = mean((cv_predict_val - w)^2), cv_predict = as.vector(cv_predict_val))
+      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val))
     }
   } else {
     if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val - w)^2), se.fit = as.vector(cv_predict_se))
+      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), se.fit = as.vector(cv_predict_se))
     } else {
-      cv_output <- mean((cv_predict_val - w)^2)
+      cv_output <- mean((cv_predict_val_invlink - y)^2)
     }
   }
   cv_output

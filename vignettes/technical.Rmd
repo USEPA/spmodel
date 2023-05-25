@@ -230,7 +230,7 @@ Hat values measure the leverage of an observation. An observation has high lever
 \label{eq:leverage}
  \mathbf{H}_s = \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}.
 \end{equation}
-The diagonal of this matrix yields the leverage (hat) values for each observation [@montgomery2021introduction]. The larger the hat value, the larger the leverage
+The diagonal of this matrix yields the leverage (hat) values for each observation [@montgomery2021introduction]. The larger the hat value, the larger the leverage.
 
 To better understand the form in Equation \ref{eq:leverage}, recall that the the non-spatial linear model $\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}$ assumes elements of $\boldsymbol{\epsilon}$ are independent and identically distributed (iid) with constant variance. In this context, the leverage (hat) matrix is given by
 \begin{equation*}
@@ -956,7 +956,7 @@ where $\mathbf{X}_v = \mathbf{V}^{1/2}\mathbf{X}$ and $\mathbf{V}$ is a diagonal
 
 ## `loocv()` {#sec:loocv-glm}
 
-`loocv()` for spatial generalized linear models is defined similarly as for spatial linear models (Section$~$\ref{sec:loocv-lm}), except that $\mathbf{w}$ is predicted instead of $\mathbf{y}$. Additionally, $\mathbf{H}_{-i}$ is determined from $\mathbf{H}$ using Helmert-Wolf blocking as is done for $\boldsymbol{\Sigma}_{-i}$ and $\boldsymbol{\Sigma}$.
+`loocv()` for spatial generalized linear models is defined similarly as for spatial linear models (Section$~$\ref{sec:loocv-lm}), except that $\mathbf{w}$ is predicted instead of $\mathbf{y}$. Then $g^{-1}(\mathbf{w})$ is compared to $\mathbf{y}$ to compute mean-squared-prediction-error. When `cv_fitted = TRUE`, the predictions of held-out $\mathbf{w}$ are returned. The standard errors of these predictions (of held-out $\mathbf{w}$) are returned when `se.fit = TRUE`. Note that $\mathbf{H}_{-i}$ is determined from $\mathbf{H}$ using Helmert-Wolf blocking as is done for $\boldsymbol{\Sigma}_{-i}$ and $\boldsymbol{\Sigma}$.
 
 ### Big Data {#sec:bigdata-loocv-glm}
 

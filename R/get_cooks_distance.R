@@ -8,5 +8,5 @@
 #'
 #' @noRd
 get_cooks_distance <- function(residuals, hatvalues, p) {
-  residuals$pearson^2 * hatvalues / (p * (1 - hatvalues))
+  residuals$standardized^2 * hatvalues / (p * (1 - hatvalues))
 }

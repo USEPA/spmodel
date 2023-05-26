@@ -6,7 +6,7 @@
     * `spglm()` syntax is very similar to `splm()` syntax.
     * Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian families are accommodated.
     * `spglm()` fitted model objects use the same generics as `splm()` fitted model objects.
-* Added an `spgautor()` function to fit spatial generalized linear models for areal data (i.e., generalized autoregressive models).
+* Added an `spgautor()` function to fit spatial generalized linear models for areal data (i.e., spatial generalized autoregressive models).
     * `spgautor()` syntax is very similar to `spautor()` syntax.
     * Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian families are accommodated.
     * `spgautor()` fitted model objects use the same generics as `spautor()` fitted model objects.
@@ -28,6 +28,7 @@
 * Fixed a bug in `spautor()` that prevented an error from occurring when a partition factor was not categorical or not a factor
 * Fixed a bug in `covmatrix(object, newdata)` that returned a matrix with improper dimensions when `spcov_type` was `"none"`.
 * Fixed a bug in `predict()` that caused an error when at least one level of a fixed effect factor was not observed within a local neighborhood (when the `local` method was `"covariance"` or `"distance")`.
+* Fixed a bug in `cooks.distance()` that used the Pearson residuals instead of the standarized residuals.
 
 # spmodel 0.3.0
 

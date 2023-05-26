@@ -246,9 +246,9 @@ residuals(spmod, type = "pearson")
 ```
 The covariance of $\mathbf{e}_{p}$ is $(\mathbf{I} - \mathbf{H}^*)$, which is approximately $\mathbf{I}$ for large sample sizes. Explicitly dividing $\mathbf{e}_{p}$ by the respective diagonal element of $(\mathbf{I} - \mathbf{H}^*)$ yields the standardized residuals [@myers2012generalized]:
 \begin{equation*}
-  \mathbf{e}_{s} = \frac{\mathbf{e}_{p}}{\sqrt{(1 - \text{diag}(\mathbf{H}^*))}},
+  \mathbf{e}_{s} = \mathbf{e}_{p} \odot \frac{1}{\sqrt{(1 - \text{diag}(\mathbf{H}^*))}},
 \end{equation*}
-where $\text{diag}(\mathbf{H}^*)$ denotes the diagonal of $\mathbf{H}^*$. We compute the standardized residuals of the spatial model by running
+where $\text{diag}(\mathbf{H}^*)$ denotes the diagonal of $\mathbf{H}^*$ and $\odot$ denotes the Hadmard (element-wise) product. We compute the standardized residuals of the spatial model by running
 ```{r, eval = FALSE}
 residuals(spmod, type = "standardized")
 ```
@@ -268,13 +268,13 @@ When the standardized residuals are normally distributed, they should closely fo
 
 An observation is said to be influential if its omission has a large impact on model fit. Typically, this is measured using Cook's distance [@cook1982residuals]. For the non-spatial model, the Cook's distance of the $i$th observation is denoted $\mathbf{D}$ and given by
 \begin{equation*}
-  \mathbf{D} = \mathbf{e}_{s}^2 \frac{\text{diag}(\mathbf{H})}{p(1 - \text{diag}(\mathbf{H}))},
+  \mathbf{D} = \frac{\mathbf{e}_{s}^2}{p} \odot \text{diag}(\mathbf{H}) \odot \frac{1}{(1 - \text{diag}(\mathbf{H}))},
 \end{equation*}
 where $p$ is the dimension of $\boldsymbol{\beta}$ (the number of fixed effects).
 
 For a spatial model, the Cook's distance of the $i$th observation is denoted $\mathbf{D}^*$ and given by
 \begin{equation*}
-  \mathbf{D}^* = \mathbf{e}_{s}^2 \frac{\text{diag}(\mathbf{H}^*)}{p(1 - \text{diag}(\mathbf{H}^*))} .
+  \mathbf{D}^* = \frac{\mathbf{e}_{s}^2}{p} \odot \text{diag}(\mathbf{H}^*) \odot \frac{1}{(1 - \text{diag}(\mathbf{H}^*))} .
 \end{equation*}
 A larger Cook's distance indicates more influence, and observations with large Cook's distance values may be unusual and warrant further investigation. We compute Cook's distance by running
 ```{r, eval = FALSE}
@@ -817,7 +817,7 @@ g(\boldsymbol{\mu}) = \boldsymbol{\eta} = \mathbf{X} \boldsymbol{\beta} + \bolds
 \end{equation}
 where $g(\cdot)$ is called a link function, $\boldsymbol{\mu}$ is the mean of $\mathbf{y}$, and the remaining terms $\mathbf{X}$, $\boldsymbol{\beta}$, $\boldsymbol{\tau}$, $\boldsymbol{\epsilon}$ represent the same quantities as for the spatial linear models (Section$~$\ref{sec:theomodel}). The link function, $g(\cdot)$, "links" a function of $\boldsymbol{\mu}$ to the linear term $\boldsymbol{\eta}$ , denoted here as $\mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon}$, which is familiar from spatial linear models. Note that the linking of $\boldsymbol{\mu}$ to $\boldsymbol{\eta}$ applies element-wise to each vector. Each link function $g(\cdot)$ has a corresponding inverse link function, $g^{-1}(\cdot)$. The inverse link function "links" a function of $\boldsymbol{\eta}$ to $\boldsymbol{\mu}$.  Notice that for spatial generalized linear models, we are not modeling $\mathbf{y}$ directly as we do for spatial linear models, but rather we are modeling a function of the mean of $\mathbf{y}$. Also notice that $\boldsymbol{\eta}$ is unconstrained but $\boldsymbol{\mu}$ is usually constrained in some way (e.g., positive).
 
-Equation$~$\ref{eq:spglm} is called the spatial generalized linear model. `spmodel` allows fitting of spatial generalized linear models when $\mathbf{y}$ is a binomial (or Bernoulli), beta, Poisson, negative binomial, gamma, or inverse Gaussian random vector via the Laplace approximation and restricted maximum likelihood estimation or maximum likelihood estimation --  @ver2023marginal provide further details. For binomial and beta $\mathbf{y}$, the logit link function is defined as $g(\boldsymbol{\mu}) = \log(\frac{\boldsymbol{\mu}}{1 - \boldsymbol{\mu}}) = \boldsymbol{\eta}$, and the inverse logit link function is defined as $g^{-1}(\boldsymbol{\eta}) = \frac{\exp(\boldsymbol{\eta})}{1 + \exp(\boldsymbol{\eta})} = \boldsymbol{\mu}$. For Poisson, negative binomial, gamma, and inverse Gaussian $\mathbf{y}$, the log link function is defined as $g(\boldsymbol{\mu}) = log(\boldsymbol{\mu}) = \boldsymbol{\eta}$, and the inverse log link function is defined as $g^{-1}(\boldsymbol{\eta}) = \exp(\boldsymbol{\eta}) = \boldsymbol{\mu}$. Full parameterizations of these distributions are given in the technical details vignette, which can be viewed by running `vignette("technical", "spmodel")`. 
+Equation$~$\ref{eq:spglm} is called the spatial generalized linear model. `spmodel` allows fitting of spatial generalized linear models when $\mathbf{y}$ is a binomial (or Bernoulli), beta, Poisson, negative binomial, gamma, or inverse Gaussian random vector via the Laplace approximation and restricted maximum likelihood estimation or maximum likelihood estimation --  @ver2023marginal provide further details. For binomial and beta $\mathbf{y}$, the logit link function is defined as $g(\boldsymbol{\mu}) = \ln(\frac{\boldsymbol{\mu}}{1 - \boldsymbol{\mu}}) = \boldsymbol{\eta}$, and the inverse logit link function is defined as $g^{-1}(\boldsymbol{\eta}) = \frac{\exp(\boldsymbol{\eta})}{1 + \exp(\boldsymbol{\eta})} = \boldsymbol{\mu}$. For Poisson, negative binomial, gamma, and inverse Gaussian $\mathbf{y}$, the log link function is defined as $g(\boldsymbol{\mu}) = \ln(\boldsymbol{\mu}) = \boldsymbol{\eta}$, and the inverse log link function is defined as $g^{-1}(\boldsymbol{\eta}) = \exp(\boldsymbol{\eta}) = \boldsymbol{\mu}$. Full parameterizations of these distributions are given in the technical details vignette, which can be viewed by running `vignette("technical", "spmodel")`. 
 
 All advanced features available in `spmodel` for spatial linear models are also available for spatial generalized linear models. This means that spatial generalized linear models in `spmodel` can accommodate fixing spatial covariance parameters, fitting and predicting for multiple models, random effects (on the link scale), partition factors, anisotropy (on the link scale), simulation, big data, and prediction.
 
@@ -825,7 +825,7 @@ All advanced features available in `spmodel` for spatial linear models are also 
 
 As with spatial linear models, spatial generalized linear models are fit in `spmodel` for point-referenced and areal data. The `spglm()` function is used to fit spatial generalized linear models for point-referenced data, and the `spgautor()` function is used to fit spatial generalized linear models for areal data. `spglm()` and `spgautor()` share similar syntax with `splm()` and `spautor()`, respectively, though one additional argument is required:
 
-* `family`: The generalized linear model family (i.e., the distribution of $\mathbf{y}$). `family` can be `binomial`, `beta`, `poisson`, `nbinomial`, `Gamma`, or `inverse.gaussian`.
+* `family`: the generalized linear model family (i.e., the distribution of $\mathbf{y}$). `family` can be `binomial`, `beta`, `poisson`, `nbinomial`, `Gamma`, or `inverse.gaussian`.
     * `family` uses similar syntax as the `family` argument in `glm()`.
     * One difference between `family` in `spglm()` compared to `family` in `glm()` is that the link function is fixed in `spglm()`.
     
@@ -943,7 +943,7 @@ predict(nbmod, newdata = moose_preds)
 ```
 
 Gamma regression is used to model skewed, positive data. Suppose instead of modeling the `sulfate` data using a spatial linear model, we modeled sulfate using spatial gamma regression. We fit a spatial gamma regression model to the sulfate data and make predictions by running
-```{r}
+```{r, eval = FALSE}
 gammamod <- spglm(sulfate ~ 1, family = "Gamma",
                   data = sulfate, spcov_type = "exponential")
 predict(gammamod, newdata = sulfate_preds)

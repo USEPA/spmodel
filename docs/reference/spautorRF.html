@@ -20,7 +20,7 @@ partition factors, and row standardization."><!-- mathjax --><script src="https:
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -96,7 +96,7 @@ are taken as the centroids of each polygon.</p></dd>
 
 
 <dt>...</dt>
-<dd><p>Additional named arguments to <code><a href="https://rdrr.io/pkg/ranger/man/ranger.html" class="external-link">ranger::ranger</a></code> or <code><a href="spautor.html">spautor()</a></code>.</p></dd>
+<dd><p>Additional named arguments to <code><a href="https://rdrr.io/pkg/ranger/man/ranger.html" class="external-link">ranger::ranger()</a></code> or <code><a href="spautor.html">spautor()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -129,7 +129,7 @@ Fox et al. (2020). A random forest model is fit to the mean portion of the
 model specified by <code>formula</code> using <code><a href="https://rdrr.io/pkg/ranger/man/ranger.html" class="external-link">ranger::ranger()</a></code>. Residuals
 are computed and used as the response variable in an intercept-only spatial
 linear model fit using <code><a href="spautor.html">spautor()</a></code>. This model object is intended for use with
-<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> for perform prediction, also called random forest
+<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> to perform prediction, also called random forest
 regression Kriging.</p>
     </div>
     <div class="section level2">
@@ -146,15 +146,15 @@ regression to random forests for large environmental data sets.
 <span class="r-in"><span><span class="va">sprfmod</span> <span class="op">&lt;-</span> <span class="fu">spautorRF</span><span class="op">(</span><span class="va">log_trend</span> <span class="op">~</span> <span class="va">var</span>, data <span class="op">=</span> <span class="va">seal</span>, spcov_type <span class="op">=</span> <span class="st">"car"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">sprfmod</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            1            9           13           15           18           19 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.041333302  0.000238211 -0.028723787 -0.026447419 -0.093873224 -0.152963214 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.017887347  0.003640353 -0.132225065 -0.086908383 -0.121867265 -0.115143902 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           27           32           36           40           42           43 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.165884877 -0.154679144 -0.051128529 -0.078602030 -0.027362129 -0.167029643 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.050463078 -0.078558481 -0.028979501 -0.307975155 -0.065328146  0.050264131 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           44           46           47           48           49           50 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.062314155 -0.065951224 -0.075357532 -0.097274844 -0.068559326 -0.151016903 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.087203486 -0.037805411 -0.031134534 -0.115271406  0.032051198 -0.117064469 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           51           52           53           54           55           56 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.022149116  0.007691578 -0.015972941  0.006923067  0.020706044  0.021386609 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.116706999  0.097654814 -0.121978459  0.125406233 -0.108061955 -0.149227189 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           57           58           61           62 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.036672787  0.005360703 -0.200136988  0.002634677 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.127302719 -0.167543415 -0.037350565  0.010102736 </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

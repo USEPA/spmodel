@@ -12,7 +12,7 @@ fitted model objects and binds the output together, sorted by a column of intere
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,7 @@ fitted model objects and binds the output together, sorted by a column of intere
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Glance at many fitted model objects</h1>
-      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/glances.R" class="external-link"><code>R/glances.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/glances.R" class="external-link"><code>R/glances.R</code></a>, <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/glances_glm.R" class="external-link"><code>R/glances_glm.R</code></a></small>
       <div class="d-none name"><code>glances.Rd</code></div>
     </div>
 
@@ -62,18 +62,42 @@ fitted model objects and binds the output together, sorted by a column of intere
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">glances</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, sort_by <span class="op">=</span> <span class="st">"AICc"</span>, decreasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">glances</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, sort_by <span class="op">=</span> <span class="st">"AICc"</span>, decreasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for splm</span></span>
+<span><span class="fu">glances</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, sort_by <span class="op">=</span> <span class="st">"AICc"</span>, decreasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spautor</span></span>
+<span><span class="fu">glances</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, sort_by <span class="op">=</span> <span class="st">"AICc"</span>, decreasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for splm_list</span></span>
+<span><span class="fu">glances</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, sort_by <span class="op">=</span> <span class="st">"AICc"</span>, decreasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spautor_list</span></span>
+<span><span class="fu">glances</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, sort_by <span class="op">=</span> <span class="st">"AICc"</span>, decreasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spglm</span></span>
+<span><span class="fu">glances</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, sort_by <span class="op">=</span> <span class="st">"AICc"</span>, decreasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor</span></span>
+<span><span class="fu">glances</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, sort_by <span class="op">=</span> <span class="st">"AICc"</span>, decreasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spglm_list</span></span>
+<span><span class="fu">glances</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, sort_by <span class="op">=</span> <span class="st">"AICc"</span>, decreasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor_list</span></span>
+<span><span class="fu">glances</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, sort_by <span class="op">=</span> <span class="st">"AICc"</span>, decreasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
-<dd><p>Fitted model object from <code><a href="splm.html">splm()</a></code> or <code><a href="spautor.html">spautor()</a></code>.</p></dd>
+<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code>, <code><a href="spautor.html">spautor()</a></code>, <code><a href="spglm.html">spglm()</a></code>, or <code><a href="spgautor.html">spgautor()</a></code>.</p></dd>
 
 
 <dt>...</dt>
-<dd><p>Additional fitted model objects from <code><a href="splm.html">splm()</a></code> or <code><a href="spautor.html">spautor()</a></code>. Ignored
-if <code>object</code> has class <code>splm_list</code> or <code>spautor_list</code>.</p></dd>
+<dd><p>Additional fitted model objects. Ignored
+if <code>object</code> has class <code>splm_list</code>, <code>spautor_list</code>, <code>spglm_list</code>, or <code>spgautor_list</code>.</p></dd>
 
 
 <dt>sort_by</dt>
@@ -105,17 +129,17 @@ each fitted model object.</p>
 <span class="r-in"><span>  spcov_type <span class="op">=</span> <span class="st">"exponential"</span>, xcoord <span class="op">=</span> <span class="va">x</span>, ycoord <span class="op">=</span> <span class="va">y</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">glances</span><span class="op">(</span><span class="va">lmod</span>, <span class="va">spmod</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 2 x 10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 x 10</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   model     n     p  npar value   AIC  AICc logLik deviance pseudo.r.squared</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;chr&gt; &lt;int&gt; &lt;dbl&gt; &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;            &lt;dbl&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 lmod     30     4     1 -1.68 0.323 0.466  0.838     26              0.277</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 spmod    30     4     3 -5.85 0.150 1.07   2.92      26.0            0.396</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> lmod     30     4     1 -<span style="color: #BB0000;">1.68</span> 0.323 0.466  0.838     26              0.277</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> spmod    30     4     3 -<span style="color: #BB0000;">5.85</span> 0.150 1.07   2.92      26.0            0.396</span>
 <span class="r-in"><span><span class="fu">glances</span><span class="op">(</span><span class="va">lmod</span>, <span class="va">spmod</span>, sort_by <span class="op">=</span> <span class="st">"logLik"</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 2 x 10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 x 10</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   model     n     p  npar value   AIC  AICc logLik deviance pseudo.r.squared</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;chr&gt; &lt;int&gt; &lt;dbl&gt; &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;            &lt;dbl&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 spmod    30     4     3 -5.85 0.150 1.07   2.92      26.0            0.396</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 lmod     30     4     1 -1.68 0.323 0.466  0.838     26              0.277</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> spmod    30     4     3 -<span style="color: #BB0000;">5.85</span> 0.150 1.07   2.92      26.0            0.396</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> lmod     30     4     1 -<span style="color: #BB0000;">1.68</span> 0.323 0.466  0.838     26              0.277</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

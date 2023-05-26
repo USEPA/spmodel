@@ -12,7 +12,7 @@ efficient approximations for big data."><!-- mathjax --><script src="https://cdn
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,7 @@ efficient approximations for big data."><!-- mathjax --><script src="https://cdn
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Perform leave-one-out cross validation</h1>
-      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/loocv.R" class="external-link"><code>R/loocv.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/loocv.R" class="external-link"><code>R/loocv.R</code></a>, <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/loocv_glm.R" class="external-link"><code>R/loocv_glm.R</code></a></small>
       <div class="d-none name"><code>loocv.Rd</code></div>
     </div>
 
@@ -65,13 +65,22 @@ efficient approximations for big data.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">loocv</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for splm</span></span>
+<span><span class="fu">loocv</span><span class="op">(</span><span class="va">object</span>, cv_predict <span class="op">=</span> <span class="cn">FALSE</span>, se.fit <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">local</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spautor</span></span>
+<span><span class="fu">loocv</span><span class="op">(</span><span class="va">object</span>, cv_predict <span class="op">=</span> <span class="cn">FALSE</span>, se.fit <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">local</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spglm</span></span>
+<span><span class="fu">loocv</span><span class="op">(</span><span class="va">object</span>, cv_predict <span class="op">=</span> <span class="cn">FALSE</span>, se.fit <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">local</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor</span></span>
 <span><span class="fu">loocv</span><span class="op">(</span><span class="va">object</span>, cv_predict <span class="op">=</span> <span class="cn">FALSE</span>, se.fit <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">local</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
-<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code> or <code><a href="spautor.html">spautor()</a></code>.</p></dd>
+<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code>, <code><a href="spautor.html">spautor()</a></code>, <code><a href="spglm.html">spglm()</a></code>, or <code><a href="spgautor.html">spgautor()</a></code>.</p></dd>
 
 
 <dt>...</dt>
@@ -80,12 +89,15 @@ efficient approximations for big data.</p>
 
 <dt>cv_predict</dt>
 <dd><p>A logical indicating whether the leave-one-out fitted values
-should be returned. Defaults to <code>FALSE</code>.</p></dd>
+should be returned. Defaults to <code>FALSE</code>. If <code>object</code> is from <code><a href="spglm.html">spglm()</a></code> or <code><a href="spgautor.html">spgautor()</a></code>,
+the fitted values returned are on the link scale.</p></dd>
 
 
 <dt>se.fit</dt>
 <dd><p>A logical indicating whether the leave-one-out
-prediction standard errors should be returned. Defaults to <code>FALSE</code>.</p></dd>
+prediction standard errors should be returned. Defaults to <code>FALSE</code>.
+If <code>object</code> is from <code><a href="spglm.html">spglm()</a></code> or <code><a href="spgautor.html">spgautor()</a></code>,
+the standard errors correspond to the fitted values returned on the link scale.</p></dd>
 
 
 <dt>local</dt>

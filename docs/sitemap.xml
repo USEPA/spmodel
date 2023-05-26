@@ -76,6 +76,12 @@
     <loc>/reference/deviance.spmodel.html</loc>
   </url>
   <url>
+    <loc>/reference/dispersion_initial.html</loc>
+  </url>
+  <url>
+    <loc>/reference/dispersion_params.html</loc>
+  </url>
+  <url>
     <loc>/reference/esv.html</loc>
   </url>
   <url>
@@ -142,6 +148,12 @@
     <loc>/reference/model.matrix.spmodel.html</loc>
   </url>
   <url>
+    <loc>/reference/moose.html</loc>
+  </url>
+  <url>
+    <loc>/reference/moose_preds.html</loc>
+  </url>
+  <url>
     <loc>/reference/moss.html</loc>
   </url>
   <url>
@@ -199,6 +211,12 @@
     <loc>/reference/spcov_params.html</loc>
   </url>
   <url>
+    <loc>/reference/spgautor.html</loc>
+  </url>
+  <url>
+    <loc>/reference/spglm.html</loc>
+  </url>
+  <url>
     <loc>/reference/splm.html</loc>
   </url>
   <url>
@@ -208,7 +226,25 @@
     <loc>/reference/spmodel-package.html</loc>
   </url>
   <url>
+    <loc>/reference/sprbeta.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sprbinom.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sprgamma.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sprinvgauss.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sprnbinom.html</loc>
+  </url>
+  <url>
     <loc>/reference/sprnorm.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sprpois.html</loc>
   </url>
   <url>
     <loc>/reference/sulfate.html</loc>

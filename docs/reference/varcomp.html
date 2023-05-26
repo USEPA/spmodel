@@ -12,7 +12,7 @@ and each variance parameter."><!-- mathjax --><script src="https://cdnjs.cloudfl
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,7 @@ and each variance parameter."><!-- mathjax --><script src="https://cdnjs.cloudfl
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Variability component comparison</h1>
-      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/varcomp.R" class="external-link"><code>R/varcomp.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/varcomp.R" class="external-link"><code>R/varcomp.R</code></a>, <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/varcomp_glm.R" class="external-link"><code>R/varcomp_glm.R</code></a></small>
       <div class="d-none name"><code>varcomp.Rd</code></div>
     </div>
 
@@ -68,13 +68,19 @@ and each variance parameter.</p>
 <span><span class="fu">varcomp</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for spautor</span></span>
+<span><span class="fu">varcomp</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spglm</span></span>
+<span><span class="fu">varcomp</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor</span></span>
 <span><span class="fu">varcomp</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
-<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code> or <code><a href="spautor.html">spautor()</a></code>.</p></dd>
+<dd><p>A fitted model object (e.g., from <code><a href="splm.html">splm()</a></code>, <code><a href="spautor.html">spautor()</a></code>, <code><a href="spglm.html">spglm()</a></code>, or <code><a href="spgautor.html">spgautor()</a></code>).</p></dd>
 
 
 <dt>...</dt>
@@ -104,12 +110,12 @@ sites relative to the variance of the unconnected sites.</p>
 <span class="r-in"><span>  spcov_type <span class="op">=</span> <span class="st">"exponential"</span>, xcoord <span class="op">=</span> <span class="va">x</span>, ycoord <span class="op">=</span> <span class="va">y</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">varcomp</span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 3 x 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 x 2</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   varcomp            proportion</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;chr&gt;                   &lt;dbl&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 Covariates (PR-sq)      0.396</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 de                      0.501</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 ie                      0.102</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> Covariates (PR-sq)      0.396</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> de                      0.501</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> ie                      0.102</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

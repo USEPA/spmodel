@@ -16,14 +16,14 @@
 #'   are used directly. If an \code{sf} object is
 #'   provided with \code{POLYGON} geometries, the x-coordinates and y-coordinates
 #'   are taken as the centroids of each polygon.
-#' @param ... Additional named arguments to \code{ranger::ranger()} or [splm()].
+#' @param ... Additional named arguments to [ranger::ranger()] or [splm()].
 #'
 #' @details The random forest residual spatial linear model is described by
 #'   Fox et al. (2020). A random forest model is fit to the mean portion of the
 #'   model specified by \code{formula} using \code{ranger::ranger()}. Residuals
 #'   are computed and used as the response variable in an intercept-only spatial
 #'   linear model fit using [splm()]. This model object is intended for use with
-#'   \code{predict()} for perform prediction, also called random forest
+#'   \code{predict()} to perform prediction, also called random forest
 #'   regression Kriging.
 #'
 #' @return A list with several elements to be used with \code{predict()}. These
@@ -46,7 +46,7 @@
 #'
 #' An \code{splmRF} object to be used with \code{predict()}. There are
 #'   three elements: \code{ranger}, the output from fitting the mean model with
-#'   \code{ranger::ranger()}; \code{splm}, the output from fitting the spatial
+#'   [ranger::ranger()]; \code{splm}, the output from fitting the spatial
 #'   linear model to the ranger residuals; and \code{newdata}, the \code{newdata}
 #'   object, if relevant.
 #'
@@ -115,7 +115,7 @@ splmRF <- function(formula, data, ...) {
 
     # get ... objects
     splm_names <- names(formals(spmodel::splm))
-    splm_args <-  call_list[names(call_list) %in% splm_names]
+    splm_args <- call_list[names(call_list) %in% splm_names]
     # find residuals
     data$.ranger_resid <- resp - ranger_out$predictions
     # perform splm
@@ -134,5 +134,4 @@ splmRF <- function(formula, data, ...) {
   }
   # return object
   sprf_out
-
 }

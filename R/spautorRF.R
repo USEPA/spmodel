@@ -17,14 +17,14 @@
 #'   are used directly. If an \code{sf} object is
 #'   provided with \code{POLYGON} geometries, the x-coordinates and y-coordinates
 #'   are taken as the centroids of each polygon.
-#' @param ... Additional named arguments to \code{ranger::ranger} or [spautor()].
+#' @param ... Additional named arguments to [ranger::ranger()] or [spautor()].
 #'
 #' @details The random forest residual spatial linear model is described by
 #'   Fox et al. (2020). A random forest model is fit to the mean portion of the
-#'   model specified by \code{formula} using \code{ranger::ranger()}. Residuals
+#'   model specified by \code{formula} using [ranger::ranger()]. Residuals
 #'   are computed and used as the response variable in an intercept-only spatial
 #'   linear model fit using [spautor()]. This model object is intended for use with
-#'   \code{predict()} for perform prediction, also called random forest
+#'   \code{predict()} to perform prediction, also called random forest
 #'   regression Kriging.
 #'
 #' @return A list with several elements to be used with \code{predict()}. These
@@ -105,7 +105,7 @@ spautorRF <- function(formula, data, ...) {
 
     # get ... objects
     spautor_names <- names(formals(spmodel::spautor))
-    spautor_args <-  call_list[names(call_list) %in% spautor_names]
+    spautor_args <- call_list[names(call_list) %in% spautor_names]
     # find residuals
     data$.ranger_resid <- resp - ranger_out$predictions
     newdata$.ranger_resid <- NA

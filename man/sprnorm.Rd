@@ -80,7 +80,7 @@ object.}
 
 \item{W}{Weight matrix specifying the neighboring structure used for car and
 sar models. Not required if \code{data} are an \code{sf}
-polygon object and \code{W} should be calculated internally.}
+polygon object and \code{W} should be calculated internally (using queen contiguity).}
 
 \item{row_st}{A logical indicating whether row standardization be performed on
 \code{W}. The default is \code{TRUE}.}

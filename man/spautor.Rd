@@ -34,14 +34,14 @@ available in Details. When \code{spcov_type} is specified, relevant spatial
 covariance parameters are assumed unknown, requiring estimation.
 \code{spcov_type} is not required (and is
 ignored) if \code{spcov_initial} is provided.  Multiple values can be
-provided in a character vector. Then \code{splm()} is called iteratively
+provided in a character vector. Then \code{spautor()} is called iteratively
 for each element and a list is returned for each model fit.
 The default for \code{spcov_type} is \code{"car"}.}
 
 \item{spcov_initial}{An object from \code{\link[=spcov_initial]{spcov_initial()}} specifying initial and/or
 known values for the spatial covariance parameters.
 Not required if \code{spcov_type} is provided. Multiple \code{\link[=spcov_initial]{spcov_initial()}}
-objects can be provided in a list. Then \code{splm()} is called iteratively
+objects can be provided in a list. Then \code{spautor()} is called iteratively
 for each element and a list is returned for each model fit.}
 
 \item{estmethod}{The estimation method. Available options include
@@ -72,20 +72,21 @@ from different levels of the partition factor are uncorrelated.}
 
 \item{W}{Weight matrix specifying the neighboring structure used.
 Not required if \code{data} is an \code{sf} polygon object,
-as \code{W} is calculated internally. If calculated internally,
+as \code{W} is calculated internally using queen contiguity. If calculated internally,
 \code{W} is computed using \code{sf::st_intersects()}.}
 
 \item{row_st}{A logical indicating whether row standardization be performed on
 \code{W}. The default is \code{TRUE}.}
 
-\item{M}{M matrix satisfying the car symmetry condition. The car
+\item{M}{\code{M} matrix satisfying the car symmetry condition. The car
 symmetry condition states that \eqn{(I - range * W)^{-1}M} is symmetric, where
 \eqn{I} is an identity matrix, \eqn{range} is a constant that controls the
 spatial dependence, \code{W} is the weights matrix,
 and \eqn{^{-1}} represents the inverse operator.
 \code{M} is required for car models
 when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M},
-is required, the default is the identity matrix.}
+is required, the default is the identity matrix. \code{M} must be diagonal
+or given as a vector or one-column matrix assumed to be the diagonal.}
 
 \item{...}{Other arguments to \code{stats::optim()}.}
 }
@@ -95,11 +96,11 @@ the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
 length one, the list has class \code{spautor}. Many generic functions that
 summarize model fit are available for \code{spautor} objects, including
 \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
-\code{cooks.distance}, \code{deviance}, \code{fitted}, \code{formula},
+\code{cooks.distance}, \code{covmatrix}, \code{deviance}, \code{fitted}, \code{formula},
 \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
 \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},
 \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
-\code{terms}, \code{tidy}, \code{update}, and \code{vcov}. If
+\code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
 \code{spcov_type} or \code{spcov_initial} are length greater than one, the
 list has class \code{spautor_list} and each element in the list has class
 \code{spautor}. \code{glances} can be used to summarize \code{spautor_list}
@@ -114,7 +115,7 @@ partition factors, and row standardization.
 \details{
 The spatial linear model for areal data (i.e., spatial autoregressive model)
 can be written as
-\eqn{y = X \beta + \tau + \epsilon}, where X is the fixed effects design
+\eqn{y = X \beta + \tau + \epsilon}, where \eqn{X} is the fixed effects design
 matrix, \eqn{\beta} are the fixed effects, \eqn{\tau} is random error that is
 spatially dependent, and \eqn{\epsilon} is random error that is spatially
 independent. Together, \eqn{\tau} and \eqn{\epsilon} are modeled using
@@ -151,8 +152,7 @@ unknown by default). To change this default behavior, specify \code{spcov_initia
 (an \code{NA} value for \code{ie} in \code{spcov_initial} to assume
 \code{ie} is unknown, requiring estimation).
 
-\code{random} Details: If random effects are used (the estimation method must be \code{"reml"} or
-\code{"ml"}), the model
+\code{random} Details: If random effects are used, the model
 can be written as \eqn{y = X \beta + Z1u1 + ... Zjuj + \tau + \epsilon},
 where each Z is a random effects design matrix and each u is a random effect.
 

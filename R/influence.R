@@ -3,7 +3,7 @@
 #' @description Provides basic quantities which are used in forming
 #'   a wide variety of diagnostics for checking the quality of fitted model objects.
 #'
-#' @param model A fitted model object from [splm()] or [spautor()].
+#' @param model A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @details This function calls [residuals.spmodel()], [hatvalues.spmodel()],
@@ -15,6 +15,7 @@
 #'
 #' @name influence.spmodel
 #' @method influence splm
+#' @order 1
 #' @export
 #'
 #' @seealso [augment.spmodel()] [cooks.distance.spmodel()] [hatvalues.spmodel()] [residuals.spmodel()]
@@ -37,5 +38,6 @@ influence.splm <- function(model, ...) {
 
 #' @rdname influence.spmodel
 #' @method influence spautor
+#' @order 2
 #' @export
 influence.spautor <- influence.splm

@@ -15,6 +15,10 @@ get_fitted_splm <- function(betahat, spcov_params, data_object, eigenprods_list,
                             dist_matrix_list, randcov_params = NULL) {
   fitted_response <- as.numeric(do.call("rbind", lapply(data_object$X_list, function(x) x %*% betahat)))
 
+  if (!is.null(data_object$offset)) {
+    fitted_response <- fitted_response + data_object$offset
+  }
+
   ## fitted values
   ### resid pearson is siginv^(-1/2)(y - x beta)
   ### so upchol is from siginv^(-1/2)uptri * siginv^(-1/2)(y - x beta)
@@ -83,6 +87,10 @@ get_fitted_spautor <- function(betahat, spcov_params, data_object, eigenprods,
   M <- data_object$M[data_object$observed_index]
 
   fitted_response <- data_object$X %*% betahat
+
+  if (!is.null(data_object$offset)) {
+    fitted_response <- fitted_response + data_object$offset
+  }
 
   ## fitted values
   ### resid pearson is siginv^(-1/2)(y - x beta)

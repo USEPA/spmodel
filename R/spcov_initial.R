@@ -2,7 +2,7 @@
 #'
 #' @description Create a spatial covariance parameter initial object that specifies
 #'   initial and/or known values to use while estimating spatial covariance parameters
-#'   with [splm()] or [spautor()].
+#'   with [splm()], [spglm()], [spautor()], or [spgautor()].
 #'
 #' @param spcov_type The spatial covariance function type. Available options include
 #'   \code{"exponential"}, \code{"spherical"}, \code{"gaussian"},
@@ -27,11 +27,11 @@
 #'   assumed known. The value \code{"given"} is shorthand for assuming all
 #'   spatial covariance parameters given to \code{spcov_initial()} are assumed known.
 #'
-#' @details The \code{spcov_initial} list is later passed to [splm()] or [spautor()].
+#' @details The \code{spcov_initial} list is later passed to [splm()], [spglm()], [spautor()], or [spgautor()].
 #'   \code{NA} values can be given for \code{ie}, \code{rotate}, and \code{scale}, which lets
-#'   [splm()] and [spautor()] find initial values for parameters that are sometimes
-#'   otherwise assumed known (e.g., \code{rotate} and \code{scale} with [splm()]
-#'   and \code{ie} with [spautor()]).
+#'   these functions find initial values for parameters that are sometimes
+#'   otherwise assumed known (e.g., \code{rotate} and \code{scale} with [splm()] and [spglm()]
+#'   and \code{ie} with [spautor()] and [spgautor()]).
 #'   The spatial covariance functions can be generally expressed as
 #'   \eqn{de * R + ie * I}, where \eqn{de} is \code{de} above, \eqn{R}
 #'   is a matrix that controls the spatial dependence structure among observations,
@@ -52,12 +52,12 @@
 #'     \item{cosine: }{\eqn{cos(\eta)}}
 #'     \item{wave: }{\eqn{sin(\eta) / \eta * I(h > 0) + I(h = 0)}}
 #'     \item{jbessel: }{\eqn{Bj(h * range)}, Bj is Bessel-J function}
-#'     \item{gravity: }{\eqn{(1 + \eta^2)^(-0.5)}}
-#'     \item{rquad: }{\eqn{(1 + \eta^2)^-1}}
-#'     \item{magnetic: }{\eqn{(1 + \eta^2)^-1.5}}
+#'     \item{gravity: }{\eqn{(1 + \eta^2)^{-0.5}}}
+#'     \item{rquad: }{\eqn{(1 + \eta^2)^{-1}}}
+#'     \item{magnetic: }{\eqn{(1 + \eta^2)^{-1.5}}}
 #'     \item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
 #'     \item{cauchy: }{\eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}}
-#'     \item{pexponential: }{\eqn{exp(h^{extra/range)}}, \eqn{0 < extra \leq 2}}
+#'     \item{pexponential: }{\eqn{exp(h^{extra}/range)}, \eqn{0 < extra \le 2}}
 #'     \item{car: }{\eqn{(I - range * W)^{-1} * M}, weights matrix \eqn{W},
 #'      symmetry condition matrix \eqn{M}, observations with no neighbors
 #'      are given a unique variance

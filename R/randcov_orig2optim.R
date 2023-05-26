@@ -25,6 +25,11 @@ randcov_orig2optim <- function(randcov_initial, randcov_profiled = NULL, spcov_i
       randcov_orig2optim_val <- log(randcov_orig2optim_val / (1 - randcov_orig2optim_val))
       randcov_orig2optim_is_known <- rep(FALSE, length(randcov_orig2optim_val))
       names(randcov_orig2optim_is_known) <- names(randcov_initial$is_known) # non profiled to keep for later
+
+      # return random effect parameter vector
+      randcov_orig2optim_val <- ifelse(randcov_orig2optim_val > 50 & !randcov_orig2optim_is_known, 50, randcov_orig2optim_val)
+      randcov_orig2optim_val <- ifelse(randcov_orig2optim_val < -50 & !randcov_orig2optim_is_known, -50, randcov_orig2optim_val)
+
       randcov_initial_list_val <- list(
         value = randcov_orig2optim_val,
         is_known = randcov_orig2optim_is_known,
@@ -35,6 +40,11 @@ randcov_orig2optim <- function(randcov_initial, randcov_profiled = NULL, spcov_i
       names(randcov_orig2optim_val) <- paste(names(randcov_initial$initial), "log", sep = "_")
       randcov_orig2optim_is_known <- randcov_initial$is_known
       names(randcov_orig2optim_is_known) <- paste(names(randcov_initial$is_known), "log", sep = "_")
+
+      # return random effect parameter vector
+      randcov_orig2optim_val <- ifelse(randcov_orig2optim_val > 50 & !randcov_orig2optim_is_known, 50, randcov_orig2optim_val)
+      randcov_orig2optim_val <- ifelse(randcov_orig2optim_val < -50 & !randcov_orig2optim_is_known, -50, randcov_orig2optim_val)
+
       randcov_initial_list_val <- list(
         value = randcov_orig2optim_val,
         is_known = randcov_orig2optim_is_known,

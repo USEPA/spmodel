@@ -5,16 +5,16 @@
 #'   Cook's distance vs leverage, a fitted spatial covariance function, and a
 #'   fitted anisotropic level curve of equal correlation.
 #'
-#' @param x A fitted model object from [splm()] or [spautor()].
+#' @param x A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param which An integer vector taking on values between 1 and 7, which indicates
 #'   the plots to return. Available plots are described in Details. If \code{which}
 #'   has length greater than one, additional plots are stepped through in order
-#'   using \code{<Return>}. The default for [splm()] fitted model objects is
-#'   \code{which = c(1, 2, 7)}. The default for [spautor()] fitted model objects
+#'   using \code{<Return>}. The default for [splm()] and [spglm()] fitted model objects is
+#'   \code{which = c(1, 2, 7)}. The default for [spautor()] and [spgautor()] fitted model objects
 #'   is \code{which = c(1, 2)}.
 #' @param ... Other arguments passed to other methods.
 #'
-#' @details For [splm()] and [spautor()], the values of \code{which} make the
+#' @details For all fitted model objects,, the values of \code{which} make the
 #'   corresponding plot:
 #'   \itemize{
 #'     \item{1:}{ Standardized residuals vs fitted values (of the response)}
@@ -24,7 +24,7 @@
 #'     \item{5:}{ Standardized residuals vs leverage}
 #'     \item{6:}{ Cook's distance vs leverage}
 #'   }
-#'   For [splm()], there are two additional values of \code{which}:
+#'   For [splm()] and [spglm()] fitted model objects, there are two additional values of \code{which}:
 #'   \itemize{
 #'     \item{7:}{ Fitted spatial covariance function vs distance}
 #'     \item{8:}{ Fitted anisotropic level curve of equal correlation}
@@ -34,6 +34,7 @@
 #'
 #' @name plot.spmodel
 #' @method plot splm
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -160,7 +161,6 @@ plot.splm <- function(x, which, ...) {
 
   # plot 7
   if (7 %in% which) {
-
     h <- seq(0, x$max_dist, length.out = 1000)
     spcoef <- coefficients(x, type = "spcov")
     spcov_vector_val <- spcov_vector(spcoef, h)
@@ -214,6 +214,7 @@ plot.splm <- function(x, which, ...) {
 
 #' @rdname plot.spmodel
 #' @method plot spautor
+#' @order 2
 #' @export
 plot.spautor <- function(x, which, ...) {
   if (missing(which)) {

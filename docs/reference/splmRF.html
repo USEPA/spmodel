@@ -18,7 +18,7 @@ allowing for random effects, anisotropy, partition factors, and big data methods
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -135,7 +135,7 @@ Fox et al. (2020). A random forest model is fit to the mean portion of the
 model specified by <code>formula</code> using <code><a href="https://rdrr.io/pkg/ranger/man/ranger.html" class="external-link">ranger::ranger()</a></code>. Residuals
 are computed and used as the response variable in an intercept-only spatial
 linear model fit using <code><a href="splm.html">splm()</a></code>. This model object is intended for use with
-<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> for perform prediction, also called random forest
+<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> to perform prediction, also called random forest
 regression Kriging.</p>
     </div>
     <div class="section level2">
@@ -159,35 +159,35 @@ regression to random forests for large environmental data sets.
 <span class="r-in"><span><span class="va">sprfmod</span> <span class="op">&lt;-</span> <span class="fu">splmRF</span><span class="op">(</span><span class="va">sulfate</span> <span class="op">~</span> <span class="va">var</span>, data <span class="op">=</span> <span class="va">sulfate</span>, spcov_type <span class="op">=</span> <span class="st">"exponential"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">sprfmod</span>, <span class="va">sulfate_preds</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          1          2          3          4          5          6          7 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -4.4851325 32.4148416 18.8629687 11.1070667  0.2634920 44.9187172 10.1639579 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1.4650638 25.3519736  3.6839758 29.7133547 15.7854201 22.1871708  1.6127427 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          8          9         10         11         12         13         14 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8.5247499  1.8860764 12.4416770 -6.3775122 17.5852110 11.5623177 20.6920841 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8.8828673 -3.7270311 18.3580121  3.3058049 10.3879871 -0.9914569 14.0100008 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         15         16         17         18         19         20         21 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 21.4332762 11.2546474 12.3473305 12.5740582  7.2474599 28.4453424  0.8100155 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20.7401759  9.3088395 27.2393221  5.5353741  6.4773599 23.5512849  2.0327482 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         22         23         24         25         26         27         28 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6.0370955 -5.4465345 -6.5956603 -0.5376039  5.5680906 11.5976435 20.3328393 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1.9900377 -3.2520790 -3.7620590 16.5671835  0.6554495 20.1421875 10.9661974 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         29         30         31         32         33         34         35 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16.5762511  3.8881088 -4.0676631  6.0720815 14.3105877 -0.7299244  2.2381128 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15.0110640 16.5761131 -2.7837165  5.4683251 20.4581482  2.0987345  2.1711594 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         36         37         38         39         40         41         42 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.7647218 14.9721270 11.8360909 23.6370043  6.6962919 15.2936410 15.3288531 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5.6182391 20.7866831 23.1085355 11.0701393 14.5749094  8.6141445 19.8942256 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         43         44         45         46         47         48         49 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 22.0592287 25.2815993  3.9245916 19.8398873 11.2798565 11.1203216 14.5816465 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 25.1971387 17.9105561 13.4829172  2.0772709 -4.0392365  9.6193731 24.2468941 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         50         51         52         53         54         55         56 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -5.3944058 31.9331112  9.0964024  9.8282052 -1.1915019  8.2903132 16.1091002 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -2.8074280 18.2263987 10.8424667 -2.3738772 -5.9054008  2.9763653  9.6473487 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         57         58         59         60         61         62         63 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 22.0095733 -9.3955489 13.9137869 14.7992536 13.2129057 17.4727237  8.3532127 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11.4692320  6.2363249 17.3395828 21.3904762 21.9400397 15.3616913 -3.5265082 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         64         65         66         67         68         69         70 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17.7958098 27.1275193 -1.4759576 -4.5544598  6.2849949  5.3399282  9.4943331 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8.7314116 28.6232219 -7.6477062 -1.2273404  8.7757875  0.5168636  4.3078085 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         71         72         73         74         75         76         77 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -3.3325025 24.7863430  1.4071574  6.0413836  2.3921251 -0.6820872 21.0012823 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2.8300501 27.8123529  2.9357663 21.3412826 15.9889152 -1.4200113 17.7653917 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         78         79         80         81         82         83         84 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6.1881032 16.7233182 12.3833482  9.2240733 12.0010120  8.2314757  6.5824609 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -3.3613568 21.4672871  9.2354319  9.8772618 -0.1472747 18.7234666 -9.5919059 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         85         86         87         88         89         90         91 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5.1828613  8.7499919  4.8092601 -3.0923806  9.9381419 17.9122543 15.8968522 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10.4575066  7.2662070 -1.8758967  4.5713878 -3.8791275 19.1819438  0.4911183 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         92         93         94         95         96         97         98 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10.5204847  4.9098156 20.0045755  9.4817227 20.2961642 20.3496114 19.8505763 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.7629863 27.7153955 35.7256768  9.3233397  9.7363512 24.9163912 19.8377229 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         99        100 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17.7304013 10.3742592 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11.4892106 20.9790467 </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +49,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Tidy a fitted model object</h1>
-      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/tidy.R" class="external-link"><code>R/tidy.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/tidy.R" class="external-link"><code>R/tidy.R</code></a>, <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/tidy_glm.R" class="external-link"><code>R/tidy_glm.R</code></a></small>
       <div class="d-none name"><code>tidy.spmodel.Rd</code></div>
     </div>
 
@@ -63,13 +63,19 @@
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">x</span>, conf.int <span class="op">=</span> <span class="cn">FALSE</span>, conf.level <span class="op">=</span> <span class="fl">0.95</span>, effects <span class="op">=</span> <span class="st">"fixed"</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for spautor</span></span>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">x</span>, conf.int <span class="op">=</span> <span class="cn">FALSE</span>, conf.level <span class="op">=</span> <span class="fl">0.95</span>, effects <span class="op">=</span> <span class="st">"fixed"</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spglm</span></span>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">x</span>, conf.int <span class="op">=</span> <span class="cn">FALSE</span>, conf.level <span class="op">=</span> <span class="fl">0.95</span>, effects <span class="op">=</span> <span class="st">"fixed"</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor</span></span>
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">x</span>, conf.int <span class="op">=</span> <span class="cn">FALSE</span>, conf.level <span class="op">=</span> <span class="fl">0.95</span>, effects <span class="op">=</span> <span class="st">"fixed"</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>x</dt>
-<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code> or <code><a href="spautor.html">spautor()</a></code></p></dd>
+<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code>, <code><a href="spautor.html">spautor()</a></code>, <code><a href="spglm.html">spglm()</a></code>, or <code><a href="spgautor.html">spgautor()</a></code>.</p></dd>
 
 
 <dt>conf.int</dt>
@@ -111,20 +117,20 @@ and <code>"randcov"</code> (random effect variances). The default is <code>"fixe
 <span class="r-in"><span>  spcov_type <span class="op">=</span> <span class="st">"exponential"</span>, xcoord <span class="op">=</span> <span class="va">x</span>, ycoord <span class="op">=</span> <span class="va">y</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 4 x 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 4 x 5</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   term        estimate std.error statistic  p.value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 (Intercept)   2.05      0.311       6.59 4.33e-11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 waterY       -0.0831    0.0645     -1.29 1.98e- 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 tarpnone      0.0801    0.0776      1.03 3.02e- 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 tarpshade     0.287     0.0767      3.74 1.86e- 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> (Intercept)   2.05      0.311       6.59 4.33<span style="color: #949494;">e</span><span style="color: #BB0000;">-11</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> waterY       -<span style="color: #BB0000;">0.083</span><span style="color: #BB0000; text-decoration: underline;">1</span>    0.064<span style="text-decoration: underline;">5</span>     -<span style="color: #BB0000;">1.29</span> 1.98<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> tarpnone      0.080<span style="text-decoration: underline;">1</span>    0.077<span style="text-decoration: underline;">6</span>      1.03 3.02<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> tarpshade     0.287     0.076<span style="text-decoration: underline;">7</span>      3.74 1.86<span style="color: #949494;">e</span><span style="color: #BB0000;">- 4</span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">spmod</span>, effects <span class="op">=</span> <span class="st">"spcov"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 3 x 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 x 3</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   term  estimate is_known</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;chr&gt;    &lt;dbl&gt; &lt;lgl&gt;   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 de      0.111  FALSE   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 ie      0.0226 FALSE   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 range  19.1    FALSE   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> de      0.111  FALSE   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> ie      0.022<span style="text-decoration: underline;">6</span> FALSE   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> range  19.1    FALSE   </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

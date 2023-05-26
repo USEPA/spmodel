@@ -12,7 +12,7 @@ model object."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/li
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,7 @@ model object."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/li
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Confidence intervals for fitted model parameters</h1>
-      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/confint.R" class="external-link"><code>R/confint.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/confint.R" class="external-link"><code>R/confint.R</code></a>, <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/confint_glm.R" class="external-link"><code>R/confint_glm.R</code></a></small>
       <div class="d-none name"><code>confint.spmodel.Rd</code></div>
     </div>
 
@@ -66,13 +66,19 @@ model object.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">parm</span>, level <span class="op">=</span> <span class="fl">0.95</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for spautor</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">parm</span>, level <span class="op">=</span> <span class="fl">0.95</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spglm</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">parm</span>, level <span class="op">=</span> <span class="fl">0.95</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">parm</span>, level <span class="op">=</span> <span class="fl">0.95</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
-<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code> or <code><a href="spautor.html">spautor()</a></code>.</p></dd>
+<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code>, <code><a href="spautor.html">spautor()</a></code>, <code><a href="spglm.html">spglm()</a></code>, or <code><a href="spgautor.html">spgautor()</a></code>.</p></dd>
 
 
 <dt>parm</dt>
@@ -93,7 +99,9 @@ intervals (a character vector of names). If missing, all parameters are consider
     
 
 <p>Gaussian-based confidence intervals (two-sided and equal-tailed) for the
-fixed effect coefficients based on the confidence level specified by <code>level</code>.</p>
+fixed effect coefficients based on the confidence level specified by <code>level</code>.
+For <code><a href="spglm.html">spglm()</a></code> or <code><a href="spgautor.html">spgautor()</a></code> fitted model objects, confidence intervals are
+on the link scale.</p>
     </div>
 
     <div class="section level2">

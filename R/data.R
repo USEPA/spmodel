@@ -113,3 +113,38 @@
 #'   \emph{ Statistical Methods for Physical Science}, J. Stanford and
 #'   S. Vardeman (eds.), Academic Press: New York.
 "sulfate_preds"
+
+#' Moose counts and presence in Alaska, USA
+#'
+#' @description Moose counts and presence in Alaska, USA.
+#'
+#' @format An \code{sf} object with 218 rows and 5 columns.
+#' \describe{
+#'   \item{elev: }{The elevation.}
+#'   \item{strat: }{A factor representing strata (used for sampling). Can take values \code{L} and \code{M}.}
+#'   \item{count: }{The count (number) of moose observed.}
+#'   \item{presence: }{A binary factor representing whether no moose were observed (value \code{0}) or at least one moose was observed
+#'     (value \code{1}).}
+#'   \item{geometry: }{\code{POINT} geometry representing coordinates in an Alaska
+#'     Albers projection (EPSG: 3338).}
+#' }
+#' @source
+#' Alaska Department of Fish and Game, Division of Wildlife Conservation has released
+#'   this data set under the CC0 license.
+"moose"
+
+#' Locations at which to predict moose counts and presence in Alaska, USA
+#'
+#' @description Locations at which to predict moose counts and presence in Alaska, USA.
+#'
+#' @format An \code{sf} object with 100 rows and 3 columns.
+#' \describe{
+#'   \item{elev: }{The elevation.}
+#'   \item{strat: }{A factor representing strata (used for sampling). Can take values \code{L} and \code{M}.}
+#'   \item{geometry: }{\code{POINT} geometry representing coordinates in an Alaska
+#'     Albers projection (EPSG: 3338).}
+#' }
+#' @source
+#' Alaska Department of Fish and Game, Division of Wildlife Conservation has released
+#'   this data set under the CC0 license.
+"moose_preds"

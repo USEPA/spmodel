@@ -3,7 +3,7 @@
 #' @description Find the log-likelihood of a fitted model when \code{estmethod}
 #'   is \code{"ml"} or \code{"reml"}.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()] where \code{estmethod}
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()] where \code{estmethod}
 #'   is \code{"ml"} or \code{"reml"}.
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
@@ -11,6 +11,7 @@
 #'
 #' @name logLik.spmodel
 #' @method logLik splm
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -31,5 +32,6 @@ logLik.splm <- function(object, ...) {
 
 #' @rdname logLik.spmodel
 #' @method logLik spautor
+#' @order 2
 #' @export
 logLik.spautor <- logLik.splm

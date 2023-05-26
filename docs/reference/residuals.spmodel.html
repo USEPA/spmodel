@@ -12,7 +12,7 @@ resid is an alias."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/aj
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,7 @@ resid is an alias."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/aj
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Extract fitted model residuals</h1>
-      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/residuals.R" class="external-link"><code>R/residuals.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/residuals.R" class="external-link"><code>R/residuals.R</code></a>, <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/residuals_glm.R" class="external-link"><code>R/residuals_glm.R</code></a></small>
       <div class="d-none name"><code>residuals.spmodel.Rd</code></div>
     </div>
 
@@ -68,29 +68,49 @@ resid is an alias."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/aj
 <span><span class="co"># S3 method for splm</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">resid</a></span><span class="op">(</span><span class="va">object</span>, type <span class="op">=</span> <span class="st">"response"</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># S3 method for splm</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">rstandard</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># S3 method for spautor</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">object</span>, type <span class="op">=</span> <span class="st">"response"</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for spautor</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">resid</a></span><span class="op">(</span><span class="va">object</span>, type <span class="op">=</span> <span class="st">"response"</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for splm</span></span>
+<span><span class="co"># S3 method for spautor</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">rstandard</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for spautor</span></span>
+<span><span class="co"># S3 method for spglm</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">object</span>, type <span class="op">=</span> <span class="st">"deviance"</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spglm</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">resid</a></span><span class="op">(</span><span class="va">object</span>, type <span class="op">=</span> <span class="st">"deviance"</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spglm</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">rstandard</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">object</span>, type <span class="op">=</span> <span class="st">"deviance"</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">resid</a></span><span class="op">(</span><span class="va">object</span>, type <span class="op">=</span> <span class="st">"deviance"</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">rstandard</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
-<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code> or <code><a href="spautor.html">spautor()</a></code>.</p></dd>
+<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code>, <code><a href="spautor.html">spautor()</a></code>, <code><a href="spglm.html">spglm()</a></code>, or <code><a href="spgautor.html">spgautor()</a></code>.</p></dd>
 
 
 <dt>type</dt>
 <dd><p><code>"response"</code> for response residuals, <code>"pearson"</code>
 for Pearson residuals, or <code>"standardized"</code> for standardized residuals.
-The default is <code>"response"</code>.</p></dd>
+For <code><a href="splm.html">splm()</a></code> and <code><a href="spautor.html">spautor()</a></code> fitted model objects, the default is <code>"response"</code>.
+For <code><a href="spglm.html">spglm()</a></code> and <code><a href="spgautor.html">spgautor()</a></code> fitted model objects, deviance residuals are
+also available (<code>"deviance"</code>) and are the default residual type.</p></dd>
 
 
 <dt>...</dt>
@@ -98,7 +118,7 @@ The default is <code>"response"</code>.</p></dd>
 
 
 <dt>model</dt>
-<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code> or <code><a href="spautor.html">spautor()</a></code>.</p></dd>
+<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code>, <code><a href="spautor.html">spautor()</a></code>, <code><a href="spglm.html">spglm()</a></code>, or <code><a href="spgautor.html">spgautor()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -111,11 +131,15 @@ The default is <code>"response"</code>.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The response residuals are taken as the response minus the fitted values
 for the response: \(y - X \hat{\beta}\). The Pearson residuals are the
-response residuals pre-multiplied by their square (Cholesky) root.
+response residuals pre-multiplied by their inverse square root.
 The standardized residuals are Pearson residuals divided by the square
 root of one minus the leverage (hat) value. The standardized residuals are often used to
 check model assumptions, as they have mean zero and variance approximately one.</p>
 <p><code><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">rstandard()</a></code> is an alias for <code>residuals(model, type = "standardized")</code>.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="augment.spmodel.html">augment.spmodel()</a></code> <code><a href="cooks.distance.spmodel.html">cooks.distance.spmodel()</a></code> <code><a href="hatvalues.spmodel.html">hatvalues.spmodel()</a></code> <code><a href="influence.spmodel.html">influence.spmodel()</a></code></p></div>
     </div>
 
     <div class="section level2">

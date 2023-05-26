@@ -146,16 +146,37 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   n <- NROW(X)
   # find response
   y <- as.matrix(model.response(obdata_model_frame), ncol = 1)
+  # adjust response to reflect offset
+  offset <- model.offset(obdata_model_frame)
+  if (!is.null(offset)) {
+    offset <- as.matrix(offset, ncol = 1)
+    y <- y - offset
+  }
 
   # see if response is numeric
   if (!is.numeric(y)) {
     stop("Response variable must be numeric", call. = FALSE)
   }
 
+  # error if no variance
+  if (var(y) == 0) {
+    stop("The response has no variability. Model fit unreliable.", call. = FALSE)
+  }
+
   # error if p >= n
   if (p >= n) {
     stop("The number of fixed effects is at least as large as the number of observations (p >= n). Consider reducing the number of fixed effects and rerunning splm().", call. = FALSE)
   }
+
+  # find s2 for initial values
+  # s2 <- summary(lm(data_object$formula, do.call("rbind", data_object$obdata_list)))$sigma^2
+  # s2 <- summary(lm(formula, obdata))$sigma^2
+  qr_val <- qr(X)
+  R_val <- qr.R(qr_val)
+  betahat <- backsolve(R_val, qr.qty(qr_val, y))
+  resid <- y - X %*% betahat
+  s2 <- sum(resid^2) / (n - p)
+  diagtol <- 0
 
 
   # storing max halfdist
@@ -173,7 +194,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
       stop("Only one variable can be specified in partition_factor.", call. = FALSE)
     }
     partition_mf <- model.frame(partition_factor, obdata)
-    if (any(! attr(terms(partition_mf), "dataClasses") %in% c("character", "factor"))) {
+    if (any(!attr(terms(partition_mf), "dataClasses") %in% c("character", "factor", "ordered"))) {
       stop("Partition factor variable must be categorical or factor.", call. = FALSE)
     }
     partition_factor <- reformulate(partition_factor_labels, intercept = FALSE)
@@ -199,6 +220,11 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   X_list <- split.data.frame(X, local$index)
   y_list <- split.data.frame(y, local$index)
   ones_list <- lapply(obdata_list, function(x) matrix(rep(1, nrow(x)), ncol = 1))
+
+  # organize offset (as a one col matrix)
+  if (!is.null(offset)) {
+    offset <- do.call("rbind", (split.data.frame(offset, local$index)))
+  }
 
   # store random effects list
   if (is.null(random)) {
@@ -241,7 +267,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     anisotropy = anisotropy, contrasts = dots$contrasts, crs = crs,
     dim_coords = dim_coords, formula = formula, is_sf = is_sf, local_index = local$index,
     obdata = obdata, obdata_list = obdata_list,
-    observed_index = observed_index, ones_list = ones_list, order = order, n = n,
+    observed_index = observed_index, offset = offset, ones_list = ones_list, order = order, n = n,
     max_halfdist = max_halfdist, missing_index = missing_index, ncores = local$ncores,
     newdata = newdata, p = p, parallel = local$parallel,
     partition_factor_initial = partition_factor, partition_factor = local$partition_factor,
@@ -249,7 +275,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     randcov_list = randcov_list, randcov_names = randcov_names,
     sf_column_name = sf_column_name, terms = terms_val, var_adjust = local$var_adjust,
     X_list = X_list, xcoord = xcoord, xlevels = xlevels, y_list = y_list, ycoord = ycoord,
-    ycoord_orig_name = ycoord_orig_name, ycoord_orig_val = ycoord_orig_val
+    ycoord_orig_name = ycoord_orig_name, ycoord_orig_val = ycoord_orig_val, s2 = s2, diagtol = diagtol
   )
 }
 
@@ -305,6 +331,12 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
     } else {
       if (inherits(spcov_initial, "sar")) {
         warning("M ignored for sar models", call. = FALSE)
+      }
+      M <- as.matrix(M) # coerce to matrix from vector, matrix, or Matrix
+      if (dim(M)[1] == dim(M)[2]) {
+        M <- diag(M) # take diagonal of matrix
+      } else {
+        M <- as.vector(M) # assume diagonal already given as one-column vector
       }
     }
   }
@@ -374,10 +406,21 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
   dots$contrasts <- attr(X, "contrasts")
   xlevels <- .getXlevels(terms_val, obdata_model_frame)
   y <- as.matrix(model.response(obdata_model_frame), ncol = 1)
+  # adjust response to reflect offset
+  offset <- model.offset(obdata_model_frame)
+  if (!is.null(offset)) {
+    offset <- as.matrix(offset, ncol = 1)
+    y <- y - offset
+  }
 
   # see if response is numeric
   if (!is.numeric(y)) {
     stop("Response variable must be numeric", call. = FALSE)
+  }
+
+  # error if no variance
+  if (var(y) == 0) {
+    stop("The response has no variability. Model fit unreliable.", call. = FALSE)
   }
 
   # store n, p, and ones
@@ -386,12 +429,21 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
   if (p < NCOL(X)) {
     stop("Perfect collinearities detected in X. Remove redundant predictors.", call. = FALSE)
   }
-  ones <- rep(1, n)
+  ones <- matrix(1, nrow = n, ncol = 1)
 
   # error if p >= n
   if (p >= n) {
     stop("The number of fixed effects is at least as large as the number of observations (p >= n). Consider reducing the number of fixed effects and rerunning spautor().", call. = FALSE)
   }
+
+  # find s2 for initial values
+  # s2 <- summary(lm(formula, obdata))$sigma^2
+  qr_val <- qr(X)
+  R_val <- qr.R(qr_val)
+  betahat <- backsolve(R_val, qr.qty(qr_val, y))
+  resid <- y - X %*% betahat
+  s2 <- sum(resid^2) / (n - p)
+  diagtol <- 0
 
   # store random effects list
   if (is.null(random)) {
@@ -419,12 +471,25 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
   }
 
   # partition matrix error
+  # if (!is.null(partition_factor)) {
+  #   partition_factor_labels <- labels(terms(partition_factor))
+  #   if (length(partition_factor_labels) > 1) {
+  #     stop("Only one variable can be specified in partition_factor.", call. = FALSE)
+  #   }
+  #   partition_factor <- reformulate(paste0("as.character(", partition_factor_labels, ")"), intercept = FALSE)
+  # }
+  # coerce to factor
   if (!is.null(partition_factor)) {
     partition_factor_labels <- labels(terms(partition_factor))
     if (length(partition_factor_labels) > 1) {
       stop("Only one variable can be specified in partition_factor.", call. = FALSE)
     }
-    partition_factor <- reformulate(paste0("as.character(", partition_factor_labels, ")"), intercept = FALSE)
+    partition_mf <- model.frame(partition_factor, obdata)
+    if (any(!attr(terms(partition_mf), "dataClasses") %in% c("character", "factor", "ordered"))) {
+      stop("Partition factor variable must be categorical or factor.", call. = FALSE)
+    }
+    partition_factor <- reformulate(partition_factor_labels, intercept = FALSE)
+    # partition_factor <- reformulate(paste0("as.character(", partition_factor_labels, ")"), intercept = FALSE)
   }
 
   # store partition matrix list
@@ -438,11 +503,11 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
     anisotropy = FALSE, contrasts = dots$contrasts, crs = crs,
     formula = formula, data = data, is_sf = is_sf, is_W_connected = is_W_connected,
     missing_index = missing_index, n = n,
-    obdata = obdata, observed_index = observed_index, ones = ones, newdata = newdata, p = p,
+    obdata = obdata, observed_index = observed_index, offset = offset, ones = ones, newdata = newdata, p = p,
     partition_factor = partition_factor, partition_matrix = partition_matrix,
     randcov_initial = randcov_initial, randcov_names = randcov_names, randcov_Zs = randcov_Zs,
     sf_column_name = sf_column_name, terms = terms_val, W = W, W_rowsums = W_rowsums, M = M,
     rho_lb = rho_lb, rho_ub = rho_ub,
-    X = X, y = y, xlevels = xlevels
+    X = X, y = y, xlevels = xlevels, s2 = s2, diagtol = diagtol
   )
 }

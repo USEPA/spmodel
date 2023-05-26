@@ -3,7 +3,7 @@
 #' @description Compare the proportion of total variability explained by the fixed effects
 #'   and each variance parameter.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object (e.g., from [splm()], [spautor()], [spglm()], or [spgautor()]).
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @return A tibble that partitions the the total variability by the fixed effects
@@ -17,6 +17,7 @@
 #'   sites; and \code{"ratio"} for the ratio of the variance of the connected
 #'   sites relative to the variance of the unconnected sites.
 #'
+#' @order 1
 #' @export
 #'
 #' @examples
@@ -31,9 +32,9 @@ varcomp <- function(object, ...) {
 
 #' @rdname varcomp
 #' @method varcomp splm
+#' @order 2
 #' @export
 varcomp.splm <- function(object, ...) {
-
   PR2 <- pseudoR2(object)
   spcov_coef <- coef(object, type = "spcov")
   de <- spcov_coef[["de"]]
@@ -48,9 +49,9 @@ varcomp.splm <- function(object, ...) {
 
 #' @rdname varcomp
 #' @method varcomp spautor
+#' @order 3
 #' @export
 varcomp.spautor <- function(object, ...) {
-
   PR2 <- pseudoR2(object)
   spcov_coef <- coef(object, type = "spcov")
   de <- spcov_coef[["de"]]

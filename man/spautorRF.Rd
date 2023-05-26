@@ -19,7 +19,7 @@ are used directly. If an \code{sf} object is
 provided with \code{POLYGON} geometries, the x-coordinates and y-coordinates
 are taken as the centroids of each polygon.}
 
-\item{...}{Additional named arguments to \code{ranger::ranger} or \code{\link[=spautor]{spautor()}}.}
+\item{...}{Additional named arguments to \code{\link[ranger:ranger]{ranger::ranger()}} or \code{\link[=spautor]{spautor()}}.}
 }
 \value{
 A list with several elements to be used with \code{predict()}. These
@@ -50,10 +50,10 @@ partition factors, and row standardization.
 \details{
 The random forest residual spatial linear model is described by
 Fox et al. (2020). A random forest model is fit to the mean portion of the
-model specified by \code{formula} using \code{ranger::ranger()}. Residuals
+model specified by \code{formula} using \code{\link[ranger:ranger]{ranger::ranger()}}. Residuals
 are computed and used as the response variable in an intercept-only spatial
 linear model fit using \code{\link[=spautor]{spautor()}}. This model object is intended for use with
-\code{predict()} for perform prediction, also called random forest
+\code{predict()} to perform prediction, also called random forest
 regression Kriging.
 }
 \examples{

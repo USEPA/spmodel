@@ -3,9 +3,8 @@
 #' @description Compute analysis of variance tables for a fitted model object or
 #'   a likelihood ratio test for two fitted model objects.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()]
-#' @param ... An additional fitted model object from [splm()] or [spautor()]
-#'   (for \code{anova()}).
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
+#' @param ... An additional fitted model object.
 #' @param test A logical value indicating whether p-values from asymptotic Chi-squared
 #'   hypothesis tests should be returned. Defaults to \code{TRUE}.
 #' @param Terms An optional character or integer vector that specifies terms in the model
@@ -175,6 +174,7 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L) {
 
 #' @rdname anova.spmodel
 #' @method anova spautor
+#' @order 2
 #' @export
 anova.spautor <- anova.splm
 
@@ -204,8 +204,8 @@ get_marginal_Chi2 <- function(L, object) {
 
 #' @rdname anova.spmodel
 #' @param x An object from \code{anova(object)}.
-#'
 #' @method tidy anova.splm
+#' @order 5
 #' @export
 tidy.anova.splm <- function(x, ...) {
   if (!is.null(attr(x, "full")) && !is.null(attr(x, "reduced"))) {
@@ -221,5 +221,6 @@ tidy.anova.splm <- function(x, ...) {
 
 #' @rdname anova.spmodel
 #' @method tidy anova.spautor
+#' @order 6
 #' @export
 tidy.anova.spautor <- tidy.anova.splm

@@ -2,7 +2,7 @@
 #'
 #' @description Summarize a fitted model object.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @details \code{summary()} creates a summary of a fitted model object
@@ -16,6 +16,7 @@
 #'
 #' @name summary.spmodel
 #' @method summary splm
+#' @order 1
 #' @export
 #'
 #' @seealso [print.spmodel()]
@@ -54,5 +55,6 @@ summary.splm <- function(object, ...) {
 
 #' @rdname summary.spmodel
 #' @method summary spautor
+#' @order 2
 #' @export
 summary.spautor <- summary.splm

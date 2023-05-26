@@ -2,7 +2,7 @@
 #'
 #' @description Extract the model matrix (X) from a fitted model object.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @return The model matrix (of the fixed effects), whose rows represent
@@ -11,6 +11,7 @@
 #'
 #' @name model.matrix.spmodel
 #' @method model.matrix splm
+#' @order 1
 #' @export
 #'
 #' @seealso [stats::model.matrix()]
@@ -27,5 +28,6 @@ model.matrix.splm <- function(object, ...) {
 
 #' @rdname model.matrix.spmodel
 #' @method model.matrix spautor
+#' @order 2
 #' @export
 model.matrix.spautor <- model.matrix.splm

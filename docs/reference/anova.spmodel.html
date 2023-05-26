@@ -12,7 +12,7 @@ a likelihood ratio test for two fitted model objects."><!-- mathjax --><script s
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,7 @@ a likelihood ratio test for two fitted model objects."><!-- mathjax --><script s
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Compute analysis of variance and likelihood ratio tests of fitted model objects</h1>
-      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/anova.R" class="external-link"><code>R/anova.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/anova.R" class="external-link"><code>R/anova.R</code></a>, <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/anova_glm.R" class="external-link"><code>R/anova_glm.R</code></a></small>
       <div class="d-none name"><code>anova.spmodel.Rd</code></div>
     </div>
 
@@ -68,22 +68,33 @@ a likelihood ratio test for two fitted model objects.</p>
 <span><span class="co"># S3 method for spautor</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, test <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">Terms</span>, <span class="va">L</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># S3 method for spglm</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, test <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">Terms</span>, <span class="va">L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, test <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">Terms</span>, <span class="va">L</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># S3 method for anova.splm</span></span>
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for anova.spautor</span></span>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for anova.spglm</span></span>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for anova.spgautor</span></span>
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>object</dt>
-<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code> or <code><a href="spautor.html">spautor()</a></code></p></dd>
+<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code>, <code><a href="spautor.html">spautor()</a></code>, <code><a href="spglm.html">spglm()</a></code>, or <code><a href="spgautor.html">spgautor()</a></code>.</p></dd>
 
 
 <dt>...</dt>
-<dd><p>An additional fitted model object from <code><a href="splm.html">splm()</a></code> or <code><a href="spautor.html">spautor()</a></code>
-(for <code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code>).</p></dd>
+<dd><p>An additional fitted model object.</p></dd>
 
 
 <dt>test</dt>
@@ -176,36 +187,36 @@ model nested in a "full" model. Then <code><a href="https://rdrr.io/r/stats/anov
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 3 x 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 x 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   effects        df statistic  p.value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;chr&gt;       &lt;int&gt;     &lt;dbl&gt;    &lt;dbl&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 (Intercept)     1     43.5  4.33e-11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 water           1      1.66 1.98e- 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 tarp            2     15.4  4.51e- 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> (Intercept)     1     43.5  4.33<span style="color: #949494;">e</span><span style="color: #BB0000;">-11</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> water           1      1.66 1.98<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> tarp            2     15.4  4.51<span style="color: #949494;">e</span><span style="color: #BB0000;">- 4</span></span>
 <span class="r-in"><span><span class="co"># see terms</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">effects</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "(Intercept)" "water"       "tarp"       </span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">spmod</span>, Terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"water"</span>, <span class="st">"tarp"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 1 x 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 x 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   effects        df statistic  p.value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;chr&gt;       &lt;int&gt;     &lt;dbl&gt;    &lt;dbl&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 water, tarp     3      17.1 0.000685</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> water, tarp     3      17.1 0.000<span style="text-decoration: underline;">685</span></span>
 <span class="r-in"><span><span class="co"># same as</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">spmod</span>, Terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 1 x 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 x 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   effects        df statistic  p.value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;chr&gt;       &lt;int&gt;     &lt;dbl&gt;    &lt;dbl&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 water, tarp     3      17.1 0.000685</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> water, tarp     3      17.1 0.000<span style="text-decoration: underline;">685</span></span>
 <span class="r-in"><span><span class="co"># likelihood ratio test</span></span></span>
 <span class="r-in"><span><span class="va">lmod</span> <span class="op">&lt;-</span> <span class="fu"><a href="splm.html">splm</a></span><span class="op">(</span><span class="va">z</span> <span class="op">~</span> <span class="va">water</span> <span class="op">+</span> <span class="va">tarp</span>,</span></span>
 <span class="r-in"><span>  data <span class="op">=</span> <span class="va">caribou</span>,</span></span>
 <span class="r-in"><span>  spcov_type <span class="op">=</span> <span class="st">"none"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">spmod</span>, <span class="va">lmod</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 1 x 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 x 5</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   full  reduced    df statistic p.value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;chr&gt; &lt;chr&gt;   &lt;int&gt;     &lt;dbl&gt;   &lt;dbl&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 spmod lmod        2      4.17   0.124</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> spmod lmod        2      4.17   0.124</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

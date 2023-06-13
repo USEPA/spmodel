@@ -33,10 +33,10 @@
 #'       If random effects and partition factors are not used in estimation and
 #'       the spatial covariance function is monotone decreasing,
 #'       \code{"distance"} and \code{"covariance"} are equivalent. The default
-#'       is \code{"covariance"}. Only used with models fit using [splm()].}
+#'       is \code{"covariance"}. Only used with models fit using [splm()] or [spglm()].}
 #'     \item{\code{size}: }{The number of data observations to use when \code{method}
 #'       is \code{"distance"} or \code{"covariance"}. The default is 50. Only used
-#'       with models fit using [splm()].}
+#'       with models fit using [splm()] or [spglm()].}
 #'     \item{\code{parallel}: }{If \code{TRUE}, parallel processing via the
 #'       parallel package is automatically used. The default is \code{FALSE}.}
 #'     \item{\code{ncores}: }{If \code{parallel = TRUE}, the number of cores to
@@ -162,14 +162,14 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
 
   if (object$anisotropy) { # could just do rotate != 0 || scale != 1
     obdata_aniscoords <- transform_anis(obdata, xcoord, ycoord,
-                                        rotate = spcov_params_val[["rotate"]],
-                                        scale = spcov_params_val[["scale"]]
+      rotate = spcov_params_val[["rotate"]],
+      scale = spcov_params_val[["scale"]]
     )
     obdata[[xcoord]] <- obdata_aniscoords$xcoord_val
     obdata[[ycoord]] <- obdata_aniscoords$ycoord_val
     newdata_aniscoords <- transform_anis(newdata, xcoord, ycoord,
-                                         rotate = spcov_params_val[["rotate"]],
-                                         scale = spcov_params_val[["scale"]]
+      rotate = spcov_params_val[["rotate"]],
+      scale = spcov_params_val[["scale"]]
     )
     newdata[[xcoord]] <- newdata_aniscoords$xcoord_val
     newdata[[ycoord]] <- newdata_aniscoords$ycoord_val
@@ -271,7 +271,6 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
 
     # partition factor stuff
     if (!is.null(object$partition_factor)) {
-
       partition_factor_val <- get_partition_name(labels(terms(object$partition_factor)))
       bar_split <- unlist(strsplit(partition_factor_val, " | ", fixed = TRUE))
       reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
@@ -309,46 +308,46 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
     if (local_list$parallel) {
       cl <- parallel::makeCluster(local_list$ncores)
       pred_splm <- parallel::parLapply(cl, newdata_list, get_pred_splm,
-                                       se.fit = se.fit,
-                                       interval = interval, formula = object$formula,
-                                       obdata = obdata, xcoord = xcoord, ycoord = ycoord,
-                                       spcov_params_val = spcov_params_val, random = object$random,
-                                       randcov_params_val = randcov_params_val,
-                                       reform_bar2_list = reform_bar2_list,
-                                       Z_index_obdata_list = Z_index_obdata_list,
-                                       reform_bar1_list = reform_bar1_list,
-                                       Z_val_obdata_list = Z_val_obdata_list,
-                                       partition_factor = object$partition_factor,
-                                       reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
-                                       cov_lowchol = cov_lowchol,
-                                       Xmat = model.matrix(object),
-                                       y = model.response(model.frame(object)),
-                                       offset = model.offset(model.frame(object)), dim_coords = object$dim_coords,
-                                       betahat = coefficients(object), cov_betahat = vcov(object),
-                                       contrasts = object$contrasts,
-                                       local = local_list, diagtol = object$diagtol
+        se.fit = se.fit,
+        interval = interval, formula = object$formula,
+        obdata = obdata, xcoord = xcoord, ycoord = ycoord,
+        spcov_params_val = spcov_params_val, random = object$random,
+        randcov_params_val = randcov_params_val,
+        reform_bar2_list = reform_bar2_list,
+        Z_index_obdata_list = Z_index_obdata_list,
+        reform_bar1_list = reform_bar1_list,
+        Z_val_obdata_list = Z_val_obdata_list,
+        partition_factor = object$partition_factor,
+        reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
+        cov_lowchol = cov_lowchol,
+        Xmat = model.matrix(object),
+        y = model.response(model.frame(object)),
+        offset = model.offset(model.frame(object)), dim_coords = object$dim_coords,
+        betahat = coefficients(object), cov_betahat = vcov(object),
+        contrasts = object$contrasts,
+        local = local_list, xlevels = object$xlevels, diagtol = object$diagtol
       )
       cl <- parallel::stopCluster(cl)
     } else {
       pred_splm <- lapply(newdata_list, get_pred_splm,
-                          se.fit = se.fit,
-                          interval = interval, formula = object$formula,
-                          obdata = obdata, xcoord = xcoord, ycoord = ycoord,
-                          spcov_params_val = spcov_params_val, random = object$random,
-                          randcov_params_val = randcov_params_val,
-                          reform_bar2_list = reform_bar2_list,
-                          Z_index_obdata_list = Z_index_obdata_list,
-                          reform_bar1_list = reform_bar1_list,
-                          Z_val_obdata_list = Z_val_obdata_list,
-                          partition_factor = object$partition_factor,
-                          reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
-                          cov_lowchol = cov_lowchol,
-                          Xmat = model.matrix(object),
-                          y = model.response(model.frame(object)),
-                          offset = model.offset(model.frame(object)), dim_coords = object$dim_coords,
-                          betahat = coefficients(object), cov_betahat = vcov(object),
-                          contrasts = object$contrasts,
-                          local = local_list, diagtol = object$diagtol
+        se.fit = se.fit,
+        interval = interval, formula = object$formula,
+        obdata = obdata, xcoord = xcoord, ycoord = ycoord,
+        spcov_params_val = spcov_params_val, random = object$random,
+        randcov_params_val = randcov_params_val,
+        reform_bar2_list = reform_bar2_list,
+        Z_index_obdata_list = Z_index_obdata_list,
+        reform_bar1_list = reform_bar1_list,
+        Z_val_obdata_list = Z_val_obdata_list,
+        partition_factor = object$partition_factor,
+        reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
+        cov_lowchol = cov_lowchol,
+        Xmat = model.matrix(object),
+        y = model.response(model.frame(object)),
+        offset = model.offset(model.frame(object)), dim_coords = object$dim_coords,
+        betahat = coefficients(object), cov_betahat = vcov(object),
+        contrasts = object$contrasts,
+        local = local_list, xlevels = object$xlevels, diagtol = object$diagtol
       )
     }
 
@@ -432,7 +431,6 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
   } else {
     stop("Interval must be none, confidence, or prediction")
   }
-
 }
 
 #' @rdname predict.spmodel
@@ -440,7 +438,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
 #' @order 2
 #' @export
 predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                         level = 0.95, local, ...) {
+                            level = 0.95, local, ...) {
 
   # match interval argument so the three display
   interval <- match.arg(interval)
@@ -556,11 +554,11 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none"
         )
       })
       pred_spautor <- parallel::parLapply(cl, cluster_list, get_pred_spautor_parallel,
-                                          cov_matrix_lowchol, betahat,
-                                          residuals_pearson,
-                                          cov_betahat, SqrtSigInv_X,
-                                          se.fit = se.fit,
-                                          interval = interval
+        cov_matrix_lowchol, betahat,
+        residuals_pearson,
+        cov_betahat, SqrtSigInv_X,
+        se.fit = se.fit,
+        interval = interval
       )
       cl <- parallel::stopCluster(cl)
     } else {
@@ -647,16 +645,14 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none"
   } else {
     stop("Interval must be none, confidence, or prediction")
   }
-
-
-
 }
 
 get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoord, ycoord,
                           spcov_params_val, random, randcov_params_val, reform_bar2_list,
                           Z_index_obdata_list, reform_bar1_list, Z_val_obdata_list, partition_factor,
                           reform_bar2, partition_index_obdata, cov_lowchol,
-                          Xmat, y, offset, betahat, cov_betahat, dim_coords, contrasts, local, diagtol = diagtol) {
+                          Xmat, y, offset, betahat, cov_betahat, dim_coords, contrasts, local, xlevels, diagtol = diagtol) {
+
 
 
   # storing partition vector
@@ -709,10 +705,11 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
     partition_matrix_val <- partition_matrix(partition_factor, obdata)
     cov_matrix_val <- cov_matrix(
       spcov_params_val, spdist(obdata, xcoord, ycoord), randcov_params_val,
-      randcov_Zs, partition_matrix_val, diagtol = diagtol
+      randcov_Zs, partition_matrix_val,
+      diagtol = diagtol
     )
     cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(cov_matrix_val)))
-    model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass)
+    model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass, xlev = xlevels)
     Xmat <- model.matrix(formula, model_frame, contrasts = contrasts)
     y <- model.response(model_frame)
     offset <- model.offset(model_frame)
@@ -769,7 +766,7 @@ get_pred_spautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat,
 #' @order 3
 #' @export
 predict.splm_list <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                               level = 0.95, local, ...) {
+                              level = 0.95, local, ...) {
   # match interval argument so the three display
   interval <- match.arg(interval)
 
@@ -846,12 +843,9 @@ predict.splmRF <- function(object, newdata, local, ...) {
     }
     # do splm prediction
     splm_pred <- do.call(predict, list(object = object$splm, newdata = newdata, local = local))
-
   }
   # obtain final predictions
   ranger_pred$predictions + splm_pred
-
-
 }
 
 #' @rdname predict.spmodel
@@ -886,7 +880,6 @@ predict.spautorRF <- function(object, newdata, local, ...) {
     }
     # do spautor prediction
     spautor_pred <- do.call(predict, list(object = object$spautor, newdata = newdata, local = local))
-
   }
   # obtain final predictions
   ranger_pred$predictions + spautor_pred

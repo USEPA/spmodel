@@ -6,7 +6,6 @@ test_local <- FALSE # FALSE for CRAN
 
 #### local check
 if (test_local) {
-
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
   load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
@@ -339,7 +338,6 @@ if (test_local) {
       expect_error(spautor(y ~ x, exdata_poly, spcov_initial = spcov_initial_val, W = W, row_st = FALSE, estmethod = "ml"), NA)
       expect_error(spautor(y ~ x, exdata_poly, spcov_initial = spcov_initial_val, W = Wp, row_st = FALSE, estmethod = "ml"), NA)
     }
-
   })
 
   test_that("the model runs for connected sites (partition group)", {
@@ -623,5 +621,4 @@ if (test_local) {
     exdata_poly$novar <- 1
     expect_error(spautor(novar ~ x, exdata_poly, "car"))
   })
-
 }

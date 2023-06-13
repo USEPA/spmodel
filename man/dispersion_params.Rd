@@ -40,10 +40,13 @@ Setting \eqn{\phi = \lambda / \mu} yields our parameterization, which is
 preferred for computational stability. Also note that the dispersion parameter
 is often defined in the literature as \eqn{V(\mu) \phi}, where \eqn{V(\mu)} is the variance
 function of the mean. We do not use this parameterization, which is important
-to recognize while interpreting dispersion estimates using \code{spglm()}.
+to recognize while interpreting dispersion parameter estimates using \code{\link[=spglm]{spglm()}} or \code{\link[=spgautor]{spgautor()}}.
 For more on generalized linear model constructions, see McCullagh and
 Nelder (1989).
 }
 \examples{
 dispersion_params("beta", dispersion = 1)
+}
+\references{
+McCullagh P. and Nelder, J. A. (1989) \emph{Generalized Linear Models}. London: Chapman and Hall.
 }

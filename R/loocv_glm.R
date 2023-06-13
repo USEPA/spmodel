@@ -3,9 +3,6 @@
 #' @order 4
 #' @export
 loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
-
-
-
   if (missing(local)) {
     local <- NULL
   }
@@ -23,10 +20,11 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
   }
   local_list <- get_local_list_prediction(local)
 
+  y <- object$y
+
   if (local_list$method == "all") {
     cov_matrix_val <- covmatrix(object)
     X <- model.matrix(object)
-    y <- object$y
     cholprods <- get_cholprods_glm(cov_matrix_val, X, y)
     # actually need inverse because of HW blocking
     SigInv <- chol2inv(cholprods$Sig_lowchol)
@@ -45,35 +43,33 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
     # some products
     SigInv_w <- SigInv %*% w
     wX <- cbind(w, X)
-    SigInv_wX = cbind(SigInv_w, SigInv_X)
+    SigInv_wX <- cbind(SigInv_w, SigInv_X)
 
     # find H stuff
     wts_beta <- tcrossprod(cov_betahat, SigInv_X)
     Ptheta <- SigInv - SigInv_X %*% wts_beta
-    d <-  get_d(object$family, w, y, size, dispersion)
+    d <- get_d(object$family, w, y, size, dispersion)
     # and then the gradient vector
     # g <-  d - Ptheta %*% w
     # Next, compute H
     D <- get_D(object$family, w, y, size, dispersion)
     H <- D - Ptheta
-    mHinv <- solve(-H) #chol2inv(chol(Matrix::forceSymmetric(-H))) # solve(-H)
+    mHinv <- solve(-H) # chol2inv(chol(Matrix::forceSymmetric(-H))) # solve(-H)
 
     # parallel stuff
     if (local_list$parallel) {
       cl <- parallel::makeCluster(local_list$ncores)
       cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv_glm,
-                                                 Sig = cov_matrix_val,
-                                                 SigInv = SigInv, Xmat = X, w = w, wX = wX,
-                                                 SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
+        Sig = cov_matrix_val,
+        SigInv = SigInv, Xmat = X, w = w, wX = wX,
+        SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
       )
       cl <- parallel::stopCluster(cl)
     } else {
-
-
       cv_predict_val_list <- lapply(seq_len(object$n), get_loocv_glm,
-                                    Sig = cov_matrix_val,
-                                    SigInv = SigInv, Xmat = X, w = as.matrix(w, ncol = 1), wX = wX,
-                                    SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
+        Sig = cov_matrix_val,
+        SigInv = SigInv, Xmat = X, w = as.matrix(w, ncol = 1), wX = wX,
+        SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
       )
     }
     cv_predict_val <- vapply(cv_predict_val_list, function(x) x$pred, numeric(1))
@@ -102,17 +98,19 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
     }
   }
 
+  cv_predict_val_invlink <- invlink(cv_predict_val, object$family, object$size)
+
   if (cv_predict) {
     if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val - w)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
+      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
     } else {
-      cv_output <- list(mspe = mean((cv_predict_val - w)^2), cv_predict = as.vector(cv_predict_val))
+      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val))
     }
   } else {
     if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val - w)^2), se.fit = as.vector(cv_predict_se))
+      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), se.fit = as.vector(cv_predict_se))
     } else {
-      cv_output <- mean((cv_predict_val - w)^2)
+      cv_output <- mean((cv_predict_val_invlink - y)^2)
     }
   }
   cv_output
@@ -123,7 +121,6 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
 #' @order 5
 #' @export
 loocv.spgautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
-
   if (missing(local)) {
     local <- NULL
   }
@@ -151,35 +148,33 @@ loocv.spgautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ..
   # some products
   SigInv_w <- SigInv %*% w
   wX <- cbind(w, X)
-  SigInv_wX = cbind(SigInv_w, SigInv_X)
+  SigInv_wX <- cbind(SigInv_w, SigInv_X)
 
   # find H stuff
   wts_beta <- tcrossprod(cov_betahat, SigInv_X)
   Ptheta <- SigInv - SigInv_X %*% wts_beta
-  d <-  get_d(object$family, w, y, size, dispersion)
+  d <- get_d(object$family, w, y, size, dispersion)
   # and then the gradient vector
   # g <-  d - Ptheta %*% w
   # Next, compute H
   D <- get_D(object$family, w, y, size, dispersion)
   H <- D - Ptheta
-  mHinv <- solve(-H) #chol2inv(chol(Matrix::forceSymmetric(-H))) # solve(-H)
+  mHinv <- solve(-H) # chol2inv(chol(Matrix::forceSymmetric(-H))) # solve(-H)
 
   # parallel stuff
   if (local_list$parallel) {
     cl <- parallel::makeCluster(local_list$ncores)
     cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv_glm,
-                                               Sig = cov_matrix_val,
-                                               SigInv = SigInv, Xmat = X, w = w, wX = wX,
-                                               SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
+      Sig = cov_matrix_val,
+      SigInv = SigInv, Xmat = X, w = w, wX = wX,
+      SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
     )
     cl <- parallel::stopCluster(cl)
   } else {
-
-
     cv_predict_val_list <- lapply(seq_len(object$n), get_loocv_glm,
-                                  Sig = cov_matrix_val,
-                                  SigInv = SigInv, Xmat = X, w = as.matrix(w, ncol = 1), wX = wX,
-                                  SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
+      Sig = cov_matrix_val,
+      SigInv = SigInv, Xmat = X, w = as.matrix(w, ncol = 1), wX = wX,
+      SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
     )
   }
   cv_predict_val <- vapply(cv_predict_val_list, function(x) x$pred, numeric(1))
@@ -187,17 +182,19 @@ loocv.spgautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ..
     cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
   }
 
+  cv_predict_val_invlink <- invlink(cv_predict_val, object$family, object$size)
+
   if (cv_predict) {
     if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val - w)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
+      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
     } else {
-      cv_output <- list(mspe = mean((cv_predict_val - w)^2), cv_predict = as.vector(cv_predict_val))
+      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val))
     }
   } else {
     if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val - w)^2), se.fit = as.vector(cv_predict_se))
+      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), se.fit = as.vector(cv_predict_se))
     } else {
-      cv_output <- mean((cv_predict_val - w)^2)
+      cv_output <- mean((cv_predict_val_invlink - y)^2)
     }
   }
   cv_output

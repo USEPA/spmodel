@@ -22,7 +22,7 @@
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 
 \item{var_correct}{A logical indicating whether to return the corrected variance-covariance
-matrix for models fit using \code{spglm()} or \code{spgautor()}. The default is
+matrix for models fit using \code{\link[=spglm]{spglm()}} or \code{\link[=spgautor]{spgautor()}}. The default is
 \code{TRUE}.}
 }
 \value{

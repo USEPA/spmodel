@@ -8,11 +8,21 @@
 
 ## Major updates
 
+* Added an `spglm()` function to fit spatial generalized linear models for point-referenced data (i.e., generalized geostatistical models).
+    * `spglm()` syntax is very similar to `splm()` syntax.
+    * Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian families are accommodated.
+    * `spglm()` fitted model objects use the same generics as `splm()` fitted model objects.
+* Added an `spgautor()` function to fit spatial generalized linear models for areal data (i.e., spatial generalized autoregressive models).
+    * `spgautor()` syntax is very similar to `spautor()` syntax.
+    * Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian families are accommodated.
+    * `spgautor()` fitted model objects use the same generics as `spautor()` fitted model objects.
+
 ## Minor updates
 
 * In `augment()`, made the `level` and `local` arguments explicit (rather than being passed to `predict()` via `...`).
 * Added `offset` support for relevant modeling functions.
-* Minor documentation updates
+* Minor documentation updates.
+* Minor vignette updates.
 
 ## Bug fixes
 
@@ -21,8 +31,10 @@
 * Fixed a bug in `esv()` that prevented coercion of `POLYGON`geometries to `POINT` geometries if `data` was an `sf` object.
 * Fixed a bug in `esv()` that did not remove `NA` values from the response.
 * Fixed a bug in `splm()` and `spautor()` that caused an error when random effects or partition factors were ordered factors.
-* Fixed a bug in `spautor()` that prevented an error from occuring when a partition factor was not categorical or not a factor
+* Fixed a bug in `spautor()` that prevented an error from occurring when a partition factor was not categorical or not a factor
 * Fixed a bug in `covmatrix(object, newdata)` that returned a matrix with improper dimensions when `spcov_type` was `"none"`.
+* Fixed a bug in `predict()` that caused an error when at least one level of a fixed effect factor was not observed within a local neighborhood (when the `local` method was `"covariance"` or `"distance")`.
+* Fixed a bug in `cooks.distance()` that used the Pearson residuals instead of the standarized residuals.
 
 # spmodel 0.3.0
 

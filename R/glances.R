@@ -5,7 +5,7 @@
 #'
 #' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Additional fitted model objects. Ignored
-#'   if \code{object} has class \code{splm_list} or \code{spautor_list}.
+#'   if \code{object} has class \code{splm_list}, \code{spautor_list}, \code{spglm_list}, or \code{spgautor_list}.
 #' @param sort_by Sort by a \code{glance} statistic (i.e., the name of a column
 #'   output from \code{glance()} or the order of model input (\code{sort_by = "order"}).
 #'   The default is \code{"AICc"}.

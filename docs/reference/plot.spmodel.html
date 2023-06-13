@@ -16,7 +16,7 @@ fitted anisotropic level curve of equal correlation."><!-- mathjax --><script sr
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,7 +55,7 @@ fitted anisotropic level curve of equal correlation."><!-- mathjax --><script sr
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Plot fitted model diagnostics</h1>
-      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/plot.R" class="external-link"><code>R/plot.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/plot.R" class="external-link"><code>R/plot.R</code></a>, <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/plot_glm.R" class="external-link"><code>R/plot_glm.R</code></a></small>
       <div class="d-none name"><code>plot.spmodel.Rd</code></div>
     </div>
 
@@ -72,21 +72,27 @@ fitted anisotropic level curve of equal correlation.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">which</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for spautor</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">which</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spglm</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">which</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">which</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>x</dt>
-<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code> or <code><a href="spautor.html">spautor()</a></code>.</p></dd>
+<dd><p>A fitted model object from <code><a href="splm.html">splm()</a></code>, <code><a href="spautor.html">spautor()</a></code>, <code><a href="spglm.html">spglm()</a></code>, or <code><a href="spgautor.html">spgautor()</a></code>.</p></dd>
 
 
 <dt>which</dt>
 <dd><p>An integer vector taking on values between 1 and 7, which indicates
 the plots to return. Available plots are described in Details. If <code>which</code>
 has length greater than one, additional plots are stepped through in order
-using <code>&lt;Return&gt;</code>. The default for <code><a href="splm.html">splm()</a></code> fitted model objects is
-<code>which = c(1, 2, 7)</code>. The default for <code><a href="spautor.html">spautor()</a></code> fitted model objects
+using <code>&lt;Return&gt;</code>. The default for <code><a href="splm.html">splm()</a></code> and <code><a href="spglm.html">spglm()</a></code> fitted model objects is
+<code>which = c(1, 2, 7)</code>. The default for <code><a href="spautor.html">spautor()</a></code> and <code><a href="spgautor.html">spgautor()</a></code> fitted model objects
 is <code>which = c(1, 2)</code>.</p></dd>
 
 
@@ -102,14 +108,14 @@ is <code>which = c(1, 2)</code>.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>For <code><a href="splm.html">splm()</a></code> and <code><a href="spautor.html">spautor()</a></code>, the values of <code>which</code> make the
+    <p>For all fitted model objects,, the values of <code>which</code> make the
 corresponding plot:</p><ul><li><p>1: Standardized residuals vs fitted values (of the response)</p></li>
 <li><p>2: Normal quantile-quantile plot of standardized residuals</p></li>
 <li><p>3: Scale-location plot of standardized residuals</p></li>
 <li><p>4: Cook's distance</p></li>
 <li><p>5: Standardized residuals vs leverage</p></li>
 <li><p>6: Cook's distance vs leverage</p></li>
-</ul><p>For <code><a href="splm.html">splm()</a></code>, there are two additional values of <code>which</code>:</p><ul><li><p>7: Fitted spatial covariance function vs distance</p></li>
+</ul><p>For <code><a href="splm.html">splm()</a></code> and <code><a href="spglm.html">spglm()</a></code> fitted model objects, there are two additional values of <code>which</code>:</p><ul><li><p>7: Fitted spatial covariance function vs distance</p></li>
 <li><p>8: Fitted anisotropic level curve of equal correlation</p></li>
 </ul></div>
 

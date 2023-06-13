@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +49,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Model predictions (Kriging)</h1>
-      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/predict.R" class="external-link"><code>R/predict.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/predict.R" class="external-link"><code>R/predict.R</code></a>, <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/predict_glm.R" class="external-link"><code>R/predict_glm.R</code></a></small>
       <div class="d-none name"><code>predict.spmodel.Rd</code></div>
     </div>
 
@@ -113,7 +113,63 @@
 <span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">newdata</span>, <span class="va">local</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for spautorRF_list</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">newdata</span>, <span class="va">local</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">newdata</span>, <span class="va">local</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spglm</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  <span class="va">newdata</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"link"</span>, <span class="st">"response"</span><span class="op">)</span>,</span>
+<span>  se.fit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
+<span>  <span class="va">newdata_size</span>,</span>
+<span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  <span class="va">local</span>,</span>
+<span>  var_correct <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  <span class="va">newdata</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"link"</span>, <span class="st">"response"</span><span class="op">)</span>,</span>
+<span>  se.fit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
+<span>  <span class="va">newdata_size</span>,</span>
+<span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  <span class="va">local</span>,</span>
+<span>  var_correct <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spglm_list</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  <span class="va">newdata</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"link"</span>, <span class="st">"response"</span><span class="op">)</span>,</span>
+<span>  se.fit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
+<span>  <span class="va">newdata_size</span>,</span>
+<span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  <span class="va">local</span>,</span>
+<span>  var_correct <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor_list</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  <span class="va">newdata</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"link"</span>, <span class="st">"response"</span><span class="op">)</span>,</span>
+<span>  se.fit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
+<span>  <span class="va">newdata_size</span>,</span>
+<span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  <span class="va">local</span>,</span>
+<span>  var_correct <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -163,10 +219,10 @@ with the highest covariance with the observation requiring prediction are used.
 If random effects and partition factors are not used in estimation and
 the spatial covariance function is monotone decreasing,
 <code>"distance"</code> and <code>"covariance"</code> are equivalent. The default
-is <code>"covariance"</code>. Only used with models fit using <code><a href="splm.html">splm()</a></code>.</p></li>
+is <code>"covariance"</code>. Only used with models fit using <code><a href="splm.html">splm()</a></code> or <code><a href="spglm.html">spglm()</a></code>.</p></li>
 <li><p><code>size</code>: The number of data observations to use when <code>method</code>
 is <code>"distance"</code> or <code>"covariance"</code>. The default is 50. Only used
-with models fit using <code><a href="splm.html">splm()</a></code>.</p></li>
+with models fit using <code><a href="splm.html">splm()</a></code> or <code><a href="spglm.html">spglm()</a></code>.</p></li>
 <li><p><code>parallel</code>: If <code>TRUE</code>, parallel processing via the
 parallel package is automatically used. The default is <code>FALSE</code>.</p></li>
 <li><p><code>ncores</code>: If <code>parallel = TRUE</code>, the number of cores to
@@ -182,6 +238,22 @@ that <code>local</code> is transformed into
 <dd><p>Other arguments. Only used for models fit using <code><a href="splmRF.html">splmRF()</a></code>
 or <code><a href="spautorRF.html">spautorRF()</a></code> where <code>...</code> indicates other
 arguments to <code><a href="https://rdrr.io/pkg/ranger/man/predict.ranger.html" class="external-link">ranger::predict.ranger()</a></code>.</p></dd>
+
+
+<dt>type</dt>
+<dd><p>The scale (<code>response</code> or <code>link</code>) of predictions obtained
+using <code><a href="spglm.html">spglm()</a></code> or <code>spgautor</code> objects.</p></dd>
+
+
+<dt>newdata_size</dt>
+<dd><p>The <code>size</code> value for each observation in <code>newdata</code>
+used when predicting for the binomial family.</p></dd>
+
+
+<dt>var_correct</dt>
+<dd><p>A logical indicating whether to return the corrected prediction
+variances when predicting via models fit using <code><a href="spglm.html">spglm()</a></code> or <code><a href="spgautor.html">spgautor()</a></code>. The default is
+<code>TRUE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -369,55 +441,55 @@ regression to random forests for large environmental data sets.
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dimension:     XY</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Bounding box:  xmin: -2283774 ymin: 582930.5 xmax: 1985906 ymax: 3037173</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Projected CRS: NAD83 / Conus Albers</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 100 x 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 100 x 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    .fitted .lower .upper            geometry</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  *   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;         &lt;POINT [m]&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1    1.62  -6.45   9.68  (-1771413 1752976)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2   24.4   16.8   31.9    (1018112 1867127)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3    8.95   1.03  16.9  (-291256.8 1553212)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4   16.5    8.64  24.3    (1274293 1267835)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5    4.93  -2.78  12.6  (-547437.6 1638825)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6   26.8   19.3   34.3    (1445080 1981278)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7    2.87  -5.05  10.8   (-1629090 3037173)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8   14.3    6.77  21.7    (1302757 1039534)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9    1.53  -6.33   9.38  (-1429838 2523494)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10   14.3    6.61  21.9    (1131970 1096609)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # ... with 90 more rows</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  <span style="color: #BCBCBC;">*</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;POINT [m]&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>    1.62  -<span style="color: #BB0000;">6.45</span>   9.68  (-1771413 1752976)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>   24.4   16.8   31.9    (1018112 1867127)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>    8.95   1.03  16.9  (-291256.8 1553212)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>   16.5    8.64  24.3    (1274293 1267835)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>    4.93  -<span style="color: #BB0000;">2.78</span>  12.6  (-547437.6 1638825)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>   26.8   19.3   34.3    (1445080 1981278)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>    2.87  -<span style="color: #BB0000;">5.05</span>  10.8   (-1629090 3037173)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>   14.3    6.77  21.7    (1302757 1039534)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>    1.53  -<span style="color: #BB0000;">6.33</span>   9.38  (-1429838 2523494)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>   14.3    6.61  21.9    (1131970 1096609)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ... with 90 more rows</span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="va">sulfate</span><span class="op">$</span><span class="va">var</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">sulfate</span><span class="op">)</span><span class="op">)</span> <span class="co"># add noise variable</span></span></span>
 <span class="r-in"><span><span class="va">sulfate_preds</span><span class="op">$</span><span class="va">var</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">NROW</a></span><span class="op">(</span><span class="va">sulfate_preds</span><span class="op">)</span><span class="op">)</span> <span class="co"># add noise variable</span></span></span>
 <span class="r-in"><span><span class="va">sprfmod</span> <span class="op">&lt;-</span> <span class="fu"><a href="splmRF.html">splmRF</a></span><span class="op">(</span><span class="va">sulfate</span> <span class="op">~</span> <span class="va">var</span>, data <span class="op">=</span> <span class="va">sulfate</span>, spcov_type <span class="op">=</span> <span class="st">"exponential"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">sprfmod</span>, <span class="va">sulfate_preds</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          1          2          3          4          5          6          7 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -4.5412121 21.0130782  4.3252363  4.6035311 -0.5542618 16.0150993  3.1579786 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.9454275 20.3256222 18.2281829 12.2212795  1.3810121 19.8631422  7.1876770 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          8          9         10         11         12         13         14 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13.6421271 12.7069907  9.5032163  5.9860484  9.2956157 -1.2194034 26.5518548 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7.9454704  0.8336677 13.0672872 -3.1892785  8.4446253  6.5442407 18.7787205 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         15         16         17         18         19         20         21 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17.5346250 16.6730885 29.6485110  4.2511584 -1.0684670 18.1169869  0.8698343 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13.8871415 15.5005220 26.8557942  2.2578107 -3.6229680 17.5921390  3.5765248 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         22         23         24         25         26         27         28 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -2.9191513 -6.5555857 -4.4772742 -2.0745323 -4.8582602 14.9285529 17.2018810 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4.5569616 -1.5113169 -0.4263755 -1.3223884  5.8694287 12.9131610 10.4940185 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         29         30         31         32         33         34         35 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15.4330616  4.3217001 -4.1264831  3.0886081 14.7139810  1.9487877 -6.5163735 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 39.4824492  2.9003626 -2.0465190 -3.9872107 18.2765349 -3.8704985  6.3853238 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         36         37         38         39         40         41         42 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 21.1190169 16.2286155 12.9601816 13.3021564 11.1847561  6.0589635 21.2448950 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8.1310436 10.2512472  0.5693266 20.7479217 13.6778628  6.7023790 33.1380560 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         43         44         45         46         47         48         49 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11.7130563 25.9252111  3.6904494 20.2647600 -2.5031551 12.8369830 30.9027190 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13.7864690 25.1775263 -2.4338986  8.2844704 13.3588427 20.1665807 23.8357553 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         50         51         52         53         54         55         56 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -7.4472781 25.1125378 12.4751001  8.3999820  9.9250293  6.5567020 18.4510750 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -3.5505718 25.6720901 12.7154866 10.0596849  4.6756348 19.9533687 18.2868695 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         57         58         59         60         61         62         63 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 18.8204643  6.8621364  7.9445383 10.9477857 19.6811233 26.0624695 -9.8818585 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12.5973124 -5.4404805 14.5595911 21.7584555 21.7012873 24.5214840 11.4205815 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         64         65         66         67         68         69         70 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20.1549538 26.8916235  7.5906984 -4.3488338  8.5671156  5.9419318 14.9929533 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18.6506569 38.9204158  9.8582106  5.1101864  2.1120523  2.3116527 19.0546543 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         71         72         73         74         75         76         77 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.1882757 18.9164781  9.2473258  3.0248946 -4.8898098 -4.4693354 26.4149417 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11.6172971 17.8593750 13.8972157  3.1356734  2.1373544 -1.9391285 20.3017700 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         78         79         80         81         82         83         84 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8.6520938 22.2484223 12.2424460 28.2687321  2.0280383 12.9386637 -1.9898682 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2.6878419 18.0480650 12.4145141 12.3960673  7.2549168  7.0172272 -4.5550982 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         85         86         87         88         89         90         91 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.3708137 16.2229053  1.7129495 16.4163305  8.2645936 20.8179452  6.7337119 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7.6953132 14.6852843 11.3248981  0.6157642 13.8416768 28.3935562 -2.7093238 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         92         93         94         95         96         97         98 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5.6597595  7.7821280 25.7043838  5.4480683  8.7738488 18.8986954 11.6332948 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14.0187140 18.7069706 32.3944434 20.9514243 12.4592965 15.2446538 21.2156343 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         99        100 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 24.5800025 14.8935918 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 28.4389537 12.9176720 </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

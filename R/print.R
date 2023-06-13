@@ -2,7 +2,7 @@
 #'
 #' @description Print fitted model objects and summaries.
 #'
-#' @param x A fitted model object from [splm()] or [spautor()] or output from
+#' @param x A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()] or output from
 #'   \code{summary(x)} or or \code{anova(x)}.
 #' @param digits The number of significant digits to use when printing.
 #' @param signif.stars Logical. If \code{TRUE}, significance stars are printed for each coefficient
@@ -24,7 +24,7 @@
 #' print(summary(spmod))
 #' print(anova(spmod))
 print.splm <- function(x, digits = max(3L, getOption("digits") - 3L),
-                        ...) {
+                       ...) {
   cat("\nCall:\n", paste(deparse(x$call),
     sep = "\n",
     collapse = "\n"
@@ -74,18 +74,18 @@ print.splm <- function(x, digits = max(3L, getOption("digits") - 3L),
 #' @order 2
 #' @export
 print.spautor <- function(x, digits = max(3L, getOption("digits") - 3L),
-                       ...) {
+                          ...) {
   cat("\nCall:\n", paste(deparse(x$call),
-                         sep = "\n",
-                         collapse = "\n"
+    sep = "\n",
+    collapse = "\n"
   ), "\n\n", sep = "")
 
   cat("\n")
 
   cat("Coefficients (fixed):\n")
   print.default(format(coef(x, type = "fixed"), digits = digits),
-                print.gap = 2L,
-                quote = FALSE
+    print.gap = 2L,
+    quote = FALSE
   )
 
   cat("\n")
@@ -106,8 +106,8 @@ print.spautor <- function(x, digits = max(3L, getOption("digits") - 3L),
 
   cat(paste("\nCoefficients (", class(coef(x, type = "spcov")), " spatial covariance):\n", sep = ""))
   print.default(format(spcoef, digits = digits),
-                print.gap = 2L,
-                quote = FALSE
+    print.gap = 2L,
+    quote = FALSE
   )
 
   cat("\n")
@@ -115,8 +115,8 @@ print.spautor <- function(x, digits = max(3L, getOption("digits") - 3L),
   if (length(coef(x, type = "randcov"))) {
     cat("Coefficients (random effects):\n")
     print.default(format(coef(x, type = "randcov"), digits = digits),
-                  print.gap = 2L,
-                  quote = FALSE
+      print.gap = 2L,
+      quote = FALSE
     )
 
     cat("\n")
@@ -129,9 +129,9 @@ print.spautor <- function(x, digits = max(3L, getOption("digits") - 3L),
 #' @order 3
 #' @export
 print.summary.splm <- function(x,
-                                digits = max(3L, getOption("digits") - 3L),
-                                signif.stars = getOption("show.signif.stars"),
-                                ...) {
+                               digits = max(3L, getOption("digits") - 3L),
+                               signif.stars = getOption("show.signif.stars"),
+                               ...) {
   # pasting the formula call
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
 
@@ -187,9 +187,9 @@ print.summary.splm <- function(x,
 #' @order 4
 #' @export
 print.summary.spautor <- function(x,
-                               digits = max(3L, getOption("digits") - 3L),
-                               signif.stars = getOption("show.signif.stars"),
-                               ...) {
+                                  digits = max(3L, getOption("digits") - 3L),
+                                  signif.stars = getOption("show.signif.stars"),
+                                  ...) {
   # pasting the formula call
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
 
@@ -250,7 +250,7 @@ print.summary.spautor <- function(x,
 #' @order 5
 #' @export
 print.anova.splm <- function(x, digits = max(getOption("digits") - 2L, 3L),
-                              signif.stars = getOption("show.signif.stars"), ...) {
+                             signif.stars = getOption("show.signif.stars"), ...) {
   cat(attr(x, "heading")[1])
   cat("\n")
   cat(attr(x, "heading")[2])

@@ -1,5 +1,5 @@
 use_laploglik_anis <- function(spcov_initial, dispersion_initial, data_object, estmethod, spcov_profiled,
-                             randcov_initial = NULL, randcov_profiled = NULL, optim_dotlist) {
+                               randcov_initial = NULL, randcov_profiled = NULL, optim_dotlist) {
 
   # transforming to optim paramters (log odds or log scale)
   spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = spcov_profiled)
@@ -52,8 +52,8 @@ use_laploglik_anis <- function(spcov_initial, dispersion_initial, data_object, e
   #
   # transforming to original scale
   randcov_orig_val <- randcov_optim2orig(randcov_orig2optim_val, spcov_orig2optim_val, par,
-                                         randcov_profiled = randcov_profiled,
-                                         spcov_optim2orig = spcov_params_val
+    randcov_profiled = randcov_profiled,
+    spcov_optim2orig = spcov_params_val
   )
 
   # need to deal with list if randcov_profiled as sp variance changes
@@ -70,7 +70,7 @@ use_laploglik_anis <- function(spcov_initial, dispersion_initial, data_object, e
   # quadrant 1
   ## make distance matrix
   new_coords_list_q1 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-                               rotate = spcov_params_val[["rotate"]], scale = spcov_params_val[["scale"]]
+    rotate = spcov_params_val[["rotate"]], scale = spcov_params_val[["scale"]]
   )
 
   dist_matrix_list_q1 <- lapply(new_coords_list_q1, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
@@ -85,7 +85,7 @@ use_laploglik_anis <- function(spcov_initial, dispersion_initial, data_object, e
   minustwolaploglik_q1 <- get_minustwolaploglik(lapll_prods_q1, estmethod, data_object$n, data_object$p, spcov_profiled = spcov_profiled, randcov_profiled = randcov_profiled)
 
   new_coords_list_q2 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-                               rotate = abs(pi - spcov_params_val[["rotate"]]), scale = spcov_params_val[["scale"]]
+    rotate = abs(pi - spcov_params_val[["rotate"]]), scale = spcov_params_val[["scale"]]
   )
   dist_matrix_list_q2 <- lapply(new_coords_list_q2, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
 
@@ -97,8 +97,8 @@ use_laploglik_anis <- function(spcov_initial, dispersion_initial, data_object, e
 
   # find -2loglik
   minustwolaploglik_q2 <- get_minustwolaploglik(lapll_prods_q2, estmethod, data_object$n,
-                                          data_object$p,
-                                          spcov_profiled = spcov_profiled, randcov_profiled = randcov_profiled
+    data_object$p,
+    spcov_profiled = spcov_profiled, randcov_profiled = randcov_profiled
   )
 
   ## find appropriate value
@@ -147,5 +147,4 @@ use_laploglik_anis <- function(spcov_initial, dispersion_initial, data_object, e
     optim_output = optim_output, dist_matrix_list = dist_matrix_list,
     is_known = list(spcov = spcov_initial$is_known, dispersion = dispersion_initial$is_known, randcov = randcov_initial$is_known)
   )
-
 }

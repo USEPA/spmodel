@@ -6,12 +6,7 @@
 \alias{spmodel-package}
 \title{spmodel: Spatial Statistical Modeling and Prediction}
 \description{
-Fit, summarize, and predict for a variety of spatial statistical models
-    applied to point-referenced and areal (lattice) data. Parameters
-    are estimated using various methods. Additional modeling features include anisotropy,
-    non-spatial random effects, partition factors, big data approaches, and more. Model-fit statistics are
-    used to summarize, visualize, and compare models. Predictions at unobserved locations are
-    readily obtainable. For additional details, see Dumelle et al. (2023) <doi:10.1371/journal.pone.0282524>.
+Fit, summarize, and predict for a variety of spatial statistical models applied to point-referenced and areal (lattice) data. Parameters are estimated using various methods. Additional modeling features include anisotropy, non-spatial random effects, partition factors, big data approaches, and more. Model-fit statistics are used to summarize, visualize, and compare models. Predictions at unobserved locations are readily obtainable. For additional details, see Dumelle et al. (2023) <doi:10.1371/journal.pone.0282524>.
 }
 \seealso{
 Useful links:

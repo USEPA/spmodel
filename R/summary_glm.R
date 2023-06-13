@@ -14,8 +14,10 @@ summary.spglm <- function(object, ...) {
   spcov_params_val <- coef(object, type = "spcov")
   dispersion_params_val <- coef(object, type = "dispersion")
   randcov_params_val <- coef(object, type = "randcov")
-  coefficients <- list(fixed = summary_coefficients_fixed, spcov = spcov_params_val,
-                       dispersion = dispersion_params_val, randcov = randcov_params_val)
+  coefficients <- list(
+    fixed = summary_coefficients_fixed, spcov = spcov_params_val,
+    dispersion = dispersion_params_val, randcov = randcov_params_val
+  )
   summary_list <- list(
     call = object$call,
     terms = object$terms,

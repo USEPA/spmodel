@@ -5,7 +5,6 @@ test_that("blank test", {
 test_local <- FALSE # FALSE for CRAN
 
 if (test_local) {
-
   set.seed(1)
 
   # SPMODEL PACKAGE NEEDS TO BE INSTALLED VIA DEVTOOLS::INSTALL() BEFORE RUNNING TESTS IF THOSE TESTS HAVE PARALLELIZATION
@@ -28,7 +27,6 @@ if (test_local) {
     #### CRAN checks
     ##### local tests
     if (test_local) {
-
       test_that("the model runs", {
         spcov_type <- "exponential"
         num.tree <- 499
@@ -58,10 +56,4 @@ if (test_local) {
       expect_error(splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "sv-cl", num.trees = num.tree), NA)
     })
   }
-
-
-
-
-
 }
-

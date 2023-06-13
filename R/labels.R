@@ -2,7 +2,7 @@
 #'
 #' @description Find a suitable set of labels from a fitted model object.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @return A character vector containing the terms used for the fixed effects

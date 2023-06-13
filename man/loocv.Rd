@@ -19,15 +19,18 @@ loocv(object, ...)
 \method{loocv}{spgautor}(object, cv_predict = FALSE, se.fit = FALSE, local, ...)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
+\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 
 \item{cv_predict}{A logical indicating whether the leave-one-out fitted values
-should be returned. Defaults to \code{FALSE}.}
+should be returned. Defaults to \code{FALSE}. If \code{object} is from \code{\link[=spglm]{spglm()}} or \code{\link[=spgautor]{spgautor()}},
+the fitted values returned are on the link scale.}
 
 \item{se.fit}{A logical indicating whether the leave-one-out
-prediction standard errors should be returned. Defaults to \code{FALSE}.}
+prediction standard errors should be returned. Defaults to \code{FALSE}.
+If \code{object} is from \code{\link[=spglm]{spglm()}} or \code{\link[=spgautor]{spgautor()}},
+the standard errors correspond to the fitted values returned on the link scale.}
 
 \item{local}{A list or logical. If a list, specific list elements described
 in \code{\link[=predict.spmodel]{predict.spmodel()}} control the big data approximation behavior.

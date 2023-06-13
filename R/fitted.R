@@ -3,7 +3,7 @@
 #' @description Extract fitted values from fitted model objects. \code{fitted.values}
 #'   is an alias.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param type \code{"response"} for fitted values of the response, \code{"spcov"}
 #'   for fitted values of the spatial random errors, or \code{"randcov"} for
 #'   fitted values of the random effects. The default is \code{"response"}.

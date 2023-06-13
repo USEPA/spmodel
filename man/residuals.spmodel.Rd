@@ -41,15 +41,17 @@
 \method{rstandard}{spgautor}(model, ...)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
+\item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
 \item{type}{\code{"response"} for response residuals, \code{"pearson"}
 for Pearson residuals, or \code{"standardized"} for standardized residuals.
-The default is \code{"response"}.}
+For \code{\link[=splm]{splm()}} and \code{\link[=spautor]{spautor()}} fitted model objects, the default is \code{"response"}.
+For \code{\link[=spglm]{spglm()}} and \code{\link[=spgautor]{spgautor()}} fitted model objects, deviance residuals are
+also available (\code{"deviance"}) and are the default residual type.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 
-\item{model}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
+\item{model}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 }
 \value{
 The residuals as a numeric vector.
@@ -61,7 +63,7 @@ Extract residuals from a fitted model object.
 \details{
 The response residuals are taken as the response minus the fitted values
 for the response: \eqn{y - X \hat{\beta}}. The Pearson residuals are the
-response residuals pre-multiplied by their square (Cholesky) root.
+response residuals pre-multiplied by their inverse square root.
 The standardized residuals are Pearson residuals divided by the square
 root of one minus the leverage (hat) value. The standardized residuals are often used to
 check model assumptions, as they have mean zero and variance approximately one.
@@ -78,4 +80,7 @@ resid(spmod)
 residuals(spmod, type = "pearson")
 residuals(spmod, type = "standardized")
 rstandard(spmod)
+}
+\seealso{
+\code{\link[=augment.spmodel]{augment.spmodel()}} \code{\link[=cooks.distance.spmodel]{cooks.distance.spmodel()}} \code{\link[=hatvalues.spmodel]{hatvalues.spmodel()}} \code{\link[=influence.spmodel]{influence.spmodel()}}
 }

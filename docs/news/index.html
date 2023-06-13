@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,6 +52,43 @@
       <small>Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.0" id="spmodel-040">spmodel 0.4.0<a class="anchor" aria-label="anchor" href="#spmodel-040"></a></h2>
+<div class="section level3">
+<h3 id="major-updates-0-4-0">Major updates<a class="anchor" aria-label="anchor" href="#major-updates-0-4-0"></a></h3>
+<ul><li>Added an <code><a href="../reference/spglm.html">spglm()</a></code> function to fit spatial generalized linear models for point-referenced data (i.e., generalized geostatistical models).<ul><li>
+<code><a href="../reference/spglm.html">spglm()</a></code> syntax is very similar to <code><a href="../reference/splm.html">splm()</a></code> syntax.</li>
+<li>Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian families are accommodated.</li>
+<li>
+<code><a href="../reference/spglm.html">spglm()</a></code> fitted model objects use the same generics as <code><a href="../reference/splm.html">splm()</a></code> fitted model objects.</li>
+</ul></li>
+<li>Added an <code><a href="../reference/spgautor.html">spgautor()</a></code> function to fit spatial generalized linear models for areal data (i.e., spatial generalized autoregressive models).<ul><li>
+<code><a href="../reference/spgautor.html">spgautor()</a></code> syntax is very similar to <code><a href="../reference/spautor.html">spautor()</a></code> syntax.</li>
+<li>Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian families are accommodated.</li>
+<li>
+<code><a href="../reference/spgautor.html">spgautor()</a></code> fitted model objects use the same generics as <code><a href="../reference/spautor.html">spautor()</a></code> fitted model objects.</li>
+</ul></li>
+</ul></div>
+<div class="section level3">
+<h3 id="minor-updates-0-4-0">Minor updates<a class="anchor" aria-label="anchor" href="#minor-updates-0-4-0"></a></h3>
+<ul><li>In <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>, made the <code>level</code> and <code>local</code> arguments explicit (rather than being passed to <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> via <code>...</code>).</li>
+<li>Added <code>offset</code> support for relevant modeling functions.</li>
+<li>Minor documentation updates.</li>
+<li>Minor vignette updates.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-4-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-4-0"></a></h3>
+<ul><li>Fixed a bug in <code><a href="../reference/spcov_params.html">spcov_params()</a></code> that yielded output with improper names when a named vector was used as an argument.</li>
+<li>Fixed a bug in <code><a href="../reference/spautor.html">spautor()</a></code> that did not properly coerce <code>M</code> if given as a matrix (instead of a vector).</li>
+<li>Fixed a bug in <code><a href="../reference/esv.html">esv()</a></code> that prevented coercion of <code>POLYGON</code>geometries to <code>POINT</code> geometries if <code>data</code> was an <code>sf</code> object.</li>
+<li>Fixed a bug in <code><a href="../reference/esv.html">esv()</a></code> that did not remove <code>NA</code> values from the response.</li>
+<li>Fixed a bug in <code><a href="../reference/splm.html">splm()</a></code> and <code><a href="../reference/spautor.html">spautor()</a></code> that caused an error when random effects or partition factors were ordered factors.</li>
+<li>Fixed a bug in <code><a href="../reference/spautor.html">spautor()</a></code> that prevented an error from occurring when a partition factor was not categorical or not a factor</li>
+<li>Fixed a bug in <code>covmatrix(object, newdata)</code> that returned a matrix with improper dimensions when <code>spcov_type</code> was <code>"none"</code>.</li>
+<li>Fixed a bug in <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> that caused an error when at least one level of a fixed effect factor was not observed within a local neighborhood (when the <code>local</code> method was <code>"covariance"</code> or <code>"distance")</code>.</li>
+<li>Fixed a bug in <code><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">cooks.distance()</a></code> that used the Pearson residuals instead of the standarized residuals.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="spmodel-030">spmodel 0.3.0<a class="anchor" aria-label="anchor" href="#spmodel-030"></a></h2><p class="text-muted">CRAN release: 2023-03-10</p>
 <div class="section level3">

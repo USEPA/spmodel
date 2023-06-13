@@ -28,7 +28,7 @@ get_V <- function(w, family, size, dispersion) {
     V <- size * mu * (1 - mu)
   } else if (family == "nbinomial") {
     mu <- exp(w)
-    V <-  mu / (1 + (mu / dispersion)) # from Ver Hoef and Boveng 2007
+    V <- mu / (1 + (mu / dispersion)) # from Ver Hoef and Boveng 2007
   } else if (family == "Gamma") {
     mu <- exp(w)
     V <- mu^2

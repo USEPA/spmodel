@@ -5,7 +5,7 @@
 #' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #' @param var_correct A logical indicating whether to return the corrected variance-covariance
-#'   matrix for models fit using \code{spglm()} or \code{spgautor()}. The default is
+#'   matrix for models fit using [spglm()] or [spgautor()]. The default is
 #'   \code{TRUE}.
 #'
 #' @return The variance-covariance matrix of coefficients obtained via \code{coef()}.

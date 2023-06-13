@@ -12,7 +12,7 @@ laploglik_products <- function(spcov_params_val, dispersion_params_val, ...) {
 }
 #' @export
 laploglik_products.exponential <- function(spcov_params_val, dispersion_params_val, data_object, estmethod,
-                                         dist_matrix_list, randcov_params_val, ...) {
+                                           dist_matrix_list, randcov_params_val, ...) {
 
   # if (inherits(spcov_params_val, "none")) {
   #   # instability when in smw of H when ie is small enough and the covariance is "none"
@@ -30,7 +30,8 @@ laploglik_products.exponential <- function(spcov_params_val, dispersion_params_v
 
   # making a covariance matrix
   cov_matrix_list <- get_cov_matrix_list(spcov_params_val, dist_matrix_list, randcov_params_val, data_object$randcov_list, data_object$partition_list,
-                                         diagtol = data_object$diagtol)
+    diagtol = data_object$diagtol
+  )
 
 
   # cholesky products
@@ -74,8 +75,10 @@ laploglik_products.exponential <- function(spcov_params_val, dispersion_params_v
   dispersion <- as.vector(dispersion_params_val) # take class away
 
   # newton rhapson
-  w_and_H <- get_w_and_H_spglm(data_object, dispersion,
-                         SigInv_list, SigInv_X, cov_betahat, Xt_SigInv_X, estmethod)
+  w_and_H <- get_w_and_H_spglm(
+    data_object, dispersion,
+    SigInv_list, SigInv_X, cov_betahat, Xt_SigInv_X, estmethod
+  )
 
   w <- w_and_H$w
   # H <- w_and_H$H
@@ -143,8 +146,7 @@ laploglik_products.pexponential <- laploglik_products.exponential
 
 #' @export
 laploglik_products.car <- function(spcov_params_val, dispersion_params_val, data_object, estmethod,
-                                 dist_matrix_list, randcov_params_val, ...) {
-
+                                   dist_matrix_list, randcov_params_val, ...) {
   spautor_cov_matrixInv_val <- spautor_cov_matrixInv(
     spcov_params_val, data_object,
     dist_matrix_list, randcov_params_val
@@ -163,8 +165,10 @@ laploglik_products.car <- function(spcov_params_val, dispersion_params_val, data
   dispersion <- as.vector(dispersion_params_val) # take class away
 
   # newton rhapson
-  w_and_H <- get_w_and_H_spgautor(data_object, dispersion,
-                               SigInv, SigInv_X, cov_betahat, Xt_SigInv_X, estmethod)
+  w_and_H <- get_w_and_H_spgautor(
+    data_object, dispersion,
+    SigInv, SigInv_X, cov_betahat, Xt_SigInv_X, estmethod
+  )
 
   w <- w_and_H$w
   # H <- w_and_H$H
@@ -202,8 +206,6 @@ laploglik_products.sar <- laploglik_products.car
 
 
 get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod, ret_mHInv = FALSE) {
-
-
   family <- data_object$family
   SigInv <- Matrix::bdiag(SigInv_list)
   Ptheta <- SigInv - SigInv_X %*% tcrossprod(cov_betahat, SigInv_X)
@@ -216,18 +218,15 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
 
 
   if (length(SigInv_list) == 1) {
-
     while (iter < 50 && wdiffmax > 1e-4) {
-
-
       iter <- iter + 1
       # compute the d vector
-      d <-  get_d(family, w, y, size, dispersion)
+      d <- get_d(family, w, y, size, dispersion)
       # and then the gradient vector
-      g <-  d - Ptheta %*% w
+      g <- d - Ptheta %*% w
       # Next, compute H
       D <- get_D(family, w, y, size, dispersion)
-      H <-  D - Ptheta # not PD but -H is
+      H <- D - Ptheta # not PD but -H is
       solveHg <- solve(H, g)
       wnew <- w - solveHg
       # mH_upchol <- chol(Matrix::forceSymmetric(-H))
@@ -254,21 +253,17 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
       # mHInv <- chol2inv(mH_upchol)
       # w_and_H_list$mHInv <- mHInv
     }
-
-
-
   } else {
 
     # add cov_betahat_Inv stability by same diagonal tolerance as this can have problems too
     diag(cov_betahat_Inv) <- diag(cov_betahat_Inv) + data_object$diagtol
 
     while (iter < 50 && wdiffmax > 1e-4) {
-
       iter <- iter + 1
       # compute the d vector
-      d <-  get_d(family, w, y, size, dispersion)
+      d <- get_d(family, w, y, size, dispersion)
       # and then the gradient vector
-      g <-  d - Ptheta %*% w
+      g <- d - Ptheta %*% w
       # Next, compute H
       D <- get_D(family, w, y, size, dispersion)
       D_diag <- diag(D)
@@ -329,7 +324,6 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
 }
 
 get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod, ret_mHInv = FALSE) {
-
   family <- data_object$family
   Ptheta <- SigInv - SigInv_X %*% tcrossprod(cov_betahat, SigInv_X)
   y <- data_object$y
@@ -338,16 +332,14 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
   wdiffmax <- Inf
   iter <- 0
   while (iter < 50 && wdiffmax > 1e-4) {
-
-
     iter <- iter + 1
     # compute the d vector
-    d <-  get_d(family, w, y, size, dispersion)
+    d <- get_d(family, w, y, size, dispersion)
     # and then the gradient vector
-    g <-  d - Ptheta %*% w
+    g <- d - Ptheta %*% w
     # Next, compute H
     D <- get_D(family, w, y, size, dispersion)
-    H <-  D - Ptheta # not PD but -H is
+    H <- D - Ptheta # not PD but -H is
     solveHg <- solve(H, g)
     wnew <- w - solveHg
     # mH_upchol <- chol(Matrix::forceSymmetric(-H))
@@ -385,7 +377,6 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
 
 # gradient of w (lowcase d)
 get_d <- function(family, w, y, size, dispersion) {
-
   if (family == "poisson") {
     d <- -exp(w) + y
   } else if (family == "nbinomial") {
@@ -393,10 +384,10 @@ get_d <- function(family, w, y, size, dispersion) {
   } else if (family == "binomial") {
     d <- y - size * expit(w)
   } else if (family == "Gamma") {
-    d <- - dispersion + dispersion * y * exp(-w)
+    d <- -dispersion + dispersion * y * exp(-w)
   } else if (family == "inverse.gaussian") {
     # d <- 1 / dispersion * (y - exp(w)) / exp(2 * w)
-    d <- dispersion * (y/(2 * exp(w)) - exp(w)/(2 * y)) + 1/2
+    d <- dispersion * (y / (2 * exp(w)) - exp(w) / (2 * y)) + 1 / 2
   } else if (family == "beta") {
     one_expw <- 1 + exp(w)
     k0 <- digamma(dispersion * exp(w) / one_expw) - digamma(dispersion / one_expw) + log(1 / y - 1)
@@ -407,20 +398,19 @@ get_d <- function(family, w, y, size, dispersion) {
 
 # Hessian of w (cap D)
 get_D <- function(family, w, y, size, dispersion) {
-
   w <- as.vector(w)
 
   if (family == "poisson") {
     D_vec <- -exp(w)
   } else if (family == "nbinomial") {
-    D_vec <- - (dispersion * exp(w) * (dispersion + y)) / ((dispersion + exp(w))^2)
+    D_vec <- -(dispersion * exp(w) * (dispersion + y)) / ((dispersion + exp(w))^2)
   } else if (family == "binomial") {
-    D_vec <- - size * expit(w) / (1 + exp(w))
+    D_vec <- -size * expit(w) / (1 + exp(w))
   } else if (family == "Gamma") {
-    D_vec <- - dispersion * y * exp(-w)
+    D_vec <- -dispersion * y * exp(-w)
   } else if (family == "inverse.gaussian") {
     # D_vec <- 1 / dispersion * (exp(w) - 2 * y) / exp(2 * w)
-    D_vec <- - dispersion * (exp(2 * w) + y^2) / (2 * y * exp(w))
+    D_vec <- -dispersion * (exp(2 * w) + y^2) / (2 * y * exp(w))
   } else if (family == "beta") {
     one_expw <- 1 + exp(w)
     k0 <- digamma(dispersion * exp(w) / one_expw) - digamma(dispersion / one_expw) + log(1 / y - 1)
@@ -431,7 +421,6 @@ get_D <- function(family, w, y, size, dispersion) {
 }
 
 get_w_init <- function(family, y, dispersion) {
-
   if (family == "poisson") {
     w_init <- 0.5 * log(y + 1)
   } else if (family == "nbinomial") {
@@ -449,7 +438,6 @@ get_w_init <- function(family, y, dispersion) {
 }
 
 get_l00 <- function(family, w, y, size, dispersion) {
-
   w <- as.vector(w)
   y <- as.vector(y)
   # -2 is for -2ll constant
@@ -471,7 +459,7 @@ get_l00 <- function(family, w, y, size, dispersion) {
     mu <- exp(w)
     # disp_recip <- 1 / dispersion
     # l00 <- -2 * sum((log(disp_recip) - log(2 * pi) - 3 * log(y)) / 2 - (disp_recip * (y - mu)^2 / (2 * y * mu^2)))
-    l00 <- -2 * sum(1/2 * (log(dispersion) + log(exp(w)) - log(2 * pi) - log(y^3)) - dispersion * (y - exp(w))^2 / (2 * exp(w) * y))
+    l00 <- -2 * sum(1 / 2 * (log(dispersion) + log(exp(w)) - log(2 * pi) - log(y^3)) - dispersion * (y - exp(w))^2 / (2 * exp(w) * y))
   } else if (family == "beta") {
     mu <- expit(w)
     a <- mu * dispersion
@@ -516,4 +504,3 @@ get_DSigInv_parallel <- function(cluster_list) {
 # DSigInv_eigen <- lapply(DSigInv_list, function(x) eigen(x)) # not symm PD so must use eigen
 # DSigInv_det <- prod(unlist(lapply(DSigInv_eigen, function(x) prod(x$values))))
 # DSigInv_Inv <- Matrix::bdiag(lapply(DSigInv_chol, function(x) tcrossprod(t(t(x$vectors) * x$values), x$vectors)))
-

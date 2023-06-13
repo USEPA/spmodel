@@ -27,11 +27,11 @@
 #'   assumed known. The value \code{"given"} is shorthand for assuming all
 #'   spatial covariance parameters given to \code{spcov_initial()} are assumed known.
 #'
-#' @details The \code{spcov_initial} list is later passed to [splm()] or [spautor()].
+#' @details The \code{spcov_initial} list is later passed to [splm()], [spglm()], [spautor()], or [spgautor()].
 #'   \code{NA} values can be given for \code{ie}, \code{rotate}, and \code{scale}, which lets
-#'   [splm()] and [spautor()] find initial values for parameters that are sometimes
-#'   otherwise assumed known (e.g., \code{rotate} and \code{scale} with [splm()]
-#'   and \code{ie} with [spautor()]).
+#'   these functions find initial values for parameters that are sometimes
+#'   otherwise assumed known (e.g., \code{rotate} and \code{scale} with [splm()] and [spglm()]
+#'   and \code{ie} with [spautor()] and [spgautor()]).
 #'   The spatial covariance functions can be generally expressed as
 #'   \eqn{de * R + ie * I}, where \eqn{de} is \code{de} above, \eqn{R}
 #'   is a matrix that controls the spatial dependence structure among observations,

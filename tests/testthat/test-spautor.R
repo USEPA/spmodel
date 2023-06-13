@@ -1,7 +1,6 @@
 # SPMODEL PACKAGE NEEDS TO BE INSTALLED VIA DEVTOOLS::INSTALL() BEFORE RUNNING TESTS IF THOSE TESTS HAVE PARALLELIZATION
 
 test_that("generics work spautor polygon data", {
-
   load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
 
   spmod1 <- spautor(y ~ x, exdata_poly, spcov_type = "car", estmethod = "reml")
@@ -130,11 +129,9 @@ test_that("generics work spautor polygon data", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
-
 })
 
 test_that("generics work spautor polygon data with missing", {
-
   load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
 
   spmod1 <- spautor(y ~ x, exdata_Mpoly, spcov_type = "car", estmethod = "reml")
@@ -270,11 +267,9 @@ test_that("generics work spautor polygon data with missing", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
-
 })
 
 test_that("generics work spautor polygon data unconnected", {
-
   load(file = system.file("extdata", "exdata_Upoly.rda", package = "spmodel"))
 
   spmod1 <- spautor(y ~ x, exdata_Upoly, spcov_type = "car", estmethod = "reml")
@@ -403,5 +398,4 @@ test_that("generics work spautor polygon data unconnected", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
-
 })

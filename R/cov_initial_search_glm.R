@@ -9,8 +9,8 @@ cov_initial_search_glm <- function(spcov_initial_NA, dispersion_initial_NA, ...)
 }
 #' @export
 cov_initial_search_glm.exponential <- function(spcov_initial_NA, dispersion_initial_NA, estmethod, data_object,
-                                           dist_matrix_list, weights,
-                                           randcov_initial_NA = NULL, esv_dotlist, ...) {
+                                               dist_matrix_list, weights,
+                                               randcov_initial_NA = NULL, esv_dotlist, ...) {
 
 
   # find ols sample variance
@@ -206,7 +206,7 @@ cov_initial_search_glm.exponential <- function(spcov_initial_NA, dispersion_init
 
     cov_grid_splits <- split(cov_grid, seq_len(NROW(cov_grid)))
     # apply
-     objvals <- vapply(
+    objvals <- vapply(
       X = cov_grid_splits, FUN = eval_grid_glm, FUN.VALUE = numeric(1),
       data_object = data_object, spcov_type = class(spcov_initial_NA),
       family = class(dispersion_initial_NA), estmethod = estmethod, dist_matrix_list = dist_matrix_list
@@ -259,8 +259,8 @@ cov_initial_search_glm.magnetic <- cov_initial_search_glm.exponential
 
 #' @export
 cov_initial_search_glm.none <- function(spcov_initial_NA, dispersion_initial_NA, estmethod, data_object,
-                                    dist_matrix_list, weights,
-                                    randcov_initial_NA = NULL, esv_dotlist, ...) {
+                                        dist_matrix_list, weights,
+                                        randcov_initial_NA = NULL, esv_dotlist, ...) {
   # find ols sample variance
   X <- do.call("rbind", data_object$X_list)
   y <- do.call("rbind", data_object$y_list)
@@ -463,8 +463,8 @@ cov_initial_search_glm.none <- function(spcov_initial_NA, dispersion_initial_NA,
 
 #' @export
 cov_initial_search_glm.matern <- function(spcov_initial_NA, dispersion_initial_NA, estmethod, data_object,
-                                      dist_matrix_list, weights,
-                                      randcov_initial_NA = NULL, esv_dotlist, ...) {
+                                          dist_matrix_list, weights,
+                                          randcov_initial_NA = NULL, esv_dotlist, ...) {
 
   # find ols sample variance
   X <- do.call("rbind", data_object$X_list)
@@ -681,7 +681,7 @@ cov_initial_search_glm.pexponential <- cov_initial_search_glm.matern
 
 #' @export
 cov_initial_search_glm.car <- function(spcov_initial_NA, dispersion_initial_NA, estmethod, data_object,
-                                   dist_matrix_list, randcov_initial_NA = NULL, ...) {
+                                       dist_matrix_list, randcov_initial_NA = NULL, ...) {
 
   # find ols sample variance
   X <- data_object$X
@@ -913,7 +913,7 @@ eval_grid <- function(cov_grid_split, data_object, spcov_type,
     # incorporate anisotropy if necessary
     if (data_object$anisotropy) {
       new_coords_list_q1 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-                                   rotate = spcov_params_val[["rotate"]], scale = spcov_params_val[["scale"]]
+        rotate = spcov_params_val[["rotate"]], scale = spcov_params_val[["scale"]]
       )
       dist_matrix_list_q1 <- lapply(new_coords_list_q1, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
 
@@ -928,7 +928,7 @@ eval_grid <- function(cov_grid_split, data_object, spcov_type,
 
 
       new_coords_list_q2 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-                                   rotate = abs(pi - spcov_params_val[["rotate"]]), scale = spcov_params_val[["scale"]]
+        rotate = abs(pi - spcov_params_val[["rotate"]]), scale = spcov_params_val[["scale"]]
       )
       dist_matrix_list_q2 <- lapply(new_coords_list_q2, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
 
@@ -940,8 +940,8 @@ eval_grid <- function(cov_grid_split, data_object, spcov_type,
 
       # find -2loglik
       objval_q2 <- get_minustwologlik(gll_prods_q2, estmethod, data_object$n,
-                                      data_object$p,
-                                      spcov_profiled = FALSE, randcov_profiled = FALSE
+        data_object$p,
+        spcov_profiled = FALSE, randcov_profiled = FALSE
       )
 
       objval <- min(objval_q1, objval_q2)
@@ -955,15 +955,15 @@ eval_grid <- function(cov_grid_split, data_object, spcov_type,
 
       # find -2loglik
       objval <- get_minustwologlik(gll_prods, estmethod, data_object$n,
-                                   data_object$p,
-                                   spcov_profiled = FALSE, randcov_profiled = FALSE
+        data_object$p,
+        spcov_profiled = FALSE, randcov_profiled = FALSE
       )
     }
   } else if (estmethod == "sv-wls") {
     # find sv-wls objective function value
     objval <- get_svloss(spcov_params_val,
-                         esv = esv,
-                         weights = weights
+      esv = esv,
+      weights = weights
     )
   } else if (estmethod == "sv-cl") {
     # find cl objective function value
@@ -973,7 +973,7 @@ eval_grid <- function(cov_grid_split, data_object, spcov_type,
 }
 
 eval_grid_glm <- function(cov_grid_split, data_object, spcov_type,
-                      family, estmethod, dist_matrix_list) {
+                          family, estmethod, dist_matrix_list) {
 
   # convert list structure to a vector
   cov_grid <- unlist(cov_grid_split)
@@ -999,7 +999,7 @@ eval_grid_glm <- function(cov_grid_split, data_object, spcov_type,
   # incorporate anisotropy if necessary
   if (data_object$anisotropy) {
     new_coords_list_q1 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-                                 rotate = spcov_params_val[["rotate"]], scale = spcov_params_val[["scale"]]
+      rotate = spcov_params_val[["rotate"]], scale = spcov_params_val[["scale"]]
     )
     dist_matrix_list_q1 <- lapply(new_coords_list_q1, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
 
@@ -1014,7 +1014,7 @@ eval_grid_glm <- function(cov_grid_split, data_object, spcov_type,
 
 
     new_coords_list_q2 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-                                 rotate = abs(pi - spcov_params_val[["rotate"]]), scale = spcov_params_val[["scale"]]
+      rotate = abs(pi - spcov_params_val[["rotate"]]), scale = spcov_params_val[["scale"]]
     )
     dist_matrix_list_q2 <- lapply(new_coords_list_q2, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
 
@@ -1026,7 +1026,9 @@ eval_grid_glm <- function(cov_grid_split, data_object, spcov_type,
 
     # find -2loglik
     objval_q2 <- get_minustwolaploglik(lapll_prods_q2, estmethod, data_object$n,
-                                    data_object$p, spcov_profiled = FALSE, randcov_profiled = FALSE)
+      data_object$p,
+      spcov_profiled = FALSE, randcov_profiled = FALSE
+    )
 
 
     objval <- min(objval_q1, objval_q2)
@@ -1041,7 +1043,9 @@ eval_grid_glm <- function(cov_grid_split, data_object, spcov_type,
 
     # find -2loglik
     objval <- get_minustwolaploglik(lapll_prods, estmethod, data_object$n,
-                                 data_object$p, spcov_profiled = FALSE, randcov_profiled = FALSE)
+      data_object$p,
+      spcov_profiled = FALSE, randcov_profiled = FALSE
+    )
   }
   objval
 }

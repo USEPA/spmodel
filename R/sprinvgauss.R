@@ -32,7 +32,6 @@
 #' sprinvgauss(spcov_params_val, data = caribou, xcoord = x, ycoord = y)
 #' sprinvgauss(spcov_params_val, samples = 5, data = caribou, xcoord = x, ycoord = y)
 sprinvgauss <- function(spcov_params, dispersion = 1, mean = 0, samples = 1, data, randcov_params, partition_factor, ...) {
-
   if (!requireNamespace("statmod", quietly = TRUE)) {
     stop("Install the statmod package before using sprinvgauss", call. = FALSE)
   } else {
@@ -59,5 +58,4 @@ sprinvgauss <- function(spcov_params, dispersion = 1, mean = 0, samples = 1, dat
     }
     sprinvgauss_val
   }
-
 }

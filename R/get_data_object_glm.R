@@ -1,5 +1,5 @@
 get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, ycoord, estmethod,
-                                 anisotropy, random, randcov_initial, partition_factor, local, ...) {
+                                  anisotropy, random, randcov_initial, partition_factor, local, ...) {
 
 
 
@@ -227,7 +227,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
       stop("Only one variable can be specified in partition_factor.", call. = FALSE)
     }
     partition_mf <- model.frame(partition_factor, obdata)
-    if (any(! attr(terms(partition_mf), "dataClasses") %in% c("character", "factor", "ordered"))) {
+    if (any(!attr(terms(partition_mf), "dataClasses") %in% c("character", "factor", "ordered"))) {
       stop("Partition factor variable must be categorical or factor.", call. = FALSE)
     }
     partition_factor <- reformulate(partition_factor_labels, intercept = FALSE)
@@ -237,9 +237,9 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
 
   # find index
   if (is.null(local)) {
-    if (n > 5000) {
+    if (n > 3000) {
       local <- TRUE
-      message("Because the sample size exceeds 5000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun splm() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+      message("Because the sample size exceeds 3000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun splm() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
     } else {
       local <- FALSE
     }
@@ -255,7 +255,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
   ones_list <- lapply(obdata_list, function(x) matrix(rep(1, nrow(x)), ncol = 1))
   if (!is.null(size)) {
     size_list <- split(size, local$index) # just split because vector not matrix
-    size <- as.vector(do.call("rbind", size_list)) # rearranging size by y list
+    size <- as.vector(do.call("c", size_list)) # rearranging size by y list
   }
 
   # organize offset (as a one col matrix)
@@ -319,8 +319,8 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
 }
 
 get_data_object_spgautor <- function(formula, family, data, spcov_initial,
-                                    estmethod, W, M, random, randcov_initial,
-                                    partition_factor, row_st, ...) {
+                                     estmethod, W, M, random, randcov_initial,
+                                     partition_factor, row_st, ...) {
   ## convert sp to sf object
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
@@ -553,7 +553,7 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
       stop("Only one variable can be specified in partition_factor.", call. = FALSE)
     }
     partition_mf <- model.frame(partition_factor, obdata)
-    if (any(! attr(terms(partition_mf), "dataClasses") %in% c("character", "factor", "ordered"))) {
+    if (any(!attr(terms(partition_mf), "dataClasses") %in% c("character", "factor", "ordered"))) {
       stop("Partition factor variable must be categorical or factor.", call. = FALSE)
     }
     partition_factor <- reformulate(partition_factor_labels, intercept = FALSE)

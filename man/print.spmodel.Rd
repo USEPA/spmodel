@@ -81,7 +81,7 @@
 )
 }
 \arguments{
-\item{x}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}} or output from
+\item{x}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}} or output from
 \code{summary(x)} or or \code{anova(x)}.}
 
 \item{digits}{The number of significant digits to use when printing.}

@@ -30,7 +30,7 @@
 #'   \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
 #'   and \code{"none"}. Parameterizations of each spatial covariance type are
 #'   available in Details. Multiple spatial covariance types can be provided as
-#'   a character vector, and then \code{splm()} is called iteratively for each
+#'   a character vector, and then \code{spglm()} is called iteratively for each
 #'   element and a list is returned for each model fit. The default for
 #'   \code{spcov_type} is \code{"exponential"}. When \code{spcov_type} is
 #'   specified, all unknown spatial covariance parameters are estimated.
@@ -41,11 +41,11 @@
 #'   Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.
 #' @param spcov_initial An object from [spcov_initial()] specifying initial and/or
 #'   known values for the spatial covariance parameters. Multiple [spcov_initial()]
-#'   objects can be provided in a list. Then \code{splm()} is called iteratively
+#'   objects can be provided in a list. Then \code{spglm()} is called iteratively
 #'   for each element and a list is returned for each model fit.
 #' @param dispersion_initial An object from [dispersion_initial()] specifying
 #'   initial and/or known values for the dispersion parameter for the
-#'   \code{"nbinomial"}, \code{"Gamma"}, and \code{"inverse.gaussian"} families.
+#'   \code{"nbinomial"}, \code{"beta"}, \code{"Gamma"}, and \code{"inverse.gaussian"} families.
 #'   \code{family} is ignored if \code{dispersion_initial} is provided.
 #' @param estmethod The estimation method. Available options include
 #'   \code{"reml"} for restricted maximum likelihood and \code{"ml"} for maximum
@@ -77,7 +77,7 @@
 #' @param local An optional logical or list controlling the big data approximation.
 #'   If omitted, \code{local} is set
 #'   to \code{TRUE} or \code{FALSE} based on the sample size (the number of
-#'   non-missing observations in \code{data}) -- if the sample size exceeds 5,000,
+#'   non-missing observations in \code{data}) -- if the sample size exceeds 3,000,
 #'   \code{local} is set to \code{TRUE}. Otherwise it is set to \code{FALSE}.
 #'   If \code{FALSE}, no big data approximation is implemented.
 #'   If a list is provided, the following arguments detail the big
@@ -120,7 +120,7 @@
 #'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 #'   that \code{local} is transformed into
 #'   \code{list(size = 50, method = "random", var_adjust = "theoretical", parallel = FALSE)}.
-#' @param ... Other arguments to [esv()] or \code{stats::optim()}.
+#' @param ... Other arguments to [esv()] or [stats::optim()].
 #'
 #' @details The spatial generalized linear model for point-referenced data
 #'   (i.e., generalized geostatistical model) can be written as
@@ -184,7 +184,7 @@
 #'   preferred for computational stability. Also note that the dispersion parameter
 #'   is often defined in the literature as \eqn{V(\mu) \phi}, where \eqn{V(\mu)} is the variance
 #'   function of the mean. We do not use this parameterization, which is important
-#'   to recognize while interpreting dispersion estimates using \code{spglm()}.
+#'   to recognize while interpreting dispersion estimates.
 #'   For more on generalized linear model constructions, see McCullagh and
 #'   Nelder (1989).
 #'
@@ -259,7 +259,7 @@
 #'   for significant computational gains. Parallelization generally further speeds up
 #'   computations when data sizes are larger than a few thousand. Both the \code{"random"} and \code{"kmeans"} values of \code{method}
 #'   in \code{local} have random components. That means you may get slightly different
-#'   results when using the big data approximation and rerunning \code{splm()} with the same code. For consistent results,
+#'   results when using the big data approximation and rerunning \code{spglm()} with the same code. For consistent results,
 #'   either set a seed via \code{base::set.seed()} or specify \code{index} to \code{local}.
 #'
 #'   Observations with \code{NA} response values are removed for model
@@ -268,8 +268,8 @@
 #'
 #' @return A list with many elements that store information about
 #'   the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
-#'   length one, the list has class \code{splm}. Many generic functions that
-#'   summarize model fit are available for \code{splm} objects, including
+#'   length one, the list has class \code{spglm}. Many generic functions that
+#'   summarize model fit are available for \code{spglm} objects, including
 #'   \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
 #'   \code{cooks.distance}, \code{covmatrix}, \code{deviance}, \code{fitted}, \code{formula},
 #'   \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
@@ -277,9 +277,9 @@
 #'   \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
 #'   \code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
 #'   \code{spcov_type} or \code{spcov_initial} are length greater than one, the
-#'   list has class \code{splm_list} and each element in the list has class
-#'   \code{splm}. \code{glances} can be used to summarize \code{splm_list}
-#'   objects, and the aforementioned \code{splm} generics can be used on each
+#'   list has class \code{spglm_list} and each element in the list has class
+#'   \code{spglm}. \code{glances} can be used to summarize \code{spglm_list}
+#'   objects, and the aforementioned \code{spglm} generics can be used on each
 #'   individual list element (model fit).
 #'
 #' @note This function does not perform any internal scaling. If optimization is not
@@ -289,15 +289,16 @@
 #' @export
 #'
 #' @examples
-#' spgmod <- spglm(presence ~ elev, family = "binomial", data = moose,
+#' spgmod <- spglm(presence ~ elev,
+#'   family = "binomial", data = moose,
 #'   spcov_type = "exponential"
 #' )
 #' summary(spgmod)
 #' @references
 #' McCullagh P. and Nelder, J. A. (1989) \emph{Generalized Linear Models}. London: Chapman and Hall.
 spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initial,
-                 dispersion_initial, estmethod = "reml", anisotropy = FALSE,
-                 random, randcov_initial, partition_factor, local, ...) {
+                  dispersion_initial, estmethod = "reml", anisotropy = FALSE,
+                  random, randcov_initial, partition_factor, local, ...) {
 
   # set exponential as default if nothing specified
   if (missing(spcov_type) && missing(spcov_initial)) {
@@ -307,6 +308,10 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
 
   if (!missing(spcov_type) && !missing(spcov_initial)) {
     message("Both spcov_type and spcov_initial provided. spcov_initial overriding spcov_type.")
+  }
+
+  if (!missing(family) && !missing(dispersion_initial)) {
+    message("Both family and dispersion_initial provided. dispersion_initial overriding family.")
   }
 
   # iterate if needed
@@ -396,8 +401,9 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
   }
 
   cov_est_object <- cov_estimate_laploglik_spglm(data_object, formula,
-                                                 spcov_initial, dispersion_initial, estmethod,
-                                                 optim_dotlist = get_optim_dotlist(...))
+    spcov_initial, dispersion_initial, estmethod,
+    optim_dotlist = get_optim_dotlist(...)
+  )
 
   model_stats <- get_model_stats_spglm(cov_est_object, data_object, estmethod)
 
@@ -461,5 +467,4 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
 
   new_output <- structure(output, class = "spglm")
   new_output
-
 }

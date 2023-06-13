@@ -33,7 +33,7 @@
 #'   preferred for computational stability. Also note that the dispersion parameter
 #'   is often defined in the literature as \eqn{V(\mu) \phi}, where \eqn{V(\mu)} is the variance
 #'   function of the mean. We do not use this parameterization, which is important
-#'   to recognize while interpreting dispersion estimates using \code{spglm()}.
+#'   to recognize while interpreting dispersion parameter estimates using [spglm()] or [spgautor()].
 #'   For more on generalized linear model constructions, see McCullagh and
 #'   Nelder (1989).
 #'
@@ -49,6 +49,8 @@
 #' @examples
 #' # known dispersion value 1
 #' dispersion_initial("nbinomial", dispersion = 1, known = "dispersion")
+#' @references
+#' McCullagh P. and Nelder, J. A. (1989) \emph{Generalized Linear Models}. London: Chapman and Hall.
 dispersion_initial <- function(family, dispersion, known) {
 
   # fix family
@@ -81,7 +83,7 @@ dispersion_initial <- function(family, dispersion, known) {
   }
 
   new_dispersion_initial <- structure(list(initial = dispersion_params_given, is_known = is_known),
-                                      class = family)
+    class = family
+  )
   new_dispersion_initial
-
 }

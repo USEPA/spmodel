@@ -3,7 +3,6 @@
 ################################################################################
 
 test_that("check optim method works", {
-
   optim_dotlist <- get_optim_dotlist()
 
   optim_par <- c(a = 1, b = 2)
@@ -24,7 +23,6 @@ test_that("check optim method works", {
 ################################################################################
 
 test_that("hwInv works", {
-
   h <- as.matrix(dist(1:10))
   Sig <- exp(-h / 10)
   SigInv <- solve(Sig)

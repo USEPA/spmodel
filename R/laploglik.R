@@ -1,6 +1,6 @@
 laploglik <- function(par, spcov_orig2optim, dispersion_orig2optim, data_object, estmethod, dist_matrix_list,
-                    spcov_profiled, randcov_orig2optim = NULL,
-                    randcov_profiled = NULL) {
+                      spcov_profiled, randcov_orig2optim = NULL,
+                      randcov_profiled = NULL) {
 
 
   # dispersion first then remove
@@ -18,8 +18,8 @@ laploglik <- function(par, spcov_orig2optim, dispersion_orig2optim, data_object,
   #
   # transforming to original scale
   randcov_orig_val <- randcov_optim2orig(randcov_orig2optim, spcov_orig2optim, par,
-                                         randcov_profiled = randcov_profiled,
-                                         spcov_optim2orig = spcov_params_val
+    randcov_profiled = randcov_profiled,
+    spcov_optim2orig = spcov_params_val
   )
 
   # need to deal with list if randcov_profiled as sp variance changes
@@ -36,5 +36,7 @@ laploglik <- function(par, spcov_orig2optim, dispersion_orig2optim, data_object,
   )
 
   minustwolaploglik <- get_minustwolaploglik(lapll_prods, estmethod, data_object$n,
-                                          data_object$p, spcov_profiled = FALSE, randcov_profiled = FALSE)
+    data_object$p,
+    spcov_profiled = FALSE, randcov_profiled = FALSE
+  )
 }

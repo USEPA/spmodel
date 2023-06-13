@@ -17,7 +17,7 @@
 \method{tidy}{spgautor}(x, conf.int = FALSE, conf.level = 0.95, effects = "fixed", ...)
 }
 \arguments{
-\item{x}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}}
+\item{x}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
 \item{conf.int}{Logical indicating whether or not to include a confidence interval
 in the tidied output. The default is \code{FALSE}.}

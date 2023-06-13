@@ -2,7 +2,7 @@
 #'
 #' @description Extract the model frame from a fitted model object.
 #'
-#' @param formula A fitted model object from [splm()] or [spautor()].
+#' @param formula A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @return A model frame that contains the variables used by the formula

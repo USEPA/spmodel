@@ -17,13 +17,13 @@
 \method{plot}{spgautor}(x, which, ...)
 }
 \arguments{
-\item{x}{A fitted model object from \code{\link[=splm]{splm()}} or \code{\link[=spautor]{spautor()}}.}
+\item{x}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
 \item{which}{An integer vector taking on values between 1 and 7, which indicates
 the plots to return. Available plots are described in Details. If \code{which}
 has length greater than one, additional plots are stepped through in order
-using \code{<Return>}. The default for \code{\link[=splm]{splm()}} fitted model objects is
-\code{which = c(1, 2, 7)}. The default for \code{\link[=spautor]{spautor()}} fitted model objects
+using \code{<Return>}. The default for \code{\link[=splm]{splm()}} and \code{\link[=spglm]{spglm()}} fitted model objects is
+\code{which = c(1, 2, 7)}. The default for \code{\link[=spautor]{spautor()}} and \code{\link[=spgautor]{spgautor()}} fitted model objects
 is \code{which = c(1, 2)}.}
 
 \item{...}{Other arguments passed to other methods.}
@@ -38,7 +38,7 @@ Cook's distance vs leverage, a fitted spatial covariance function, and a
 fitted anisotropic level curve of equal correlation.
 }
 \details{
-For \code{\link[=splm]{splm()}} and \code{\link[=spautor]{spautor()}}, the values of \code{which} make the
+For all fitted model objects,, the values of \code{which} make the
 corresponding plot:
 \itemize{
 \item{1:}{ Standardized residuals vs fitted values (of the response)}
@@ -48,7 +48,7 @@ corresponding plot:
 \item{5:}{ Standardized residuals vs leverage}
 \item{6:}{ Cook's distance vs leverage}
 }
-For \code{\link[=splm]{splm()}}, there are two additional values of \code{which}:
+For \code{\link[=splm]{splm()}} and \code{\link[=spglm]{spglm()}} fitted model objects, there are two additional values of \code{which}:
 \itemize{
 \item{7:}{ Fitted spatial covariance function vs distance}
 \item{8:}{ Fitted anisotropic level curve of equal correlation}

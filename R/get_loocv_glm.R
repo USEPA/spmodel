@@ -1,5 +1,4 @@
 get_loocv_glm <- function(obs, Sig, SigInv, Xmat, w, wX, SigInv_wX, mHinv, se.fit) {
-
   SigInv_mm <- SigInv[obs, obs] # a constant
   SigInv_om <- SigInv[-obs, obs, drop = FALSE]
 

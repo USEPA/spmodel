@@ -3,11 +3,14 @@
 #' @description Perform leave-one-out cross validation with options for computationally
 #'   efficient approximations for big data.
 #'
-#' @param object A fitted model object from [splm()] or [spautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param cv_predict A logical indicating whether the leave-one-out fitted values
-#'   should be returned. Defaults to \code{FALSE}.
+#'   should be returned. Defaults to \code{FALSE}. If \code{object} is from [spglm()] or [spgautor()],
+#'   the fitted values returned are on the link scale.
 #' @param se.fit A logical indicating whether the leave-one-out
 #'   prediction standard errors should be returned. Defaults to \code{FALSE}.
+#'   If \code{object} is from [spglm()] or [spgautor()],
+#'   the standard errors correspond to the fitted values returned on the link scale.
 #' @param local A list or logical. If a list, specific list elements described
 #'   in [predict.spmodel()] control the big data approximation behavior.
 #'   If a logical, \code{TRUE} chooses default list elements for the list version
@@ -49,7 +52,6 @@ loocv <- function(object, ...) {
 #' @order 2
 #' @export
 loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
-
   if (missing(local)) {
     local <- NULL
   }
@@ -97,16 +99,16 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
     if (local_list$parallel) {
       cl <- parallel::makeCluster(local_list$ncores)
       cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv,
-                                                 Sig = cov_matrix_val,
-                                                 SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
-                                                 SigInv_yX = SigInv_yX, se.fit = se.fit
+        Sig = cov_matrix_val,
+        SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
+        SigInv_yX = SigInv_yX, se.fit = se.fit
       )
       cl <- parallel::stopCluster(cl)
     } else {
       cv_predict_val_list <- lapply(seq_len(object$n), get_loocv,
-                                    Sig = cov_matrix_val,
-                                    SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
-                                    SigInv_yX = SigInv_yX, se.fit = se.fit
+        Sig = cov_matrix_val,
+        SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
+        SigInv_yX = SigInv_yX, se.fit = se.fit
       )
     }
     # cv_predict_val <- unlist(cv_predict_val_list)
@@ -155,7 +157,6 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
 #' @order 3
 #' @export
 loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
-
   if (missing(local)) {
     local <- NULL
   }
@@ -192,16 +193,16 @@ loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...
   if (local_list$parallel) {
     cl <- parallel::makeCluster(local_list$ncores)
     cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv,
-                                               Sig = cov_matrix_obs_val,
-                                               SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
-                                               SigInv_yX = SigInv_yX, se.fit = se.fit
+      Sig = cov_matrix_obs_val,
+      SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
+      SigInv_yX = SigInv_yX, se.fit = se.fit
     )
     cl <- parallel::stopCluster(cl)
   } else {
     cv_predict_val_list <- lapply(seq_len(object$n), get_loocv,
-                                  Sig = cov_matrix_obs_val,
-                                  SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
-                                  SigInv_yX = SigInv_yX, se.fit = se.fit
+      Sig = cov_matrix_obs_val,
+      SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
+      SigInv_yX = SigInv_yX, se.fit = se.fit
     )
   }
   # cv_predict_val <- unlist(cv_predict_val_list)
@@ -223,7 +224,6 @@ loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...
     }
   }
   cv_output
-
 }
 
 loocv_local <- function(row, object, se.fit, local_list) {

@@ -30,7 +30,7 @@ row in the new data set."><!-- mathjax --><script src="https://cdnjs.cloudflare.
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -69,7 +69,7 @@ row in the new data set."><!-- mathjax --><script src="https://cdnjs.cloudflare.
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Augment data with information from fitted model objects</h1>
-      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/augment.R" class="external-link"><code>R/augment.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/augment.R" class="external-link"><code>R/augment.R</code></a>, <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/augment_glm.R" class="external-link"><code>R/augment_glm.R</code></a></small>
       <div class="d-none name"><code>augment.spmodel.Rd</code></div>
     </div>
 
@@ -96,6 +96,8 @@ row in the new data set.</p>
 <span>  newdata <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  se_fit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
+<span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  <span class="va">local</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -106,6 +108,38 @@ row in the new data set.</p>
 <span>  newdata <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  se_fit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
+<span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  <span class="va">local</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spglm</span></span>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  drop <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  newdata <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"link"</span>, <span class="st">"response"</span><span class="op">)</span>,</span>
+<span>  se_fit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
+<span>  <span class="va">newdata_size</span>,</span>
+<span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  local <span class="op">=</span> <span class="va">local</span>,</span>
+<span>  var_correct <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for spgautor</span></span>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  drop <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  newdata <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"link"</span>, <span class="st">"response"</span><span class="op">)</span>,</span>
+<span>  se_fit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
+<span>  <span class="va">newdata_size</span>,</span>
+<span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  <span class="va">local</span>,</span>
+<span>  var_correct <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -141,8 +175,36 @@ add to the augmented <code>newdata</code> output. Passed to <code><a href="https
 to <code>"none"</code>.</p></dd>
 
 
+<dt>level</dt>
+<dd><p>Tolerance/confidence level. The default is <code>0.95</code>.</p></dd>
+
+
+<dt>local</dt>
+<dd><p>A list or logical. If a list, specific list elements described
+in <code><a href="predict.spmodel.html">predict.spmodel()</a></code> control the big data approximation behavior.
+If a logical, <code>TRUE</code> chooses default list elements for the list version
+of <code>local</code> as specified in <code><a href="predict.spmodel.html">predict.spmodel()</a></code>. Defaults to <code>FALSE</code>,
+which performs exact computations.</p></dd>
+
+
 <dt>...</dt>
-<dd><p>Additional arguments to <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> when augmenting <code>newdata</code>.</p></dd>
+<dd><p>Other arguments. Not used (needed for generic consistency).</p></dd>
+
+
+<dt>type</dt>
+<dd><p>The scale (<code>response</code> or <code>link</code>) of predictions obtained
+using <code><a href="spglm.html">spglm()</a></code> or <code>spgautor</code> objects.</p></dd>
+
+
+<dt>newdata_size</dt>
+<dd><p>The <code>size</code> value for each observation in <code>newdata</code>
+used when predicting for the binomial family.</p></dd>
+
+
+<dt>var_correct</dt>
+<dd><p>A logical indicating whether to return the corrected prediction
+variances when predicting via models fit using <code><a href="spglm.html">spglm()</a></code> or <code><a href="spgautor.html">spgautor()</a></code>. The default is
+<code>TRUE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -171,11 +233,11 @@ augmented object has the same class as <code>data</code>.</p>
 they were a <code>newdata</code> object by providing <code>x$newdata</code> to the
 <code>newdata</code> argument (where <code>x</code> is the name of the fitted model
 object). This is the only way to compute predictions for
-<code><a href="spautor.html">spautor()</a></code> fitted model objects.</p>
+<code><a href="spautor.html">spautor()</a></code> and <code><a href="spgautor.html">spgautor()</a></code> fitted model objects.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="tidy.spmodel.html">tidy.spmodel()</a></code> <code><a href="glance.spmodel.html">glance.spmodel()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="tidy.spmodel.html">tidy.spmodel()</a></code> <code><a href="glance.spmodel.html">glance.spmodel()</a></code> <code><a href="predict.spmodel.html">predict.spmodel()</a></code></p></div>
     </div>
 
     <div class="section level2">
@@ -185,20 +247,20 @@ object). This is the only way to compute predictions for
 <span class="r-in"><span>  spcov_type <span class="op">=</span> <span class="st">"exponential"</span>, xcoord <span class="op">=</span> <span class="va">x</span>, ycoord <span class="op">=</span> <span class="va">y</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 30 x 10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 30 x 10</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        z water tarp      x     y .fitted  .resid  .hat .cooksd .std.resid</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1  2.42 Y     clear     1     6    1.97  0.454  0.116 0.185        2.53 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2  2.44 Y     shade     2     6    2.25  0.190  0.137 0.0404       1.09 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3  1.81 Y     none      3     6    2.05 -0.237  0.137 0.0649      -1.38 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4  1.97 N     clear     4     6    2.05 -0.0838 0.174 0.00174     -0.200</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5  2.38 N     shade     5     6    2.34  0.0407 0.153 0.0135       0.594</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6  2.22 Y     none      1     5    2.05  0.177  0.147 0.0370       1.00 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7  2.10 N     clear     2     5    2.05  0.0512 0.156 0.00790      0.450</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8  1.80 Y     clear     3     5    1.97 -0.163  0.122 0.0119      -0.624</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9  1.96 Y     shade     4     5    2.25 -0.290  0.119 0.0566      -1.38 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10  2.10 Y     none      5     5    2.05  0.0522 0.131 0.0229       0.837</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # ... with 20 more rows</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  2.42 Y     clear     1     6    1.97  0.454  0.116 0.209        2.53 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  2.44 Y     shade     2     6    2.25  0.190  0.137 0.046<span style="text-decoration: underline;">8</span>       1.09 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  1.81 Y     none      3     6    2.05 -<span style="color: #BB0000;">0.237</span>  0.137 0.075<span style="text-decoration: underline;">2</span>      -<span style="color: #BB0000;">1.38</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  1.97 N     clear     4     6    2.05 -<span style="color: #BB0000;">0.083</span><span style="color: #BB0000; text-decoration: underline;">8</span> 0.174 0.002<span style="text-decoration: underline;">11</span>     -<span style="color: #BB0000;">0.200</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  2.38 N     shade     5     6    2.34  0.040<span style="text-decoration: underline;">7</span> 0.153 0.015<span style="text-decoration: underline;">9</span>       0.594</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  2.22 Y     none      1     5    2.05  0.177  0.147 0.043<span style="text-decoration: underline;">4</span>       1.00 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  2.10 N     clear     2     5    2.05  0.051<span style="text-decoration: underline;">2</span> 0.156 0.009<span style="text-decoration: underline;">36</span>      0.450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  1.80 Y     clear     3     5    1.97 -<span style="color: #BB0000;">0.163</span>  0.122 0.013<span style="text-decoration: underline;">5</span>      -<span style="color: #BB0000;">0.624</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  1.96 Y     shade     4     5    2.25 -<span style="color: #BB0000;">0.290</span>  0.119 0.064<span style="text-decoration: underline;">2</span>      -<span style="color: #BB0000;">1.38</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  2.10 Y     none      5     5    2.05  0.052<span style="text-decoration: underline;">2</span> 0.131 0.026<span style="text-decoration: underline;">4</span>       0.837</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ... with 20 more rows</span></span>
 <span class="r-in"><span><span class="va">spmod_sulf</span> <span class="op">&lt;-</span> <span class="fu"><a href="splm.html">splm</a></span><span class="op">(</span><span class="va">sulfate</span> <span class="op">~</span> <span class="fl">1</span>, data <span class="op">=</span> <span class="va">sulfate</span>, spcov_type <span class="op">=</span> <span class="st">"exponential"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">spmod_sulf</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Simple feature collection with 197 features and 6 fields</span>
@@ -206,40 +268,40 @@ object). This is the only way to compute predictions for
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dimension:     XY</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Bounding box:  xmin: -2292550 ymin: 386181.1 xmax: 2173345 ymax: 3090370</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Projected CRS: NAD83 / Conus Albers</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 197 x 7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 197 x 7</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    sulfate .fitted .resid    .hat   .cooksd .std.resid           geometry</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  *   &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;        &lt;POINT [m]&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1  12.9      5.92   7.00 0.00334 0.00161      -0.694  (817738.8 1080571)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2  20.2      5.92  14.2  0.00256 0.00192       0.865  (914593.6 1295545)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3  16.8      5.92  10.9  0.00259 0.000394      0.390  (359574.1 1178228)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4  16.2      5.92  10.3  0.00239 0.000362      0.390  (265331.9 1239089)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5   7.86     5.92   1.93 0.00202 0.00869      -2.07   (304528.8 1453636)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6  15.4      5.92   9.43 0.00201 0.000240      0.345  (162932.8 1451625)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7   0.986    5.92  -4.94 0.00380 0.000962     -0.503  (-1437776 1568022)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8   0.425    5.92  -5.50 0.0138  0.00576      -0.646  (-1572878 1125529)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9   3.58     5.92  -2.34 0.00673 0.0000147    -0.0467 (-1282009 1204889)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10   2.38     5.92  -3.54 0.0123  0.0000137    -0.0335 (-1972775 1464991)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # ... with 187 more rows</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  <span style="color: #BCBCBC;">*</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;POINT [m]&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  12.9      5.92   7.00 0.003<span style="text-decoration: underline;">34</span> 0.001<span style="text-decoration: underline;">61</span>      -<span style="color: #BB0000;">0.694</span>  (817738.8 1080571)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  20.2      5.92  14.2  0.002<span style="text-decoration: underline;">56</span> 0.001<span style="text-decoration: underline;">92</span>       0.865  (914593.6 1295545)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  16.8      5.92  10.9  0.002<span style="text-decoration: underline;">59</span> 0.000<span style="text-decoration: underline;">395</span>      0.390  (359574.1 1178228)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  16.2      5.92  10.3  0.002<span style="text-decoration: underline;">39</span> 0.000<span style="text-decoration: underline;">363</span>      0.390  (265331.9 1239089)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>   7.86     5.92   1.93 0.002<span style="text-decoration: underline;">02</span> 0.008<span style="text-decoration: underline;">71</span>      -<span style="color: #BB0000;">2.07</span>   (304528.8 1453636)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  15.4      5.92   9.43 0.002<span style="text-decoration: underline;">01</span> 0.000<span style="text-decoration: underline;">240</span>      0.345  (162932.8 1451625)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>   0.986    5.92  -<span style="color: #BB0000;">4.94</span> 0.003<span style="text-decoration: underline;">80</span> 0.000<span style="text-decoration: underline;">966</span>     -<span style="color: #BB0000;">0.503</span>  (-1437776 1568022)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>   0.425    5.92  -<span style="color: #BB0000;">5.50</span> 0.013<span style="text-decoration: underline;">8</span>  0.005<span style="text-decoration: underline;">84</span>      -<span style="color: #BB0000;">0.646</span>  (-1572878 1125529)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>   3.58     5.92  -<span style="color: #BB0000;">2.34</span> 0.006<span style="text-decoration: underline;">73</span> 0.000<span style="text-decoration: underline;">014</span>8    -<span style="color: #BB0000;">0.046</span><span style="color: #BB0000; text-decoration: underline;">7</span> (-1282009 1204889)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>   2.38     5.92  -<span style="color: #BB0000;">3.54</span> 0.012<span style="text-decoration: underline;">3</span>  0.000<span style="text-decoration: underline;">013</span>9    -<span style="color: #BB0000;">0.033</span><span style="color: #BB0000; text-decoration: underline;">5</span> (-1972775 1464991)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ... with 187 more rows</span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">spmod_sulf</span>, newdata <span class="op">=</span> <span class="va">sulfate_preds</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Simple feature collection with 100 features and 1 field</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Geometry type: POINT</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dimension:     XY</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Bounding box:  xmin: -2283774 ymin: 582930.5 xmax: 1985906 ymax: 3037173</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Projected CRS: NAD83 / Conus Albers</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 100 x 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 100 x 2</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    .fitted            geometry</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  *   &lt;dbl&gt;         &lt;POINT [m]&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1    1.62  (-1771413 1752976)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2   24.4    (1018112 1867127)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3    8.95 (-291256.8 1553212)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4   16.5    (1274293 1267835)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5    4.93 (-547437.6 1638825)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6   26.8    (1445080 1981278)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7    2.87  (-1629090 3037173)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8   14.3    (1302757 1039534)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9    1.53  (-1429838 2523494)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10   14.3    (1131970 1096609)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # ... with 90 more rows</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  <span style="color: #BCBCBC;">*</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;POINT [m]&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>    1.62  (-1771413 1752976)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>   24.4    (1018112 1867127)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>    8.95 (-291256.8 1553212)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>   16.5    (1274293 1267835)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>    4.93 (-547437.6 1638825)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>   26.8    (1445080 1981278)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>    2.87  (-1629090 3037173)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>   14.3    (1302757 1039534)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>    1.53  (-1429838 2523494)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>   14.3    (1131970 1096609)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ... with 90 more rows</span></span>
 <span class="r-in"><span><span class="co"># missingness in original data</span></span></span>
 <span class="r-in"><span><span class="va">spmod_seal</span> <span class="op">&lt;-</span> <span class="fu"><a href="spautor.html">spautor</a></span><span class="op">(</span><span class="va">log_trend</span> <span class="op">~</span> <span class="fl">1</span>, data <span class="op">=</span> <span class="va">seal</span>, spcov_type <span class="op">=</span> <span class="st">"car"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">spmod_seal</span><span class="op">)</span></span></span>
@@ -248,40 +310,40 @@ object). This is the only way to compute predictions for
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dimension:     XY</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Bounding box:  xmin: 980001.5 ymin: 1010815 xmax: 1116002 ymax: 1145054</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Projected CRS: NAD83 / Alaska Albers</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 34 x 7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 34 x 7</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    log_trend .fitted  .resid   .hat .cooksd .std.resid                  geometry</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  *     &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt;             &lt;POLYGON [m]&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1  -0.282   -0.0710 -0.211  0.0161 0.0206      -1.13  ((1037002 1039492, 10370~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2  -0.00121 -0.0710  0.0698 0.0475 0.0246       0.719 ((1070158 1030216, 10701~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3   0.0354  -0.0710  0.106  0.0291 0.0178       0.783 ((1054906 1034826, 10549~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4  -0.0160  -0.0710  0.0550 0.0229 0.00158      0.263 ((1025142 1056940, 10251~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5   0.0872  -0.0710  0.158  0.0277 0.0374       1.16  ((1026035 1044623, 10260~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6  -0.266   -0.0710 -0.195  0.0280 0.0493      -1.33  ((1100345 1060709, 11002~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7   0.0743  -0.0710  0.145  0.0492 0.0861       1.32  ((1030247 1029637, 10302~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8  -0.00961 -0.0710  0.0614 0.0123 0.00238      0.441 ((1116002 1024542, 11160~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9  -0.182   -0.0710 -0.111  0.0226 0.0218      -0.983 ((1079864 1025088, 10798~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10   0.00351 -0.0710  0.0745 0.0316 0.00977      0.556 ((1110363 1037056, 11103~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # ... with 24 more rows</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  <span style="color: #BCBCBC;">*</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;POLYGON [m]&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  -<span style="color: #BB0000;">0.282</span>   -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">0</span> -<span style="color: #BB0000;">0.211</span>  0.016<span style="text-decoration: underline;">2</span> 0.021<span style="text-decoration: underline;">1</span>      -<span style="color: #BB0000;">1.13</span>  ((1037002 1039492, 10370~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">21</span> -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">0</span>  0.069<span style="text-decoration: underline;">8</span> 0.047<span style="text-decoration: underline;">5</span> 0.026<span style="text-decoration: underline;">0</span>       0.722 ((1070158 1030216, 10701~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>   0.035<span style="text-decoration: underline;">4</span>  -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">0</span>  0.106  0.029<span style="text-decoration: underline;">2</span> 0.018<span style="text-decoration: underline;">5</span>       0.786 ((1054906 1034826, 10549~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  -<span style="color: #BB0000;">0.016</span><span style="color: #BB0000; text-decoration: underline;">0</span>  -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">0</span>  0.055<span style="text-decoration: underline;">0</span> 0.022<span style="text-decoration: underline;">9</span> 0.001<span style="text-decoration: underline;">60</span>      0.262 ((1025142 1056940, 10251~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>   0.087<span style="text-decoration: underline;">2</span>  -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">0</span>  0.158  0.027<span style="text-decoration: underline;">7</span> 0.038<span style="text-decoration: underline;">9</span>       1.17  ((1026035 1044623, 10260~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  -<span style="color: #BB0000;">0.266</span>   -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">0</span> -<span style="color: #BB0000;">0.195</span>  0.027<span style="text-decoration: underline;">8</span> 0.049<span style="text-decoration: underline;">9</span>      -<span style="color: #BB0000;">1.32</span>  ((1100345 1060709, 11002~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>   0.074<span style="text-decoration: underline;">3</span>  -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">0</span>  0.145  0.049<span style="text-decoration: underline;">3</span> 0.091<span style="text-decoration: underline;">4</span>       1.33  ((1030247 1029637, 10302~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  -<span style="color: #BB0000;">0.009</span><span style="color: #BB0000; text-decoration: underline;">61</span> -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">0</span>  0.061<span style="text-decoration: underline;">4</span> 0.012<span style="text-decoration: underline;">3</span> 0.002<span style="text-decoration: underline;">45</span>      0.445 ((1116002 1024542, 11160~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  -<span style="color: #BB0000;">0.182</span>   -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">0</span> -<span style="color: #BB0000;">0.111</span>  0.022<span style="text-decoration: underline;">6</span> 0.022<span style="text-decoration: underline;">6</span>      -<span style="color: #BB0000;">0.990</span> ((1079864 1025088, 10798~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>   0.003<span style="text-decoration: underline;">51</span> -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">0</span>  0.074<span style="text-decoration: underline;">5</span> 0.031<span style="text-decoration: underline;">7</span> 0.010<span style="text-decoration: underline;">2</span>       0.558 ((1110363 1037056, 11103~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ... with 24 more rows</span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">spmod_seal</span>, newdata <span class="op">=</span> <span class="va">spmod_seal</span><span class="op">$</span><span class="va">newdata</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Simple feature collection with 28 features and 2 fields</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Geometry type: POLYGON</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dimension:     XY</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Bounding box:  xmin: 913618.8 ymin: 1007542 xmax: 1115097 ymax: 1132682</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Projected CRS: NAD83 / Alaska Albers</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # A tibble: 28 x 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    log_trend .fitted                                                    geometry</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  *     &lt;dbl&gt;   &lt;dbl&gt;                                               &lt;POLYGON [m]&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1        NA -0.114  ((1035002 1054710, 1035002 1054542, 1035002 1053542, 10350~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2        NA -0.0101 ((1043093 1020553, 1043097 1020550, 1043101 1020550, 10431~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3        NA -0.0604 ((1099737 1054310, 1099752 1054262, 1099788 1054278, 10998~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4        NA -0.0365 ((1099002 1036542, 1099134 1036462, 1099139 1036431, 10991~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5        NA -0.0725 ((1076902 1053189, 1076912 1053179, 1076931 1053179, 10769~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6        NA -0.0551 ((1070501 1046969, 1070317 1046598, 1070308 1046542, 10703~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7        NA -0.0973 ((1072995 1054942, 1072996 1054910, 1072997 1054878, 10729~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8        NA -0.0715 ((960001.5 1127667, 960110.8 1127542, 960144.1 1127495, 96~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9        NA -0.0822 ((1031308 1079817, 1031293 1079754, 1031289 1079741, 10312~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10        NA -0.0595 ((998923.7 1053647, 998922.5 1053609, 998950 1053631, 9990~</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> # ... with 18 more rows</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 28 x 3</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    log_trend  .fitted                                                   geometry</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  <span style="color: #BCBCBC;">*</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                                              <span style="color: #949494; font-style: italic;">&lt;POLYGON [m]&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>        <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.115</span>   ((1035002 1054710, 1035002 1054542, 1035002 1053542, 1035~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>        <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.009</span><span style="color: #BB0000; text-decoration: underline;">18</span> ((1043093 1020553, 1043097 1020550, 1043101 1020550, 1043~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>        <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.060</span><span style="color: #BB0000; text-decoration: underline;">3</span>  ((1099737 1054310, 1099752 1054262, 1099788 1054278, 1099~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>        <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.036</span><span style="color: #BB0000; text-decoration: underline;">0</span>  ((1099002 1036542, 1099134 1036462, 1099139 1036431, 1099~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>        <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.072</span><span style="color: #BB0000; text-decoration: underline;">4</span>  ((1076902 1053189, 1076912 1053179, 1076931 1053179, 1076~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>        <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.054</span><span style="color: #BB0000; text-decoration: underline;">9</span>  ((1070501 1046969, 1070317 1046598, 1070308 1046542, 1070~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>        <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.097</span><span style="color: #BB0000; text-decoration: underline;">6</span>  ((1072995 1054942, 1072996 1054910, 1072997 1054878, 1072~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>        <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">5</span>  ((960001.5 1127667, 960110.8 1127542, 960144.1 1127495, 9~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>        <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.082</span><span style="color: #BB0000; text-decoration: underline;">5</span>  ((1031308 1079817, 1031293 1079754, 1031289 1079741, 1031~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>        <span style="color: #BB0000;">NA</span> -<span style="color: #BB0000;">0.059</span><span style="color: #BB0000; text-decoration: underline;">3</span>  ((998923.7 1053647, 998922.5 1053609, 998950 1053631, 999~</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ... with 18 more rows</span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

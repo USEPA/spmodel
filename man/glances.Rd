@@ -34,7 +34,7 @@ glances(object, ..., sort_by = "AICc", decreasing = FALSE)
 \item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
 \item{...}{Additional fitted model objects. Ignored
-if \code{object} has class \code{splm_list} or \code{spautor_list}.}
+if \code{object} has class \code{splm_list}, \code{spautor_list}, \code{spglm_list}, or \code{spgautor_list}.}
 
 \item{sort_by}{Sort by a \code{glance} statistic (i.e., the name of a column
 output from \code{glance()} or the order of model input (\code{sort_by = "order"}).

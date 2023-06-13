@@ -1,6 +1,4 @@
-This is a minor update that addresses warnings from recent CRAN package check results 
-on debian-gcc, fedora-clang, and fedora-gcc. Some other minor bugfixes
-and features were also implemented. Thank you.
+This is a minor update that adds a few features and bug fixes. Thank you.
 
 -------
 

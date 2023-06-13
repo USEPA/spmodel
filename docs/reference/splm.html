@@ -16,7 +16,7 @@ anisotropy, partition factors, and big data methods."><!-- mathjax --><script sr
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -247,11 +247,11 @@ the fitted model object. If <code>spcov_type</code> or <code>spcov_initial</code
 length one, the list has class <code>splm</code>. Many generic functions that
 summarize model fit are available for <code>splm</code> objects, including
 <code>AIC</code>, <code>AICc</code>, <code>anova</code>, <code>augment</code>, <code>coef</code>,
-<code>cooks.distance</code>, <code>deviance</code>, <code>fitted</code>, <code>formula</code>,
+<code>cooks.distance</code>, <code>covmatrix</code>, <code>deviance</code>, <code>fitted</code>, <code>formula</code>,
 <code>glance</code>, <code>glances</code>, <code>hatvalues</code>, <code>influence</code>,
 <code>labels</code>, <code>logLik</code>, <code>loocv</code>, <code>model.frame</code>, <code>model.matrix</code>,
 <code>plot</code>, <code>predict</code>, <code>print</code>, <code>pseudoR2</code>, <code>summary</code>,
-<code>terms</code>, <code>tidy</code>, <code>update</code>, and <code>vcov</code>. If
+<code>terms</code>, <code>tidy</code>, <code>update</code>, <code>varcomp</code>, and <code>vcov</code>. If
 <code>spcov_type</code> or <code>spcov_initial</code> are length greater than one, the
 list has class <code>splm_list</code> and each element in the list has class
 <code>splm</code>. <code>glances</code> can be used to summarize <code>splm_list</code></p>
@@ -264,7 +264,7 @@ individual list element (model fit).</p>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The spatial linear model for point-referenced data
 (i.e., geostatistical model) can be written as
-\(y = X \beta + \tau + \epsilon\), where X is the fixed effects design
+\(y = X \beta + \tau + \epsilon\), where \(X\) is the fixed effects design
 matrix, \(\beta\) are the fixed effects, \(\tau\) is random error that is
 spatially dependent, and \(\epsilon\) is random error that is spatially
 independent. Together, \(\tau\) and \(\epsilon\) are modeled using
@@ -289,7 +289,7 @@ for \(h\) distance between observations:</p><ul><li><p>exponential: \(exp(- \eta
 <li><p>magnetic: \((1 + \eta^2)^{-1.5}\)</p></li>
 <li><p>matern: \(2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)\), \(\alpha = (2extra * \eta)^{0.5}\), Bk is Bessel-K function with order \(1/5 \le extra \le 5\)</p></li>
 <li><p>cauchy: \((1 + \eta^2)^{-extra}\), \(extra &gt; 0\)</p></li>
-<li><p>pexponential: \(exp(h^{extra/range)}\), \(0 &lt; extra \le 2\)</p></li>
+<li><p>pexponential: \(exp(h^{extra}/range)\), \(0 &lt; extra \le 2\)</p></li>
 <li><p>none: \(0\)</p></li>
 </ul><p>All spatial covariance functions are valid in one spatial dimension. All
 spatial covariance functions except <code>triangular</code> and <code>cosine</code> are
@@ -323,8 +323,8 @@ spatial and random effects components is then multiplied element-wise
 <p><code>local</code> Details: The big data approximation works by sorting observations into different levels
 of an index variable. Observations in different levels of the index variable
 are assumed to be uncorrelated for the purposes of model fitting. Sparse matrix methods are then implemented
-for significant computational gains. Parallelization further speeds up
-computations. Both the <code>"random"</code> and <code>"kmeans"</code> values of <code>method</code>
+for significant computational gains. Parallelization generally further speeds up
+computations when data sizes are larger than a few thousand. Both the <code>"random"</code> and <code>"kmeans"</code> values of <code>method</code>
 in <code>local</code> have random components. That means you may get slightly different
 results when using the big data approximation and rerunning <code>splm()</code> with the same code. For consistent results,
 either set a seed via <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">base::set.seed()</a></code> or specify <code>index</code> to <code>local</code>.</p>

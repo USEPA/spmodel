@@ -14,7 +14,7 @@ partition factors, and row standardization."><!-- mathjax --><script src="https:
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -102,7 +102,7 @@ available in Details. When <code>spcov_type</code> is specified, relevant spatia
 covariance parameters are assumed unknown, requiring estimation.
 <code>spcov_type</code> is not required (and is
 ignored) if <code>spcov_initial</code> is provided.  Multiple values can be
-provided in a character vector. Then <code><a href="splm.html">splm()</a></code> is called iteratively
+provided in a character vector. Then <code>spautor()</code> is called iteratively
 for each element and a list is returned for each model fit.
 The default for <code>spcov_type</code> is <code>"car"</code>.</p></dd>
 
@@ -111,7 +111,7 @@ The default for <code>spcov_type</code> is <code>"car"</code>.</p></dd>
 <dd><p>An object from <code><a href="spcov_initial.html">spcov_initial()</a></code> specifying initial and/or
 known values for the spatial covariance parameters.
 Not required if <code>spcov_type</code> is provided. Multiple <code><a href="spcov_initial.html">spcov_initial()</a></code>
-objects can be provided in a list. Then <code><a href="splm.html">splm()</a></code> is called iteratively
+objects can be provided in a list. Then <code>spautor()</code> is called iteratively
 for each element and a list is returned for each model fit.</p></dd>
 
 
@@ -152,7 +152,7 @@ from different levels of the partition factor are uncorrelated.</p></dd>
 <dt>W</dt>
 <dd><p>Weight matrix specifying the neighboring structure used.
 Not required if <code>data</code> is an <code>sf</code> polygon object,
-as <code>W</code> is calculated internally. If calculated internally,
+as <code>W</code> is calculated internally using queen contiguity. If calculated internally,
 <code>W</code> is computed using <code><a href="https://r-spatial.github.io/sf/reference/geos_binary_pred.html" class="external-link">sf::st_intersects()</a></code>.</p></dd>
 
 
@@ -162,14 +162,15 @@ as <code>W</code> is calculated internally. If calculated internally,
 
 
 <dt>M</dt>
-<dd><p>M matrix satisfying the car symmetry condition. The car
+<dd><p><code>M</code> matrix satisfying the car symmetry condition. The car
 symmetry condition states that \((I - range * W)^{-1}M\) is symmetric, where
 \(I\) is an identity matrix, \(range\) is a constant that controls the
 spatial dependence, <code>W</code> is the weights matrix,
 and \(^{-1}\) represents the inverse operator.
 <code>M</code> is required for car models
 when <code>W</code> is provided and <code>row_st</code> is <code>FALSE</code>.  When <code>M</code>,
-is required, the default is the identity matrix.</p></dd>
+is required, the default is the identity matrix. <code>M</code> must be diagonal
+or given as a vector or one-column matrix assumed to be the diagonal.</p></dd>
 
 
 <dt>...</dt>
@@ -185,11 +186,11 @@ the fitted model object. If <code>spcov_type</code> or <code>spcov_initial</code
 length one, the list has class <code>spautor</code>. Many generic functions that
 summarize model fit are available for <code>spautor</code> objects, including
 <code>AIC</code>, <code>AICc</code>, <code>anova</code>, <code>augment</code>, <code>coef</code>,
-<code>cooks.distance</code>, <code>deviance</code>, <code>fitted</code>, <code>formula</code>,
+<code>cooks.distance</code>, <code>covmatrix</code>, <code>deviance</code>, <code>fitted</code>, <code>formula</code>,
 <code>glance</code>, <code>glances</code>, <code>hatvalues</code>, <code>influence</code>,
 <code>labels</code>, <code>logLik</code>, <code>loocv</code>, <code>model.frame</code>, <code>model.matrix</code>,
 <code>plot</code>, <code>predict</code>, <code>print</code>, <code>pseudoR2</code>, <code>summary</code>,
-<code>terms</code>, <code>tidy</code>, <code>update</code>, and <code>vcov</code>. If
+<code>terms</code>, <code>tidy</code>, <code>update</code>, <code>varcomp</code>, and <code>vcov</code>. If
 <code>spcov_type</code> or <code>spcov_initial</code> are length greater than one, the
 list has class <code>spautor_list</code> and each element in the list has class
 <code>spautor</code>. <code>glances</code> can be used to summarize <code>spautor_list</code></p>
@@ -202,7 +203,7 @@ individual list element (model fit).</p>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The spatial linear model for areal data (i.e., spatial autoregressive model)
 can be written as
-\(y = X \beta + \tau + \epsilon\), where X is the fixed effects design
+\(y = X \beta + \tau + \epsilon\), where \(X\) is the fixed effects design
 matrix, \(\beta\) are the fixed effects, \(\tau\) is random error that is
 spatially dependent, and \(\epsilon\) is random error that is spatially
 independent. Together, \(\tau\) and \(\epsilon\) are modeled using
@@ -229,8 +230,7 @@ are assumed unknown, requiring estimation. <code>ie</code> is assumed zero and k
 unknown by default). To change this default behavior, specify <code>spcov_initial</code>
 (an <code>NA</code> value for <code>ie</code> in <code>spcov_initial</code> to assume
 <code>ie</code> is unknown, requiring estimation).</p>
-<p><code>random</code> Details: If random effects are used (the estimation method must be <code>"reml"</code> or
-<code>"ml"</code>), the model
+<p><code>random</code> Details: If random effects are used, the model
 can be written as \(y = X \beta + Z1u1 + ... Zjuj + \tau + \epsilon\),
 where each Z is a random effects design matrix and each u is a random effect.</p>
 <p><code>partition_factor</code> Details:  The partition factor can be represented in matrix form as \(P\), where
@@ -261,17 +261,17 @@ so they have variance 1 before optimization.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Residuals:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      Min       1Q   Median       3Q      Max </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.34443 -0.10405  0.04422  0.07349  0.20487 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.34441 -0.10403  0.04423  0.07351  0.20489 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (fixed):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error z value Pr(&gt;|z|)   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) -0.07102    0.02495  -2.846  0.00443 **</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) -0.07103    0.02492  -2.851  0.00436 **</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (car spatial covariance):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      de   range   extra </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.03261 0.41439 0.02221 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.03226 0.42020 0.02235 </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

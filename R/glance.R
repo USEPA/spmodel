@@ -4,7 +4,7 @@
 #'   summaries from a fitted model object. Glance returns the same number of columns for all models
 #'   and estimation methods. If a particular summary is undefined for a model
 #'   or estimation method (e.g., likelihood statistics for estimation methods
-#'   \code{"sv-wls"} or \code{"sv-cl"}) of \code{splm()} objects), \code{NA} is returned for that summary.
+#'   \code{"sv-wls"} or \code{"sv-cl"} of \code{splm()} objects), \code{NA} is returned for that summary.
 #'
 #' @param x A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
 #' @param ... Other arguments. Not used (needed for generic consistency).

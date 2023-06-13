@@ -142,7 +142,7 @@ Missing response values from the original data can be augmented as if
 they were a \code{newdata} object by providing \code{x$newdata} to the
 \code{newdata} argument (where \code{x} is the name of the fitted model
 object). This is the only way to compute predictions for
-\code{\link[=spautor]{spautor()}} fitted model objects.
+\code{\link[=spautor]{spautor()}} and \code{\link[=spgautor]{spgautor()}} fitted model objects.
 }
 \examples{
 spmod <- splm(z ~ water + tarp,

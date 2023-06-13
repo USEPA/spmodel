@@ -10,7 +10,7 @@
 #' @order 9
 #' @export
 predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                         newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
+                          newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
 
 
   # match type argument so the two display
@@ -90,14 +90,14 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
 
   if (object$anisotropy) { # could just do rotate != 0 || scale != 1
     obdata_aniscoords <- transform_anis(obdata, xcoord, ycoord,
-                                        rotate = spcov_params_val[["rotate"]],
-                                        scale = spcov_params_val[["scale"]]
+      rotate = spcov_params_val[["rotate"]],
+      scale = spcov_params_val[["scale"]]
     )
     obdata[[xcoord]] <- obdata_aniscoords$xcoord_val
     obdata[[ycoord]] <- obdata_aniscoords$ycoord_val
     newdata_aniscoords <- transform_anis(newdata, xcoord, ycoord,
-                                         rotate = spcov_params_val[["rotate"]],
-                                         scale = spcov_params_val[["scale"]]
+      rotate = spcov_params_val[["rotate"]],
+      scale = spcov_params_val[["scale"]]
     )
     newdata[[xcoord]] <- newdata_aniscoords$xcoord_val
     newdata[[ycoord]] <- newdata_aniscoords$ycoord_val
@@ -195,7 +195,6 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
 
     # partition factor stuff
     if (!is.null(object$partition_factor)) {
-
       partition_factor_val <- get_partition_name(labels(terms(object$partition_factor)))
       bar_split <- unlist(strsplit(partition_factor_val, " | ", fixed = TRUE))
       reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
@@ -234,48 +233,49 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
     if (local_list$parallel) {
       cl <- parallel::makeCluster(local_list$ncores)
       pred_spglm <- parallel::parLapply(cl, newdata_list, get_pred_spglm,
-                                       se.fit = se.fit,
-                                       interval = interval, formula = object$formula,
-                                       obdata = obdata, xcoord = xcoord, ycoord = ycoord,
-                                       spcov_params_val = spcov_params_val, random = object$random,
-                                       randcov_params_val = randcov_params_val,
-                                       reform_bar2_list = reform_bar2_list,
-                                       Z_index_obdata_list = Z_index_obdata_list,
-                                       reform_bar1_list = reform_bar1_list,
-                                       Z_val_obdata_list = Z_val_obdata_list,
-                                       partition_factor = object$partition_factor,
-                                       reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
-                                       cov_lowchol = cov_lowchol,
-                                       Xmat = model.matrix(object),
-                                       y = object$y, dim_coords = object$dim_coords,
-                                       betahat = coefficients(object), cov_betahat = vcov(object, var_correct = FALSE),
-                                       contrasts = object$contrasts,
-                                       local = local_list, family = object$family, w = fitted(object, type = "link"), size = object$size,
-                                       dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind, diagtol = object$diagtol
+        se.fit = se.fit,
+        interval = interval, formula = object$formula,
+        obdata = obdata, xcoord = xcoord, ycoord = ycoord,
+        spcov_params_val = spcov_params_val, random = object$random,
+        randcov_params_val = randcov_params_val,
+        reform_bar2_list = reform_bar2_list,
+        Z_index_obdata_list = Z_index_obdata_list,
+        reform_bar1_list = reform_bar1_list,
+        Z_val_obdata_list = Z_val_obdata_list,
+        partition_factor = object$partition_factor,
+        reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
+        cov_lowchol = cov_lowchol,
+        Xmat = model.matrix(object),
+        y = object$y, dim_coords = object$dim_coords,
+        betahat = coefficients(object), cov_betahat = vcov(object, var_correct = FALSE),
+        contrasts = object$contrasts,
+        local = local_list, family = object$family, w = fitted(object, type = "link"), size = object$size,
+        dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind,
+        xlevels = object$xlevels, diagtol = object$diagtol
       )
       cl <- parallel::stopCluster(cl)
     } else {
       pred_spglm <- lapply(newdata_list, get_pred_spglm,
-                          se.fit = se.fit,
-                          interval = interval, formula = object$formula,
-                          obdata = obdata, xcoord = xcoord, ycoord = ycoord,
-                          spcov_params_val = spcov_params_val, random = object$random,
-                          randcov_params_val = randcov_params_val,
-                          reform_bar2_list = reform_bar2_list,
-                          Z_index_obdata_list = Z_index_obdata_list,
-                          reform_bar1_list = reform_bar1_list,
-                          Z_val_obdata_list = Z_val_obdata_list,
-                          partition_factor = object$partition_factor,
-                          reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
-                          cov_lowchol = cov_lowchol,
-                          Xmat = model.matrix(object),
-                          y = object$y, dim_coords = object$dim_coords,
-                          betahat = coefficients(object), cov_betahat = vcov(object, var_correct = FALSE),
-                          contrasts = object$contrasts,
-                          local = local_list, family = object$family,
-                          w = fitted(object, type = "link"), size = object$size,
-                          dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind,
-                          diagtol = object$diagtol
+        se.fit = se.fit,
+        interval = interval, formula = object$formula,
+        obdata = obdata, xcoord = xcoord, ycoord = ycoord,
+        spcov_params_val = spcov_params_val, random = object$random,
+        randcov_params_val = randcov_params_val,
+        reform_bar2_list = reform_bar2_list,
+        Z_index_obdata_list = Z_index_obdata_list,
+        reform_bar1_list = reform_bar1_list,
+        Z_val_obdata_list = Z_val_obdata_list,
+        partition_factor = object$partition_factor,
+        reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
+        cov_lowchol = cov_lowchol,
+        Xmat = model.matrix(object),
+        y = object$y, dim_coords = object$dim_coords,
+        betahat = coefficients(object), cov_betahat = vcov(object, var_correct = FALSE),
+        contrasts = object$contrasts,
+        local = local_list, family = object$family,
+        w = fitted(object, type = "link"), size = object$size,
+        dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind,
+        xlevels = object$xlevels, diagtol = object$diagtol
       )
     }
 
@@ -405,23 +405,23 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
 }
 
 get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoord, ycoord,
-                          spcov_params_val, random, randcov_params_val, reform_bar2_list,
-                          Z_index_obdata_list, reform_bar1_list, Z_val_obdata_list, partition_factor,
-                          reform_bar2, partition_index_obdata, cov_lowchol,
-                          Xmat, y, betahat, cov_betahat, dim_coords, contrasts, local,
-                          family, w, size, dispersion, predvar_adjust_ind, diagtol) {
+                           spcov_params_val, random, randcov_params_val, reform_bar2_list,
+                           Z_index_obdata_list, reform_bar1_list, Z_val_obdata_list, partition_factor,
+                           reform_bar2, partition_index_obdata, cov_lowchol,
+                           Xmat, y, betahat, cov_betahat, dim_coords, contrasts, local,
+                           family, w, size, dispersion, predvar_adjust_ind, xlevels, diagtol) {
 
 
   # storing partition vector
   partition_vector <- partition_vector(partition_factor,
-                                       data = obdata,
-                                       newdata = newdata_list$row, reform_bar2 = reform_bar2,
-                                       partition_index_data = partition_index_obdata
+    data = obdata,
+    newdata = newdata_list$row, reform_bar2 = reform_bar2,
+    partition_index_data = partition_index_obdata
   )
 
   # subsetting partition vector
   if (!is.null(partition_vector) && local$method %in% c("distance", "covariance") &&
-      !labels(terms(partition_factor)) %in% labels(terms(random))) {
+    !labels(terms(partition_factor)) %in% labels(terms(random))) {
     obdata <- obdata[as.vector(partition_vector) == 1, , drop = FALSE]
     partition_vector <- Matrix(1, nrow = 1, ncol = NROW(obdata))
   }
@@ -470,10 +470,11 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
     partition_matrix_val <- partition_matrix(partition_factor, obdata)
     cov_matrix_val <- cov_matrix(
       spcov_params_val, spdist(obdata, xcoord, ycoord), randcov_params_val,
-      randcov_Zs, partition_matrix_val, diagtol = diagtol
+      randcov_Zs, partition_matrix_val,
+      diagtol = diagtol
     )
     cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(cov_matrix_val)))
-    model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass)
+    model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass, xlev = xlevels)
     Xmat <- model.matrix(formula, model_frame, contrasts = contrasts)
     y <- model.response(model_frame)
     if (NCOL(y) == 2) {
@@ -526,7 +527,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
 #' @export
 predict.spgautor <- function(object, newdata, type = c("link", "response"), se.fit = FALSE,
                              interval = c("none", "confidence", "prediction"),
-                            newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
+                             newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
 
   # match type argument so the two display
   type <- match.arg(type)
@@ -660,11 +661,11 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
         )
       })
       pred_spautor <- parallel::parLapply(cl, cluster_list, get_pred_spgautor_parallel,
-                                          cov_matrix_lowchol, betahat,
-                                          residuals_pearson_w,
-                                          cov_betahat, SqrtSigInv_X,
-                                          se.fit = se.fit,
-                                          interval = interval
+        cov_matrix_lowchol, betahat,
+        residuals_pearson_w,
+        cov_betahat, SqrtSigInv_X,
+        se.fit = se.fit,
+        interval = interval
       )
       cl <- parallel::stopCluster(cl)
     } else {
@@ -819,8 +820,7 @@ get_pred_spgautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat
 #' @order 11
 #' @export
 predict.spglm_list <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                              newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
-
+                               newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
   type <- match.arg(type)
   # match interval argument so the three display
   interval <- match.arg(interval)

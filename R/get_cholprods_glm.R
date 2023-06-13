@@ -15,8 +15,10 @@ get_cholprods_glm <- function(cov_matrix, X, y) {
   SigInv <- chol2inv(Sig_upchol)
   SigInv_X <- backsolve(t(Sig_lowchol), SqrtSigInv_X)
   # list(Sig_lowchol = Sig_lowchol, SqrtSigInv_X = SqrtSigInv_X, SqrtSigInv_y = SqrtSigInv_y)
-  list(Sig_lowchol = Sig_lowchol, SqrtSigInv_X = SqrtSigInv_X, SqrtSigInv_y = SqrtSigInv_y,
-       SigInv = SigInv, SigInv_X = SigInv_X)
+  list(
+    Sig_lowchol = Sig_lowchol, SqrtSigInv_X = SqrtSigInv_X, SqrtSigInv_y = SqrtSigInv_y,
+    SigInv = SigInv, SigInv_X = SigInv_X
+  )
 }
 
 get_cholprods_glm_parallel <- function(cluster_list) {

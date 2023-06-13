@@ -482,7 +482,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
       size <- rowSums(y_modr)
     } else {
       if (family == "binomial") {
-        size <- rep(1, n)
+        size <- rep(1, NROW(obdata))
       } else {
         size <- NULL
       }

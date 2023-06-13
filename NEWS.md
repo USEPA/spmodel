@@ -1,3 +1,9 @@
+# spmodel 0.4.1
+
+## Bug fixes
+
+* Fixed a bug that occurred with prediction for success/failure binomial data (e.g., Bernoulli data) when `local` in `predict()` was `TRUE`.
+
 # spmodel 0.4.0
 
 ## Major updates

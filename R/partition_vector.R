@@ -4,7 +4,7 @@
 #' @param data data
 #' @param newdata newdata (for prediction)
 #'
-#' @return
+#' @return A partition vector for use with prediction
 #'
 #' @noRd
 partition_vector <- function(partition_factor, data, newdata, reform_bar2 = NULL, partition_index_data = NULL) {

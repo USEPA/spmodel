@@ -13,6 +13,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
                           newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
 
 
+
   # match type argument so the two display
   type <- match.arg(type)
 
@@ -435,6 +436,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
     obdata <- obdata[nn_index, , drop = FALSE]
     dist_vector <- dist_vector[, nn_index]
     w <- w[nn_index]
+    y <- y[nn_index]
     if (!is.null(size)) {
       size <- size[nn_index]
     }
@@ -457,6 +459,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
     obdata <- obdata[cov_index, , drop = FALSE]
     cov_vector_val <- cov_vector_val[cov_index]
     w <- w[cov_index]
+    y <- y[cov_index]
     if (!is.null(size)) {
       size <- size[cov_index]
     }
@@ -476,18 +479,6 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
     cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(cov_matrix_val)))
     model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass, xlev = xlevels)
     Xmat <- model.matrix(formula, model_frame, contrasts = contrasts)
-    y <- model.response(model_frame)
-    if (NCOL(y) == 2) {
-      y_modr <- y
-      y <- y_modr[, 1, drop = FALSE]
-      size <- rowSums(y_modr)
-    } else {
-      if (family == "binomial") {
-        size <- rep(1, NROW(obdata))
-      } else {
-        size <- NULL
-      }
-    }
   }
 
 

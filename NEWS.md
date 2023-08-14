@@ -3,6 +3,7 @@
 ## Bug fixes
 
 * Fixed a bug that occurred with prediction for success/failure binomial data (e.g., Bernoulli data) when `local` in `predict()` was `TRUE`.
+* Fixed a bug that could affect simulating data using `sprbinom()` when the `size` argument was different from `1`.
 
 # spmodel 0.4.0
 

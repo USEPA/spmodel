@@ -175,6 +175,19 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
         reform_bar2_names <- colnames(reform_bar2_mx)
         reform_bar2_split <- split(reform_bar2_mx, seq_len(NROW(reform_bar2_mx)))
         reform_bar2_vals <- reform_bar2_names[vapply(reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+
+
+        # adding dummy levels if newdata observations of random effects are not in original data
+        # terms object is unchanged if levels change
+        # reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
+        # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
+        # reform_bar2_terms_full <- terms(rbind(reform_bar2_mf, reform_bar2_mf_new))
+        reform_bar2_xlev_full <- .getXlevels(reform_bar2_terms, rbind(reform_bar2_mf, model.frame(reform_bar2, newdata)))
+        if (!identical(reform_bar2_xlev, reform_bar2_xlev_full)) {
+          reform_bar2_xlev <- reform_bar2_xlev_full
+        }
+
+
         list(reform_bar2_vals = reform_bar2_vals, reform_bar2_xlev = reform_bar2_xlev)
       })
       # Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) as.vector(model.matrix(reform_bar2, obdata)))
@@ -206,6 +219,18 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
       p_reform_bar2_names <- colnames(p_reform_bar2_mx)
       p_reform_bar2_split <- split(p_reform_bar2_mx, seq_len(NROW(p_reform_bar2_mx)))
       p_reform_bar2_vals <- p_reform_bar2_names[vapply(p_reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+
+
+      # adding dummy levels if newdata observations of random effects are not in original data
+      # terms object is unchanged if levels change
+      # p_reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
+      # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
+      # p_reform_bar2_terms_full <- terms(rbind(p_reform_bar2_mf, p_reform_bar2_mf_new))
+      p_reform_bar2_xlev_full <- .getXlevels(p_reform_bar2_terms, rbind(p_reform_bar2_mf, model.frame(reform_bar2, newdata)))
+      if (!identical(p_reform_bar2_xlev, p_reform_bar2_xlev_full)) {
+        p_reform_bar2_xlev <- p_reform_bar2_xlev_full
+      }
+
       partition_index_obdata <- list(reform_bar2_vals = p_reform_bar2_vals, reform_bar2_xlev = p_reform_bar2_xlev)
       # partition_index_obdata <- as.vector(model.matrix(reform_bar2, obdata))
     } else {
@@ -468,7 +493,8 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
   if (local$method %in% c("distance", "covariance")) {
     if (!is.null(random)) {
       randcov_names <- get_randcov_names(random)
-      randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
+      xlev_list <- lapply(Z_index_obdata_list, function(x) x$reform_bar2_xlev)
+      randcov_Zs <- get_randcov_Zs(obdata, randcov_names, xlev_list = xlev_list)
     }
     partition_matrix_val <- partition_matrix(partition_factor, obdata)
     cov_matrix_val <- cov_matrix(

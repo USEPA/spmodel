@@ -40,20 +40,25 @@ get_randcov_var_list <- function(randcov_name, index_val, index, randcov_Zs) {
   list(Z = Z_list, ZZt = ZZt_list, ZtZ = ZtZ_list)
 }
 
-get_randcov_Zs <- function(data, randcov_names = NULL, ZZt = TRUE, ZtZ = FALSE) {
+get_randcov_Zs <- function(data, randcov_names = NULL, ZZt = TRUE, ZtZ = FALSE, xlev_list = NULL) {
   if (is.null(randcov_names)) {
     randcov_Zs <- NULL
   } else {
-    randcov_Zs <- lapply(randcov_names, get_randcov_Z, data, ZZt, ZtZ)
+    randcov_Zs <- lapply(randcov_names, get_randcov_Z, data, ZZt, ZtZ, xlev_list)
     names(randcov_Zs) <- randcov_names
   }
   randcov_Zs
 }
 
-get_randcov_Z <- function(randcov_name, data, ZZt = TRUE, ZtZ = FALSE) {
+get_randcov_Z <- function(randcov_name, data, ZZt = TRUE, ZtZ = FALSE, xlev_list = NULL) {
+
   bar_split <- unlist(strsplit(randcov_name, " | ", fixed = TRUE))
   Z_reform <- reformulate(bar_split[[2]], intercept = FALSE)
-  Z_frame <- model.frame(Z_reform, data = data, drop.unused.levels = FALSE)
+  if (is.null(xlev_list)) {
+    Z_frame <- model.frame(Z_reform, data = data, drop.unused.levels = FALSE)
+  } else {
+    Z_frame <- model.frame(Z_reform, data = data, drop.unused.levels = FALSE, xlev = xlev_list[[randcov_name]])
+  }
   if (any(!attr(terms(Z_frame), "dataClasses") %in% c("character", "factor", "ordered"))) {
     stop("Random effect grouping variables must be categorical or factor.", call. = FALSE)
   }

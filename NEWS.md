@@ -2,12 +2,15 @@
 
 ## Minor updates
 
+* Predictions can now be made for prediction locations whose random effect levels are not present in the observed data
+    * When this occurs, the random-effect covariance between the observed data and these prediction locations is assumed to be zero.
 * Minor documentation updates.
 
 ## Bug fixes
 
 * Fixed a bug that occurred with prediction for success/failure binomial data (e.g., Bernoulli data) when `local` in `predict()` was `TRUE`.
 * Fixed a bug that could affect simulating data using `sprbinom()` when the `size` argument was different from `1`.
+* Fixed a bug that could cause local prediction to fail when only one level of a random effect was present in the prediction site's local neighborhood.
 
 # spmodel 0.4.0
 

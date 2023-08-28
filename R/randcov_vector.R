@@ -39,6 +39,10 @@ get_randcov_vectors <- function(randcov_name, randcov_params, data, newdata, ref
     Z_index_data_split <- split(Z_index_data_mx, seq_len(NROW(Z_index_data_mx)))
     Z_index_data <- Z_index_data_names[vapply(Z_index_data_split, function(y) which(as.logical(y)), numeric(1))]
     Z_index_data_xlev <- .getXlevels(terms(Z_index_data_mf), Z_index_data_mf)
+    Z_index_data_xlev_full <- .getXlevels(terms(Z_index_data_mf), rbind(Z_index_data_mf, model.frame(reform_bar2, newdata)))
+    if (!identical(Z_index_data_xlev, Z_index_data_xlev_full)) {
+      Z_index_data_xlev <- Z_index_data_xlev_full
+    }
     # Z_index_data <- as.vector(model.matrix(reform_bar2, data))
   } else {
     Z_index_data <- Z_index_data_list[[randcov_name]]$reform_bar2_vals

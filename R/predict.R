@@ -687,10 +687,16 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
     partition_index_data = partition_index_obdata
   )
 
-  # subsetting partition vector
+  # subsetting partition vector (efficient but causes problems later with
+  # random effect subsetting)
   if (!is.null(partition_vector) && local$method %in% c("distance", "covariance") &&
     !labels(terms(partition_factor)) %in% labels(terms(random))) {
-    obdata <- obdata[as.vector(partition_vector) == 1, , drop = FALSE]
+    partition_index <- as.vector(partition_vector) == 1
+    Z_index_obdata_list <- lapply(Z_index_obdata_list, function(x) {
+      x$reform_bar2_vals <- x$reform_bar2_vals[partition_index]
+      x
+    })
+    obdata <- obdata[partition_index, , drop = FALSE]
     partition_vector <- Matrix(1, nrow = 1, ncol = NROW(obdata))
   }
 

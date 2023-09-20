@@ -35,7 +35,7 @@
 #'       \code{"distance"} and \code{"covariance"} are equivalent. The default
 #'       is \code{"covariance"}. Only used with models fit using [splm()] or [spglm()].}
 #'     \item{\code{size}: }{The number of data observations to use when \code{method}
-#'       is \code{"distance"} or \code{"covariance"}. The default is 50. Only used
+#'       is \code{"distance"} or \code{"covariance"}. The default is 100. Only used
 #'       with models fit using [splm()] or [spglm()].}
 #'     \item{\code{parallel}: }{If \code{TRUE}, parallel processing via the
 #'       parallel package is automatically used. The default is \code{FALSE}.}
@@ -46,7 +46,7 @@
 #'   initialize default arguments for the other list elements.
 #'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 #'   that \code{local} is transformed into
-#'   \code{list(size = 50, method = "covariance", parallel = FALSE)}.
+#'   \code{list(size = 100, method = "covariance", parallel = FALSE)}.
 #' @param ... Other arguments. Only used for models fit using \code{splmRF()}
 #'   or \code{spautorRF()} where \code{...} indicates other
 #'   arguments to \code{ranger::predict.ranger()}.

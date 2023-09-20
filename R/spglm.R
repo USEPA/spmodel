@@ -92,14 +92,14 @@
 #'       observations are randomly assigned to \code{index} based on \code{size}.
 #'       If \code{method = "kmeans"}, observations assigned to \code{index}
 #'       based on k-means clustering on the coordinates with \code{groups} clusters. The default
-#'       is \code{"random"}. Note that both methods have a random component, which
+#'       is \code{"kmeans"}. Note that both methods have a random component, which
 #'       means that you may get different results from separate model fitting calls.
 #'       To ensure consistent results, specify \code{index} or set a seed via
 #'       \code{base::set.seed()}.}
 #'     \item{\code{size}: }{The number of observations in each \code{index} group
 #'       when \code{method} is \code{"random"}. If the number of observations
 #'       is not divisible by \code{size}, some levels get \code{size - 1} observations.
-#'       The default is 50.}
+#'       The default is 100.}
 #'     \item{\code{groups: }}{The number of \code{index} groups. If \code{method}
 #'       is \code{"random"}, \code{size} is \eqn{ceiling(n / groups)}, where
 #'       \eqn{n} is the sample size. Automatically determined if \code{size}
@@ -119,7 +119,7 @@
 #'   initialize default arguments for the other list elements.
 #'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 #'   that \code{local} is transformed into
-#'   \code{list(size = 50, method = "random", var_adjust = "theoretical", parallel = FALSE)}.
+#'   \code{list(size = 100, method = "kmeans", var_adjust = "theoretical", parallel = FALSE)}.
 #' @param ... Other arguments to [esv()] or [stats::optim()].
 #'
 #' @details The spatial generalized linear model for point-referenced data

@@ -722,18 +722,18 @@ The `local` argument to `splm()` controls the big data options. `local` is a lis
 
 Big data are most simply accommodated by setting `local` to `TRUE`. This is shorthand for
 
-`local = list(method = "random", size = 50, var_adjust = "theoretical", parallel = FALSE)`,
+`local = list(method = "kmeans", size = 100, var_adjust = "theoretical", parallel = FALSE)`,
 
-which randomly assigns observations to index groups, ensures each index group has approximately 50 observations, uses the theoretically-correct variance adjustment, and does not use parallel processing. 
+which assigns observations to index groups based on k-means clustering [@macqueen1967classification], ensures each index group has approximately 100 observations, uses the theoretically-correct variance adjustment, and does not use parallel processing. 
 ```{r}
 local1 <- splm(sim_response ~ 1, sim_data, spcov_type = "exponential", 
                xcoord = x, ycoord = y, local = TRUE)
 summary(local1)
 ```
 
-Instead of using `local = TRUE`, we can explicitly set `local`. For example, we can fit a model using k-means clustering [@macqueen1967classification]  on the x-coordinates and y-coordinates to create 60 groups (clusters), use the pooled variance adjustment, and use parallel processing with two cores by running
+Instead of using `local = TRUE`, we can explicitly set `local`. For example, we can fit a model using random assignment with 60 groups, use the pooled variance adjustment, and use parallel processing with two cores by running
 ```{r}
-local2_list <- list(method = "kmeans", groups = 60, var_adjust = "pooled",
+local2_list <- list(method = "random", groups = 60, var_adjust = "pooled",
                     parallel = TRUE, ncores = 2)
 local2 <- splm(sim_response ~ 1, sim_data, spcov_type = "exponential", 
                xcoord = x, ycoord = y, local = local2_list)
@@ -753,7 +753,7 @@ sim_preds <- tibble::tibble(x = x, y = y)
 
 The `local` argument to `predict()` controls the big data options. `local` is a list with several arguments. The arguments to the `local` list control the method used to subset the observed data, the number of observations in each subset, whether or not to use parallel processing, and if parallel processing is used, the number of cores.
 
-The simplest way to accommodate big data prediction is to set `local` to `TRUE`. This is shorthand for `local = list(method = "covariance", size = 50, parallel = FALSE)`, which implies that, for each location requiring prediction, only the 50 observations in the data most correlated with it are used in the computation and parallel processing is not used. Using the `local1` fitted model, we store these predictions as a variable called `preds` in the `sim_preds` data by running
+The simplest way to accommodate big data prediction is to set `local` to `TRUE`. This is shorthand for `local = list(method = "covariance", size = 100, parallel = FALSE)`, which implies that, for each location requiring prediction, only the 100 observations in the data most correlated with it are used in the computation and parallel processing is not used. Using the `local1` fitted model, we store these predictions as a variable called `preds` in the `sim_preds` data by running
 ```{r, results = "hide"}
 sim_preds$preds <- predict(local1, newdata = sim_preds, local = TRUE)
 ```

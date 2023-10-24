@@ -8,6 +8,7 @@
     * Previously, the `random` assignment method was used with group sizes approximately equal to 50.
 * The default for `local = TRUE` in `predict()` and `augment()` now uses 100 local neighbors.
     * Previously, 50 local neighbors were used.
+* Minor vignette updates.
 * Minor documentation updates.
 
 ## Bug fixes
@@ -16,6 +17,7 @@
 * Fixed a bug that could affect simulating data using `sprbinom()` when the `size` argument was different from `1`.
 * Fixed a bug that could cause local prediction to fail when only one level of a random effect was present in the prediction site's local neighborhood.
 * Fixed a bug that could cause an error when local estimation was used for the `"sv-wls"` estimation method.
+* Fixed a bug that caused undesirable behavior from `tidy()` when `conf.level` was less than zero or greater than one.
 
 # spmodel 0.4.0
 

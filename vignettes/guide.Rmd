@@ -739,7 +739,7 @@ local2 <- splm(sim_response ~ 1, sim_data, spcov_type = "exponential",
                xcoord = x, ycoord = y, local = local2_list)
 ```
 
-Likelihood-based statistics like `AIC()`, `AICc()`, `logLik()`, and `deviance()` should not be used to compare a model fit with a big data approximation to a model fit without a big data approximation, as the two approaches maximize different likelihoods.
+Likelihood-based statistics like `AIC()`, `AICc()`, `logLik()`, and `deviance()` should not be used to compare a model fit with a big data approximation to a model fit without a big data approximation.
 
 ### Prediction {#sec:prediction-big}
 

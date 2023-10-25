@@ -8,7 +8,7 @@
 #' @param optim_dotlist The optim dotlist
 #' @param esv_dotlist The empirical semivariogram dotlist
 #'
-#' @return
+#' @return Covariance parameter estimates
 #'
 #' @noRd
 cov_estimate_sv <- function(data_object, formula, spcov_initial, estmethod,

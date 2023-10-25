@@ -144,7 +144,7 @@ set to \code{TRUE}, otherwise it is set to \code{FALSE}. If \code{FALSE}, no big
 is implemented. If a list is provided, the following arguments detail the big
 data approximation:
 \itemize{
-\item{\code{method}: }{The big data approximation method. If \code{method = "all"},
+\item \code{method}: The big data approximation method. If \code{method = "all"},
 all observations are used and \code{size} is ignored. If \code{method = "distance"},
 the \code{size} data observations closest (in terms of Euclidean distance)
 to the observation requiring prediction are used.
@@ -153,20 +153,20 @@ with the highest covariance with the observation requiring prediction are used.
 If random effects and partition factors are not used in estimation and
 the spatial covariance function is monotone decreasing,
 \code{"distance"} and \code{"covariance"} are equivalent. The default
-is \code{"covariance"}. Only used with models fit using \code{\link[=splm]{splm()}} or \code{\link[=spglm]{spglm()}}.}
-\item{\code{size}: }{The number of data observations to use when \code{method}
-is \code{"distance"} or \code{"covariance"}. The default is 50. Only used
-with models fit using \code{\link[=splm]{splm()}} or \code{\link[=spglm]{spglm()}}.}
-\item{\code{parallel}: }{If \code{TRUE}, parallel processing via the
-parallel package is automatically used. The default is \code{FALSE}.}
-\item{\code{ncores}: }{If \code{parallel = TRUE}, the number of cores to
-parallelize over. The default is the number of available cores on your machine.}
+is \code{"covariance"}. Only used with models fit using \code{\link[=splm]{splm()}} or \code{\link[=spglm]{spglm()}}.
+\item \code{size}: The number of data observations to use when \code{method}
+is \code{"distance"} or \code{"covariance"}. The default is 100. Only used
+with models fit using \code{\link[=splm]{splm()}} or \code{\link[=spglm]{spglm()}}.
+\item \code{parallel}: If \code{TRUE}, parallel processing via the
+parallel package is automatically used. The default is \code{FALSE}.
+\item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
+parallelize over. The default is the number of available cores on your machine.
 }
 When \code{local} is a list, at least one list element must be provided to
 initialize default arguments for the other list elements.
 If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 that \code{local} is transformed into
-\code{list(size = 50, method = "covariance", parallel = FALSE)}.}
+\code{list(size = 100, method = "covariance", parallel = FALSE)}.}
 
 \item{...}{Other arguments. Only used for models fit using \code{splmRF()}
 or \code{spautorRF()} where \code{...} indicates other
@@ -188,8 +188,8 @@ a vector of predictions or a matrix of predictions with column names
 \code{fit}, \code{lwr}, and \code{upr} if \code{interval} is \code{"confidence"}
 or \code{"prediction"}. If \code{se.fit} is \code{TRUE}, a list with the following components is returned:
 \itemize{
-\item{\code{fit}: }{vector or matrix as above}
-\item{\code{se.fit: }}{standard error of each fit}
+\item \code{fit}: vector or matrix as above
+\item \code{se.fit}: standard error of each fit
 }
 
 For \code{splm_list} or \code{spautor_list} objects, a list that contains relevant quantities for each

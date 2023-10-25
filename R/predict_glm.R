@@ -13,6 +13,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
                           newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
 
 
+
   # match type argument so the two display
   type <- match.arg(type)
 
@@ -174,6 +175,19 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
         reform_bar2_names <- colnames(reform_bar2_mx)
         reform_bar2_split <- split(reform_bar2_mx, seq_len(NROW(reform_bar2_mx)))
         reform_bar2_vals <- reform_bar2_names[vapply(reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+
+
+        # adding dummy levels if newdata observations of random effects are not in original data
+        # terms object is unchanged if levels change
+        # reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
+        # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
+        # reform_bar2_terms_full <- terms(rbind(reform_bar2_mf, reform_bar2_mf_new))
+        reform_bar2_xlev_full <- .getXlevels(reform_bar2_terms, rbind(reform_bar2_mf, model.frame(reform_bar2, newdata)))
+        if (!identical(reform_bar2_xlev, reform_bar2_xlev_full)) {
+          reform_bar2_xlev <- reform_bar2_xlev_full
+        }
+
+
         list(reform_bar2_vals = reform_bar2_vals, reform_bar2_xlev = reform_bar2_xlev)
       })
       # Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) as.vector(model.matrix(reform_bar2, obdata)))
@@ -205,6 +219,18 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
       p_reform_bar2_names <- colnames(p_reform_bar2_mx)
       p_reform_bar2_split <- split(p_reform_bar2_mx, seq_len(NROW(p_reform_bar2_mx)))
       p_reform_bar2_vals <- p_reform_bar2_names[vapply(p_reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+
+
+      # adding dummy levels if newdata observations of random effects are not in original data
+      # terms object is unchanged if levels change
+      # p_reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
+      # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
+      # p_reform_bar2_terms_full <- terms(rbind(p_reform_bar2_mf, p_reform_bar2_mf_new))
+      p_reform_bar2_xlev_full <- .getXlevels(p_reform_bar2_terms, rbind(p_reform_bar2_mf, model.frame(reform_bar2, newdata)))
+      if (!identical(p_reform_bar2_xlev, p_reform_bar2_xlev_full)) {
+        p_reform_bar2_xlev <- p_reform_bar2_xlev_full
+      }
+
       partition_index_obdata <- list(reform_bar2_vals = p_reform_bar2_vals, reform_bar2_xlev = p_reform_bar2_xlev)
       # partition_index_obdata <- as.vector(model.matrix(reform_bar2, obdata))
     } else {
@@ -419,10 +445,16 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
     partition_index_data = partition_index_obdata
   )
 
-  # subsetting partition vector
+  # subsetting partition vector (efficient but causes problems later with
+  # random effect subsetting)
   if (!is.null(partition_vector) && local$method %in% c("distance", "covariance") &&
-    !labels(terms(partition_factor)) %in% labels(terms(random))) {
-    obdata <- obdata[as.vector(partition_vector) == 1, , drop = FALSE]
+      !labels(terms(partition_factor)) %in% labels(terms(random))) {
+    partition_index <- as.vector(partition_vector) == 1
+    Z_index_obdata_list <- lapply(Z_index_obdata_list, function(x) {
+      x$reform_bar2_vals <- x$reform_bar2_vals[partition_index]
+      x
+    })
+    obdata <- obdata[partition_index, , drop = FALSE]
     partition_vector <- Matrix(1, nrow = 1, ncol = NROW(obdata))
   }
 
@@ -435,6 +467,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
     obdata <- obdata[nn_index, , drop = FALSE]
     dist_vector <- dist_vector[, nn_index]
     w <- w[nn_index]
+    y <- y[nn_index]
     if (!is.null(size)) {
       size <- size[nn_index]
     }
@@ -457,6 +490,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
     obdata <- obdata[cov_index, , drop = FALSE]
     cov_vector_val <- cov_vector_val[cov_index]
     w <- w[cov_index]
+    y <- y[cov_index]
     if (!is.null(size)) {
       size <- size[cov_index]
     }
@@ -465,7 +499,8 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
   if (local$method %in% c("distance", "covariance")) {
     if (!is.null(random)) {
       randcov_names <- get_randcov_names(random)
-      randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
+      xlev_list <- lapply(Z_index_obdata_list, function(x) x$reform_bar2_xlev)
+      randcov_Zs <- get_randcov_Zs(obdata, randcov_names, xlev_list = xlev_list)
     }
     partition_matrix_val <- partition_matrix(partition_factor, obdata)
     cov_matrix_val <- cov_matrix(
@@ -476,18 +511,6 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
     cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(cov_matrix_val)))
     model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass, xlev = xlevels)
     Xmat <- model.matrix(formula, model_frame, contrasts = contrasts)
-    y <- model.response(model_frame)
-    if (NCOL(y) == 2) {
-      y_modr <- y
-      y <- y_modr[, 1, drop = FALSE]
-      size <- rowSums(y_modr)
-    } else {
-      if (family == "binomial") {
-        size <- rep(1, n)
-      } else {
-        size <- NULL
-      }
-    }
   }
 
 

@@ -33,7 +33,8 @@
 
 \item{type}{\code{"response"} for fitted values of the response, \code{"spcov"}
 for fitted values of the spatial random errors, or \code{"randcov"} for
-fitted values of the random effects. The default is \code{"response"}.}
+fitted values of the random effects. If from \code{spglm()} or \code{spgautor()},
+\code{"link"} for fitted values on the link scale. The default is \code{"response"}.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 }

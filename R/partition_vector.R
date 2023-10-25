@@ -4,7 +4,7 @@
 #' @param data data
 #' @param newdata newdata (for prediction)
 #'
-#' @return
+#' @return A partition vector for use with prediction
 #'
 #' @noRd
 partition_vector <- function(partition_factor, data, newdata, reform_bar2 = NULL, partition_index_data = NULL) {
@@ -23,6 +23,10 @@ partition_vector <- function(partition_factor, data, newdata, reform_bar2 = NULL
       p_index_data_split <- split(p_index_data_mx, seq_len(NROW(p_index_data_mx)))
       p_index_data_xlev <- .getXlevels(terms(p_index_data_mf), p_index_data_mf)
       p_index_data_vals <- p_index_data_names[vapply(p_index_data_split, function(y) which(as.logical(y)), numeric(1))]
+      p_index_data_xlev_full <- .getXlevels(terms(p_index_data_mf), rbind(p_index_data_mf, model.frame(reform_bar2, newdata)))
+      if (!identical(p_index_data_xlev, p_index_data_xlev_full)) {
+        p_index_data_xlev <- p_index_data_xlev_full
+      }
       partition_index_data <- list(reform_bar2_vals = p_index_data_vals, reform_bar2_xlev = p_index_data_xlev)
       # partition_index_data <- as.vector(model.matrix(reform_bar2, data))
     }

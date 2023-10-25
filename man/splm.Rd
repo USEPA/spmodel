@@ -107,43 +107,43 @@ If \code{FALSE}, no big data approximation is implemented.
 If a list is provided, the following arguments detail the big
 data approximation:
 \itemize{
-\item{\code{index: }}{The group indexes. Observations in different
+\item \code{index: }The group indexes. Observations in different
 levels of \code{index} are assumed to be uncorrelated for the
 purposes of estimation. If \code{index} is not provided, it is
-determined by specifying \code{method} and either \code{size} or \code{groups}.}
-\item{\code{method}: }{The big data approximation method used to determine \code{index}. Ignored
+determined by specifying \code{method} and either \code{size} or \code{groups}.
+\item \code{method}: The big data approximation method used to determine \code{index}. Ignored
 if \code{index} is provided. If \code{method = "random"},
 observations are randomly assigned to \code{index} based on \code{size}.
 If \code{method = "kmeans"}, observations assigned to \code{index}
 based on k-means clustering on the coordinates with \code{groups} clusters. The default
-is \code{"random"}. Note that both methods have a random component, which
+is \code{"kmeans"}. Note that both methods have a random component, which
 means that you may get different results from separate model fitting calls.
 To ensure consistent results, specify \code{index} or set a seed via
-\code{base::set.seed()}.}
-\item{\code{size}: }{The number of observations in each \code{index} group
+\code{base::set.seed()}.
+\item \code{size}: The number of observations in each \code{index} group
 when \code{method} is \code{"random"}. If the number of observations
 is not divisible by \code{size}, some levels get \code{size - 1} observations.
-The default is 50.}
-\item{\code{groups: }}{The number of \code{index} groups. If \code{method}
+The default is 100.
+\item \code{groups: }The number of \code{index} groups. If \code{method}
 is \code{"random"}, \code{size} is \eqn{ceiling(n / groups)}, where
 \eqn{n} is the sample size. Automatically determined if \code{size}
 is specified. If \code{method} is \code{"kmeans"}, \code{groups}
-is the number of clusters.}
-\item{\code{var_adjust: }}{The approach for adjusting the variance-covariance
+is the number of clusters.
+\item \code{var_adjust: }The approach for adjusting the variance-covariance
 matrix of the fixed effects. \code{"none"} for no adjustment, \code{"theoretical"}
 for the theoretically-correct adjustment,
 \code{"pooled"} for the pooled adjustment, and \code{"empirical"} for the
-empirical adjustment.} The default is \code{"theoretical"}.
-\item{\code{parallel}: }{If \code{TRUE}, parallel processing via the
-parallel package is automatically used. The default is \code{FALSE}.}
-\item{\code{ncores}: }{If \code{parallel = TRUE}, the number of cores to
-parallelize over. The default is the number of available cores on your machine.}
+empirical adjustment. The default is \code{"theoretical"}.
+\item \code{parallel}: If \code{TRUE}, parallel processing via the
+parallel package is automatically used. The default is \code{FALSE}.
+\item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
+parallelize over. The default is the number of available cores on your machine.
 }
 When \code{local} is a list, at least one list element must be provided to
 initialize default arguments for the other list elements.
 If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 that \code{local} is transformed into
-\code{list(size = 50, method = "random", var_adjust = "theoretical", parallel = FALSE)}.}
+\code{list(size = 100, method = "kmeans", var_adjust = "theoretical", parallel = FALSE)}.}
 
 \item{...}{Other arguments to \code{\link[=esv]{esv()}} or \code{stats::optim()}.}
 }
@@ -186,23 +186,23 @@ an identity matrix.
 \code{spcov_type} Details: Parametric forms for \eqn{R} are given below, where \eqn{\eta = h / range}
 for \eqn{h} distance between observations:
 \itemize{
-\item{exponential: }{\eqn{exp(- \eta )}}
-\item{spherical: }{\eqn{(1 - 1.5\eta + 0.5\eta^3) * I(h <= range)}}
-\item{gaussian: }{\eqn{exp(- \eta^2 )}}
-\item{triangular: }{\eqn{(1 - \eta) * I(h <= range)}}
-\item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(m))) * I(h <= range), m = min(\eta, 1)}}
-\item{cubic: }{\eqn{(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75\eta^7) * I(h <= range)}}
-\item{pentaspherical: }{\eqn{(1 - 1.875\eta + 1.25\eta^3 - 0.375\eta^5) * I(h <= range)}}
-\item{cosine: }{\eqn{cos(\eta)}}
-\item{wave: }{\eqn{sin(\eta) / \eta * I(h > 0) + I(h = 0)}}
-\item{jbessel: }{\eqn{Bj(h * range)}, Bj is Bessel-J function}
-\item{gravity: }{\eqn{(1 + \eta^2)^{-0.5}}}
-\item{rquad: }{\eqn{(1 + \eta^2)^{-1}}}
-\item{magnetic: }{\eqn{(1 + \eta^2)^{-1.5}}}
-\item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
-\item{cauchy: }{\eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}}
-\item{pexponential: }{\eqn{exp(h^{extra}/range)}, \eqn{0 < extra \le 2}}
-\item{none: }{\eqn{0}}
+\item exponential: \eqn{exp(- \eta )}
+\item spherical: \eqn{(1 - 1.5\eta + 0.5\eta^3) * I(h <= range)}
+\item gaussian: \eqn{exp(- \eta^2 )}
+\item triangular: \eqn{(1 - \eta) * I(h <= range)}
+\item circular: \eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(m))) * I(h <= range), m = min(\eta, 1)}
+\item cubic: \eqn{(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75\eta^7) * I(h <= range)}
+\item pentaspherical: \eqn{(1 - 1.875\eta + 1.25\eta^3 - 0.375\eta^5) * I(h <= range)}
+\item cosine: \eqn{cos(\eta)}
+\item wave: \eqn{sin(\eta) / \eta * I(h > 0) + I(h = 0)}
+\item jbessel: \eqn{Bj(h * range)}, Bj is Bessel-J function
+\item gravity: \eqn{(1 + \eta^2)^{-0.5}}
+\item rquad: \eqn{(1 + \eta^2)^{-1}}
+\item magnetic: \eqn{(1 + \eta^2)^{-1.5}}
+\item matern: \eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}
+\item cauchy: \eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}
+\item pexponential: \eqn{exp(h^{extra}/range)}, \eqn{0 < extra \le 2}
+\item none: \eqn{0}
 }
 
 All spatial covariance functions are valid in one spatial dimension. All
@@ -211,10 +211,10 @@ valid in two dimensions.
 
 \code{estmethod} Details: The various estimation methods are
 \itemize{
-\item{\code{reml}: }{Maximize the restricted log-likelihood.}
-\item{\code{ml}: }{Maximize the log-likelihood.}
-\item{\code{sv-wls}: }{Minimize the semivariogram weighted least squares loss.}
-\item{\code{sv-cl}: }{Minimize the semivariogram composite likelihood loss.}
+\item \code{reml}: Maximize the restricted log-likelihood.
+\item \code{ml}: Maximize the log-likelihood.
+\item \code{sv-wls}: Minimize the semivariogram weighted least squares loss.
+\item \code{sv-cl}: Minimize the semivariogram composite likelihood loss.
 }
 
 \code{anisotropy} Details: By default, all spatial covariance parameters except \code{rotate}

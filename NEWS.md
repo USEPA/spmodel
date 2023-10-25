@@ -1,3 +1,27 @@
+# spmodel 0.5.0
+
+## Minor updates
+
+* Predictions can now be made for prediction locations whose random effect levels are not present in the observed data
+    * When this occurs, the random-effect covariance between the observed data and these prediction locations is assumed to be zero.
+* The default for `local = TRUE` in `splm()` and `spglm()` now uses the `kmeans` assignment method with group sizes approximately equal to 100.
+    * Previously, the `random` assignment method was used with group sizes approximately equal to 50.
+* The default for `local = TRUE` in `predict()` and `augment()` now uses 100 local neighbors.
+    * Previously, 50 local neighbors were used.
+* Moved the "A Detailed Guide to `spmodel`" and "Technical Details" vignettes to the package website.
+* Added a "Spatial Generalized Linear Models in `spmodel`" vignette to the package website.
+* Changed name of "An Overview of Basic Features in `spmodel`" vignette to "An Introduction to `spmodel`" and changed output type from PDF to HTML.
+* Other minor vignette updates.
+* Minor documentation updates.
+
+## Bug fixes
+
+* Fixed a bug that occurred with prediction for success/failure binomial data (e.g., Bernoulli data) when `local` in `predict()` was `TRUE`.
+* Fixed a bug that could affect simulating data using `sprbinom()` when the `size` argument was different from `1`.
+* Fixed a bug that could cause local prediction to fail when only one level of a random effect was present in the prediction site's local neighborhood.
+* Fixed a bug that could cause an error when local estimation was used for the `"sv-wls"` estimation method.
+* Fixed a bug that caused undesirable behavior from `tidy()` when `conf.level` was less than zero or greater than one.
+
 # spmodel 0.4.0
 
 ## Major updates

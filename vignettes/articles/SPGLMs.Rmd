@@ -1,0 +1,793 @@
+---
+title: "Spatial Generalized Linear Models in spmodel"
+author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
+bibliography: '`r system.file("references.bib", package="spmodel")`'
+output:
+    html_document:
+---
+
+```{r setup, include = FALSE}
+# # jss style
+# knitr::opts_chunk$set(prompt=TRUE, echo = TRUE, highlight = FALSE, continue = " + ", comment = "")
+# options(replace.assign=TRUE, width=90, prompt="R> ")
+
+# rmd style
+knitr::opts_chunk$set(collapse = FALSE, comment = "#>", warning = FALSE, message = FALSE)
+
+# loading
+library(ggplot2)
+library(spmodel)
+```
+
+# Introduction {#sec:introduction}
+
+`spmodel` is an \textbf{\textsf{R}} package used to fit, summarize, and
+predict for a variety of spatial statistical models. The vignette
+provides an introduction spatial generalized linear models for
+non-Gaussian response distributions in `spmodel`. Before proceeding, we
+load `spmodel` by running
+
+```{r, eval = FALSE}
+library(spmodel)
+```
+
+If using `spmodel` in a formal publication or report, please cite it.
+Citing `spmodel` lets us devote more resources to the package in the
+future. We view the `spmodel` citation by running
+
+```{r}
+citation(package = "spmodel")
+```
+
+We will create visualizations using `ggplot2` [@wickham2016ggplot2],
+which we load by running
+
+```{r, eval = FALSE}
+library(ggplot2)
+```
+
+`ggplot2` is only installed alongside `spmodel` when
+`dependencies = TRUE` in `install.packages()`, so check that the package
+is installed and loaded before reproducing any of these vignette's
+visualizations. We will also show code that can be used to create
+interactive visualizations of spatial data with `mapview`
+[@appelhans2022mapview]. `mapview` also has many backgrounds available
+that contextualize spatial data with topographical information. Before
+running the `mapview` code interactively, make sure `mapview` is
+installed and loaded.
+
+`spmodel` contains various methods for generic functions defined outside
+of `spmodel`. To find relevant documentation for these methods, run
+`help("generic.spmodel", "spmodel")` (e.g.,
+`help("summary.spmodel", "spmodel")`,
+`help("predict.spmodel", "spmodel")`, etc.). Note that
+`?generic.spmodel` is shorthand for
+`help("generic.spmodel", "spmodel")`. We provide more details and
+examples regarding these methods and generics throughout this vignette.
+For a full list of `spmodel` functions available, see `spmodel`'s
+documentation manual.
+
+# A Review of the Spatial Linear Model
+
+We first focus on spatial linear models for a Gaussian response vector.
+The spatial linear model is defined as \begin{equation}\label{eq:splm}
+ \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
+\end{equation} where for a sample size $n$, $\mathbf{y}$ is an
+$n \times 1$ column vector of response variables, $\mathbf{X}$ is an
+$n \times p$ design (model) matrix of explanatory variables,
+$\boldsymbol{\beta}$ is a $p \times 1$ column vector of fixed effects
+controlling the impact of $\mathbf{X}$ on $\mathbf{y}$,
+$\boldsymbol{\tau}$ is an $n \times 1$ column vector of spatially
+dependent random errors, and $\boldsymbol{\epsilon}$ is an $n \times 1$
+column vector of spatially independent random errors. We make a few
+assumptions about $\boldsymbol{\tau}$ and $\boldsymbol{\epsilon}$ in the
+spatial linear model: first, that
+$\text{E}(\boldsymbol{\tau}) = \text{E}(\boldsymbol{\epsilon}) = \boldsymbol{0}$,
+where $\text{E}(\cdot)$ denotes expectation; second, that
+$\text{Cov}(\boldsymbol{\tau}) = \sigma^2_\tau \mathbf{R}$, where
+$\mathbf{R}$ is an $n \times n$ matrix that determines the spatial
+dependence structure in $\mathbf{y}$ and depends on a range parameter,
+$\phi$; third, that
+$\text{Cov}(\boldsymbol{\epsilon}) = \sigma^2_\epsilon \mathbf{I}$,
+where $\mathbf{I}$ is an $n \times n$ identity matrix; and fourth, that
+$\boldsymbol{\tau}$ and $\boldsymbol{\epsilon}$ are independent of one
+another. The parameter $\sigma^2_{\tau}$ is called the spatially
+dependent random error variance or partial sill. The parameter
+$\sigma^2_\epsilon$ is called the spatially independent random error
+variance or nugget. These two variance parameters are henceforth more
+intuitively written as $\sigma^2_{de}$ and $\sigma^2_{ie}$,
+respectively. The covariance of $\mathbf{y}$ is denoted
+$\boldsymbol{\Sigma}$ and given by \begin{equation}\label{eq:spcov}
+ \boldsymbol{\Sigma} = \sigma^2_{de}\mathbf{R} + \sigma^2_{ie} \mathbf{I}.
+\end{equation} The parameters $\sigma^2_{de}$, $\phi$, and
+$\sigma^2_{ie}$ are elements of $\boldsymbol{\theta}$, the covariance
+parameter vector.
+
+The spatial linear model applies to both point-referenced and areal
+(i.e., lattice; polygon) data. Spatial data are point-referenced when
+the elements in $\mathbf{y}$ are observed at point-locations indexed by
+x-coordinates and y-coordinates on a spatially continuous surface with
+an infinite number of locations. For example, consider sampling soil at
+any point-location in a field. Spatial linear models for
+point-referenced data are sometimes called geostatistical models. An
+example of an $\mathbf{R}$ matrix for point-referenced data is the
+spherical correlation matrix given by
+\begin{equation}\label{eq:spherical}
+\mathbf{R} = \left(1 - 1.5\frac{\mathbf{H}}{\phi} + 0.5\frac{\mathbf{H}^3}{\phi^3}\right) \odot \mathcal{I}(\mathbf{H} \leq \phi),
+\end{equation}\
+where $\mathbf{H}$ is a matrix of Euclidean distances among
+observations, $\mathbf{H}^3$ is a matrix of cubed Euclidean distances,
+$\odot$ is the Hadmard (element-wise; direct) product, and
+$\mathcal{I}(\mathbf{H} \leq \phi)$ is an indicator function equal to
+one when the $ij$th element of $\mathbf{H}$ is less than $\phi$ (the
+range) and zero otherwise. A second is example is the Matérn correlation
+matrix given by \begin{equation}\label{eq:matern}
+\mathbf{R} = \frac{2^{1 - \nu}}{\Gamma(\nu)} \left(2\nu \mathbf{H} / \phi \right)^{\nu / 2} \odot B_k(2\nu \mathbf{H}, \nu),
+\end{equation} where $\nu$ is a smoothness parameter, $\odot$ is the
+Hadmart (element-wise; direct) product, and $B_k(\cdot, \nu)$ is a
+Bessel-K function with order $\nu$. @chiles2012geostatistics provide
+examples of several spatial dependence structures.
+
+Spatial data are areal when they are observed as part of a finite
+network of polygons whose connections are indexed by a neighborhood
+structure. For example, the polygons may represent counties in a state
+who are neighbors if they share at least one boundary. An example of an
+$\mathbf{R}$ matrix for areal data is the simultaneous-autoregressive
+spatial correlation matrix given by \begin{equation*}
+  \mathbf{R} = [(\mathbf{I} - \phi \mathbf{W})(\mathbf{I} - \phi \mathbf{W})^\top]^{-1},
+\end{equation*} where $\mathbf{W}$ is a weight matrix that describes the
+neighborhood structure among observations. Spatial linear models for
+areal data are sometimes called spatial autoregressive models. For
+thorough reviews of the spatial linear model, see
+@cressie1993statistics, @banerjee2014hierarchical, and
+@schabenberger2017statistical.
+
+# The Spatial Generalized Linear Model
+
+It is common to implicitly assume $\mathbf{y}$ in the spatial linear
+model is unconstrained and Gaussian. This is a restrictive assumption
+and often inappropriate for binary data, proportion data, count data,
+and skewed data, which are common in many practical applications. These
+types of data are most naturally described using generalized linear
+models [@nelder1972generalized; @mccullagh1989generalized]. Generalized
+linear models are an extension of linear models that "link" a function
+of a distribution's mean to the linear function
+$\mathbf{X} \boldsymbol{\beta}$ (the explanatory variables and fixed
+effects). We can extend generalized linear models by adding linear,
+latent (i.e., unobserved) random effects to
+$\mathbf{X} \boldsymbol{\beta}$. These types of models are called
+generalized linear mixed models [@breslow1993approximate] and are often
+formulated using a hierarchical construction [@lee1996hierarchical]. For
+thorough reviews of generalized linear models and generalized linear
+mixed models, see @bolker2009generalized, @myers2012generalized,
+@faraway2016extending, and @wood2017generalized.
+
+A recent `spmodel` release (version 0.4.0) provided support for spatial
+generalized linear models (i.e., a generalized linear mixed model with
+spatial random effects). We define the spatial generalized linear model
+as \begin{equation}\label{eq:spglm}
+f(\boldsymbol{\mu}) \equiv \mathbf{w} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
+\end{equation} where $f(\cdot)$ is the link function, $\boldsymbol{\mu}$
+is the mean of $\mathbf{y}$, and the remaining terms $\mathbf{X}$,
+$\boldsymbol{\beta}$, $\boldsymbol{\tau}$, $\boldsymbol{\epsilon}$
+represent the same quantities as for spatial linear models. That is,
+$\text{E}(\boldsymbol{\tau}) = \text{E}(\boldsymbol{\epsilon}) = \boldsymbol{0}$,
+$\text{Cov}(\boldsymbol{\tau}) = \sigma^2_{de}\mathbf{R}$,
+$\text{Cov}(\boldsymbol{\epsilon}) = \sigma^2_{ie} \mathbf{I}$,
+$\boldsymbol{\tau}$ is independent of $\boldsymbol{\epsilon}$, and
+$\boldsymbol{\Sigma} = \sigma^2_{de} \mathbf{R} + \sigma^2_{ie} \mathbf{I}$.
+The link function, $f(\cdot)$, "links" a function of $\boldsymbol{\mu}$
+to the linear term $\mathbf{w}$. Note that the linking of
+$\boldsymbol{\mu}$ to $\mathbf{w}$ applies element-wise to each vector.
+Each link function $f(\cdot)$ has a corresponding inverse link function,
+$f^{-1}(\cdot)$, which "links" a function of $\mathbf{w}$ to
+$\boldsymbol{\mu}$. Notice that $\mathbf{w}$ is unconstrained but
+$\boldsymbol{\mu}$ is usually constrained in some way (e.g., positive)
+that depends on the distribution assumed for $\mathbf{y}$.
+
+Spatial linear and generalized linear models rely on the same
+components: explanatory variables, fixed effects, spatially dependent
+random errors, and spatial independent random errors. These components
+are related to the response linearly (spatial linear models) or
+non-linearly (spatial generalized linear models). The response itself is
+generally assumed to follow a Gaussian distribution (spatial linear
+models) or one of many non-Gaussian distributions (spatial generalized
+linear models). Some non-Gaussian distributions include the binomial
+distribution for binary responses, the beta distribution for proportion
+responses, the Poisson or negative binomial distributions for count
+responses, and the gamma or inverse Gaussian distributions for skewed,
+positive continuous responses.
+
+`spmodel` implements a marginal approach to inference that uses a novel
+application of the Laplace approximation. This marginal approach is
+powerful and flexible, accommodating a wide range of covariance
+structures. It is a frequentist approach, which means that it does not
+rely on any Bayesian sampling routines, as is common when handling
+complex hierarchical structures. It also formally maximizes a
+likelihood, which is advantageous because it means that likelihood-based
+statistics such as AIC [@akaike1974new; @hoeting2006model] are defined,
+in contrast to approaches that only specify the first two moments of a
+distribution (e.g., quasi-likelihood fit via iteratively re-weighted
+least squares). @ver2023marginal provide the methodology's full details.
+
+`spmodel` accommodates the binomial, beta, Poisson, negative binomial,
+gamma, and inverse Gaussian distributions. The binomial and beta
+response distributions (specified by \texttt{family}) use the logit
+link, while the Poisson, negative binomial, gamma, and inverse Gaussian
+distributions use the log link -- see the following table.
+
+| Family | Link Function | Link Name | Data Type |
+|------|------|------|------|
+| Binomial | $f(\mathbf{\mu}) = \log(\mathbf{\mu} / (1 - \mathbf{\mu}))$ | Logit | Binary; Binary Count |
+| Poisson | $f(\mathbf{\mu}) = \log(\mathbf{\mu})$ | Log | Count |
+| Negative Binomial | $f(\mathbf{\mu}) = \log(\mathbf{\mu})$ | Log | Count |
+| Beta | $f(\mathbf{\mu}) = \log(\mathbf{\mu} / (1 - \mathbf{\mu}))$ | Logit | Proportion |
+| Gamma | $f(\mathbf{\mu}) = \log(\mathbf{\mu})$ | Log | Skewed |
+| Inverse Gaussian | $f(\mathbf{\mu}) = \log(\mathbf{\mu})$ | Log | Skewed | 
+
+: Spatial generalized linear model response distributions available in
+spmodel alongside their corresponding link functions and data types.
+
+## Model fitting {#sec:model-fit}
+
+Spatial generalized linear models in `spmodel` are fit using
+\texttt{spglm()} (for point-referenced data) or \texttt{spgautor()} (for
+areal data). These functions are similar in structure both to one
+another and to the \texttt{glm()} function in base **R**. They generally
+require the following four arguments: \texttt{formula}, a formula that
+describes the relationship between the response and explanatory
+variables; \texttt{family}, the response distribution, which can be
+\texttt{binomial}, \texttt{beta}, \texttt{poisson}, \texttt{nbinomial},
+\texttt{Gamma}, or \texttt{inverse.gaussian}; \texttt{data}, a
+\texttt{data.frame} or \texttt{sf} object [@pebesma2018sf] whose rows
+index observations and whose columns contain the response variable,
+explanatory variables, and spatial information; and
+\texttt{spcov\_type}, one of 19 spatial covariance types (e.g.,
+spherical spatial covariance, Matérn spatial covariance,
+simultaneous-autoregressive spatial covariance etc.). The binomial and
+beta response distributions (specified by \texttt{family}) use the logit
+link, while the Poisson, negative binomial, gamma, and inverse Gaussian
+distributions use the log link. Other
+arguments to \texttt{spglm()} and \texttt{spgautor()} are either
+required only in specific situations or have default values specified.
+All arguments to the \texttt{spglm()} and \texttt{spgautor()} functions
+are summarized in the following table. Models for several
+hundred observations can take anywhere from a few seconds to a few
+minutes to fit, depending on the shape of the likelihood surface and how
+quickly the covariance parameters converge. Models for several thousand
+observations can utilize `spmodel`'s large data set options.
+
+| Argument | Purposes | Applies To |
+|------|------|------|
+| $\texttt{formula}$ | Fixed effects formula | Both  | 
+| $\texttt{family}$ | Response distribution | Both  |
+| $\texttt{data}$ | Data Frame or \texttt{sf} object | Both  |
+| $\texttt{spcov_type}$ | Spatial covariance type | Both  |
+| $\texttt{spcov_initial}$ | Initial or known spatial covariance parameters | Both  | 
+| $\texttt{dispersion_initial}$ | Initial or known dispersion parameter | Both  |
+| $\texttt{estmethod}$ | Estimation method | Both  |
+| $\texttt{random}$ | Random effects formula | Both  |
+| $\texttt{randcov_initial}$ | Initial or known random effect variances | Both  | 
+| $\texttt{partition_factor}$ | A partition factor formula | Both  |
+| $\texttt{...}$ | Additional arguments | Both |
+| $\texttt{anisotropy}$ | Whether to model anisotropy | $\texttt{spglm()}$ |
+| $\texttt{xcoord}$ | An x-coordinate name | $\texttt{spglm()}$  |
+| $\texttt{ycoord}$ | A y-coordinate name | $\texttt{spglm()}$  |
+| $\texttt{local}$ | Options for large data sets | $\texttt{spglm()}$  |
+| $\texttt{W}$ | A neighborhood weight matrix | $\texttt{spgautor()}$  |
+| $\texttt{row_st}$ | Whether to row-standardize $\texttt{W}$ | $\texttt{spgautor()}$  |
+| $\texttt{M}$ | A symmetry matrix | $\texttt{spgautor()}$  |
+
+: Arguments to spglm() and spgautor(), their purpose, and whether the
+argument applies to both spglm() and spgautor() or just one of them.
+
+## Model evaluation and diagnostics {#sec:diagnostics}
+
+After fitting a model, it is usually beneficial to evaluate certain
+aspects of model fit or inspect and visualize model diagnostics like
+residuals. There are many functions in `spmodel` that are used for these
+purposes, and their main argument is the fitted model object returned by
+\texttt{spglm()} or \texttt{spgautor()}. The names of these functions
+are meant to be illustrative, describing the purpose of the function
+itself. The functions for evaluating model fit
+(see below) return likelihood-based
+statistics like AIC, AICc, and deviance [@mccullagh1989generalized],
+return coefficient estimates and confidence intervals, perform cross
+validation, and more. 
+
+| Function | Purpose |
+|------|------|
+| $\texttt{AIC()}$; $\texttt{AICc()}$ | Return AIC and AICc   | 
+| $\texttt{anova()}$ | Perform an analysis of variance |
+| $\texttt{coef()}$; $\texttt{coefficients()}$ | Return parameter estimates   |
+| $\texttt{confint()}$ | Return confidence intervals  | 
+| $\texttt{covmatrix()}$ | Return the fitted covariance matrix   |
+| $\texttt{deviance()}$ | Return the deviance  |
+| $\texttt{glance()}$; $\texttt{glances()}$ | Glance at model fits | 
+| $\texttt{logLik()}$ | Return the log-likelihood  |
+| $\texttt{loocv()}$ | Perform leave-one-out cross validation |
+| $\texttt{pseudoR2()}$ | Return the pseudo R-squared   |
+| $\texttt{summary()}$ | Summarize the fitted model   |
+| $\texttt{tidy()}$ | Tidy the fitted model   |
+| $\texttt{varcomp()}$ | Compare sources of variability |
+| $\texttt{vcov()}$ | Return variance-covariance matrices  |
+
+: Model evaluation functions available for models fit using spglm() or
+spgautor() and their purpose.
+
+The functions for inspecting model diagnostics
+(see below) return Cook's distances
+[@cook1979influential], fitted values, leverage (hat) values, residuals
+(of several types), and visualizations.
+
+| Function | Purpose |
+|------|------|
+| $\texttt{augment()}$ | Augment model data with diagnostics |
+| $\texttt{cooks.distance()}$ | Return Cook's distances   | 
+| $\texttt{fitted()}$; $\texttt{fitted.values()}$ | Return fitted values   |
+| $\texttt{hatvalues()}$; | Return hat (leverage) values |
+| $\texttt{plot()}$ | Plot model diagnostics   |
+| $\texttt{residuals()}$; $\texttt{resid()}$; $\texttt{rstandard()}$ | Return residuals  | 
+
+: Mode diagnostic functions available for models fit using spglm() or
+spgautor() and their purpose.
+
+The functions \texttt{tidy()}, \texttt{glance()}, and
+\texttt{augment()}, popularized by the `broom` **R** package
+[@robinson2021broom], are particularly useful. The \texttt{tidy()}
+function tidies parameter estimate output, returning a special
+\texttt{data.frame} called a \texttt{tibble} [@muller2021tibble] that is
+much easier to manipulate and work with than the parameter estimate
+output printed by \texttt{summary()} to the **R** console. The
+\texttt{glance()} function glances at the model fit, returning a
+\texttt{tibble} with the sample size, number of estimated parameters,
+and several model-fit statistics. \texttt{glances()} is an extension of
+\texttt{glance()} that glances at multiple models simultaneously. The
+\texttt{augment()} function augments the model fit, returning a
+\texttt{tibble} with the data used to fit the model as well as model
+diagnostics. The \texttt{augment()} function can also be used to augment
+prediction data, as we discuss next.
+
+## Prediction {#sec:prediction}
+
+Often a priority of a spatial data analysis is using the fitted model to
+make predictions at unobserved locations and quantify uncertainties in
+those predictions. The \texttt{predict()} function in `spmodel` is used
+to predict the mean process at unobserved locations. It is similar in
+structure to \texttt{predict()} for objects fit using \texttt{glm()} in
+base **R** and takes two main arguments: \texttt{object}, the fitted
+model object returned by \texttt{spglm()} or \texttt{spgautor()}; and
+\texttt{newdata}, a \texttt{data.frame} or \texttt{sf} object whose rows
+index locations requiring prediction and whose columns contain the
+explanatory variables and spatial information at these locations. Other
+arguments to \texttt{predict()} are either required only in specific
+situations or have default values specified. All arguments to the
+\texttt{predict()} function are summarized in
+the following table. The \texttt{augment()} function can also
+be used to augment \texttt{newdata} with predictions, taking the same
+arguments as \texttt{predict()}.
+
+| Argument | Purpose |
+|------|------|
+| $\texttt{object}$ | Fitted model object |
+| $\texttt{newdata}$ | New data frame or \texttt{sf} object   |
+| $\texttt{type}$ | Whether predictions are on the link or response scale |
+| $\texttt{se.fit}$ | Whether standard errors should be returned   |
+| $\texttt{interval}$ | Interval type (prediction or confidence) |
+| $\texttt{level}$ | Prediction or confidence level   |
+| $\texttt{local}$ | Options for large data sets  | 
+| $\texttt{var_correct}$ | Whether prediction variances should be adjusted |
+| $\texttt{...}$ | Additional arguments |
+
+: Arguments to predict() and their purpose.
+
+## Simulation {#sec:simulation}
+
+`spmodel` has functions that are used
+to simulate spatial data from Gaussian, binomial, beta, Poisson,
+negative binomial, gamma, and inverse Gaussian response distributions.
+These simulation functions are similar in structure to commonly used
+base **R** functions for simulating data. They are also similar in name,
+simply adding an \texttt{sp} prefix to the conventional name in base
+**R**. For example, \texttt{rpois()} is used to simulate Poisson data in
+base **R**, while \texttt{sprpois()} is used to simulate spatial Poisson
+data in `spmodel`. These functions are summarized in the following table.
+
+| Function | Purpose |
+|------|------|
+| $\texttt{sprnorm()}$ | Simulate spatial Gaussian data |
+| $\texttt{sprbinom()}$ | Simulate spatial binomial data |
+| $\texttt{sprbeta()}$ | Simulate spatial beta data |
+| $\texttt{sprpois()}$ | Simulate spatial Poisson data |
+| $\texttt{sprnbinom()}$ | Simulate spatial negative binomial data |
+| $\texttt{sprgamma()}$ | Simulate spatial gamma data |
+| $\texttt{sprinvgauss()}$ | Simulate spatial inverse Gaussian data |
+
+: Functions to simulate spatial data and their purpose.
+
+# An application to binary (presence/abscence) data {#sec:application-binary}
+
+In the next two sections we to show how to use `spmodel` to analyze data
+collected on moose in the Togiak region of Alaska, USA. The
+\texttt{moose} data in `spmodel` contain information on moose counts
+from a survey of sites in the Togiak region. The data are stored as an
+`sf` object, a special \texttt{data.frame} built to store spatial data.
+\texttt{moose} has several variables: \texttt{strat}; a stratification
+variable with two levels (\texttt{L} for low and \texttt{M} for medium)
+based on surrounding landscape metrics; \texttt{elev}, the site
+elevation; \texttt{presence}, whether or not at least one moose was
+observed at the site; \texttt{count}, the number of moose observed at a
+the site; and \texttt{geometry}, the spatial coordinates in an Alaska
+Albers projection (EPSG: 3338). We load `spmodel` and the \texttt{moose}
+data by running
+
+```{r}
+library("spmodel")
+data("moose")
+```
+
+We are interested in quantifying the effects of \texttt{elev} and
+\texttt{strat} on moose \texttt{presence} and begin with some
+visualizations. First, we visualize the presence for observed sites:
+
+```{r moosepres, out.width="65%", fig.align="center", fig.cap="Moose presence."}
+ggplot(moose, aes(color = presence)) + 
+  geom_sf(size = 2) + 
+  scale_color_viridis_d(option = "H") +
+  theme_gray(base_size = 14)
+```
+
+There is spatial patterning in the distribution of moose presence, as
+moose tend to be present in the eastern and southwestern parts of the
+domain. This spatial pattern seems to have a directional orientation,
+seemingly strongest in the northwest-to-southeast direction.
+
+Next, we visualize the elevation for each strata:
+
+```{r moosestrat, out.width="100%", fig.cap="Elevation versus strata in the moose data."}
+ggplot(moose, aes(color = elev)) +
+  geom_sf(size = 1) + 
+  facet_grid(~ strat) +
+  scale_color_viridis_c()  +
+  scale_y_continuous(breaks = seq(62.6, 63.6, length.out = 5)) +
+  scale_x_continuous(breaks = seq(-148.5, -146, length.out = 3)) +
+  theme_gray(base_size = 12)
+```
+
+There are no obvious spatial patterns in the assignment of sites to
+strata, while elevation is highest on the boundaries of the domain and
+lowest in the middle of the domain. There is spatial patterning in the
+distribution of moose presence, as moose tend to be present in the
+eastern and southwestern parts of the domain. This spatial pattern seems
+to have a directional orientation, seemingly strongest in the
+northwest-to-southeast direction.
+
+To quantify the effects of \texttt{elev}, \texttt{strat}, and spatial
+dependence on moose presence, we fit three binomial (i.e., ) logistic
+regression models using \texttt{spglm()}:
+
+```{r}
+# model one
+bin_mod <- spglm(
+  formula = presence ~ elev + strat + elev:strat,
+  family = "binomial",
+  data = moose,
+  spcov_type = "none"
+)
+# model two
+bin_spmod <- spglm(
+  formula = presence ~ elev + strat + elev:strat,
+  family = "binomial",
+  data = moose,
+  spcov_type = "spherical"
+)
+# model three
+bin_spmod_anis <- spglm(
+  formula = presence ~ elev + strat + elev:strat,
+  family = "binomial",
+  data = moose,
+  spcov_type = "spherical",
+  anisotropy = TRUE
+)
+```
+
+All three models have the same fixed effect structure, using elevation,
+strata, and their interaction to explain moose presence. The three
+models vary in their covariance structure. The first model,
+\texttt{bin\_mod}, has no spatial covariance ($\sigma^2_{de} = 0$). The
+second model, \texttt{bin\_spmod} has a spherical spatial covariance.
+The third model, \texttt{bin\_spmod\_anis}, has a spherical spatial
+covariance that incorporates geometric anisotropy. Geometric anisotropy
+allows the spatial covariance to vary with direction by evaluating the
+spatial covariance with $\mathbf{H}^*$ (instead of $\mathbf{H}$), a
+matrix of distances between transformed coordinates that are rotated and
+scaled appropriately [@schabenberger2017statistical]. We evaluate the
+three models using AIC by running
+
+```{r}
+AIC(bin_mod, bin_spmod, bin_spmod_anis)
+```
+
+The spatial models (\texttt{bin\_spmod}, \texttt{bin\_spmod\_anis}) have
+a much lower AIC than the non-spatial model (\texttt{bin\_mod}), which
+suggests that the models benefit from incorporating spatial dependence.
+\texttt{bin\_spmod\_anis} has a lower AIC than \texttt{bin\_spmod},
+which suggests that the model benefits from incorporating directionality
+in the spatial dependence. Next we inspect \texttt{bin\_spmod\_anis} and
+later use it to predict moose presence probability at unobserved sites.
+
+We summarize \texttt{bin\_spmod\_anis} using \texttt{summary()}:
+
+```{r}
+summary(bin_spmod_anis)
+```
+
+The \texttt{summary()} output from an \texttt{spglm()} model is very
+similar to the \texttt{summary()} output from a base-**R**
+\texttt{glm()} model, returning the original function call, deviance
+residuals, a fixed effects coefficients table, a pseudo R-squared (which
+quantifies the amount of variability explained by the fixed effects),
+and covariance parameter coefficients. The fixed effects coefficients
+table provides some evidence that elevation and strata are associated
+with with moose presence and that the effect of elevation varies across
+the two strata (all $p~$values $<$ 0.05). The \texttt{plot()} function
+returns graphics of several model diagnostics. Running
+
+```{r, eval = FALSE}
+plot(bin_spmod_anis, which = c(7, 8))
+```
+
+```{r, echo = FALSE, fig.show='hold', out.width="50%", fig.cap="Spatial dependence is a function of distance (left) and as an anisotropic level curve of equal correlation (right)."}
+plot(bin_spmod_anis, which = 7)
+plot(bin_spmod_anis, which = 8)
+```
+
+shows that the spatial dependence is evident and appears strongest in
+the northwest-to-southeast direction. These findings are supported by
+the clear spatial patterns in the data.
+
+Recall that the \texttt{tidy()}, \texttt{glance()}, and
+\texttt{augment()} functions are particularly useful tools for
+manipulating and understanding fitted model objects. The \texttt{tidy()}
+function tidies model output, returning a \texttt{tibble} of parameter
+estimates (and confidence intervals):
+
+```{r}
+tidy(bin_spmod_anis, conf.int = TRUE)
+```
+
+By default, the fixed effects estimates are returned, but covariance
+parameter estimates are returned via the \texttt{effects} argument:
+
+```{r}
+tidy(bin_spmod_anis, effects = "spcov")
+```
+
+The \texttt{is\_known} column indicates whether covariance parameters
+were assumed known, which is possible to specify using the
+\texttt{spcov\_initial} argument to \texttt{spglm()}. Here, all
+parameters were assumed unknown and then estimated.
+
+The \texttt{glance()} function glances at model fit, returning a
+\texttt{tibble} of model fit statistics:
+
+```{r}
+glance(bin_spmod_anis)
+```
+
+\texttt{glances()} can be used to glance at multiple models
+simultaneously and sorts models by ascending AICc:
+
+```{r}
+glances(bin_mod, bin_spmod, bin_spmod_anis)
+```
+
+The \texttt{augment()} function augments the data with model
+diagnostics:
+
+```{r}
+aug_mod <- augment(bin_spmod_anis)
+aug_mod
+```
+
+where \texttt{.fitted} are fitted values (the estimated
+$f^{-1}(\mathbf{w})$, or moose presence probability), \texttt{.resid}
+are response residuals, \texttt{.hat} values indicate leverage,
+\texttt{.cooksd} values indicate Cook's distance (i.e., influence), and
+\texttt{.std.resid} are standardized residuals.
+
+The \texttt{moose\_preds} data contains survey sites that were not
+sampled. We can use \texttt{bin\_spmod\_anis} to make predictions of the
+underlying probabilities of moose presence at these sites using
+\texttt{predict()} or \texttt{augment()}. \texttt{predict()} and
+\texttt{augment()} return the same predictions but \texttt{augment()}
+augments the prediction data with the predictions:
+
+```{r}
+data("moose_preds")
+
+spmod_anis_preds <- predict(
+  bin_spmod_anis,
+  newdata = moose_preds,
+  type = "response",
+  interval = "prediction"
+)
+head(spmod_anis_preds)
+
+aug_pred <- augment(
+  bin_spmod_anis,
+  newdata = moose_preds,
+  type = "response", 
+  interval = "prediction"
+)
+aug_pred
+```
+
+Estimated moose presence probability for the \texttt{moose} data
+(obtained via \texttt{fitted()}) and predicted moose presence
+probability for the \texttt{moose\_preds} data (obtained via
+\texttt{predict()} or \texttt{augment()}) are overlain below and share
+similar patterns:
+
+```{r bin, out.width="65%", fig.align="center", fig.cap="Fitted values and predictions for moose presence probability."}
+aug_mod$type <- "mod"
+aug_pred$type <- "pred"
+keep_cols <- c(".fitted", "type")
+aug_combined <- rbind(aug_mod[, keep_cols], aug_pred[, keep_cols])
+ggplot(aug_combined, aes(color = .fitted, shape = type)) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c(option = "H")  +
+  theme_gray(base_size = 14)
+```
+
+# An application to count data {#sec:application-count}
+
+The \texttt{moose} data also contain the number of moose observed at
+each site:
+
+```{r moose, out.width="65%", fig.align="center", fig.cap="Moose counts."}
+ggplot(moose, aes(color = count)) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c(option = "H")  +
+  theme_gray(base_size = 14)
+```
+
+The moose counts are similarly distributed as moose presence, highest in
+the eastern and southwestern parts of the domain. We compare two count
+models, Poisson and negative binomial. The Poisson model assumes the
+underlying process generating the counts has the same mean and variance
+while the negative binomial model allows for overdispersion (i.e., the
+variance is greater than the mean). We are interested in quantifying the
+effects of \texttt{elev} and \texttt{strat} on moose `count`, albeit
+using a slightly different approach than we did for moose `presence`.
+Here, we will model elevation as a fixed effect and allow this effect to
+change between strata, but we will model strata as a random effect to
+highlight additional flexibility of the `spmodel` package. We fit
+relevant Poisson and negative binomial models with a Matérn spatial
+covariance using \texttt{spglm()}:
+
+```{r}
+count_mod_pois <- spglm(
+  count ~ elev + elev:strat,
+  family = "poisson",
+  data = moose,
+  spcov_type = "matern",
+  random = ~ (1 | strat)
+)
+
+count_mod_nb <- spglm(
+  count ~ elev + elev:strat,
+  family = "nbinomial",
+  data = moose,
+  spcov_type = "matern",
+  random = ~ (1 | strat)
+)
+```
+
+Random effects are specified in `spmodel` via the \texttt{random}
+argument using similar syntax as the commonly used `lme4`
+[@bates2015lme4] and `nlme` [@pinheiro2006mixed] **R** packages for
+non-spatial mixed models. In `spmodel`, \texttt{~ strat} is short-hand
+for \texttt{~ (1 | strat)}. Random effects alter the covariance
+structure of the model, building additional correlation into the model
+for sites sharing a level of the random effect (here, sites within the
+same strata). More formally, when incorporating a random effect, the
+spatial generalized linear model becomes
+\begin{equation}\label{eq:spglm-rand}
+f(\boldsymbol{\mu}) \equiv \mathbf{w} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z}\mathbf{v} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
+\end{equation} where $\mathbf{Z}$ is a design matrix that indexes the
+random effects, $\mathbf{v}$, and
+$\text{Cov}(\mathbf{v}) = \sigma^2_{v}\mathbf{I}$. Then the covariance
+matrix, $\boldsymbol{\Sigma}$, becomes
+$\sigma^2_v \mathbf{Z} \mathbf{Z}^\top + \sigma^2_{de}\mathbf{R} + \sigma^2_{ie}\mathbf{I}$.
+
+Previously we compared models using \texttt{AIC()}, but another way to
+compare models is by leave-one-out cross validation
+[@hastie2009elements]. In leave-one-out cross validation, each
+observation is held-out and the model is re-fit and used to predict the
+held-out observation. Then a loss statistic is computed that compares
+each prediction to its true value. We calculate mean-squared-prediction
+error (MSPE) using leave-one-out cross validation for both the Poisson
+and negative binomial model by running
+
+```{r}
+loocv(count_mod_pois)
+loocv(count_mod_nb)
+```
+
+The negative binomial model has a lower MSPE, which suggests that
+incorporating overdispersion improves model fit here. Tidying this
+fitted model we see that there is some evidence elevation is related to
+moose counts and that this effect changes across strata (all $p~$values
+$< 0.1$):
+
+```{r}
+tidy(count_mod_nb)
+```
+
+The \texttt{varcomp()} function in `spmodel` apportions model
+variability into fixed and random components:
+
+```{r}
+varcomp(count_mod_nb)
+```
+
+Most model variability is explained by the spatially dependent random
+error (\texttt{de}) and the random effect for strata
+(\texttt{1 | strat}). Running
+
+```{r, eval = FALSE}
+plot(count_mod_nb, which = c(4, 5))
+```
+
+```{r, echo = FALSE, fig.show='hold', out.width="50%", fig.cap="Model diagnostics."}
+plot(count_mod_nb, which = 4)
+plot(count_mod_nb, which = 5)
+```
+
+shows observations of high influence or leverage and that the
+standardized residuals tend to be spread out around zero.
+
+Estimated mean moose counts for the \texttt{moose} data (obtained via
+\texttt{fitted()}) and predicted mean moose counts for the
+\texttt{moose\_preds} data (obtained via \texttt{predict()} or
+\texttt{augment()}) share similiar patterns and are overlain by running
+
+```{r nb, out.width="65%", fig.align="center", fig.cap="Fitted values and predictions for moose counts."}
+aug_mod <- augment(count_mod_nb)
+aug_pred <- augment(count_mod_nb, newdata = moose_preds, type = "response")
+aug_mod$type <- "mod"
+aug_pred$type <- "pred"
+keep_cols <- c(".fitted", "type")
+aug_combined <- rbind(aug_mod[, keep_cols], aug_pred[, keep_cols])
+ggplot(aug_combined, aes(color = .fitted, shape = type)) +
+  geom_sf(size = 2) +
+  scale_color_viridis_c(option = "H")  +
+  theme_gray(base_size = 18)
+```
+
+# Discussion {#sec:discussion}
+
+Throughout this vignette, we have shown several features `spmodel`
+offers, including a novel application of the Laplace approximation,
+similarity to base **R**'s \texttt{glm()} function, over a dozen spatial
+covariance functions, a variety of tools available to evaluate models,
+inspect model diagnostics, and make predictions using ubiquitous base
+**R** functions (e.g., \texttt{summary()}, \texttt{plot()}, and
+\texttt{predict()}) and more. Spatial generalized linear models for
+point-referenced data (i.e., generalized geostatistical models) are fit
+using the \texttt{spglm()} function. Spatial generalized linear models
+for areal data (i.e., generalized spatial autoregressive models) are fit
+using the \texttt{spgautor()} function. Both functions share common
+structure and syntax. Spatial data are simulated in `spmodel` by adding
+an \texttt{sp} prefix to commonly used base **R** simulation functions
+(e.g., \texttt{sprbinom()}).
+
+We appreciate feedback from users regarding `spmodel`. To learn more
+about how to provide feedback or contribute to `spmodel`, please visit
+our GitHub repository at <https://github.com/USEPA/spmodel>.
+
+# References {.unnumbered}
+
+::: {#refs}
+:::

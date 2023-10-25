@@ -78,6 +78,8 @@ cov_initial_search.exponential <- function(spcov_initial_NA, estmethod, data_obj
       ))
     }, SIMPLIFY = FALSE)
     esv_vals <- do.call("rbind", esv_vals)
+    esv_vals <- esv_vals[esv_vals$np > 0, , drop = FALSE]
+    esv_vals$bins <- droplevels(esv_vals$bins)
     esv_val <- data.frame(
       bins = levels(esv_vals$bins),
       dist = tapply(esv_vals$dist, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),
@@ -365,6 +367,8 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
       ))
     }, SIMPLIFY = FALSE)
     esv_vals <- do.call("rbind", esv_vals)
+    esv_vals <- esv_vals[esv_vals$np > 0, , drop = FALSE]
+    esv_vals$bins <- droplevels(esv_vals$bins)
     esv_val <- data.frame(
       bins = levels(esv_vals$bins),
       dist = tapply(esv_vals$dist, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),
@@ -637,6 +641,8 @@ cov_initial_search.matern <- function(spcov_initial_NA, estmethod, data_object,
       ))
     }, SIMPLIFY = FALSE)
     esv_vals <- do.call("rbind", esv_vals)
+    esv_vals <- esv_vals[esv_vals$np > 0, , drop = FALSE]
+    esv_vals$bins <- droplevels(esv_vals$bins)
     esv_val <- data.frame(
       bins = levels(esv_vals$bins),
       dist = tapply(esv_vals$dist, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),

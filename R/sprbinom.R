@@ -40,6 +40,7 @@ sprbinom <- function(spcov_params, mean = 0, size = 1, samples = 1, data, randco
   if ("size" %in% names(call_list)) {
     call_list <- call_list[-which(names(call_list) == "size")]
   }
+  call_val <- as.call(call_list)
   sprnorm_val <- eval(call_val, envir = parent.frame())
   mu <- expit(sprnorm_val)
 

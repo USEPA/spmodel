@@ -7,13 +7,13 @@
 \format{
 A \code{tibble} with 30 rows and 5 columns:
 \itemize{
-\item{water: }{A factor representing whether water was added. Takes values
-\code{N} (no water added) and \code{Y} (water added).}
-\item{tarp: }{A factor representing tarp cover. Takes values \code{clear}
-(a clear tarp), \code{shade} (a shade tarp), and \code{none} (no tarp).}
-\item{z: }{The percentage of nitrogen.}
-\item{x: }{The x-coordinate.}
-\item{y: }{The y-coordinate.}
+\item water: A factor representing whether water was added. Takes values
+\code{N} (no water added) and \code{Y} (water added).
+\item tarp: A factor representing tarp cover. Takes values \code{clear}
+(a clear tarp), \code{shade} (a shade tarp), and \code{none} (no tarp).
+\item z: The percentage of nitrogen.
+\item x: The x-coordinate.
+\item y: The y-coordinate.
 }
 }
 \source{

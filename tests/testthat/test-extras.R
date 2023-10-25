@@ -968,6 +968,14 @@ if (test_local) {
     expect_error(predict(smod, newexdata, interval = "confidence"), NA)
     expect_equal(length(predict(smod, newexdata)), NROW(newexdata))
     expect_true(all(predict(smod, newexdata, se.fit = TRUE)$se.fit >= 0))
+    # variable with new level
+    newexdata2 <- newexdata
+    newexdata2$group <- as.factor(seq_len(NROW(newexdata2)))
+    expect_error(predict(smod, newexdata2), NA)
+    expect_error(predict(smod, newexdata2, interval = "prediction"), NA)
+    expect_error(predict(smod, newexdata2, interval = "confidence"), NA)
+    expect_equal(length(predict(smod, newexdata2)), NROW(newexdata))
+    expect_true(all(predict(smod, newexdata2, se.fit = TRUE)$se.fit >= 0))
   })
 
   test_that("Prediction for splm works with partition factor", {
@@ -978,6 +986,14 @@ if (test_local) {
     expect_error(predict(smod, newexdata, interval = "confidence"), NA)
     expect_equal(length(predict(smod, newexdata)), NROW(newexdata))
     expect_true(all(predict(smod, newexdata, se.fit = TRUE)$se.fit >= 0))
+    # variable with new level
+    newexdata2 <- newexdata
+    newexdata2$group <- as.factor(seq_len(NROW(newexdata2)))
+    expect_error(predict(smod, newexdata2), NA)
+    expect_error(predict(smod, newexdata2, interval = "prediction"), NA)
+    expect_error(predict(smod, newexdata2, interval = "confidence"), NA)
+    expect_equal(length(predict(smod, newexdata2)), NROW(newexdata))
+    expect_true(all(predict(smod, newexdata2, se.fit = TRUE)$se.fit >= 0))
   })
 
   test_that("Prediction works for big data", {

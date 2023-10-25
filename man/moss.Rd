@@ -8,21 +8,21 @@
 An \code{sf} object with 365 rows and 10 columns:
 
 \itemize{
-\item{sample: }{A factor with a sample identifier. Some samples were
+\item sample: A factor with a sample identifier. Some samples were
 replicated in the field or laboratory. As a result, there are 318 unique
-sample identifiers.}
-\item{field_dup: }{A factor representing field duplicate. Takes values \code{1}
-and \code{2}.}
-\item{lab_rep: }{A factor representing laboratory replicate. Takes values \code{1}
-and \code{2}.}
-\item{year: }{A factor representing year. Takes values \code{2001} and \code{2006}.}
-\item{sideroad: }{A factor representing direction relative to the haul road.
+sample identifiers.
+\item field_dup: A factor representing field duplicate. Takes values \code{1}
+and \code{2}.
+\item lab_rep: A factor representing laboratory replicate. Takes values \code{1}
+and \code{2}.
+\item year: A factor representing year. Takes values \code{2001} and \code{2006}.
+\item sideroad: A factor representing direction relative to the haul road.
 Takes values \code{N} (north of the haul road) and \code{S} (south
-of the haul road).}
-\item{log_dist2road: }{The log of distance (in meters) to the haul road.}
-\item{log_Zn: }{The log of zinc concentration in moss tissue (mg/kg).}
-\item{geometry: }{\code{POINT} geometry representing coordinates in an Alaska
-Albers projection (EPSG: 3338).}
+of the haul road).
+\item log_dist2road: The log of distance (in meters) to the haul road.
+\item log_Zn: The log of zinc concentration in moss tissue (mg/kg).
+\item geometry: \code{POINT} geometry representing coordinates in an Alaska
+Albers projection (EPSG: 3338).
 }
 }
 \source{

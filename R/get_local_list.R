@@ -45,14 +45,14 @@ get_local_list_estimation <- function(local, data, xcoord, ycoord, n, partition_
       if ("groups" %in% names_local) {
         local$size <- ceiling(n / local$groups)
       } else {
-        local$size <- 50
+        local$size <- 100
         local$groups <- ceiling(n / local$size)
       }
     } else {
       local$groups <- ceiling(n / local$size)
     }
     if (!"method" %in% names_local) {
-      local$method <- "random"
+      local$method <- "kmeans"
     }
     local$index <- get_local_estimation_index(local, data, xcoord, ycoord, n)
   }
@@ -105,7 +105,7 @@ get_local_list_prediction <- function(local) {
 
   if (is.logical(local)) {
     if (local) {
-      local <- list(method = "covariance", size = 50)
+      local <- list(method = "covariance", size = 100)
     } else {
       local <- list(method = "all")
     }
@@ -127,7 +127,7 @@ get_local_list_prediction <- function(local) {
   }
 
   if (local$method %in% c("distance", "covariance") && !"size" %in% names_local) {
-    local$size <- 50
+    local$size <- 100
   }
 
   if (!"parallel" %in% names_local) {

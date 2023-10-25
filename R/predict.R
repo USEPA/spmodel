@@ -24,7 +24,7 @@
 #'   is implemented. If a list is provided, the following arguments detail the big
 #'   data approximation:
 #'   \itemize{
-#'     \item{\code{method}: }{The big data approximation method. If \code{method = "all"},
+#'     \item \code{method}: The big data approximation method. If \code{method = "all"},
 #'       all observations are used and \code{size} is ignored. If \code{method = "distance"},
 #'       the \code{size} data observations closest (in terms of Euclidean distance)
 #'       to the observation requiring prediction are used.
@@ -33,20 +33,20 @@
 #'       If random effects and partition factors are not used in estimation and
 #'       the spatial covariance function is monotone decreasing,
 #'       \code{"distance"} and \code{"covariance"} are equivalent. The default
-#'       is \code{"covariance"}. Only used with models fit using [splm()] or [spglm()].}
-#'     \item{\code{size}: }{The number of data observations to use when \code{method}
-#'       is \code{"distance"} or \code{"covariance"}. The default is 50. Only used
-#'       with models fit using [splm()] or [spglm()].}
-#'     \item{\code{parallel}: }{If \code{TRUE}, parallel processing via the
-#'       parallel package is automatically used. The default is \code{FALSE}.}
-#'     \item{\code{ncores}: }{If \code{parallel = TRUE}, the number of cores to
-#'       parallelize over. The default is the number of available cores on your machine.}
+#'       is \code{"covariance"}. Only used with models fit using [splm()] or [spglm()].
+#'     \item \code{size}: The number of data observations to use when \code{method}
+#'       is \code{"distance"} or \code{"covariance"}. The default is 100. Only used
+#'       with models fit using [splm()] or [spglm()].
+#'     \item \code{parallel}: If \code{TRUE}, parallel processing via the
+#'       parallel package is automatically used. The default is \code{FALSE}.
+#'     \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
+#'       parallelize over. The default is the number of available cores on your machine.
 #'   }
 #'   When \code{local} is a list, at least one list element must be provided to
 #'   initialize default arguments for the other list elements.
 #'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 #'   that \code{local} is transformed into
-#'   \code{list(size = 50, method = "covariance", parallel = FALSE)}.
+#'   \code{list(size = 100, method = "covariance", parallel = FALSE)}.
 #' @param ... Other arguments. Only used for models fit using \code{splmRF()}
 #'   or \code{spautorRF()} where \code{...} indicates other
 #'   arguments to \code{ranger::predict.ranger()}.
@@ -72,8 +72,8 @@
 #'   \code{fit}, \code{lwr}, and \code{upr} if \code{interval} is \code{"confidence"}
 #'   or \code{"prediction"}. If \code{se.fit} is \code{TRUE}, a list with the following components is returned:
 #'   \itemize{
-#'     \item{\code{fit}: }{vector or matrix as above}
-#'     \item{\code{se.fit: }}{standard error of each fit}
+#'     \item \code{fit}: vector or matrix as above
+#'     \item \code{se.fit}: standard error of each fit
 #'   }
 #'
 #'   For \code{splm_list} or \code{spautor_list} objects, a list that contains relevant quantities for each
@@ -243,6 +243,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
       reform_bar1_list <- lapply(reform_bar_list, function(x) x$reform_bar1)
       names(reform_bar1_list) <- randcov_names
       Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) {
+
         reform_bar2_mf <- model.frame(reform_bar2, obdata)
         reform_bar2_terms <- terms(reform_bar2_mf)
         reform_bar2_xlev <- .getXlevels(reform_bar2_terms, reform_bar2_mf)
@@ -250,6 +251,17 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
         reform_bar2_names <- colnames(reform_bar2_mx)
         reform_bar2_split <- split(reform_bar2_mx, seq_len(NROW(reform_bar2_mx)))
         reform_bar2_vals <- reform_bar2_names[vapply(reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+
+        # adding dummy levels if newdata observations of random effects are not in original data
+        # terms object is unchanged if levels change
+        # reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
+        # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
+        # reform_bar2_terms_full <- terms(rbind(reform_bar2_mf, reform_bar2_mf_new))
+        reform_bar2_xlev_full <- .getXlevels(reform_bar2_terms, rbind(reform_bar2_mf, model.frame(reform_bar2, newdata)))
+        if (!identical(reform_bar2_xlev, reform_bar2_xlev_full)) {
+          reform_bar2_xlev <- reform_bar2_xlev_full
+        }
+
         list(reform_bar2_vals = reform_bar2_vals, reform_bar2_xlev = reform_bar2_xlev)
       })
       # Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) as.vector(model.matrix(reform_bar2, obdata)))
@@ -281,6 +293,18 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
       p_reform_bar2_names <- colnames(p_reform_bar2_mx)
       p_reform_bar2_split <- split(p_reform_bar2_mx, seq_len(NROW(p_reform_bar2_mx)))
       p_reform_bar2_vals <- p_reform_bar2_names[vapply(p_reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+
+
+      # adding dummy levels if newdata observations of random effects are not in original data
+      # terms object is unchanged if levels change
+      # p_reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
+      # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
+      # p_reform_bar2_terms_full <- terms(rbind(p_reform_bar2_mf, p_reform_bar2_mf_new))
+      p_reform_bar2_xlev_full <- .getXlevels(p_reform_bar2_terms, rbind(p_reform_bar2_mf, model.frame(reform_bar2, newdata)))
+      if (!identical(p_reform_bar2_xlev, p_reform_bar2_xlev_full)) {
+        p_reform_bar2_xlev <- p_reform_bar2_xlev_full
+      }
+
       partition_index_obdata <- list(reform_bar2_vals = p_reform_bar2_vals, reform_bar2_xlev = p_reform_bar2_xlev)
       # partition_index_obdata <- as.vector(model.matrix(reform_bar2, obdata))
     } else {
@@ -655,6 +679,7 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
 
 
 
+
   # storing partition vector
   partition_vector <- partition_vector(partition_factor,
     data = obdata,
@@ -662,10 +687,16 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
     partition_index_data = partition_index_obdata
   )
 
-  # subsetting partition vector
+  # subsetting partition vector (efficient but causes problems later with
+  # random effect subsetting)
   if (!is.null(partition_vector) && local$method %in% c("distance", "covariance") &&
     !labels(terms(partition_factor)) %in% labels(terms(random))) {
-    obdata <- obdata[as.vector(partition_vector) == 1, , drop = FALSE]
+    partition_index <- as.vector(partition_vector) == 1
+    Z_index_obdata_list <- lapply(Z_index_obdata_list, function(x) {
+      x$reform_bar2_vals <- x$reform_bar2_vals[partition_index]
+      x
+    })
+    obdata <- obdata[partition_index, , drop = FALSE]
     partition_vector <- Matrix(1, nrow = 1, ncol = NROW(obdata))
   }
 
@@ -700,7 +731,8 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
   if (local$method %in% c("distance", "covariance")) {
     if (!is.null(random)) {
       randcov_names <- get_randcov_names(random)
-      randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
+      xlev_list <- lapply(Z_index_obdata_list, function(x) x$reform_bar2_xlev)
+      randcov_Zs <- get_randcov_Zs(obdata, randcov_names, xlev_list = xlev_list)
     }
     partition_matrix_val <- partition_matrix(partition_factor, obdata)
     cov_matrix_val <- cov_matrix(

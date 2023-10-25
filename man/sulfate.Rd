@@ -6,10 +6,10 @@
 \title{Sulfate atmospheric deposition in the conterminous USA}
 \format{
 An \code{sf} object with 197 rows and 2 columns.
-\describe{
-\item{sulfate: }{Total wet deposition sulfate in kilograms per hectare.}
-\item{geometry: }{\code{POINT} geometry representing coordinates in a
-Conus Albers projection (EPSG: 5070).}
+\itemize{
+\item sulfate: Total wet deposition sulfate in kilograms per hectare.
+\item geometry: \code{POINT} geometry representing coordinates in a
+Conus Albers projection (EPSG: 5070).
 }
 }
 \source{

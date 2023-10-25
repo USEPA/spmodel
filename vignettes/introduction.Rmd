@@ -1,17 +1,19 @@
 ---
-title: "An Overview of Basic Features in spmodel"
+title: "An Introduction to spmodel"
 author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
-header-includes:
-   - \usepackage{amsmath,amsfonts,amssymb}
-   - \usepackage{bm, bbm}
-   - \usepackage{mathtools}
 bibliography: '`r system.file("references.bib", package="spmodel")`'
 output:
-    pdf_document:
-      number_sections: true
-      toc: false
+  html_document:
+    theme: flatly
+    number_sections: true
+    highlighted: default 
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+    toc_depth: 3
 vignette: >
-  %\VignetteIndexEntry{An Overview of Basic Features in spmodel}
+  %\VignetteIndexEntry{An Introduction to spmodel}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -41,10 +43,13 @@ If you use `spmodel` in a formal publication or report, please cite it. Citing `
 citation(package = "spmodel")
 ```
 
-There are two additional `spmodel` vignettes:
+There are three more `spmodel` vignettes available on our website at [https://usepa.github.io/spmodel/](https://usepa.github.io/spmodel/):
 
-* A detailed guide to `spmodel`: `vignette("guide", "spmodel")`
-* Technical details regarding many functions: `vignette("technical", "spmodel")`
+1. A Detailed Guide to `spmodel`
+2. Spatial Generalized Linear Models in `spmodel 
+3. Technical Details
+
+Additionally, a workbook that accompanied a recent `spmodel` workshop is available at [https://usepa.github.io/spmodel.spatialstat2023/](https://usepa.github.io/spmodel.spatialstat2023/)
 
 # The Data
 
@@ -68,9 +73,9 @@ ggplot2 is only installed alongside `spmodel` when `dependencies = TRUE` in `ins
 
 Spatial linear models for a quantitative response vector $\mathbf{y}$ have spatially dependent random errors and are often parameterized as
 
-\begin{equation*}
+$$
 \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
-\end{equation*}
+$$
 
 where $\mathbf{X}$ is a matrix of explanatory variables (usually including a column of 1's for an intercept), $\boldsymbol{\beta}$ is a vector of fixed effects that describe the average impact of $\mathbf{X}$ on $\mathbf{y}$, $\boldsymbol{\tau}$ is a vector of spatially dependent (correlated) random errors, and $\boldsymbol{\epsilon}$ is a vector of spatially independent (uncorrelated) random errors. The spatial dependence of $\boldsymbol{\tau}$ is explicitly specified using a spatial covariance function that incorporates the variance of $\boldsymbol{\tau}$, often called the partial sill, and a range parameter that controls the behavior of the spatial covariance. The variance of $\boldsymbol{\epsilon}$ is often called the nugget. 
 
@@ -242,10 +247,10 @@ There seems to be significant evidence that at least one tarp cover impacts nitr
 # Spatial Generalized Linear Models
 
 When building spatial linear models, the response vector $\mathbf{y}$ is typically assumed Gaussian (given $\mathbf{X}$). Relaxing this assumption on the distribution of $\mathbf{y}$ yields a rich class of spatial generalized linear models that can describe binary data, proportion data, count data, and skewed data. Spatial generalized linear models are parameterized as 
-\begin{equation*}
+$$
 g(\boldsymbol{\mu}) = \boldsymbol{\eta} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
-\end{equation*}
-where $g(\cdot)$ is called a link function, $\boldsymbol{\mu}$ is the mean of $\mathbf{y}$, and the remaining terms $\mathbf{X}$, $\boldsymbol{\beta}$, $\boldsymbol{\tau}$, $\boldsymbol{\epsilon}$ represent the same quantities as for the spatial linear models (Section$~$\ref{sec:splm}). The link function, $g(\cdot)$, "links" a function of $\boldsymbol{\mu}$ to the linear term $\boldsymbol{\eta}$, denoted here as $\mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon}$, which is familiar from spatial linear models. Note that the linking of $\boldsymbol{\mu}$ to $\boldsymbol{\eta}$ applies element-wise to each vector. Each link function $g(\cdot)$ has a corresponding inverse link function, $g^{-1}(\cdot)$. The inverse link function "links" a function of $\boldsymbol{\eta}$ to $\boldsymbol{\mu}$.  Notice that for spatial generalized linear models, we are not modeling $\mathbf{y}$ directly as we do for spatial linear models, but rather we are modeling a function of the mean of $\mathbf{y}$. Also notice that $\boldsymbol{\eta}$ is unconstrained but $\boldsymbol{\mu}$ is usually constrained in some way (e.g., positive). Next we discuss the specific distributions and link functions used in `spmodel`.
+$$
+where $g(\cdot)$ is called a link function, $\boldsymbol{\mu}$ is the mean of $\mathbf{y}$, and the remaining terms $\mathbf{X}$, $\boldsymbol{\beta}$, $\boldsymbol{\tau}$, $\boldsymbol{\epsilon}$ represent the same quantities as for the spatial linear models. The link function, $g(\cdot)$, "links" a function of $\boldsymbol{\mu}$ to the linear term $\boldsymbol{\eta}$, denoted here as $\mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon}$, which is familiar from spatial linear models. Note that the linking of $\boldsymbol{\mu}$ to $\boldsymbol{\eta}$ applies element-wise to each vector. Each link function $g(\cdot)$ has a corresponding inverse link function, $g^{-1}(\cdot)$. The inverse link function "links" a function of $\boldsymbol{\eta}$ to $\boldsymbol{\mu}$.  Notice that for spatial generalized linear models, we are not modeling $\mathbf{y}$ directly as we do for spatial linear models, but rather we are modeling a function of the mean of $\mathbf{y}$. Also notice that $\boldsymbol{\eta}$ is unconstrained but $\boldsymbol{\mu}$ is usually constrained in some way (e.g., positive). Next we discuss the specific distributions and link functions used in `spmodel`.
 
 `spmodel` allows fitting of spatial generalized linear models when $\mathbf{y}$ is a binomial (or Bernoulli), beta, Poisson, negative binomial, gamma, or inverse Gaussian random vector. For binomial and beta $\mathbf{y}$, the logit link function is defined as $g(\boldsymbol{\mu}) = \ln(\frac{\boldsymbol{\mu}}{1 - \boldsymbol{\mu}}) = \boldsymbol{\eta}$, and the inverse logit link function is defined as $g^{-1}(\boldsymbol{\eta}) = \frac{\exp(\boldsymbol{\eta})}{1 + \exp(\boldsymbol{\eta})} = \boldsymbol{\mu}$. For Poisson, negative binomial, gamma, and inverse Gaussian $\mathbf{y}$, the log link function is defined as $g(\boldsymbol{\mu}) = \ln(\boldsymbol{\mu}) = \boldsymbol{\eta}$, and the inverse log link function is defined as $g^{-1}(\boldsymbol{\eta}) = \exp(\boldsymbol{\eta}) = \boldsymbol{\mu}$.
 
@@ -265,7 +270,7 @@ moose
 We can visualize the distribution of moose presence by running
 ```{r}
 ggplot(moose, aes(color = presence)) +
-  scale_color_viridis_d() +
+  scale_color_viridis_d(option = "H") +
   geom_sf(size = 2) 
 ```
 
@@ -324,7 +329,7 @@ The type argument specifies whether predictions are returned on the link or resp
 ```{r}
 ggplot(moose_preds, aes(color = preds)) + 
   geom_sf(size = 2) +
-  scale_color_viridis_c(limits = c(0, 1))
+  scale_color_viridis_c(limits = c(0, 1), option = "H")
 ```
 
 These predictions have similar spatial patterns as moose presence the observed data. Next we remove the model predictions from `moose_preds` and show how `augment()` can be used to obtain the same predictions alongside prediction intervals (on the response scale):

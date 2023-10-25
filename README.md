@@ -6,6 +6,7 @@ likelihood-based optimization and weighted least squares based on variograms. Ad
 modeling features include anisotropy, non-spatial random effects, partition factors,
 big data approaches, and more. Model-fit statistics are used to summarize, visualize,
 and compare models. Predictions at unobserved locations are readily obtainable.
+Visit our website at [https://usepa.github.io/spmodel/](https://usepa.github.io/spmodel/).
 
 # Installation
 
@@ -34,12 +35,16 @@ install the most recent development version from GitHub with package vignettes
 devtools::install_github("USEPA/spmodel", ref = "main", build_vignettes=TRUE)
 ```
 
-View the vignettes in RStudio by running
+View the introductory vignette in RStudio by running
 ```r
-vignette("basics", "spmodel") # an overview of basic features
-vignette("guide", "spmodel") # a detailed guide with to spmodel
-vignette("technical", "spmodel") # technical details regarding many functions
+vignette("introduction", "spmodel")
 ```
+
+We have several other vignettes that are not shipped with CRAN but are available on our website (located at [https://usepa.github.io/spmodel/](https://usepa.github.io/spmodel/)) in the "Articles" tab:
+
+1. A Detailed Guide to spmodel
+2. Spatial Generalized Linear Models in spmodel
+3. Technical Details
 
 Further detail regarding spmodel is contained in the package's documentation manual. 
 

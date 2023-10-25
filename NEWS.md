@@ -8,7 +8,10 @@
     * Previously, the `random` assignment method was used with group sizes approximately equal to 50.
 * The default for `local = TRUE` in `predict()` and `augment()` now uses 100 local neighbors.
     * Previously, 50 local neighbors were used.
-* Minor vignette updates.
+* Moved the "A Detailed Guide to `spmodel`" and "Technical Details" vignettes to the package website.
+* Added a "Spatial Generalized Linear Models in `spmodel`" vignette to the package website.
+* Changed name of "An Overview of Basic Features in `spmodel`" vignette to "An Introduction to `spmodel`" and changed output type from PDF to HTML.
+* Other minor vignette updates.
 * Minor documentation updates.
 
 ## Bug fixes

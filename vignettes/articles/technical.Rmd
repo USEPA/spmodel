@@ -11,10 +11,8 @@ output:
       number_sections: true
       toc: true
       toc_depth: 4
-vignette: >
-  %\VignetteIndexEntry{Technical Details}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+pkgdown:
+  as_is: true
 ---
 
 ```{r setup, include = FALSE}
@@ -38,11 +36,6 @@ If you use `spmodel` in a formal publication or report, please cite it. Citing `
 ```{r}
 citation(package = "spmodel")
 ```
-
-In addition to this document on the technical details of `spmodel`, there are two other vignettes:
-
-* An overview of basic features in `spmodel`: `vignette("basics", "spmodel")`
-* A detailed guide to `spmodel`: `vignette("guide", "spmodel")`
 
 # Notation Guide {#sec:notation}
 

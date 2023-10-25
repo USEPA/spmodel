@@ -3,7 +3,7 @@
 for point-referenced data (i.e., geostatistical models) using
 random forest to fit the mean and a spatial linear model to fit the residuals.
 The spatial linear model fit to the residuals can incorporate variety of estimation methods,
-allowing for random effects, anisotropy, partition factors, and big data methods."><title>Fit random forest spatial residual models — splmRF • spmodel</title><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.1.3/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous"><!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Fit random forest spatial residual models — splmRF"><meta property="og:description" content="Fit random forest spatial residual models
+allowing for random effects, anisotropy, partition factors, and big data methods."><title>Fit random forest spatial residual models — splmRF • spmodel</title><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous"><!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Fit random forest spatial residual models — splmRF"><meta property="og:description" content="Fit random forest spatial residual models
 for point-referenced data (i.e., geostatistical models) using
 random forest to fit the mean and a spatial linear model to fit the residuals.
 The spatial linear model fit to the residuals can incorporate variety of estimation methods,
@@ -18,7 +18,7 @@ allowing for random effects, anisotropy, partition factors, and big data methods
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,9 +32,10 @@ allowing for random effects, anisotropy, partition factors, and big data methods
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/basics.html">An Overview of Basic Features in spmodel</a>
     <a class="dropdown-item" href="../articles/guide.html">A Detailed Guide to spmodel</a>
+    <a class="dropdown-item" href="../articles/SPGLMs.html">Spatial Generalized Linear Models in spmodel</a>
     <a class="dropdown-item" href="../articles/technical.html">Technical Details</a>
+    <a class="dropdown-item" href="../articles/introduction.html">An Introduction to spmodel</a>
   </div>
 </li>
 <li class="nav-item">
@@ -159,35 +160,35 @@ regression to random forests for large environmental data sets.
 <span class="r-in"><span><span class="va">sprfmod</span> <span class="op">&lt;-</span> <span class="fu">splmRF</span><span class="op">(</span><span class="va">sulfate</span> <span class="op">~</span> <span class="va">var</span>, data <span class="op">=</span> <span class="va">sulfate</span>, spcov_type <span class="op">=</span> <span class="st">"exponential"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">sprfmod</span>, <span class="va">sulfate_preds</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          1          2          3          4          5          6          7 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1.4650638 25.3519736  3.6839758 29.7133547 15.7854201 22.1871708  1.6127427 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -6.1377597 29.1450999 17.3945298 12.1213007  3.1330548 28.3866757 11.9909603 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          8          9         10         11         12         13         14 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8.8828673 -3.7270311 18.3580121  3.3058049 10.3879871 -0.9914569 14.0100008 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16.8613352  8.0772730 13.1348366  4.9551673  7.4368405  3.7412313 24.4331860 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         15         16         17         18         19         20         21 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20.7401759  9.3088395 27.2393221  5.5353741  6.4773599 23.5512849  2.0327482 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22.8587823 18.6347690  6.8537657 22.6341678  2.6567049 17.9787242  7.0921645 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         22         23         24         25         26         27         28 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1.9900377 -3.2520790 -3.7620590 16.5671835  0.6554495 20.1421875 10.9661974 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13.2062559  3.1248220 11.0909425 -0.7156536  0.7323568 18.8569259  9.7246767 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         29         30         31         32         33         34         35 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15.0110640 16.5761131 -2.7837165  5.4683251 20.4581482  2.0987345  2.1711594 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10.9095830  8.5869304  4.9370130 15.5692797 11.8491397  8.4556058  1.4987440 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         36         37         38         39         40         41         42 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5.6182391 20.7866831 23.1085355 11.0701393 14.5749094  8.6141445 19.8942256 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -1.8432463 17.1604659 -2.2961210 22.5938649  3.8583227  8.2193919 23.8198465 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         43         44         45         46         47         48         49 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 25.1971387 17.9105561 13.4829172  2.0772709 -4.0392365  9.6193731 24.2468941 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19.6039883 19.4442878  5.8496071 12.3723358 16.1082116 16.6702312 31.5937004 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         50         51         52         53         54         55         56 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -2.8074280 18.2263987 10.8424667 -2.3738772 -5.9054008  2.9763653  9.6473487 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5.3874857 24.0327442 17.9523875  5.3172113  2.2020089  4.1187855 13.5328991 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         57         58         59         60         61         62         63 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11.4692320  6.2363249 17.3395828 21.3904762 21.9400397 15.3616913 -3.5265082 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17.7205620  3.6965307 20.9015211  5.3679850 13.7801110 27.6225063 20.8816156 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         64         65         66         67         68         69         70 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8.7314116 28.6232219 -7.6477062 -1.2273404  8.7757875  0.5168636  4.3078085 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14.9466737 22.9618088 -5.6887319  7.3171630  9.0156371 -5.4236599 21.7028487 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         71         72         73         74         75         76         77 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2.8300501 27.8123529  2.9357663 21.3412826 15.9889152 -1.4200113 17.7653917 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15.0909412 30.2295131  9.0684168  3.4210411  4.0409450 -0.8868351 14.8712024 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         78         79         80         81         82         83         84 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -3.3613568 21.4672871  9.2354319  9.8772618 -0.1472747 18.7234666 -9.5919059 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10.2057287  5.1052243 13.0483564 20.4023510  0.7128193  3.6507060 11.1887415 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         85         86         87         88         89         90         91 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10.4575066  7.2662070 -1.8758967  4.5713878 -3.8791275 19.1819438  0.4911183 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.1725768  1.4584439 10.3566991  4.2012282 13.8843085 22.6408813 15.7617740 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         92         93         94         95         96         97         98 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.7629863 27.7153955 35.7256768  9.3233397  9.7363512 24.9163912 19.8377229 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3.7889121 -0.8879800 30.9332639 19.4692391 22.3287174 16.5818020 21.3861348 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         99        100 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11.4892106 20.9790467 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 27.1407344 14.0203087 </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
@@ -200,7 +201,7 @@ regression to random forests for large environmental data sets.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
     </footer></div>

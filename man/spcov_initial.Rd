@@ -66,31 +66,31 @@ in which case \eqn{range} must be between the reciprocal of the maximum
 eigenvalue of \code{W} and the reciprocal of the minimum eigenvalue of
 \code{W}. Parametric forms for \eqn{R} are given below, where \eqn{\eta = h / range}:
 \itemize{
-\item{exponential: }{\eqn{exp(- \eta )}}
-\item{spherical: }{\eqn{(1 - 1.5\eta + 0.5\eta^3) * I(h <= range)}}
-\item{gaussian: }{\eqn{exp(- \eta^2 )}}
-\item{triangular: }{\eqn{(1 - \eta) * I(h <= range)}}
-\item{circular: }{\eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(m))) * I(h <= range), m = min(\eta, 1)}}
-\item{cubic: }{\eqn{(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75\eta^7) * I(h <= range)}}
-\item{pentaspherical: }{\eqn{(1 - 1.875\eta + 1.25\eta^3 - 0.375\eta^5) * I(h <= range)}}
-\item{cosine: }{\eqn{cos(\eta)}}
-\item{wave: }{\eqn{sin(\eta) / \eta * I(h > 0) + I(h = 0)}}
-\item{jbessel: }{\eqn{Bj(h * range)}, Bj is Bessel-J function}
-\item{gravity: }{\eqn{(1 + \eta^2)^{-0.5}}}
-\item{rquad: }{\eqn{(1 + \eta^2)^{-1}}}
-\item{magnetic: }{\eqn{(1 + \eta^2)^{-1.5}}}
-\item{matern: }{\eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}}
-\item{cauchy: }{\eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}}
-\item{pexponential: }{\eqn{exp(h^{extra}/range)}, \eqn{0 < extra \le 2}}
-\item{car: }{\eqn{(I - range * W)^{-1} * M}, weights matrix \eqn{W},
+\item exponential: \eqn{exp(- \eta )}
+\item spherical: \eqn{(1 - 1.5\eta + 0.5\eta^3) * I(h <= range)}
+\item gaussian: \eqn{exp(- \eta^2 )}
+\item triangular: \eqn{(1 - \eta) * I(h <= range)}
+\item circular: \eqn{(1 - (2 / \pi) * (m * sqrt(1 - m^2) + sin^{-1}(m))) * I(h <= range), m = min(\eta, 1)}
+\item cubic: \eqn{(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75\eta^7) * I(h <= range)}
+\item pentaspherical: \eqn{(1 - 1.875\eta + 1.25\eta^3 - 0.375\eta^5) * I(h <= range)}
+\item cosine: \eqn{cos(\eta)}
+\item wave: \eqn{sin(\eta) / \eta * I(h > 0) + I(h = 0)}
+\item jbessel: \eqn{Bj(h * range)}, Bj is Bessel-J function
+\item gravity: \eqn{(1 + \eta^2)^{-0.5}}
+\item rquad: \eqn{(1 + \eta^2)^{-1}}
+\item magnetic: \eqn{(1 + \eta^2)^{-1.5}}
+\item matern: \eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function wit  order \eqn{1/5 \le extra \le 5}
+\item cauchy: \eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}
+\item pexponential: \eqn{exp(h^{extra}/range)}, \eqn{0 < extra \le 2}
+\item car: \eqn{(I - range * W)^{-1} * M}, weights matrix \eqn{W},
 symmetry condition matrix \eqn{M}, observations with no neighbors
 are given a unique variance
-parameter called \eqn{extra}, \eqn{extra \ge 0}.}
-\item{sar: }{\eqn{[(I - range * W)(I - range * W)^T]^{-1}},
+parameter called \eqn{extra}, \eqn{extra \ge 0}.
+\item sar: \eqn{[(I - range * W)(I - range * W)^T]^{-1}},
 weights matrix \eqn{W}, \eqn{^T} indicates matrix transpose,
 observations with no neighbors are given a unique variance
-parameter called \eqn{extra}, \eqn{extra \ge 0}.}
-\item{none: }{\eqn{0}}
+parameter called \eqn{extra}, \eqn{extra \ge 0}.
+\item none: \eqn{0}
 }
 
 All spatial covariance functions are valid in one spatial dimension. All

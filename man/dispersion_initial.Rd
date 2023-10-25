@@ -36,13 +36,13 @@ The \code{dispersion_initial} list is later passed to \code{\link[=spglm]{spglm(
 The variance function of an individual \eqn{y} (given \eqn{\mu})
 for each generalized linear model family is given below:
 \itemize{
-\item{family: }{\eqn{Var(y)}}
-\item{poisson: }{\eqn{\mu \phi}}
-\item{nbinomial: }{\eqn{\mu + \mu^2 / \phi}}
-\item{binomial: }{\eqn{n \mu (1 - \mu) \phi}}
-\item{beta: }{\eqn{\mu (1 - \mu) / (1 + \phi)}}
-\item{Gamma: }{\eqn{\mu^2 / \phi}}
-\item{inverse.gaussian: }{\eqn{\mu^2 / \phi}}
+\item family: \eqn{Var(y)}
+\item poisson: \eqn{\mu \phi}
+\item nbinomial: \eqn{\mu + \mu^2 / \phi}
+\item binomial: \eqn{n \mu (1 - \mu) \phi}
+\item beta: \eqn{\mu (1 - \mu) / (1 + \phi)}
+\item Gamma: \eqn{\mu^2 / \phi}
+\item inverse.gaussian: \eqn{\mu^2 / \phi}
 }
 The parameter \eqn{\phi} is a dispersion parameter that influences \eqn{Var(y)}.
 For the \code{poisson} and \code{binomial} families, \eqn{\phi} is always

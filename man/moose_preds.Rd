@@ -6,11 +6,11 @@
 \title{Locations at which to predict moose counts and presence in Alaska, USA}
 \format{
 An \code{sf} object with 100 rows and 3 columns.
-\describe{
-\item{elev: }{The elevation.}
-\item{strat: }{A factor representing strata (used for sampling). Can take values \code{L} and \code{M}.}
-\item{geometry: }{\code{POINT} geometry representing coordinates in an Alaska
-Albers projection (EPSG: 3338).}
+\itemize{
+\item elev: The elevation.
+\item strat: A factor representing strata (used for sampling). Can take values \code{L} and \code{M}.
+\item geometry: \code{POINT} geometry representing coordinates in an Alaska
+Albers projection (EPSG: 3338).
 }
 }
 \source{

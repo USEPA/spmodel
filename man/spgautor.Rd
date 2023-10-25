@@ -150,38 +150,38 @@ random variable.
 
 The supports for \eqn{y} for each family are given below:
 \itemize{
-\item{family: }{support of \eqn{y}}
-\item{poisson: }{\eqn{0 \le y}; \eqn{y} an integer}
-\item{nbinomial: }{\eqn{0 \le y}; \eqn{y} an integer}
-\item{binomial: }{\eqn{0 \le y}; \eqn{y} an integer}
-\item{beta: }{\eqn{0 < y < 1}}
-\item{Gamma: }{\eqn{0 < y}}
-\item{inverse.gaussian: }{\eqn{0 < y}}
+\item family: support of \eqn{y}
+\item poisson: \eqn{0 \le y}; \eqn{y} an integer
+\item nbinomial: \eqn{0 \le y}; \eqn{y} an integer
+\item binomial: \eqn{0 \le y}; \eqn{y} an integer
+\item beta: \eqn{0 < y < 1}
+\item Gamma: \eqn{0 < y}
+\item inverse.gaussian: \eqn{0 < y}
 }
 
 The generalized linear model families
 and the parameterizations of their link functions are given
 below:
 \itemize{
-\item{family: }{link function}
-\item{poisson: }{\eqn{g(\mu) = log(\eta)} (log link)}
-\item{nbinomial: }{\eqn{g(\mu) = log(\eta)} (log link)}
-\item{binomial: }{\eqn{g(\mu) = log(\eta / (1 - \eta))} (logit link)}
-\item{beta: }{\eqn{g(\mu) = log(\eta / (1 - \eta))} (logit link)}
-\item{Gamma: }{\eqn{g(\mu) = log(\eta)} (log link)}
-\item{inverse.gaussian: }{\eqn{g(\mu) = log(\eta)} (log link)}
+\item family: link function
+\item poisson: \eqn{g(\mu) = log(\eta)} (log link)
+\item nbinomial: \eqn{g(\mu) = log(\eta)} (log link)
+\item binomial: \eqn{g(\mu) = log(\eta / (1 - \eta))} (logit link)
+\item beta: \eqn{g(\mu) = log(\eta / (1 - \eta))} (logit link)
+\item Gamma: \eqn{g(\mu) = log(\eta)} (log link)
+\item inverse.gaussian: \eqn{g(\mu) = log(\eta)} (log link)
 }
 
 The variance function of an individual \eqn{y} (given \eqn{\mu})
 for each generalized linear model family is given below:
 \itemize{
-\item{family: }{\eqn{Var(y)}}
-\item{poisson: }{\eqn{\mu \phi}}
-\item{nbinomial: }{\eqn{\mu + \mu^2 / \phi}}
-\item{binomial: }{\eqn{n \mu (1 - \mu) \phi}}
-\item{beta: }{\eqn{\mu (1 - \mu) / (1 + \phi)}}
-\item{Gamma: }{\eqn{\mu^2 / \phi}}
-\item{inverse.gaussian: }{\eqn{\mu^2 / \phi}}
+\item family: \eqn{Var(y)}
+\item poisson: \eqn{\mu \phi}
+\item nbinomial: \eqn{\mu + \mu^2 / \phi}
+\item binomial: \eqn{n \mu (1 - \mu) \phi}
+\item beta: \eqn{\mu (1 - \mu) / (1 + \phi)}
+\item Gamma: \eqn{\mu^2 / \phi}
+\item inverse.gaussian: \eqn{\mu^2 / \phi}
 }
 The parameter \eqn{\phi} is a dispersion parameter that influences \eqn{Var(y)}.
 For the \code{poisson} and \code{binomial} families, \eqn{\phi} is always
@@ -208,18 +208,18 @@ not the inverse link (response) scale. Random effects are also modeled on the li
 
 \code{spcov_type} Details: Parametric forms for \eqn{R} are given below:
 \itemize{
-\item{car: }{\eqn{(I - range * W)^{-1}M}, weights matrix \eqn{W},
-symmetry condition matrix \eqn{M}}
-\item{sar: }{\eqn{[(I - range * W)(I - range * W)^T]^{-1}},
-weights matrix \eqn{W}, \eqn{^T} indicates matrix transpose}
+\item car: \eqn{(I - range * W)^{-1}M}, weights matrix \eqn{W},
+symmetry condition matrix \eqn{M}
+\item sar: \eqn{[(I - range * W)(I - range * W)^T]^{-1}},
+weights matrix \eqn{W}, \eqn{^T} indicates matrix transpose
 }
 If there are observations with no neighbors, they are given a unique variance
 parameter called \code{extra}, which must be non-negative.
 
 \code{estmethod} Details: The various estimation methods are
 \itemize{
-\item{\code{reml}: }{Maximize the restricted log-likelihood.}
-\item{\code{ml}: }{Maximize the log-likelihood.}
+\item \code{reml}: Maximize the restricted log-likelihood.
+\item \code{ml}: Maximize the log-likelihood.
 }
 Note that the likelihood being optimized is obtained using the Laplace approximation.
 

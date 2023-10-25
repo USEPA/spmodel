@@ -5,21 +5,21 @@
 #' @format An \code{sf} object with 365 rows and 10 columns:
 #'
 #' \itemize{
-#'   \item{sample: }{A factor with a sample identifier. Some samples were
+#'   \item sample: A factor with a sample identifier. Some samples were
 #'     replicated in the field or laboratory. As a result, there are 318 unique
-#'     sample identifiers.}
-#'   \item{field_dup: }{A factor representing field duplicate. Takes values \code{1}
-#'     and \code{2}.}
-#'   \item{lab_rep: }{A factor representing laboratory replicate. Takes values \code{1}
-#'     and \code{2}.}
-#'   \item{year: }{A factor representing year. Takes values \code{2001} and \code{2006}.}
-#'   \item{sideroad: }{A factor representing direction relative to the haul road.
+#'     sample identifiers.
+#'   \item field_dup: A factor representing field duplicate. Takes values \code{1}
+#'     and \code{2}.
+#'   \item lab_rep: A factor representing laboratory replicate. Takes values \code{1}
+#'     and \code{2}.
+#'   \item year: A factor representing year. Takes values \code{2001} and \code{2006}.
+#'   \item sideroad: A factor representing direction relative to the haul road.
 #'     Takes values \code{N} (north of the haul road) and \code{S} (south
-#'     of the haul road).}
-#'   \item{log_dist2road: }{The log of distance (in meters) to the haul road.}
-#'   \item{log_Zn: }{The log of zinc concentration in moss tissue (mg/kg).}
-#'   \item{geometry: }{\code{POINT} geometry representing coordinates in an Alaska
-#'     Albers projection (EPSG: 3338).}
+#'     of the haul road).
+#'   \item log_dist2road: The log of distance (in meters) to the haul road.
+#'   \item log_Zn: The log of zinc concentration in moss tissue (mg/kg).
+#'   \item geometry: \code{POINT} geometry representing coordinates in an Alaska
+#'     Albers projection (EPSG: 3338).
 #' }
 #' @source Data were obtained from Peter Neitlich and Linda Hasselbach of the National
 #'   Park Service.  Data were used in the publications listed in References.
@@ -43,13 +43,13 @@
 #'
 #' @format A \code{tibble} with 30 rows and 5 columns:
 #' \itemize{
-#'   \item{water: }{A factor representing whether water was added. Takes values
-#'     \code{N} (no water added) and \code{Y} (water added).}
-#'   \item{tarp: }{A factor representing tarp cover. Takes values \code{clear}
-#'     (a clear tarp), \code{shade} (a shade tarp), and \code{none} (no tarp).}
-#'   \item{z: }{The percentage of nitrogen.}
-#'   \item{x: }{The x-coordinate.}
-#'   \item{y: }{The y-coordinate.}
+#'   \item water: A factor representing whether water was added. Takes values
+#'     \code{N} (no water added) and \code{Y} (water added).
+#'   \item tarp: A factor representing tarp cover. Takes values \code{clear}
+#'     (a clear tarp), \code{shade} (a shade tarp), and \code{none} (no tarp).
+#'   \item z: The percentage of nitrogen.
+#'   \item x: The x-coordinate.
+#'   \item y: The y-coordinate.
 #' }
 #' @source These data were provided by Elizabeth Lenart of the Alaska Department
 #'   of Fish and Game.  The data were used in the publication listed in References.
@@ -63,10 +63,10 @@
 #' @description Estimated harbor-seal trends from abundance data in southeast Alaska, USA.
 #'
 #' @format A \code{sf} object with 62 rows and 2 columns:
-#' \describe{
-#'   \item{log_trend: }{The log of the estimated harbor-seal trends from abundance data.}
-#'   \item{geometry: }{\code{POLYGON} geometry representing polygons in an Alaska
-#'     Albers projection (EPSG: 3338).}
+#' \itemize{
+#'   \item log_trend: The log of the estimated harbor-seal trends from abundance data.
+#'   \item geometry: \code{POLYGON} geometry representing polygons in an Alaska
+#'     Albers projection (EPSG: 3338).
 #' }
 #' @source These data were collected by the Polar Ecosystem Program of the Marine
 #'   Mammal Laboratory of the Alaska Fisheries Science Center of NOAA Fisheries.
@@ -82,10 +82,10 @@
 #' @description Sulfate atmospheric deposition in the conterminous USA.
 #'
 #' @format An \code{sf} object with 197 rows and 2 columns.
-#' \describe{
-#'   \item{sulfate: }{Total wet deposition sulfate in kilograms per hectare.}
-#'   \item{geometry: }{\code{POINT} geometry representing coordinates in a
-#'     Conus Albers projection (EPSG: 5070).}
+#' \itemize{
+#'   \item sulfate: Total wet deposition sulfate in kilograms per hectare.
+#'   \item geometry: \code{POINT} geometry representing coordinates in a
+#'     Conus Albers projection (EPSG: 5070).
 #' }
 #' @source
 #' These data were used in the publication listed in References. Data were downloaded from the
@@ -101,9 +101,9 @@
 #' @description Locations at which to predict sulfate atmospheric deposition in the conterminous USA.
 #'
 #' @format An \code{sf} object with 197 rows and 1 column.
-#' \describe{
-#'   \item{geometry: }{\code{POINT} geometry representing coordinates in a
-#'     Conus Albers projection (EPSG: 5070).}
+#' \itemize{
+#'   \item geometry: \code{POINT} geometry representing coordinates in a
+#'     Conus Albers projection (EPSG: 5070).
 #' }
 #' @source
 #' These data were used in the publication listed in References. Data were downloaded from
@@ -119,14 +119,14 @@
 #' @description Moose counts and presence in Alaska, USA.
 #'
 #' @format An \code{sf} object with 218 rows and 5 columns.
-#' \describe{
-#'   \item{elev: }{The elevation.}
-#'   \item{strat: }{A factor representing strata (used for sampling). Can take values \code{L} and \code{M}.}
-#'   \item{count: }{The count (number) of moose observed.}
-#'   \item{presence: }{A binary factor representing whether no moose were observed (value \code{0}) or at least one moose was observed
-#'     (value \code{1}).}
-#'   \item{geometry: }{\code{POINT} geometry representing coordinates in an Alaska
-#'     Albers projection (EPSG: 3338).}
+#' \itemize{
+#'   \item elev: The elevation.
+#'   \item strat: A factor representing strata (used for sampling). Can take values \code{L} and \code{M}.
+#'   \item count: The count (number) of moose observed.
+#'   \item presence: A binary factor representing whether no moose were observed (value \code{0}) or at least one moose was observed
+#'     (va ue \code{1}).
+#'   \item geometry: \code{POINT} geometry representing coordinates in an Alaska
+#'     Albers projection (EPSG: 3338).
 #' }
 #' @source
 #' Alaska Department of Fish and Game, Division of Wildlife Conservation has released
@@ -138,11 +138,11 @@
 #' @description Locations at which to predict moose counts and presence in Alaska, USA.
 #'
 #' @format An \code{sf} object with 100 rows and 3 columns.
-#' \describe{
-#'   \item{elev: }{The elevation.}
-#'   \item{strat: }{A factor representing strata (used for sampling). Can take values \code{L} and \code{M}.}
-#'   \item{geometry: }{\code{POINT} geometry representing coordinates in an Alaska
-#'     Albers projection (EPSG: 3338).}
+#' \itemize{
+#'   \item elev: The elevation.
+#'   \item strat: A factor representing strata (used for sampling). Can take values \code{L} and \code{M}.
+#'   \item geometry: \code{POINT} geometry representing coordinates in an Alaska
+#'     Albers projection (EPSG: 3338).
 #' }
 #' @source
 #' Alaska Department of Fish and Game, Division of Wildlife Conservation has released

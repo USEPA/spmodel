@@ -6,9 +6,9 @@
 \title{Locations at which to predict sulfate atmospheric deposition in the conterminous USA}
 \format{
 An \code{sf} object with 197 rows and 1 column.
-\describe{
-\item{geometry: }{\code{POINT} geometry representing coordinates in a
-Conus Albers projection (EPSG: 5070).}
+\itemize{
+\item geometry: \code{POINT} geometry representing coordinates in a
+Conus Albers projection (EPSG: 5070).
 }
 }
 \source{

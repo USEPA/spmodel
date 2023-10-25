@@ -130,18 +130,18 @@ eigenvalue of \code{W} and the reciprocal of the minimum eigenvalue of
 
 \code{spcov_type} Details: Parametric forms for \eqn{R} are given below:
 \itemize{
-\item{car: }{\eqn{(I - range * W)^{-1}M}, weights matrix \eqn{W},
-symmetry condition matrix \eqn{M}}
-\item{sar: }{\eqn{[(I - range * W)(I - range * W)^T]^{-1}},
-weights matrix \eqn{W}, \eqn{^T} indicates matrix transpose}
+\item car: \eqn{(I - range * W)^{-1}M}, weights matrix \eqn{W},
+symmetry condition matrix \eqn{M}
+\item sar: \eqn{[(I - range * W)(I - range * W)^T]^{-1}},
+weights matrix \eqn{W}, \eqn{^T} indicates matrix transpose
 }
 If there are observations with no neighbors, they are given a unique variance
 parameter called \code{extra}, which must be non-negative.
 
 \code{estmethod} Details: The various estimation methods are
 \itemize{
-\item{\code{reml}: }{Maximize the restricted log-likelihood.}
-\item{\code{ml}: }{Maximize the log-likelihood.}
+\item \code{reml}: Maximize the restricted log-likelihood.
+\item \code{ml}: Maximize the log-likelihood.
 }
 
 By default, all spatial covariance parameters except \code{ie}

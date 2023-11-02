@@ -1,3 +1,9 @@
+# spmodel 0.5.1
+
+## Minor Updates
+
+* Set a default value of `newdata_size = 1` when `newdata_size` was omitted while predicting `type = "response"` for binomial families.
+
 # spmodel 0.5.0
 
 ## Minor updates

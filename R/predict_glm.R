@@ -448,7 +448,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
   # subsetting partition vector (efficient but causes problems later with
   # random effect subsetting)
   if (!is.null(partition_vector) && local$method %in% c("distance", "covariance") &&
-      !labels(terms(partition_factor)) %in% labels(terms(random))) {
+      (is.null(random) || !labels(terms(partition_factor)) %in% labels(terms(random)))) {
     partition_index <- as.vector(partition_vector) == 1
     Z_index_obdata_list <- lapply(Z_index_obdata_list, function(x) {
       x$reform_bar2_vals <- x$reform_bar2_vals[partition_index]

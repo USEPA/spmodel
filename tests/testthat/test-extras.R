@@ -1019,6 +1019,17 @@ if (test_local) {
     expect_equal(length(predict(smod, newexdata, local = list(method = "distance", size = 10))), NROW(newexdata))
     expect_error(predict(smod, newexdata, local = list(method = "covariance", size = 10)), NA)
     expect_equal(length(predict(smod, newexdata, local = list(method = "covariance", size = 10))), NROW(newexdata))
+
+    # random effects
+    smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~ group)
+    expect_error(predict(smod, newexdata), NA)
+    # anisotropy
+    smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", anisotropy = TRUE)
+    expect_error(predict(smod, newexdata), NA)
+
+    # partition factor
+    smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", partition_factor = ~ group)
+    expect_error(predict(smod, newexdata), NA)
   })
 
   test_that("Prediction for splm works for missing data", {

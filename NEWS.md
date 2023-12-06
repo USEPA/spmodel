@@ -5,6 +5,10 @@
 * Set a default value of `newdata_size = 1` when `newdata_size` was omitted while predicting `type = "response"` for binomial families.
 * Minor error message updates.
 
+## Bug Fixes
+
+* Fixed a bug that caused local prediction to fail when the fitted model used a partition factor ([#13](https://github.com/USEPA/spmodel/issues/13)).
+
 # spmodel 0.5.0
 
 ## Minor updates

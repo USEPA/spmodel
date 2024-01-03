@@ -151,7 +151,8 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
     # random stuff
     if (!is.null(object$random)) {
       randcov_names <- get_randcov_names(object$random)
-      randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
+      # this causes a memory leak and was not even needed
+      # randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
       # comment out here for simple
       reform_bar_list <- lapply(randcov_names, function(randcov_name) {
         bar_split <- unlist(strsplit(randcov_name, " | ", fixed = TRUE))

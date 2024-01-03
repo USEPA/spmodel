@@ -3,6 +3,7 @@
 ## Minor Updates
 
 * Set a default value of `newdata_size = 1` when `newdata_size` was omitted while predicting `type = "response"` for binomial families.
+* Improved computational efficiency of `loocv(object)` when `object` was created using `splm()` or `spglm()`, `spcov_type` was `"none"`, and there were no random effects specified via `random`.
 * Minor error message updates.
 
 ## Bug Fixes

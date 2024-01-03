@@ -790,6 +790,28 @@ if (test_local) {
     spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord, random = ~group)
     expect_vector(loocv(spmod))
     expect_vector(loocv(spmod, local = TRUE))
+
+    # iid
+    spmod <- splm(y ~ x, exdata, "none", xcoord, ycoord)
+    expect_vector(loocv(spmod))
+    expect_vector(loocv(spmod, local = TRUE))
+    # cores 2 for cran check
+    if (test_local) { ##### local test
+      expect_vector(loocv(spmod, local = list(parallel = TRUE, ncores = 2)))
+      expect_equal(length(loocv(spmod, cv_predict = TRUE)), 2)
+    }
+    expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE)), 3)
+    if (test_local) { ##### local test
+      expect_equal(length(loocv(spmod, se.fit = TRUE)), 2)
+    }
+    # cores 2 for cran check
+    if (test_local) { ##### local test
+      expect_equal(length(loocv(spmod, cv_predict = TRUE, local = list(parallel = TRUE, ncores = 2))), 2)
+    }
+    expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE, local = list(parallel = TRUE, ncores = 2))), 3)
+    if (test_local) { ##### local test
+      expect_equal(length(loocv(spmod, se.fit = TRUE, local = list(parallel = TRUE, ncores = 2))), 2)
+    }
   })
 
   test_that("loocv works auto", {

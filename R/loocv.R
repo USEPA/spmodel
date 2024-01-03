@@ -56,6 +56,11 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
     local <- NULL
   }
 
+  # iid if relevant otherwise pass
+  if (inherits(coef(object, type = "spcov"), "none") && is.null(object$random)) {
+    return(loocv_iid(object, cv_predict, se.fit, local))
+  }
+
   # local prediction list
 
   # local stuff
@@ -230,4 +235,47 @@ loocv_local <- function(row, object, se.fit, local_list) {
   newdata <- object$obdata[row, , drop = FALSE]
   object$obdata <- object$obdata[-row, , drop = FALSE]
   predict(object, newdata = newdata, se.fit = se.fit, local = local_list)
+}
+
+loocv_iid <- function(object, cv_predict, se.fit, local) {
+
+  # set to FALSE unless it is a list with parallel
+  if (is.null(local) || is.logical(local)) local <- FALSE
+  local_list <- get_local_list_prediction(local)
+
+  model_frame <- model.frame(object)
+  X <- model.matrix(object)
+  y <- model.response(model_frame)
+  loocv_error <- residuals(object) / (1 - hatvalues(object))
+  cv_predict_val <- y - loocv_error
+
+  # parallel stuff
+  if (se.fit) {
+    total_var <- coef(object, type = "spcov")[["ie"]]
+    if (local_list$parallel) {
+      cl <- parallel::makeCluster(local_list$ncores)
+      cv_predict_se_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv_iid_se,
+                                                 vcov(object), Xmat = X, total_var = total_var)
+      cl <- parallel::stopCluster(cl)
+    } else {
+      cv_predict_se_list <- lapply(seq_len(object$n), get_loocv_iid_se, vcov(object),
+                                    Xmat = X, total_var = total_var)
+    }
+    cv_predict_se <- vapply(cv_predict_se_list, function(x) x$se.fit, numeric(1))
+  }
+
+  if (cv_predict) {
+    if (se.fit) {
+      cv_output <- list(mspe = mean((loocv_error)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
+    } else {
+      cv_output <- list(mspe = mean((loocv_error)^2), cv_predict = as.vector(cv_predict_val))
+    }
+  } else {
+    if (se.fit) {
+      cv_output <- list(mspe = mean((loocv_error)^2), se.fit = as.vector(cv_predict_se))
+    } else {
+      cv_output <- mean((loocv_error)^2)
+    }
+  }
+  cv_output
 }

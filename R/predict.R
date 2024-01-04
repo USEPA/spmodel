@@ -223,95 +223,116 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
       local_list$method <- "all"
     }
 
-    # random stuff
-    if (!is.null(object$random)) {
-      randcov_names <- get_randcov_names(object$random)
-      # this causes a memory leak and was not even needed
-      # randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
-      # comment out here for simple
-      reform_bar_list <- lapply(randcov_names, function(randcov_name) {
-        bar_split <- unlist(strsplit(randcov_name, " | ", fixed = TRUE))
-        reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
-        if (bar_split[[1]] != "1") {
-          reform_bar1 <- reformulate(bar_split[[1]], intercept = FALSE)
-        } else {
-          reform_bar1 <- NULL
-        }
-        list(reform_bar2 = reform_bar2, reform_bar1 = reform_bar1)
-      })
-      reform_bar2_list <- lapply(reform_bar_list, function(x) x$reform_bar2)
-      names(reform_bar2_list) <- randcov_names
-      reform_bar1_list <- lapply(reform_bar_list, function(x) x$reform_bar1)
-      names(reform_bar1_list) <- randcov_names
-      Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) {
+    dotlist <- list(...)
+    dotlist_names <- names(dotlist)
 
-        reform_bar2_mf <- model.frame(reform_bar2, obdata)
-        reform_bar2_terms <- terms(reform_bar2_mf)
-        reform_bar2_xlev <- .getXlevels(reform_bar2_terms, reform_bar2_mf)
-        reform_bar2_mx <- model.matrix(reform_bar2, obdata)
-        reform_bar2_names <- colnames(reform_bar2_mx)
-        reform_bar2_split <- split(reform_bar2_mx, seq_len(NROW(reform_bar2_mx)))
-        reform_bar2_vals <- reform_bar2_names[vapply(reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
-
-        # adding dummy levels if newdata observations of random effects are not in original data
-        # terms object is unchanged if levels change
-        # reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
-        # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
-        # reform_bar2_terms_full <- terms(rbind(reform_bar2_mf, reform_bar2_mf_new))
-        reform_bar2_xlev_full <- .getXlevels(reform_bar2_terms, rbind(reform_bar2_mf, model.frame(reform_bar2, newdata)))
-        if (!identical(reform_bar2_xlev, reform_bar2_xlev_full)) {
-          reform_bar2_xlev <- reform_bar2_xlev_full
-        }
-
-        list(reform_bar2_vals = reform_bar2_vals, reform_bar2_xlev = reform_bar2_xlev)
-      })
-      # Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) as.vector(model.matrix(reform_bar2, obdata)))
-      names(Z_index_obdata_list) <- randcov_names
-      Z_val_obdata_list <- lapply(reform_bar1_list, function(reform_bar1) {
-        if (is.null(reform_bar1)) {
-          return(NULL)
-        } else {
-          return(as.vector(model.matrix(reform_bar1, obdata)))
-        }
-      })
-      names(Z_val_obdata_list) <- randcov_names
+    if ("extra_randcov_list" %in% dotlist_names && !is.null(dotlist[["extra_randcov_list"]])) {
+      extra_randcov_list <- dotlist$extra_randcov_list
     } else {
-      reform_bar2_list <- NULL
-      Z_index_obdata_list <- NULL
-      reform_bar1_list <- NULL
-      Z_val_obdata_list <- NULL
+      extra_randcov_list <- get_extra_randcov_list(object, obdata, newdata)
     }
+    reform_bar2_list <- extra_randcov_list$reform_bar2_list
+    Z_index_obdata_list <- extra_randcov_list$Z_index_obdata_list
+    reform_bar1_list <- extra_randcov_list$reform_bar1_list
+    Z_val_obdata_list <- extra_randcov_list$Z_val_obdata_list
 
-    # partition factor stuff
-    if (!is.null(object$partition_factor)) {
-      partition_factor_val <- get_partition_name(labels(terms(object$partition_factor)))
-      bar_split <- unlist(strsplit(partition_factor_val, " | ", fixed = TRUE))
-      reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
-      p_reform_bar2_mf <- model.frame(reform_bar2, obdata)
-      p_reform_bar2_terms <- terms(p_reform_bar2_mf)
-      p_reform_bar2_xlev <- .getXlevels(p_reform_bar2_terms, p_reform_bar2_mf)
-      p_reform_bar2_mx <- model.matrix(reform_bar2, obdata)
-      p_reform_bar2_names <- colnames(p_reform_bar2_mx)
-      p_reform_bar2_split <- split(p_reform_bar2_mx, seq_len(NROW(p_reform_bar2_mx)))
-      p_reform_bar2_vals <- p_reform_bar2_names[vapply(p_reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
-
-
-      # adding dummy levels if newdata observations of random effects are not in original data
-      # terms object is unchanged if levels change
-      # p_reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
-      # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
-      # p_reform_bar2_terms_full <- terms(rbind(p_reform_bar2_mf, p_reform_bar2_mf_new))
-      p_reform_bar2_xlev_full <- .getXlevels(p_reform_bar2_terms, rbind(p_reform_bar2_mf, model.frame(reform_bar2, newdata)))
-      if (!identical(p_reform_bar2_xlev, p_reform_bar2_xlev_full)) {
-        p_reform_bar2_xlev <- p_reform_bar2_xlev_full
-      }
-
-      partition_index_obdata <- list(reform_bar2_vals = p_reform_bar2_vals, reform_bar2_xlev = p_reform_bar2_xlev)
-      # partition_index_obdata <- as.vector(model.matrix(reform_bar2, obdata))
+    if ("extra_partition_list" %in% dotlist_names && !is.null(dotlist[["extra_partition_list"]])) {
+      extra_partition_list <- dotlist$extra_partition_list
     } else {
-      reform_bar2 <- NULL
-      partition_index_obdata <- NULL
+      extra_partition_list <- get_extra_partition_list(object, obdata, newdata)
     }
+    reform_bar2 <- extra_partition_list$reform_bar2
+    partition_index_obdata <- extra_partition_list$partition_index_obdata
+
+    # # random stuff
+    # if (!is.null(object$random)) {
+    #   randcov_names <- get_randcov_names(object$random)
+    #   # this causes a memory leak and was not even needed
+    #   # randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
+    #   # comment out here for simple
+    #   reform_bar_list <- lapply(randcov_names, function(randcov_name) {
+    #     bar_split <- unlist(strsplit(randcov_name, " | ", fixed = TRUE))
+    #     reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
+    #     if (bar_split[[1]] != "1") {
+    #       reform_bar1 <- reformulate(bar_split[[1]], intercept = FALSE)
+    #     } else {
+    #       reform_bar1 <- NULL
+    #     }
+    #     list(reform_bar2 = reform_bar2, reform_bar1 = reform_bar1)
+    #   })
+    #   reform_bar2_list <- lapply(reform_bar_list, function(x) x$reform_bar2)
+    #   names(reform_bar2_list) <- randcov_names
+    #   reform_bar1_list <- lapply(reform_bar_list, function(x) x$reform_bar1)
+    #   names(reform_bar1_list) <- randcov_names
+    #   Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) {
+    #
+    #     reform_bar2_mf <- model.frame(reform_bar2, obdata)
+    #     reform_bar2_terms <- terms(reform_bar2_mf)
+    #     reform_bar2_xlev <- .getXlevels(reform_bar2_terms, reform_bar2_mf)
+    #     reform_bar2_mx <- model.matrix(reform_bar2, obdata)
+    #     reform_bar2_names <- colnames(reform_bar2_mx)
+    #     reform_bar2_split <- split(reform_bar2_mx, seq_len(NROW(reform_bar2_mx)))
+    #     reform_bar2_vals <- reform_bar2_names[vapply(reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+    #
+    #     # adding dummy levels if newdata observations of random effects are not in original data
+    #     # terms object is unchanged if levels change
+    #     # reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
+    #     # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
+    #     # reform_bar2_terms_full <- terms(rbind(reform_bar2_mf, reform_bar2_mf_new))
+    #     reform_bar2_xlev_full <- .getXlevels(reform_bar2_terms, rbind(reform_bar2_mf, model.frame(reform_bar2, newdata)))
+    #     if (!identical(reform_bar2_xlev, reform_bar2_xlev_full)) {
+    #       reform_bar2_xlev <- reform_bar2_xlev_full
+    #     }
+    #
+    #     list(reform_bar2_vals = reform_bar2_vals, reform_bar2_xlev = reform_bar2_xlev)
+    #   })
+    #   # Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) as.vector(model.matrix(reform_bar2, obdata)))
+    #   names(Z_index_obdata_list) <- randcov_names
+    #   Z_val_obdata_list <- lapply(reform_bar1_list, function(reform_bar1) {
+    #     if (is.null(reform_bar1)) {
+    #       return(NULL)
+    #     } else {
+    #       return(as.vector(model.matrix(reform_bar1, obdata)))
+    #     }
+    #   })
+    #   names(Z_val_obdata_list) <- randcov_names
+    # } else {
+    #   reform_bar2_list <- NULL
+    #   Z_index_obdata_list <- NULL
+    #   reform_bar1_list <- NULL
+    #   Z_val_obdata_list <- NULL
+    # }
+    #
+    # # partition factor stuff
+    # if (!is.null(object$partition_factor)) {
+    #   partition_factor_val <- get_partition_name(labels(terms(object$partition_factor)))
+    #   bar_split <- unlist(strsplit(partition_factor_val, " | ", fixed = TRUE))
+    #   reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
+    #   p_reform_bar2_mf <- model.frame(reform_bar2, obdata)
+    #   p_reform_bar2_terms <- terms(p_reform_bar2_mf)
+    #   p_reform_bar2_xlev <- .getXlevels(p_reform_bar2_terms, p_reform_bar2_mf)
+    #   p_reform_bar2_mx <- model.matrix(reform_bar2, obdata)
+    #   p_reform_bar2_names <- colnames(p_reform_bar2_mx)
+    #   p_reform_bar2_split <- split(p_reform_bar2_mx, seq_len(NROW(p_reform_bar2_mx)))
+    #   p_reform_bar2_vals <- p_reform_bar2_names[vapply(p_reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+    #
+    #
+    #   # adding dummy levels if newdata observations of random effects are not in original data
+    #   # terms object is unchanged if levels change
+    #   # p_reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
+    #   # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
+    #   # p_reform_bar2_terms_full <- terms(rbind(p_reform_bar2_mf, p_reform_bar2_mf_new))
+    #   p_reform_bar2_xlev_full <- .getXlevels(p_reform_bar2_terms, rbind(p_reform_bar2_mf, model.frame(reform_bar2, newdata)))
+    #   if (!identical(p_reform_bar2_xlev, p_reform_bar2_xlev_full)) {
+    #     p_reform_bar2_xlev <- p_reform_bar2_xlev_full
+    #   }
+    #
+    #   partition_index_obdata <- list(reform_bar2_vals = p_reform_bar2_vals, reform_bar2_xlev = p_reform_bar2_xlev)
+    #   # partition_index_obdata <- as.vector(model.matrix(reform_bar2, obdata))
+    # } else {
+    #   reform_bar2 <- NULL
+    #   partition_index_obdata <- NULL
+    # }
 
     # matrix cholesky
     if (local_list$method == "all") {
@@ -996,4 +1017,103 @@ predict.spautorRF_list <- function(object, newdata, local, ...) {
   sprf_pred <- lapply(spautor_pred, function(x) ranger_pred$predictions + x)
   names(sprf_pred) <- names(object$spautor_list)
   sprf_pred
+}
+
+
+# extra lists for use with loocv (do nothing but clean with predict)
+get_extra_randcov_list <- function(object, obdata, newdata) {
+  # random stuff
+  if (!is.null(object$random)) {
+    randcov_names <- get_randcov_names(object$random)
+    # this causes a memory leak and was not even needed
+    # randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
+    # comment out here for simple
+    reform_bar_list <- lapply(randcov_names, function(randcov_name) {
+      bar_split <- unlist(strsplit(randcov_name, " | ", fixed = TRUE))
+      reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
+      if (bar_split[[1]] != "1") {
+        reform_bar1 <- reformulate(bar_split[[1]], intercept = FALSE)
+      } else {
+        reform_bar1 <- NULL
+      }
+      list(reform_bar2 = reform_bar2, reform_bar1 = reform_bar1)
+    })
+    reform_bar2_list <- lapply(reform_bar_list, function(x) x$reform_bar2)
+    names(reform_bar2_list) <- randcov_names
+    reform_bar1_list <- lapply(reform_bar_list, function(x) x$reform_bar1)
+    names(reform_bar1_list) <- randcov_names
+    Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) {
+
+      reform_bar2_mf <- model.frame(reform_bar2, obdata)
+      reform_bar2_terms <- terms(reform_bar2_mf)
+      reform_bar2_xlev <- .getXlevels(reform_bar2_terms, reform_bar2_mf)
+      reform_bar2_mx <- model.matrix(reform_bar2, obdata)
+      reform_bar2_names <- colnames(reform_bar2_mx)
+      reform_bar2_split <- split(reform_bar2_mx, seq_len(NROW(reform_bar2_mx)))
+      reform_bar2_vals <- reform_bar2_names[vapply(reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+
+      # adding dummy levels if newdata observations of random effects are not in original data
+      # terms object is unchanged if levels change
+      # reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
+      # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
+      # reform_bar2_terms_full <- terms(rbind(reform_bar2_mf, reform_bar2_mf_new))
+      reform_bar2_xlev_full <- .getXlevels(reform_bar2_terms, rbind(reform_bar2_mf, model.frame(reform_bar2, newdata)))
+      if (!identical(reform_bar2_xlev, reform_bar2_xlev_full)) {
+        reform_bar2_xlev <- reform_bar2_xlev_full
+      }
+
+      list(reform_bar2_vals = reform_bar2_vals, reform_bar2_xlev = reform_bar2_xlev)
+    })
+    # Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) as.vector(model.matrix(reform_bar2, obdata)))
+    names(Z_index_obdata_list) <- randcov_names
+    Z_val_obdata_list <- lapply(reform_bar1_list, function(reform_bar1) {
+      if (is.null(reform_bar1)) {
+        return(NULL)
+      } else {
+        return(as.vector(model.matrix(reform_bar1, obdata)))
+      }
+    })
+    names(Z_val_obdata_list) <- randcov_names
+  } else {
+    reform_bar2_list <- NULL
+    Z_index_obdata_list <- NULL
+    reform_bar1_list <- NULL
+    Z_val_obdata_list <- NULL
+  }
+  list(reform_bar1_list = reform_bar1_list, reform_bar2_list = reform_bar2_list,
+       Z_val_obdata_list = Z_val_obdata_list, Z_index_obdata_list = Z_index_obdata_list)
+}
+
+get_extra_partition_list <- function(object, obdata, newdata) {
+  # partition factor stuff
+  if (!is.null(object$partition_factor)) {
+    partition_factor_val <- get_partition_name(labels(terms(object$partition_factor)))
+    bar_split <- unlist(strsplit(partition_factor_val, " | ", fixed = TRUE))
+    reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
+    p_reform_bar2_mf <- model.frame(reform_bar2, obdata)
+    p_reform_bar2_terms <- terms(p_reform_bar2_mf)
+    p_reform_bar2_xlev <- .getXlevels(p_reform_bar2_terms, p_reform_bar2_mf)
+    p_reform_bar2_mx <- model.matrix(reform_bar2, obdata)
+    p_reform_bar2_names <- colnames(p_reform_bar2_mx)
+    p_reform_bar2_split <- split(p_reform_bar2_mx, seq_len(NROW(p_reform_bar2_mx)))
+    p_reform_bar2_vals <- p_reform_bar2_names[vapply(p_reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
+
+
+    # adding dummy levels if newdata observations of random effects are not in original data
+    # terms object is unchanged if levels change
+    # p_reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
+    # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
+    # p_reform_bar2_terms_full <- terms(rbind(p_reform_bar2_mf, p_reform_bar2_mf_new))
+    p_reform_bar2_xlev_full <- .getXlevels(p_reform_bar2_terms, rbind(p_reform_bar2_mf, model.frame(reform_bar2, newdata)))
+    if (!identical(p_reform_bar2_xlev, p_reform_bar2_xlev_full)) {
+      p_reform_bar2_xlev <- p_reform_bar2_xlev_full
+    }
+
+    partition_index_obdata <- list(reform_bar2_vals = p_reform_bar2_vals, reform_bar2_xlev = p_reform_bar2_xlev)
+    # partition_index_obdata <- as.vector(model.matrix(reform_bar2, obdata))
+  } else {
+    reform_bar2 <- NULL
+    partition_index_obdata <- NULL
+  }
+  list(reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata)
 }

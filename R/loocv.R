@@ -125,14 +125,18 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
     model_frame <- model.frame(object)
     y <- model.response(model_frame)
 
+    extra_randcov_list <- get_extra_randcov_list(object, object$obdata, newdata = object$obdata)
+    extra_partition_list <- get_extra_partition_list(object, object$obdata, newdata = object$obdata)
+
     if (local_list$parallel) {
       # turn of parallel as it is used different in predict
       local_list$parallel <- FALSE
       cl <- parallel::makeCluster(local_list$ncores)
-      cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), loocv_local, object, se.fit, local_list)
+      cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), loocv_local, object, se.fit, local_list, extra_randcov_list = extra_randcov_list, extra_partition_list = extra_partition_list)
       cl <- parallel::stopCluster(cl)
     } else {
-      cv_predict_val_list <- lapply(seq_len(object$n), loocv_local, object, se.fit, local_list)
+      cv_predict_val_list <- lapply(seq_len(object$n), loocv_local, object, se.fit, local_list,
+                                    extra_randcov_list = extra_randcov_list, extra_partition_list = extra_partition_list)
     }
     if (se.fit) {
       cv_predict_val <- vapply(cv_predict_val_list, function(x) x$fit, numeric(1))
@@ -231,10 +235,27 @@ loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...
   cv_output
 }
 
-loocv_local <- function(row, object, se.fit, local_list) {
+loocv_local <- function(row, object, se.fit, local_list,
+                        extra_randcov_list = NULL, extra_partition_list = NULL) {
   newdata <- object$obdata[row, , drop = FALSE]
   object$obdata <- object$obdata[-row, , drop = FALSE]
-  predict(object, newdata = newdata, se.fit = se.fit, local = local_list)
+  # this is all so the randcov and partition steps are not repeated for each iteration
+  if (!is.null(extra_randcov_list)) {
+    extra_randcov_list$Z_index_obdata_list <- lapply(extra_randcov_list$Z_index_obdata_list,
+                                                     function(x) {
+                                                       x$reform_bar2_vals <- x$reform_bar2_vals[-row]
+                                                       x
+                                                     })
+  }
+
+  if (!is.null(extra_partition_list)) {
+    extra_partition_list$partition_index_obdata$reform_bar2_vals <- extra_partition_list$partition_index_obdata$reform_bar2_vals[-row]
+  }
+
+  predict(object, newdata = newdata, se.fit = se.fit, local = local_list,
+          extra_randcov_list = extra_randcov_list,
+          extra_partition_list = extra_partition_list
+  )
 }
 
 loocv_iid <- function(object, cv_predict, se.fit, local) {

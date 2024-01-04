@@ -4,12 +4,15 @@
 
 * Set a default value of `newdata_size = 1` when `newdata_size` was omitted while predicting `type = "response"` for binomial families.
 * Improved computational efficiency of `loocv(object)` when `object` was created using `splm()` or `spglm()`, `spcov_type` was `"none"`, and there were no random effects specified via `random`.
+* Changed the number of k-means iterations from 10 to 30 (when fitting models using the `local` argument to `splm()` or `spglm()`).
 * Minor error message updates.
 
 ## Bug Fixes
 
 * Fixed a bug that caused local prediction to fail when the fitted model used a partition factor ([#13](https://github.com/USEPA/spmodel/issues/13)).
 * Fixed a bug that caused significant increases in computational and memory demands when calling `loocv(object, local, ...)` if `object` was created using `splm(..., random)` or `spglm(..., random)` (i.e., when random effects were specified via the `random` argument to `splm()` or `spglm()`).
+* Fixed a bug that caused significant increases in computational and memory demands when calling `loocv(object, local, ...)` if `object` was created using `splm(..., partition_factor)` or `spglm(..., partition_factor)` (i.e., when a partition factor was specified via the `partition_factor` argument to `splm()` or `spglm()`).
+
 
 # spmodel 0.5.0
 

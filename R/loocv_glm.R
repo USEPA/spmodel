@@ -104,20 +104,49 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
 
   cv_predict_val_invlink <- invlink(cv_predict_val, object$family, object$size)
 
-  if (cv_predict) {
-    if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
-    } else {
-      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val))
-    }
+
+  cv_predict_error <- y - cv_predict_val_invlink
+  bias <- mean(cv_predict_error)
+  MSPE <- mean((cv_predict_error)^2)
+  RMSPE <- sqrt(MSPE)
+
+  loocv_stats <- tibble(
+    bias = bias,
+    MSPE = MSPE,
+    RMSPE = RMSPE
+  )
+
+  if (!cv_predict && ! se.fit) {
+    return(loocv_stats)
   } else {
-    if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), se.fit = as.vector(cv_predict_se))
-    } else {
-      cv_output <- mean((cv_predict_val_invlink - y)^2)
+    loocv_out <- list()
+    loocv_out$stats <- loocv_stats
+
+    if (cv_predict) {
+      loocv_out$cv_predict <- cv_predict_val
     }
+
+    if (se.fit) {
+      loocv_out$se.fit <- as.vector(cv_predict_se)
+    }
+    return(loocv_out)
   }
-  cv_output
+#
+#
+#   if (cv_predict) {
+#     if (se.fit) {
+#       cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
+#     } else {
+#       cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val))
+#     }
+#   } else {
+#     if (se.fit) {
+#       cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), se.fit = as.vector(cv_predict_se))
+#     } else {
+#       cv_output <- mean((cv_predict_val_invlink - y)^2)
+#     }
+#   }
+#   cv_output
 }
 
 #' @rdname loocv
@@ -188,20 +217,47 @@ loocv.spgautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ..
 
   cv_predict_val_invlink <- invlink(cv_predict_val, object$family, object$size)
 
-  if (cv_predict) {
-    if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
-    } else {
-      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val))
-    }
+  cv_predict_error <- y - cv_predict_val_invlink
+  bias <- mean(cv_predict_error)
+  MSPE <- mean((cv_predict_error)^2)
+  RMSPE <- sqrt(MSPE)
+
+  loocv_stats <- tibble(
+    bias = bias,
+    MSPE = MSPE,
+    RMSPE = RMSPE
+  )
+
+  if (!cv_predict && ! se.fit) {
+    return(loocv_stats)
   } else {
-    if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), se.fit = as.vector(cv_predict_se))
-    } else {
-      cv_output <- mean((cv_predict_val_invlink - y)^2)
+    loocv_out <- list()
+    loocv_out$stats <- loocv_stats
+
+    if (cv_predict) {
+      loocv_out$cv_predict <- cv_predict_val
     }
+
+    if (se.fit) {
+      loocv_out$se.fit <- as.vector(cv_predict_se)
+    }
+    return(loocv_out)
   }
-  cv_output
+
+  # if (cv_predict) {
+  #   if (se.fit) {
+  #     cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
+  #   } else {
+  #     cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), cv_predict = as.vector(cv_predict_val))
+  #   }
+  # } else {
+  #   if (se.fit) {
+  #     cv_output <- list(mspe = mean((cv_predict_val_invlink - y)^2), se.fit = as.vector(cv_predict_se))
+  #   } else {
+  #     cv_output <- mean((cv_predict_val_invlink - y)^2)
+  #   }
+  # }
+  # cv_output
 }
 
 loocv_local_glm <- function(row, object, se.fit, local_list,

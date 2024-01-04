@@ -760,11 +760,11 @@ if (test_local) {
 
   test_that("loocv works geo", {
     spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
-    expect_vector(loocv(spmod))
-    expect_vector(loocv(spmod, local = TRUE))
+    expect_type(loocv(spmod), "list")
+    expect_type(loocv(spmod, local = TRUE), "list")
     # cores 2 for cran check
     if (test_local) { ##### local test
-      expect_vector(loocv(spmod, local = list(parallel = TRUE, ncores = 2)))
+      expect_type(loocv(spmod, local = list(parallel = TRUE, ncores = 2)), "list")
       expect_equal(length(loocv(spmod, cv_predict = TRUE)), 2)
       expect_equal(length(loocv(spmod, cv_predict = TRUE, local = TRUE)), 2)
     }
@@ -788,16 +788,16 @@ if (test_local) {
 
     # random effects
     spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord, random = ~group)
-    expect_vector(loocv(spmod))
-    expect_vector(loocv(spmod, local = TRUE))
+    expect_type(loocv(spmod), "list")
+    expect_type(loocv(spmod, local = TRUE), "list")
 
     # iid
     spmod <- splm(y ~ x, exdata, "none", xcoord, ycoord)
-    expect_vector(loocv(spmod))
-    expect_vector(loocv(spmod, local = TRUE))
+    expect_type(loocv(spmod), "list")
+    expect_type(loocv(spmod, local = TRUE), "list")
     # cores 2 for cran check
     if (test_local) { ##### local test
-      expect_vector(loocv(spmod, local = list(parallel = TRUE, ncores = 2)))
+      expect_type(loocv(spmod, local = list(parallel = TRUE, ncores = 2)), "list")
       expect_equal(length(loocv(spmod, cv_predict = TRUE)), 2)
     }
     expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE)), 3)
@@ -816,10 +816,10 @@ if (test_local) {
 
   test_that("loocv works auto", {
     spmod <- spautor(y ~ x, exdata_poly, "car")
-    expect_vector(loocv(spmod))
+    expect_type(loocv(spmod), "list")
     # cores 2 for cran check
     if (test_local) {
-      expect_vector(loocv(spmod, local = list(parallel = TRUE, ncores = 2)))
+      expect_type(loocv(spmod, local = list(parallel = TRUE, ncores = 2)), "list")
       expect_equal(length(loocv(spmod, cv_predict = TRUE)), 2)
     }
     expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE)), 3)
@@ -833,16 +833,16 @@ if (test_local) {
 
     # random effects
     spmod <- spautor(y ~ x, exdata_poly, "car", random = ~group)
-    expect_vector(loocv(spmod))
-    expect_vector(loocv(spmod, local = TRUE))
+    expect_type(loocv(spmod), "list")
+    expect_type(loocv(spmod, local = TRUE), "list")
 
 
     # missing data
     spmod <- spautor(y ~ x, exdata_Mpoly, "car")
-    expect_vector(loocv(spmod))
+    expect_type(loocv(spmod), "list")
     # cores 2 for cran check
     if (test_local) {
-      expect_vector(loocv(spmod, local = list(parallel = TRUE, ncores = 2)))
+      expect_type(loocv(spmod, local = list(parallel = TRUE, ncores = 2)), "list")
       expect_equal(length(loocv(spmod, cv_predict = TRUE)), 2)
     }
     expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE)), 3)

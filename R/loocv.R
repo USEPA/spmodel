@@ -20,15 +20,22 @@
 #'
 #' @details Each observation is held-out from the data set and the remaining data
 #'   are used to make a prediction for the held-out observation. This is compared
-#'   to the true value of the observation and a mean-squared error is computed
-#'   across all observations. The lower the mean squared error, the better the
-#'   model fit (according to the leave-one-out criterion).
+#'   to the true value of the observation and several fit statistics are computed:
+#'   bias, mean-squared-prediction error (MSPE), root-mean-squared-prediction
+#'   error (RMSPE), and the squared correlation (cor2) between the observed data
+#'   and leave-one-out predictions (regarded as a prediction version of r-squared
+#'   appropriate for comparing across spatial and nonspatial models). Generally,
+#'   bias should be near zero for well-fitting models. The lower the MSPE and RMSPE,
+#'   the better the model fit (according to the leave-out-out criterion).
+#'   The higher the cor2, the better the model fit (according to the leave-out-out
+#'   criterion). cor2 is not returned when \code{object} was fit using
+#'   \code{spglm()} or \code{spgautor()}, as it is only applicable here for linear models.
 #'
 #' @return If \code{cv_predict = FALSE} and \code{se.fit = FALSE},
-#'   a numeric vector indicating the mean-squared-prediction
-#'   leave-one-out cross validation error. If \code{cv_predict = TRUE} or \code{se.fit = TRUE},
-#'   a list with elements: \code{mspe}, a numeric vector indicating the mean-squared-prediction
-#'   leave-one-out cross validation error; \code{cv_predict}, a numeric vector
+#'   a fit statistics tibble (with bias, MSPE, RMSPE, and cor2; see Details).
+#'   If \code{cv_predict = TRUE} or \code{se.fit = TRUE},
+#'   a list with elements: \code{stats}, a fit statistics tibble
+#'   (with bias, MSPE, RMSPE, and cor2; see Details); \code{cv_predict}, a numeric vector
 #'   with leave-one-out predictions for each observation (if \code{cv_predict = TRUE});
 #'   and \code{se.fit}, a numeric vector with leave-one-out prediction standard
 #'   errors for each observation (if \code{se.fit = TRUE}).
@@ -145,20 +152,49 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
       cv_predict_val <- unlist(cv_predict_val_list)
     }
   }
-  if (cv_predict) {
-    if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
-    } else {
-      cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val))
-    }
+
+  cv_predict_error <- y - cv_predict_val
+  bias <- mean(cv_predict_error)
+  MSPE <- mean((cv_predict_error)^2)
+  RMSPE <- sqrt(MSPE)
+  cor2 <- cor(cv_predict_val, y)^2
+
+  loocv_stats <- tibble(
+    bias = bias,
+    MSPE = MSPE,
+    RMSPE = RMSPE,
+    cor2 = cor2
+  )
+
+  if (!cv_predict && ! se.fit) {
+    return(loocv_stats)
   } else {
-    if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val - y)^2), se.fit = as.vector(cv_predict_se))
-    } else {
-      cv_output <- mean((cv_predict_val - y)^2)
+    loocv_out <- list()
+    loocv_out$stats <- loocv_stats
+
+    if (cv_predict) {
+      loocv_out$cv_predict <- cv_predict_val
     }
+
+    if (se.fit) {
+      loocv_out$se.fit <- as.vector(cv_predict_se)
+    }
+    return(loocv_out)
   }
-  cv_output
+  # if (cv_predict) {
+  #   if (se.fit) {
+  #     cv_output <- list(mspe = mean((cv_error_val)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
+  #   } else {
+  #     cv_output <- list(mspe = mean((cv_error_val)^2), cv_predict = as.vector(cv_predict_val))
+  #   }
+  # } else {
+  #   if (se.fit) {
+  #     cv_output <- list(mspe = mean((cv_error_val)^2), se.fit = as.vector(cv_predict_se))
+  #   } else {
+  #     cv_output <- mean((cv_error_val)^2)
+  #   }
+  # }
+  # cv_output
 }
 
 #' @rdname loocv
@@ -219,20 +255,53 @@ loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...
   if (se.fit) {
     cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
   }
-  if (cv_predict) {
-    if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
-    } else {
-      cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val))
-    }
+
+  cv_predict_error <- y - cv_predict_val
+  bias <- mean(cv_predict_error)
+  MSPE <- mean((cv_predict_error)^2)
+  RMSPE <- sqrt(MSPE)
+  cor2 <- cor(cv_predict_val, y)^2
+
+  loocv_stats <- tibble(
+    bias = bias,
+    MSPE = MSPE,
+    RMSPE = RMSPE,
+    cor2 = cor2
+  )
+
+  if (!cv_predict && ! se.fit) {
+    return(loocv_stats)
   } else {
-    if (se.fit) {
-      cv_output <- list(mspe = mean((cv_predict_val - y)^2), se.fit = as.vector(cv_predict_se))
-    } else {
-      cv_output <- mean((cv_predict_val - y)^2)
+    loocv_out <- list()
+    loocv_out$stats <- loocv_stats
+
+    if (cv_predict) {
+      loocv_out$cv_predict <- cv_predict_val
     }
+
+    if (se.fit) {
+      loocv_out$se.fit <- as.vector(cv_predict_se)
+    }
+    return(loocv_out)
   }
-  cv_output
+
+  #
+  #
+  #
+  # if (cv_predict) {
+  #   if (se.fit) {
+  #     cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
+  #   } else {
+  #     cv_output <- list(mspe = mean((cv_predict_val - y)^2), cv_predict = as.vector(cv_predict_val))
+  #   }
+  # } else {
+  #   if (se.fit) {
+  #     cv_output <- list(mspe = mean((cv_predict_val - y)^2), se.fit = as.vector(cv_predict_se))
+  #   } else {
+  #     cv_output <- mean((cv_predict_val - y)^2)
+  #   }
+  # }
+  # cv_output
 }
 
 loocv_local <- function(row, object, se.fit, local_list,
@@ -267,8 +336,8 @@ loocv_iid <- function(object, cv_predict, se.fit, local) {
   model_frame <- model.frame(object)
   X <- model.matrix(object)
   y <- model.response(model_frame)
-  loocv_error <- residuals(object) / (1 - hatvalues(object))
-  cv_predict_val <- y - loocv_error
+  cv_predict_error <- residuals(object) / (1 - hatvalues(object))
+  cv_predict_val <- y - cv_predict_error
 
   # parallel stuff
   if (se.fit) {
@@ -285,18 +354,46 @@ loocv_iid <- function(object, cv_predict, se.fit, local) {
     cv_predict_se <- vapply(cv_predict_se_list, function(x) x$se.fit, numeric(1))
   }
 
-  if (cv_predict) {
-    if (se.fit) {
-      cv_output <- list(mspe = mean((loocv_error)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
-    } else {
-      cv_output <- list(mspe = mean((loocv_error)^2), cv_predict = as.vector(cv_predict_val))
-    }
+  bias <- mean(cv_predict_error)
+  MSPE <- mean((cv_predict_error)^2)
+  RMSPE <- sqrt(MSPE)
+  cor2 <- cor(cv_predict_val, y)^2
+
+  loocv_stats <- tibble(
+    bias = bias,
+    MSPE = MSPE,
+    RMSPE = RMSPE,
+    cor2 = cor2
+  )
+
+  if (!cv_predict && ! se.fit) {
+    return(loocv_stats)
   } else {
-    if (se.fit) {
-      cv_output <- list(mspe = mean((loocv_error)^2), se.fit = as.vector(cv_predict_se))
-    } else {
-      cv_output <- mean((loocv_error)^2)
+    loocv_out <- list()
+    loocv_out$stats <- loocv_stats
+
+    if (cv_predict) {
+      loocv_out$cv_predict <- cv_predict_val
     }
+
+    if (se.fit) {
+      loocv_out$se.fit <- as.vector(cv_predict_se)
+    }
+    return(loocv_out)
   }
-  cv_output
+
+  # if (cv_predict) {
+  #   if (se.fit) {
+  #     cv_output <- list(mspe = mean((loocv_error)^2), cv_predict = as.vector(cv_predict_val), se.fit = as.vector(cv_predict_se))
+  #   } else {
+  #     cv_output <- list(mspe = mean((loocv_error)^2), cv_predict = as.vector(cv_predict_val))
+  #   }
+  # } else {
+  #   if (se.fit) {
+  #     cv_output <- list(mspe = mean((loocv_error)^2), se.fit = as.vector(cv_predict_se))
+  #   } else {
+  #     cv_output <- mean((loocv_error)^2)
+  #   }
+  # }
+  # cv_output
 }

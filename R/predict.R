@@ -218,10 +218,10 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
     # local prediction list
     local_list <- get_local_list_prediction(local)
 
-    # hardcoding none covariance
-    if (inherits(spcov_params_val, "none") && is.null(randcov_params_val)) {
-      local_list$method <- "all"
-    }
+    # hardcoding none covariance (commented out 0.5.1 for efficiency's sake in use with local)
+    # if (inherits(spcov_params_val, "none") && is.null(randcov_params_val)) {
+    #   local_list$method <- "all"
+    # }
 
     dotlist <- list(...)
     dotlist_names <- names(dotlist)
@@ -346,7 +346,13 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
       #   randcov_Zs, partition_matrix_val
       # )
       cov_matrix_val <- covmatrix(object)
-      cov_lowchol <- t(chol(cov_matrix_val))
+      # handling closed form of none covariance
+      if (inherits(spcov_params_val, "none") && is.null(randcov_params_val)) {
+        cov_lowchol <- cov_matrix_val
+        diag(cov_lowchol) <- sqrt(diag(cov_lowchol)) # already diagonal don't need transpose
+      } else {
+        cov_lowchol <- t(chol(cov_matrix_val))
+      }
     } else {
       cov_lowchol <- NULL
     }

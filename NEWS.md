@@ -6,6 +6,7 @@
 * Improved computational efficiency of `loocv(object)` when `object` was created using `splm()` or `spglm()`, `spcov_type` was `"none"`, and there were no random effects specified via `random`.
 * Changed the number of k-means iterations from 10 to 30 (when fitting models using the `local` argument to `splm()` or `spglm()`).
 * Added bias and root-mean-squared-prediction error to `loocv(object)`. When `object` was created using `splm()` or `spautor()`, `loocv(object)` added the squared correlation between the observed data and leave-one-out predictions, regarded as a prediction r-squared.
+* Improved prediction efficiency (using `predict()` or `augment()`) for `splm()` objects when `spcov_type` was `"none"` and there were no random effects.
 * Minor error message updates.
 
 ## Bug Fixes

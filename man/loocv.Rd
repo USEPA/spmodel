@@ -40,10 +40,10 @@ which performs exact computations.}
 }
 \value{
 If \code{cv_predict = FALSE} and \code{se.fit = FALSE},
-a numeric vector indicating the mean-squared-prediction
-leave-one-out cross validation error. If \code{cv_predict = TRUE} or \code{se.fit = TRUE},
-a list with elements: \code{mspe}, a numeric vector indicating the mean-squared-prediction
-leave-one-out cross validation error; \code{cv_predict}, a numeric vector
+a fit statistics tibble (with bias, MSPE, RMSPE, and cor2; see Details).
+If \code{cv_predict = TRUE} or \code{se.fit = TRUE},
+a list with elements: \code{stats}, a fit statistics tibble
+(with bias, MSPE, RMSPE, and cor2; see Details); \code{cv_predict}, a numeric vector
 with leave-one-out predictions for each observation (if \code{cv_predict = TRUE});
 and \code{se.fit}, a numeric vector with leave-one-out prediction standard
 errors for each observation (if \code{se.fit = TRUE}).
@@ -55,9 +55,16 @@ efficient approximations for big data.
 \details{
 Each observation is held-out from the data set and the remaining data
 are used to make a prediction for the held-out observation. This is compared
-to the true value of the observation and a mean-squared error is computed
-across all observations. The lower the mean squared error, the better the
-model fit (according to the leave-one-out criterion).
+to the true value of the observation and several fit statistics are computed:
+bias, mean-squared-prediction error (MSPE), root-mean-squared-prediction
+error (RMSPE), and the squared correlation (cor2) between the observed data
+and leave-one-out predictions (regarded as a prediction version of r-squared
+appropriate for comparing across spatial and nonspatial models). Generally,
+bias should be near zero for well-fitting models. The lower the MSPE and RMSPE,
+the better the model fit (according to the leave-out-out criterion).
+The higher the cor2, the better the model fit (according to the leave-out-out
+criterion). cor2 is not returned when \code{object} was fit using
+\code{spglm()} or \code{spgautor()}, as it is only applicable here for linear models.
 }
 \examples{
 spmod <- splm(z ~ water + tarp,

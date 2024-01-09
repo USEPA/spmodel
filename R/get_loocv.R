@@ -39,3 +39,10 @@ get_loocv <- function(obs, Sig, SigInv, Xmat, y, yX, SigInv_yX, se.fit) {
   # return
   list(pred = as.numeric(new_pred), se.fit = as.numeric(se_fit))
 }
+
+get_loocv_iid_se <- function(obs, cov_betahat, Xmat, total_var) {
+  newX <- Xmat[obs, , drop = FALSE]
+  var_fit <- newX %*% tcrossprod(cov_betahat, newX)
+  se_fit <- sqrt(total_var + var_fit)
+  list(se.fit = as.numeric(se_fit))
+}

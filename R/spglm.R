@@ -341,6 +341,9 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
   if (missing(dispersion_initial)) dispersion_initial <- NULL else family <- class(dispersion_initial)
 
   # fix family
+  if (missing(family)) {
+    stop("The family argument must be specified.", call. = FALSE)
+  }
   if (is.symbol(substitute(family))) { # or is.language
     family <- deparse1(substitute(family))
   }

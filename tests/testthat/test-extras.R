@@ -760,11 +760,11 @@ if (test_local) {
 
   test_that("loocv works geo", {
     spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
-    expect_vector(loocv(spmod))
-    expect_vector(loocv(spmod, local = TRUE))
+    expect_type(loocv(spmod), "list")
+    expect_type(loocv(spmod, local = TRUE), "list")
     # cores 2 for cran check
     if (test_local) { ##### local test
-      expect_vector(loocv(spmod, local = list(parallel = TRUE, ncores = 2)))
+      expect_type(loocv(spmod, local = list(parallel = TRUE, ncores = 2)), "list")
       expect_equal(length(loocv(spmod, cv_predict = TRUE)), 2)
       expect_equal(length(loocv(spmod, cv_predict = TRUE, local = TRUE)), 2)
     }
@@ -788,16 +788,38 @@ if (test_local) {
 
     # random effects
     spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord, random = ~group)
-    expect_vector(loocv(spmod))
-    expect_vector(loocv(spmod, local = TRUE))
+    expect_type(loocv(spmod), "list")
+    expect_type(loocv(spmod, local = TRUE), "list")
+
+    # iid
+    spmod <- splm(y ~ x, exdata, "none", xcoord, ycoord)
+    expect_type(loocv(spmod), "list")
+    expect_type(loocv(spmod, local = TRUE), "list")
+    # cores 2 for cran check
+    if (test_local) { ##### local test
+      expect_type(loocv(spmod, local = list(parallel = TRUE, ncores = 2)), "list")
+      expect_equal(length(loocv(spmod, cv_predict = TRUE)), 2)
+    }
+    expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE)), 3)
+    if (test_local) { ##### local test
+      expect_equal(length(loocv(spmod, se.fit = TRUE)), 2)
+    }
+    # cores 2 for cran check
+    if (test_local) { ##### local test
+      expect_equal(length(loocv(spmod, cv_predict = TRUE, local = list(parallel = TRUE, ncores = 2))), 2)
+    }
+    expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE, local = list(parallel = TRUE, ncores = 2))), 3)
+    if (test_local) { ##### local test
+      expect_equal(length(loocv(spmod, se.fit = TRUE, local = list(parallel = TRUE, ncores = 2))), 2)
+    }
   })
 
   test_that("loocv works auto", {
     spmod <- spautor(y ~ x, exdata_poly, "car")
-    expect_vector(loocv(spmod))
+    expect_type(loocv(spmod), "list")
     # cores 2 for cran check
     if (test_local) {
-      expect_vector(loocv(spmod, local = list(parallel = TRUE, ncores = 2)))
+      expect_type(loocv(spmod, local = list(parallel = TRUE, ncores = 2)), "list")
       expect_equal(length(loocv(spmod, cv_predict = TRUE)), 2)
     }
     expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE)), 3)
@@ -811,16 +833,16 @@ if (test_local) {
 
     # random effects
     spmod <- spautor(y ~ x, exdata_poly, "car", random = ~group)
-    expect_vector(loocv(spmod))
-    expect_vector(loocv(spmod, local = TRUE))
+    expect_type(loocv(spmod), "list")
+    expect_type(loocv(spmod, local = TRUE), "list")
 
 
     # missing data
     spmod <- spautor(y ~ x, exdata_Mpoly, "car")
-    expect_vector(loocv(spmod))
+    expect_type(loocv(spmod), "list")
     # cores 2 for cran check
     if (test_local) {
-      expect_vector(loocv(spmod, local = list(parallel = TRUE, ncores = 2)))
+      expect_type(loocv(spmod, local = list(parallel = TRUE, ncores = 2)), "list")
       expect_equal(length(loocv(spmod, cv_predict = TRUE)), 2)
     }
     expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE)), 3)
@@ -1019,6 +1041,17 @@ if (test_local) {
     expect_equal(length(predict(smod, newexdata, local = list(method = "distance", size = 10))), NROW(newexdata))
     expect_error(predict(smod, newexdata, local = list(method = "covariance", size = 10)), NA)
     expect_equal(length(predict(smod, newexdata, local = list(method = "covariance", size = 10))), NROW(newexdata))
+
+    # random effects
+    smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~ group)
+    expect_error(predict(smod, newexdata), NA)
+    # anisotropy
+    smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", anisotropy = TRUE)
+    expect_error(predict(smod, newexdata), NA)
+
+    # partition factor
+    smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", partition_factor = ~ group)
+    expect_error(predict(smod, newexdata), NA)
   })
 
   test_that("Prediction for splm works for missing data", {

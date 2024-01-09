@@ -166,6 +166,7 @@ invlink <- function(fitted_link, family, size) {
   if (family == "poisson") {
     fitted <- exp(fitted_link)
   } else if (family == "binomial") {
+    if (is.null(size)) size <- 1
     fitted <- size * expit(fitted_link)
   } else if (family == "nbinomial") {
     fitted <- exp(fitted_link)

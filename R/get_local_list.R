@@ -90,7 +90,7 @@ get_local_estimation_index <- function(local, data, xcoord, ycoord, n) {
   } else if (local$method == "kmeans") {
     kmeans_args <- setdiff(names(local), c("size", "groups", "method", "index", "parallel", "ncores", "var_adjust"))
     x <- cbind(data[[xcoord]], data[[ycoord]])
-    index <- do.call("kmeans", c(list(x = x, centers = local$groups), kmeans_args))$cluster
+    index <- do.call("kmeans", c(list(x = x, centers = local$groups, iter.max = 30), kmeans_args))$cluster
   } else {
     stop("local$method must be random (the default) or kmeans")
   }

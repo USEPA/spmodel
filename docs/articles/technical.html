@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -720,10 +720,30 @@ prediction of <span class="math inline">\(y_i\)</span> is given by <span class="
 \hat{\boldsymbol{\Sigma}}^{-1}_{-i, -i} \mathbf{X}_{-i}\)</span>. These
 formulas are analogous to the formulas used to obtain linear unbiased
 predictions of unobserved data and prediction variances. Model fits are
-evaluated using mean squared prediction error (mspe), formally defined
-as <span class="math display">\[\begin{equation*}
-mspe = \frac{1}{n}\sum_{i = 1}^n(y_i - \hat{y}_i)^2.
-\end{equation*}\]</span> Generally the lower the <span class="math inline">\(mspe\)</span>, the better the model fit.</p>
+evaluated using several statistics: bias, mean-squared-prediction error
+(MSPE), root-mean-squared-prediction error (RMSPE), and the squared
+correlation (cor2) between the observed data and leave-one-out
+predictions (regarded as a prediction version of r-squared appropriate
+for comparing across spatial and nonspatial models).</p>
+<p>Bias is formally defined as <span class="math display">\[\begin{equation*}
+bias = \frac{1}{n}\sum_{i = 1}^n(y_i - \hat{y}_i).
+\end{equation*}\]</span></p>
+<p>MSPE is formally defined as <span class="math display">\[\begin{equation*}
+MSPE = \frac{1}{n}\sum_{i = 1}^n(y_i - \hat{y}_i)^2.
+\end{equation*}\]</span></p>
+<p>RMSPE is formally defined as <span class="math display">\[\begin{equation*}
+RMSPE = \sqrt{\frac{1}{n}\sum_{i = 1}^n(y_i - \hat{y}_i)^2}.
+\end{equation*}\]</span></p>
+<p>cor2 is formally defined as <span class="math display">\[\begin{equation*}
+cor2 = \text{Cor}(\mathbf{y}, \hat{\mathbf{y}})^2,
+\end{equation*}\]</span> where Cor<span class="math inline">\((\cdot)\)</span> is the correlation function. cor2
+is only returned for spatial linear models, as it is not applicable for
+spatial generalized linear models (we are predicting a latent mean
+parameter, which is unknown and not on the same scale as the original
+data).</p>
+<p>Generally, bias should be near zero for well-fitting models. The
+lower the MSPE and RMSPE, the better the model fit. The higher the cor2,
+the better the model fit.</p>
 <div class="section level4">
 <h4 id="sec:bigdata-loocv-lm">Big Data<a class="anchor" aria-label="anchor" href="#sec:bigdata-loocv-lm"></a>
 </h4>

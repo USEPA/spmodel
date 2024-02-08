@@ -1,3 +1,5 @@
+# spmodel 0.5.2
+
 # spmodel 0.5.1
 
 ## Minor Updates

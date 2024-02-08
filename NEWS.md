@@ -1,5 +1,9 @@
 # spmodel 0.5.2
 
+## Bug Fixes
+
+* Fixed a bug that yielded improper predictions when performing local prediction (specifying `local` in a call to `predict(object, newdata, ...)`) when the model object (`object`) was fit using `splm(formula, ...)` or `spglm(formula, ...)` and `formula` contained at least one call to `poly(..., raw = FALSE)`.
+
 # spmodel 0.5.1
 
 ## Minor Updates

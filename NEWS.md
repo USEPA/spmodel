@@ -1,10 +1,12 @@
 # spmodel 0.5.2
 
+* Improved efficiency of handling random effects in big data models fit using `splm(..., local)` and `spglm(..., local)`.
+
 ## Bug Fixes
 
 * Fixed a bug that yielded improper predictions when performing local prediction (specifying `local` in a call to `predict(object, newdata, ...)`) when the model object (`object`) was fit using `splm(formula, ...)` or `spglm(formula, ...)` and `formula` contained at least one call to `poly(..., raw = FALSE)`.
-* Fixed a bug that caused big data model fitting with `splm(..., local)` and `spglm(..., local)` code to fail when a user-specified local index was passed to `local` that was a factor variable and at least one factor level not was observed in the local index.
-* Fixed a bug that caused `splm(..., partition_factor)` and `spglm(..., partition_factor)` code to fail when the partition factor variable was a factor variable and at least one factor level was not observed in the data.
+* Fixed a bug that caused big data models fit using `splm(..., local)` and `spglm(..., local)` to fail when a user-specified local index was passed to `local` that was a factor variable and at least one factor level not was observed in the local index.
+* Fixed a bug that caused models fit using `splm(..., partition_factor)` and `spglm(..., partition_factor)` to fail when the partition factor variable was a factor variable and at least one factor level was not observed in the data.
 
 # spmodel 0.5.1
 

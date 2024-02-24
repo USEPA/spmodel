@@ -272,8 +272,14 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     randcov_names <- NULL
   } else {
     randcov_names <- get_randcov_names(random)
-    randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
-    randcov_list <- get_randcov_list(local$index, randcov_Zs, randcov_names)
+    randcov_xlevs <- lapply(randcov_names, get_randcov_xlev, obdata)
+    names(randcov_xlevs) <- randcov_names
+    randcov_list <- lapply(obdata_list, function(x) {
+      get_randcov_Zs(x, randcov_names, xlev_list = randcov_xlevs)
+    })
+    # old code that computed randcov_Zs before spatial indexing organizing
+    # randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
+    # randcov_list <- get_randcov_list(local$index, randcov_Zs, randcov_names)
     if (is.null(randcov_initial)) {
       randcov_initial <- spmodel::randcov_initial()
     } else {

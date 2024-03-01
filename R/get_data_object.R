@@ -138,9 +138,9 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   dots$contrasts <- attr(X, "contrasts")
   xlevels <- .getXlevels(terms_val, obdata_model_frame)
   # find p
-  p <- as.numeric(Matrix::rankMatrix(X))
+  p <- as.numeric(Matrix::rankMatrix(X, method = "qr"))
   if (p < NCOL(X)) {
-    stop("Perfect collinearities detected in X. Remove redundant predictors.", call. = FALSE)
+    warning("There are perfect collinearities detected in X (the matrix of explanatory variables). This may make the model fit unreliable or may cause an error while model fitting. Consider removing redundant explanatory variables and refitting the model.", call. = FALSE)
   }
   # find sample size
   n <- NROW(X)
@@ -431,9 +431,9 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
 
   # store n, p, and ones
   n <- NROW(obdata)
-  p <- as.numeric(Matrix::rankMatrix(X))
+  p <- as.numeric(Matrix::rankMatrix(X, method = "qr"))
   if (p < NCOL(X)) {
-    stop("Perfect collinearities detected in X. Remove redundant predictors.", call. = FALSE)
+    warning("There are perfect collinearities detected in X (the matrix of explanatory variables). This may make the model fit unreliable or may cause an error while model fitting. Consider removing redundant explanatory variables and refitting the model.", call. = FALSE)
   }
   ones <- matrix(1, nrow = n, ncol = 1)
 

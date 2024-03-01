@@ -941,7 +941,7 @@ if (test_local) {
     exdata2 <- exdata
     exdata2[1, "xcoord"] <- NA
     expect_error(splm(y ~ x, exdata2, "exponential", xcoord, ycoord))
-    expect_error(splm(y ~ as.factor(x) + group, exdata, "exponential", xcoord, ycoord))
+    expect_error(suppressWarnings(splm(y ~ as.factor(x) + group, exdata, "exponential", xcoord, ycoord)))
     expect_error(splm(y ~ x, exdata, "exponential", xcoord = ycoord), NA) # changing to ycoord2 works
     expect_error(splm(y ~ x, exdata, "exponential", ycoord = xcoord))
     expect_error(splm(y ~ x, exdata, "xyz", xcoord, ycoord))
@@ -972,7 +972,7 @@ if (test_local) {
     expect_error(splm(y ~ x, exdata, "exponential", xcoord, "xyz"))
     exdata4 <- exdata
     exdata4$x2 <- exdata4$x
-    expect_error(splm(y ~ x + x2, exdata4, "exponential", xcoord, ycoord))
+    expect_error(suppressWarnings(splm(y ~ x + x2, exdata4, "exponential", xcoord, ycoord)))
     exdata4$x[1] <- NA
     expect_error(splm(y ~ x, exdata4, "exponential", xcoord, ycoord))
 

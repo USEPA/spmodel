@@ -312,6 +312,18 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
                                     randcov_initial_NA = NULL, esv_dotlist, ...) {
   # find ols sample variance
   s2 <- data_object$s2
+
+  # exit if no random effects
+  if (is.null(randcov_initial_NA)) {
+    spcov_initial_NA$initial["ie"] <- s2
+    best_params <- list(
+      spcov_initial_val = spcov_initial_NA, randcov_initial_val = NULL, esv = NULL,
+      dist_vector = NULL, residual_vector2 = NULL
+    )
+    return(best_params)
+  }
+
+  # do other stuff
   ns2 <- 1.2 * s2
 
   # find sets of starting values

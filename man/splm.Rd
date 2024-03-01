@@ -103,6 +103,8 @@ If omitted, \code{local} is set
 to \code{TRUE} or \code{FALSE} based on the sample size (the number of
 non-missing observations in \code{data}) -- if the sample size exceeds 5,000,
 \code{local} is set to \code{TRUE}. Otherwise it is set to \code{FALSE}.
+\code{local} is also set to \code{FALSE} when \code{spcov_type} is \code{"none"}
+and there are no random effects specified via \code{random}.
 If \code{FALSE}, no big data approximation is implemented.
 If a list is provided, the following arguments detail the big
 data approximation:

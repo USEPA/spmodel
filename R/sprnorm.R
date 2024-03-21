@@ -287,11 +287,11 @@ sprnorm.car <- function(spcov_params, mean = 0, samples = 1, data, randcov_param
       stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
     }
     W <- sf::st_intersects(data, sparse = FALSE)
-    W_rowsums <- Matrix::rowSums(W)
     diag(W) <- 0
   }
 
   W <- 1 * Matrix::Matrix(W, sparse = TRUE)
+  W_rowsums <- Matrix::rowSums(W)
 
   # make M if necessary
   if (row_st) {

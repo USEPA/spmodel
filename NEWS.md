@@ -3,7 +3,8 @@
 * Improved efficiency of handling random effects in big data models fit using `splm(..., local)` and `spglm(..., local)`.
 * Changed `Matrix::rankMatrix(X, method = "tolNorm2")` to `Matrix::rankMatrix(X, method = "qr")` to enhance stability when determining linear independence in `X`, the design matrix of explanatory variables.
 * Replaced an error message with a warning message when `X` has perfect collinearities (i.e., is not full rank).
-* Improved efficiency of `splm()` when `spcov_type` is `"none"` and there are no random effects [(#15)](https://github.com/USEPA/spmodel/issues/15)
+* Improved efficiency of `splm()` when `spcov_type` is `"none"` and there are no random effects [(#15)](https://github.com/USEPA/spmodel/issues/15).
+* Added a `range_positive` argument to `spautor()` and `spgautor()` that when `TRUE` (the new default), restricts the range parameter to be positive. When `FALSE` (the prior default), the range parameter may be negative or positive.
 * Minor documentation updates
 
 ## Bug Fixes

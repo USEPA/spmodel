@@ -621,4 +621,11 @@ if (test_local) {
     exdata_poly$novar <- 1
     expect_error(spautor(novar ~ x, exdata_poly, "car"))
   })
+
+  test_that("range negative works", {
+    spcov_type <- "car"
+    expect_error(spautor(y ~ x, exdata_poly, spcov_type, range_positive = FALSE), NA)
+    spcov_type <- "sar"
+    expect_error(spautor(y ~ x, exdata_poly, spcov_type, range_positive = FALSE), NA)
+  })
 }

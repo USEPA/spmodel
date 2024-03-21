@@ -16,6 +16,7 @@ spautor(
   W,
   row_st = TRUE,
   M,
+  range_positive = TRUE,
   ...
 )
 }
@@ -87,6 +88,9 @@ and \eqn{^{-1}} represents the inverse operator.
 when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M},
 is required, the default is the identity matrix. \code{M} must be diagonal
 or given as a vector or one-column matrix assumed to be the diagonal.}
+
+\item{range_positive}{Whether the range should be constrained to be positive.
+The default is \code{TRUE}.}
 
 \item{...}{Other arguments to \code{stats::optim()}.}
 }

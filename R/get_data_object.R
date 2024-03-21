@@ -290,7 +290,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
 
 get_data_object_spautor <- function(formula, data, spcov_initial,
                                     estmethod, W, M, random, randcov_initial,
-                                    partition_factor, row_st, ...) {
+                                    partition_factor, row_st, range_positive, ...) {
   ## convert sp to sf object
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
@@ -362,8 +362,12 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
   # find eigenvalues of W for connected sites
   rowsums_nonzero <- which(W_rowsums != 0)
   W_eigen <- Re(eigen(W[rowsums_nonzero, rowsums_nonzero])$values)
-  rho_lb <- 1 / min(W_eigen) + .001 # rho strictly > lb
-  rho_ub <- 1 / max(W_eigen) - .001 # rho strictly < ub
+  if (range_positive) {
+    rho_lb <- 1e-5
+  } else {
+    rho_lb <- 1 / min(W_eigen) + 1e-5 # rho strictly > lb
+  }
+  rho_ub <- 1 / max(W_eigen) - 1e-5 # rho strictly < ub
 
 
   # subsetting by na and not na values

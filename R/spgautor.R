@@ -73,6 +73,8 @@
 #'   when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M},
 #'   is required, the default is the identity matrix. \code{M} must be diagonal
 #'   or given as a vector or one-column matrix assumed to be the diagonal.
+#' @param range_positive Whether the range should be constrained to be positive.
+#'   The default is \code{TRUE}.
 #' @param ... Other arguments to [stats::optim()].
 #'
 #' @details The spatial generalized linear model for areal data
@@ -221,7 +223,7 @@
 #' @references
 #' McCullagh P. and Nelder, J. A. (1989) \emph{Generalized Linear Models}. London: Chapman and Hall.
 spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersion_initial,
-                     estmethod = "reml", random, randcov_initial, partition_factor, W, row_st = TRUE, M, ...) {
+                     estmethod = "reml", random, randcov_initial, partition_factor, W, row_st = TRUE, M, range_positive = TRUE, ...) {
 
   # set car as default if nothing specified
   if (missing(spcov_type) && missing(spcov_initial)) {
@@ -317,7 +319,7 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
   data_object <- get_data_object_spgautor(
     formula, family, data, spcov_initial,
     estmethod, W, M, random, randcov_initial,
-    partition_factor, row_st, ...
+    partition_factor, row_st, range_positive, ...
   )
 
   cov_est_object <- cov_estimate_laploglik_spgautor(data_object, formula,

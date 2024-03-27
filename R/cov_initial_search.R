@@ -885,7 +885,11 @@ cov_initial_search.car <- function(spcov_initial_NA, estmethod, data_object,
   ie <- c(0.1, 0.5, 0.9)
   ## range
   rho_length <- data_object$rho_ub - data_object$rho_lb
-  range <- c(data_object$rho_lb + 0.25 * rho_length, data_object$rho_ub - 0.25 * rho_length)
+  range <- c(
+    data_object$rho_lb + 0.01 * rho_length,
+    mean(c(data_object$rho_lb, data_object$rho_ub)),
+    data_object$rho_ub - 0.01 * rho_length
+  )
 
   # find starting spatial grid
   spcov_grid <- expand.grid(de = de, ie = ie, range = range)

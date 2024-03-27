@@ -5,6 +5,7 @@
 * Replaced an error message with a warning message when `X` has perfect collinearities (i.e., is not full rank).
 * Improved efficiency of `splm()` when `spcov_type` is `"none"` and there are no random effects [(#15)](https://github.com/USEPA/spmodel/issues/15).
 * Added a `range_positive` argument to `spautor()` and `spgautor()` that when `TRUE` (the new default), restricts the range parameter to be positive. When `FALSE` (the prior default), the range parameter may be negative or positive.
+* Updated the initial parameter grid search for `spautor()` and `spgautor()` to include range parameter values near the lower and upper boundaries.
 * Minor documentation updates
 
 ## Bug Fixes

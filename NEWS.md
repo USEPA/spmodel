@@ -1,5 +1,7 @@
 # spmodel 0.6.0
 
+## Minor Updates
+
 * Improved efficiency of handling random effects in big data models fit using `splm(..., local)` and `spglm(..., local)`.
 * Changed `Matrix::rankMatrix(X, method = "tolNorm2")` to `Matrix::rankMatrix(X, method = "qr")` when determining linear independence in `X`, the design matrix of explanatory variables.
 * Replaced an error message with a warning message when `X` has perfect collinearities (i.e., is not full rank). If this warning message occurs, it is possible that a subsequent error occurs while model fitting resulting from a covariance matrix that is not positive definite (i.e., a covariance matrix that is singular or computationally singular).

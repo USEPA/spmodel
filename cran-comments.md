@@ -15,4 +15,5 @@ development version of R (accessed by running `devtools::check_win_devel()`).
 
 ## Downstream dependencies
 
-There are no downstream dependencies.
+There is one downstream dependency, `SSN2`, for which I am the developer. This 
+update will not affect the downstream dependency.

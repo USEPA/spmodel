@@ -12,7 +12,7 @@ mean and covariance structure."><!-- mathjax --><script src="https://cdnjs.cloud
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -136,39 +136,39 @@ conditional mean used with <code>dispersion</code> to simulate a binomial random
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">spcov_params_val</span> <span class="op">&lt;-</span> <span class="fu"><a href="spcov_params.html">spcov_params</a></span><span class="op">(</span><span class="st">"exponential"</span>, de <span class="op">=</span> <span class="fl">0.2</span>, ie <span class="op">=</span> <span class="fl">0.1</span>, range <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">sprbinom</span><span class="op">(</span><span class="va">spcov_params_val</span>, data <span class="op">=</span> <span class="va">caribou</span>, xcoord <span class="op">=</span> <span class="va">x</span>, ycoord <span class="op">=</span> <span class="va">y</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 0 1 0 1 1 1 0 1 1 1 1 0 1 0 0 1 0 0 0 1 0 0 0 1 1 1 1 0 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 0 0 1 0 1 1 0 0 0 1 0 0 0 0 1 1 1 1 0 0 0 0 1 0 0 0 1 1 0 1</span>
 <span class="r-in"><span><span class="fu">sprbinom</span><span class="op">(</span><span class="va">spcov_params_val</span>, samples <span class="op">=</span> <span class="fl">5</span>, data <span class="op">=</span> <span class="va">caribou</span>, xcoord <span class="op">=</span> <span class="va">x</span>, ycoord <span class="op">=</span> <span class="va">y</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       1 2 3 4 5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1,] 0 1 0 0 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [2,] 0 0 1 1 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [3,] 1 1 1 0 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [4,] 0 1 0 1 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [5,] 0 1 1 0 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [6,] 0 1 1 0 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [7,] 1 1 0 1 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [8,] 1 0 1 1 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [9,] 1 0 1 1 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [10,] 1 0 1 1 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [11,] 0 0 0 1 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [12,] 0 0 0 1 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [13,] 1 1 1 0 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [14,] 1 0 1 1 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [15,] 1 1 0 1 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [16,] 1 0 0 0 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [17,] 0 1 0 1 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [18,] 0 0 1 0 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [19,] 0 0 0 1 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [20,] 0 1 0 1 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [21,] 1 1 0 0 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [22,] 1 0 0 1 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [23,] 0 0 0 0 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [24,] 0 1 0 1 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [25,] 1 1 0 1 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [26,] 0 0 1 1 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [27,] 1 0 0 1 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [28,] 1 0 1 1 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [29,] 0 0 1 1 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [30,] 1 0 1 0 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1,] 0 1 0 0 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [2,] 0 1 0 1 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [3,] 0 1 1 1 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [4,] 0 0 1 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [5,] 0 1 1 1 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [6,] 0 0 0 1 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [7,] 1 0 0 1 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [8,] 0 0 1 1 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [9,] 0 0 0 1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [10,] 1 1 1 0 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [11,] 0 0 0 1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [12,] 1 0 0 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [13,] 0 1 1 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [14,] 0 1 0 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [15,] 0 0 0 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [16,] 1 0 1 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [17,] 1 1 1 1 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [18,] 1 1 1 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [19,] 0 1 1 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [20,] 0 1 0 1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [21,] 0 0 1 1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [22,] 1 0 1 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [23,] 0 1 0 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [24,] 1 1 0 1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [25,] 1 1 0 1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [26,] 0 0 0 1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [27,] 0 1 0 1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [28,] 1 0 0 1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [29,] 0 1 0 1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [30,] 1 0 0 1 1</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

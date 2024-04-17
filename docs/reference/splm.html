@@ -16,7 +16,7 @@ anisotropy, partition factors, and big data methods."><!-- mathjax --><script sr
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -195,6 +195,8 @@ If omitted, <code>local</code> is set
 to <code>TRUE</code> or <code>FALSE</code> based on the sample size (the number of
 non-missing observations in <code>data</code>) -- if the sample size exceeds 5,000,
 <code>local</code> is set to <code>TRUE</code>. Otherwise it is set to <code>FALSE</code>.
+<code>local</code> is also set to <code>FALSE</code> when <code>spcov_type</code> is <code>"none"</code>
+and there are no random effects specified via <code>random</code>.
 If <code>FALSE</code>, no big data approximation is implemented.
 If a list is provided, the following arguments detail the big
 data approximation:</p><ul><li><p><code>index: </code>The group indexes. Observations in different

@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,6 +53,24 @@
       <small>Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.6.0" id="spmodel-060">spmodel 0.6.0<a class="anchor" aria-label="anchor" href="#spmodel-060"></a></h2><p class="text-muted">CRAN release: 2024-04-16</p>
+<ul><li>Improved efficiency of handling random effects in big data models fit using <code>splm(..., local)</code> and <code>spglm(..., local)</code>.</li>
+<li>Changed <code>Matrix::rankMatrix(X, method = "tolNorm2")</code> to <code>Matrix::rankMatrix(X, method = "qr")</code> to enhance stability when determining linear independence in <code>X</code>, the design matrix of explanatory variables.</li>
+<li>Replaced an error message with a warning message when <code>X</code> has perfect collinearities (i.e., is not full rank).</li>
+<li>Improved efficiency of <code><a href="../reference/splm.html">splm()</a></code> when <code>spcov_type</code> is <code>"none"</code> and there are no random effects <a href="https://github.com/USEPA/spmodel/issues/15" class="external-link">(</a><a href="https://github.com/USEPA/spmodel/issues/15" class="external-link">#15</a>).</li>
+<li>Added a <code>range_positive</code> argument to <code><a href="../reference/spautor.html">spautor()</a></code> and <code><a href="../reference/spgautor.html">spgautor()</a></code> that when <code>TRUE</code> (the new default), restricts the range parameter to be positive. When <code>FALSE</code> (the prior default), the range parameter may be negative or positive.</li>
+<li>Updated the initial parameter grid search for <code><a href="../reference/spautor.html">spautor()</a></code> and <code><a href="../reference/spgautor.html">spgautor()</a></code> to include range parameter values near the lower and upper boundaries.</li>
+<li>Minor documentation updates</li>
+</ul><div class="section level3">
+<h3 id="bug-fixes-0-6-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-6-0"></a></h3>
+<ul><li>Fixed a bug that yielded improper predictions when performing local prediction (specifying <code>local</code> in a call to <code>predict(object, newdata, ...)</code>) when the model object (<code>object</code>) was fit using <code>splm(formula, ...)</code> or <code>spglm(formula, ...)</code> and <code>formula</code> contained at least one call to <code>poly(..., raw = FALSE)</code>.</li>
+<li>Fixed a bug that caused big data models fit using <code>splm(..., local)</code> and <code>spglm(..., local)</code> to fail when a user-specified local index was passed to <code>local</code> that was a factor variable and at least one factor level not was observed in the local index.</li>
+<li>Fixed a bug that caused models fit using <code>splm(..., partition_factor)</code> and <code>spglm(..., partition_factor)</code> to fail when the partition factor variable was a factor variable and at least one factor level was not observed in the data.</li>
+<li>Fixed a bug in <code><a href="../reference/spgautor.html">spgautor()</a></code> that inflated the covariance matrix of the fixed effects (accessible via <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code>).</li>
+<li>Fixed a bug in <code>sp*(spcov_params, ...)</code> simulation functions that caused an error when <code>spcov_params</code> had class <code>"car"</code> or <code>"sar"</code> and <code>W</code> was provided by the user.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.1" id="spmodel-051">spmodel 0.5.1<a class="anchor" aria-label="anchor" href="#spmodel-051"></a></h2><p class="text-muted">CRAN release: 2024-01-09</p>
 <div class="section level3">

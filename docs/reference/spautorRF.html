@@ -20,7 +20,7 @@ partition factors, and row standardization."><!-- mathjax --><script src="https:
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -147,15 +147,15 @@ regression to random forests for large environmental data sets.
 <span class="r-in"><span><span class="va">sprfmod</span> <span class="op">&lt;-</span> <span class="fu">spautorRF</span><span class="op">(</span><span class="va">log_trend</span> <span class="op">~</span> <span class="va">var</span>, data <span class="op">=</span> <span class="va">seal</span>, spcov_type <span class="op">=</span> <span class="st">"car"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">sprfmod</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            1            9           13           15           18           19 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.029233543  0.007065507 -0.207249773 -0.021017859 -0.032164596 -0.072912471 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.047560844  0.063245303 -0.035318981  0.007805814 -0.035086249 -0.022768385 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           27           32           36           40           42           43 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.028667495 -0.099034871  0.010035824 -0.112203804 -0.004631097 -0.203773643 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.015337128 -0.197452009 -0.012918855 -0.032428345 -0.087973916  0.008595976 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           44           46           47           48           49           50 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.106090416 -0.144755350  0.010858111 -0.047205548 -0.096878520 -0.002182201 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.200895509 -0.074365042 -0.012440013 -0.025842967 -0.162211600 -0.101897529 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           51           52           53           54           55           56 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.075216254 -0.073815150  0.046781890 -0.117690734 -0.118236202 -0.004613003 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.022099198  0.014858151 -0.036807223  0.023241791 -0.030652813  0.013857662 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           57           58           61           62 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.112509435 -0.118958521  0.013264854 -0.002711322 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.030180964 -0.022308774 -0.087930238 -0.012911933 </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

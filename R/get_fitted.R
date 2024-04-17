@@ -58,12 +58,22 @@ get_fitted_splm <- function(betahat, spcov_params, data_object, eigenprods_list,
         }
       ))
       fitted_val <- tapply(fitted_val, rownames(fitted_val), function(x) {
-        val <- mean(x[x != 0])
-        if (length(val) == 0) { # replace if all zeros somehow
-          val <- rep(0, length(x))
-          names(val) <- names(x)
+
+        if (any(x != 0)) {
+          val <- mean(x[x != 0])
+        } else {
+          val <- 0
         }
-        val
+        # if (length(val) == 0) { # replace if all zeros somehow
+        #   val <- rep(0, length(x))
+        #   names(val) <- names(x)
+        # }
+        # if all elements of x are zero then val is NaN, so reset it to zero
+        # this works but above uncommented code is cleaner
+        # if (is.na(val)) {
+        #   val <- 0
+        # }
+        # val
       })
       # all combinations yields values with many zeros -- don't want to include these in the mean
       names_fitted_val <- rownames(fitted_val)

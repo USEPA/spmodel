@@ -40,7 +40,7 @@ cov_betahat_adjust <- function(invcov_betahat_list, betahat_list,
     if (is.null(cov_betahat_list)) {
       var_adjust <- "none"
       warning(
-        "At least one partition's inverse covariance matrix is singular. Redjusting using var_adjust = \"none\".",
+        "At least one partition's inverse covariance matrix is singular. Readjusting using var_adjust = \"none\".",
         call. = FALSE
       )
     } else {

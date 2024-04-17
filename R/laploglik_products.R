@@ -459,6 +459,9 @@ get_l00 <- function(family, w, y, size, dispersion) {
     mu <- exp(w)
     # disp_recip <- 1 / dispersion
     # l00 <- -2 * sum((log(disp_recip) - log(2 * pi) - 3 * log(y)) / 2 - (disp_recip * (y - mu)^2 / (2 * y * mu^2)))
+    # below results match dinvgauss output
+    # l00 <- -2 * sum(statmod::dinvgauss(y, mean = mu, dispersion = 1 / (mu * dispersion), log = TRUE))
+    # this did not require a statmod dependency but could be more error prone
     l00 <- -2 * sum(1 / 2 * (log(dispersion) + log(exp(w)) - log(2 * pi) - log(y^3)) - dispersion * (y - exp(w))^2 / (2 * exp(w) * y))
   } else if (family == "beta") {
     mu <- expit(w)

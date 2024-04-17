@@ -361,7 +361,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
       cl <- parallel::makeCluster(local_list$ncores)
       pred_splm <- parallel::parLapply(cl, newdata_list, get_pred_splm,
         se.fit = se.fit,
-        interval = interval, formula = object$formula,
+        interval = interval, formula = object$terms,
         obdata = obdata, xcoord = xcoord, ycoord = ycoord,
         spcov_params_val = spcov_params_val, random = object$random,
         randcov_params_val = randcov_params_val,
@@ -383,7 +383,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
     } else {
       pred_splm <- lapply(newdata_list, get_pred_splm,
         se.fit = se.fit,
-        interval = interval, formula = object$formula,
+        interval = interval, formula = object$terms,
         obdata = obdata, xcoord = xcoord, ycoord = ycoord,
         spcov_params_val = spcov_params_val, random = object$random,
         randcov_params_val = randcov_params_val,

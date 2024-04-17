@@ -74,6 +74,8 @@
 #'   to \code{TRUE} or \code{FALSE} based on the sample size (the number of
 #'   non-missing observations in \code{data}) -- if the sample size exceeds 5,000,
 #'   \code{local} is set to \code{TRUE}. Otherwise it is set to \code{FALSE}.
+#'   \code{local} is also set to \code{FALSE} when \code{spcov_type} is \code{"none"}
+#'   and there are no random effects specified via \code{random}.
 #'   If \code{FALSE}, no big data approximation is implemented.
 #'   If a list is provided, the following arguments detail the big
 #'   data approximation:
@@ -289,6 +291,11 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
     partition_factor <- NULL
   }
 
+  # set local explicitly to FALSE if iid
+  if (inherits(spcov_initial, "none") && is.null(random)) {
+    local <- FALSE
+  }
+
   if (missing(local)) {
     local <- NULL
   }
@@ -331,7 +338,12 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial, estme
 
 
 
-  model_stats <- get_model_stats_splm(cov_est_object, data_object, estmethod)
+  if (inherits(cov_est_object$spcov_params_val, "none") && is.null(random)) {
+    model_stats <- get_model_stats_splm_iid(cov_est_object, data_object, estmethod)
+  } else {
+    model_stats <- get_model_stats_splm(cov_est_object, data_object, estmethod)
+  }
+
 
   # parallel cluster if necessary
   if (data_object$parallel) {

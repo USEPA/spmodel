@@ -578,7 +578,7 @@ if (test_local) {
     M <- seq_len(NROW(exdata_poly))
     expect_error(spautor(y ~ x, exdata_poly, "car", W = W, row_st = FALSE, M = M))
     expect_error(spautor(y ~ x, exdata_poly, "car", partition_factor = ~ group + subgroup))
-    expect_error(spautor(y ~ as.factor(x) + group, exdata_poly, "car"))
+    expect_error(suppressWarnings(spautor(y ~ as.factor(x) + group, exdata_poly, "car")))
     exdata_poly3 <- exdata_poly
     exdata_poly3$y <- as.character(exdata_poly3$y)
     expect_error(spautor(y ~ x, exdata_poly3, "car"))
@@ -592,7 +592,7 @@ if (test_local) {
     expect_error(spautor(y ~ x, exdata_poly, "car", estmethod = "xyz"))
     exdata_poly4 <- exdata_poly
     exdata_poly4$x2 <- exdata_poly4$x
-    expect_error(spautor(y ~ x + x2, exdata_poly4, "car"))
+    expect_error(suppressWarnings(spautor(y ~ x + x2, exdata_poly4, "car")))
     exdata_poly4$x[1] <- NA
     expect_error(spautor(y ~ x, exdata_poly4, "car"))
   })
@@ -620,5 +620,12 @@ if (test_local) {
   test_that("no variance error works", {
     exdata_poly$novar <- 1
     expect_error(spautor(novar ~ x, exdata_poly, "car"))
+  })
+
+  test_that("range negative works", {
+    spcov_type <- "car"
+    expect_error(spautor(y ~ x, exdata_poly, spcov_type, range_positive = FALSE), NA)
+    spcov_type <- "sar"
+    expect_error(spautor(y ~ x, exdata_poly, spcov_type, range_positive = FALSE), NA)
   })
 }

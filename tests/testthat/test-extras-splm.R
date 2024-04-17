@@ -941,7 +941,7 @@ if (test_local) {
     exdata2 <- exdata
     exdata2[1, "xcoord"] <- NA
     expect_error(splm(y ~ x, exdata2, "exponential", xcoord, ycoord))
-    expect_error(splm(y ~ as.factor(x) + group, exdata, "exponential", xcoord, ycoord))
+    expect_error(suppressWarnings(splm(y ~ as.factor(x) + group, exdata, "exponential", xcoord, ycoord)))
     expect_error(splm(y ~ x, exdata, "exponential", xcoord = ycoord), NA) # changing to ycoord2 works
     expect_error(splm(y ~ x, exdata, "exponential", ycoord = xcoord))
     expect_error(splm(y ~ x, exdata, "xyz", xcoord, ycoord))
@@ -972,7 +972,7 @@ if (test_local) {
     expect_error(splm(y ~ x, exdata, "exponential", xcoord, "xyz"))
     exdata4 <- exdata
     exdata4$x2 <- exdata4$x
-    expect_error(splm(y ~ x + x2, exdata4, "exponential", xcoord, ycoord))
+    expect_error(suppressWarnings(splm(y ~ x + x2, exdata4, "exponential", xcoord, ycoord)))
     exdata4$x[1] <- NA
     expect_error(splm(y ~ x, exdata4, "exponential", xcoord, ycoord))
 
@@ -1018,5 +1018,23 @@ if (test_local) {
     spmod1 <- splm(y ~ x + offset(offset), exdata, "exponential", xcoord, ycoord)
     spmod2 <- splm(y2 ~ x, exdata, "exponential", xcoord, ycoord)
     expect_equal(fitted(spmod1), fitted(spmod2) + exdata$offset)
+  })
+
+  test_that("the model runs for partition and random effect group if there is an extra factor present", {
+    spcov_type <- "exponential"
+    exdata$group2 <- factor(exdata$group)
+    levels(exdata$group2) <- c(levels(exdata$group2), ".new_group_level")
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", partition_factor = ~group2), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2), NA)
+    spmod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2)
+    expect_equal(0, unname(fitted(spmod, type = "randcov")[["1 | group2"]]["group2.new_group_level"]))
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2,
+                      partition_factor = ~group2), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", partition_factor = ~group2, local = TRUE), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2, local = TRUE), NA)
+    spmod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2, local = TRUE)
+    expect_equal(0, unname(fitted(spmod, type = "randcov")[["1 | group2"]]["group2.new_group_level"]))
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2,
+                      partition_factor = ~group, local = TRUE), NA)
   })
 }

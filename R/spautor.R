@@ -61,6 +61,8 @@
 #'   when \code{W} is provided and \code{row_st} is \code{FALSE}.  When \code{M},
 #'   is required, the default is the identity matrix. \code{M} must be diagonal
 #'   or given as a vector or one-column matrix assumed to be the diagonal.
+#' @param range_positive Whether the range should be constrained to be positive.
+#'   The default is \code{TRUE}.
 #' @param ... Other arguments to \code{stats::optim()}.
 #'
 #' @details The spatial linear model for areal data (i.e., spatial autoregressive model)
@@ -143,7 +145,8 @@
 #' @examples
 #' spmod <- spautor(log_trend ~ 1, data = seal, spcov_type = "car")
 #' summary(spmod)
-spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml", random, randcov_initial, partition_factor, W, row_st = TRUE, M, ...) {
+spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml",
+                    random, randcov_initial, partition_factor, W, row_st = TRUE, M, range_positive = TRUE, ...) {
 
   # set car as default if nothing specified
   if (missing(spcov_type) && missing(spcov_initial)) {
@@ -213,7 +216,7 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
   data_object <- get_data_object_spautor(
     formula, data, spcov_initial,
     estmethod, W, M, random, randcov_initial,
-    partition_factor, row_st, ...
+    partition_factor, row_st, range_positive, ...
   )
 
 

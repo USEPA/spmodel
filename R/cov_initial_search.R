@@ -312,6 +312,18 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
                                     randcov_initial_NA = NULL, esv_dotlist, ...) {
   # find ols sample variance
   s2 <- data_object$s2
+
+  # exit if no random effects
+  if (is.null(randcov_initial_NA)) {
+    spcov_initial_NA$initial["ie"] <- s2
+    best_params <- list(
+      spcov_initial_val = spcov_initial_NA, randcov_initial_val = NULL, esv = NULL,
+      dist_vector = NULL, residual_vector2 = NULL
+    )
+    return(best_params)
+  }
+
+  # do other stuff
   ns2 <- 1.2 * s2
 
   # find sets of starting values
@@ -873,7 +885,11 @@ cov_initial_search.car <- function(spcov_initial_NA, estmethod, data_object,
   ie <- c(0.1, 0.5, 0.9)
   ## range
   rho_length <- data_object$rho_ub - data_object$rho_lb
-  range <- c(data_object$rho_lb + 0.25 * rho_length, data_object$rho_ub - 0.25 * rho_length)
+  range <- c(
+    data_object$rho_lb + 0.01 * rho_length,
+    mean(c(data_object$rho_lb, data_object$rho_ub)),
+    data_object$rho_ub - 0.01 * rho_length
+  )
 
   # find starting spatial grid
   spcov_grid <- expand.grid(de = de, ie = ie, range = range)

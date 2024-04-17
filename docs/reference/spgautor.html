@@ -16,7 +16,7 @@ partition factors, and row standardization."><!-- mathjax --><script src="https:
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -83,6 +83,7 @@ partition factors, and row standardization.</p>
 <span>  <span class="va">W</span>,</span>
 <span>  row_st <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">M</span>,</span>
+<span>  range_positive <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -194,6 +195,11 @@ and \(^{-1}\) represents the inverse operator.
 when <code>W</code> is provided and <code>row_st</code> is <code>FALSE</code>.  When <code>M</code>,
 is required, the default is the identity matrix. <code>M</code> must be diagonal
 or given as a vector or one-column matrix assumed to be the diagonal.</p></dd>
+
+
+<dt>range_positive</dt>
+<dd><p>Whether the range should be constrained to be positive.
+The default is <code>TRUE</code>.</p></dd>
 
 
 <dt>...</dt>
@@ -337,22 +343,22 @@ so they have variance 1 before optimization.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     spcov_type = "car")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Residuals:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Min      1Q  Median      3Q     Max </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -4.4715 -2.4760 -1.0752  0.2876  2.9518 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Min     1Q Median     3Q    Max </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -4.484 -2.461 -1.030  0.386  2.823 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (fixed):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error z value Pr(&gt;|z|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)   -3.762      0.443  -8.492   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  -3.7975     0.3396  -11.18   &lt;2e-16 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (car spatial covariance):</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        de     range     extra </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.002397 -0.403587  0.002938 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       de    range    extra </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.001738 0.995833 0.002374 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (Dispersion for Gamma family):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> dispersion </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     0.3013 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     0.3051 </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

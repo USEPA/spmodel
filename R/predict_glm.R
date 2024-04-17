@@ -282,7 +282,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
       cl <- parallel::makeCluster(local_list$ncores)
       pred_spglm <- parallel::parLapply(cl, newdata_list, get_pred_spglm,
         se.fit = se.fit,
-        interval = interval, formula = object$formula,
+        interval = interval, formula = object$terms,
         obdata = obdata, xcoord = xcoord, ycoord = ycoord,
         spcov_params_val = spcov_params_val, random = object$random,
         randcov_params_val = randcov_params_val,
@@ -305,7 +305,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
     } else {
       pred_spglm <- lapply(newdata_list, get_pred_spglm,
         se.fit = se.fit,
-        interval = interval, formula = object$formula,
+        interval = interval, formula = object$terms,
         obdata = obdata, xcoord = xcoord, ycoord = ycoord,
         spcov_params_val = spcov_params_val, random = object$random,
         randcov_params_val = randcov_params_val,

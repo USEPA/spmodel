@@ -3,6 +3,7 @@ get_local_list_estimation <- function(local, data, xcoord, ycoord, n, partition_
   # size can be an integer and sets group size
   # alternatively, set the number of groups
   # index overrides size and groups
+    # index can be numeric or categorical
   # set var_adjust as "none", "theoretical", "empirical", and "pooled"
 
   if (is.logical(local)) {
@@ -14,6 +15,7 @@ get_local_list_estimation <- function(local, data, xcoord, ycoord, n, partition_
       } else {
         index <- unname(model.response(model.frame(reformulate("1", response = labels(terms(partition_factor))), data = data)))
         # index <- data[[labels(terms(partition_factor))]]
+        index <- as.character(index) # turn into character if factor (this will also remove unused factor levels if there are any)
         local <- list(index = index)
         # resetting partition factor as NULL because it is in index but saving
         partition_factor <- NULL
@@ -37,6 +39,11 @@ get_local_list_estimation <- function(local, data, xcoord, ycoord, n, partition_
   }
 
   if ("index" %in% names_local) {
+    # if index is a factor and there are levels in the factor not in the observed
+    # data, the code will fail. Storing as character prevents this (acts as droplevels)
+    if (is.factor(local$index)) {
+      local$index <- as.character(local$index)
+    }
     local$size <- NULL
     local$groups <- NULL
     local$method <- NULL

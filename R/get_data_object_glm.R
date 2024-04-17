@@ -146,9 +146,9 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
   dots$contrasts <- attr(X, "contrasts")
   xlevels <- .getXlevels(terms_val, obdata_model_frame)
   # find p
-  p <- as.numeric(Matrix::rankMatrix(X))
+  p <- as.numeric(Matrix::rankMatrix(X, method = "qr"))
   if (p < NCOL(X)) {
-    stop("Perfect collinearities detected in X. Remove redundant predictors.", call. = FALSE)
+    warning("There are perfect collinearities detected in X (the matrix of explanatory variables). This may make the model fit unreliable or may cause an error while model fitting. Consider removing redundant explanatory variables and refitting the model.", call. = FALSE)
   }
   # find sample size
   n <- NROW(X)
@@ -272,8 +272,14 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     randcov_names <- NULL
   } else {
     randcov_names <- get_randcov_names(random)
-    randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
-    randcov_list <- get_randcov_list(local$index, randcov_Zs, randcov_names)
+    randcov_xlevs <- lapply(randcov_names, get_randcov_xlev, obdata)
+    names(randcov_xlevs) <- randcov_names
+    randcov_list <- lapply(obdata_list, function(x) {
+      get_randcov_Zs(x, randcov_names, xlev_list = randcov_xlevs)
+    })
+    # old code that computed randcov_Zs before spatial indexing organizing
+    # randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
+    # randcov_list <- get_randcov_list(local$index, randcov_Zs, randcov_names)
     if (is.null(randcov_initial)) {
       randcov_initial <- spmodel::randcov_initial()
     } else {
@@ -320,7 +326,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
 
 get_data_object_spgautor <- function(formula, family, data, spcov_initial,
                                      estmethod, W, M, random, randcov_initial,
-                                     partition_factor, row_st, ...) {
+                                     partition_factor, row_st, range_positive, ...) {
   ## convert sp to sf object
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
@@ -392,8 +398,12 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
   # find eigenvalues of W for connected sites
   rowsums_nonzero <- which(W_rowsums != 0)
   W_eigen <- Re(eigen(W[rowsums_nonzero, rowsums_nonzero])$values)
-  rho_lb <- 1 / min(W_eigen) + .001 # rho strictly > lb
-  rho_ub <- 1 / max(W_eigen) - .001 # rho strictly < ub
+  if (range_positive) {
+    rho_lb <- 1e-5
+  } else {
+    rho_lb <- 1 / min(W_eigen) + 1e-5 # rho strictly > lb
+  }
+  rho_ub <- 1 / max(W_eigen) - 1e-5 # rho strictly < ub
 
 
   # subsetting by na and not na values
@@ -492,9 +502,9 @@ get_data_object_spgautor <- function(formula, family, data, spcov_initial,
 
   # store n, p, and ones
   n <- NROW(obdata)
-  p <- as.numeric(Matrix::rankMatrix(X))
+  p <- as.numeric(Matrix::rankMatrix(X, method = "qr"))
   if (p < NCOL(X)) {
-    stop("Perfect collinearities detected in X. Remove redundant predictors.", call. = FALSE)
+    warning("There are perfect collinearities detected in X (the matrix of explanatory variables). This may make the model fit unreliable or may cause an error while model fitting. Consider removing redundant explanatory variables and refitting the model.", call. = FALSE)
   }
   ones <- matrix(1, nrow = n, ncol = 1)
 

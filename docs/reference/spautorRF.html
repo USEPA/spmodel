@@ -4,19 +4,19 @@ for areal data (i.e., spatial autoregressive models) using
 random forest to fit the mean and a spatial linear model to fit the residuals.
 The spatial linear model fit to the residuals can incorporate
 a variety of estimation methods, allowing for random effects,
-partition factors, and row standardization."><title>Fit random forest spatial residual models — spautorRF • spmodel</title><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous"><!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Fit random forest spatial residual models — spautorRF"><meta property="og:description" content="Fit random forest residual spatial linear models
+partition factors, and row standardization."><title>Fit random forest spatial residual models — spautorRF • spmodel</title><!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png"><link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png"><link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png"><link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png"><link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png"><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous"><!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Fit random forest spatial residual models — spautorRF"><meta property="og:description" content="Fit random forest residual spatial linear models
 for areal data (i.e., spatial autoregressive models) using
 random forest to fit the mean and a spatial linear model to fit the residuals.
 The spatial linear model fit to the residuals can incorporate
 a variety of estimation methods, allowing for random effects,
-partition factors, and row standardization."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
+partition factors, and row standardization."><meta property="og:image" content="/logo.png"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]--></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
@@ -35,9 +35,9 @@ partition factors, and row standardization."><!-- mathjax --><script src="https:
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/guide.html">A Detailed Guide to spmodel</a>
+    <a class="dropdown-item" href="../articles/introduction.html">An Introduction to spmodel</a>
     <a class="dropdown-item" href="../articles/SPGLMs.html">Spatial Generalized Linear Models in spmodel</a>
     <a class="dropdown-item" href="../articles/technical.html">Technical Details</a>
-    <a class="dropdown-item" href="../articles/introduction.html">An Introduction to spmodel</a>
   </div>
 </li>
 <li class="nav-item">
@@ -59,7 +59,7 @@ partition factors, and row standardization."><!-- mathjax --><script src="https:
 </nav><div class="container template-reference-topic">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>Fit random forest spatial residual models</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Fit random forest spatial residual models</h1>
       <small class="dont-index">Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/R/spautorRF.R" class="external-link"><code>R/spautorRF.R</code></a></small>
       <div class="d-none name"><code>spautorRF.Rd</code></div>
     </div>
@@ -97,7 +97,7 @@ are taken as the centroids of each polygon.</p></dd>
 
 
 <dt>...</dt>
-<dd><p>Additional named arguments to <code><a href="https://rdrr.io/pkg/ranger/man/ranger.html" class="external-link">ranger::ranger()</a></code> or <code><a href="spautor.html">spautor()</a></code>.</p></dd>
+<dd><p>Additional named arguments to <code><a href="http://imbs-hl.github.io/ranger/reference/ranger.html" class="external-link">ranger::ranger()</a></code> or <code><a href="spautor.html">spautor()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -127,7 +127,7 @@ and contains several objects, each with class <code>spautor</code>.</p>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The random forest residual spatial linear model is described by
 Fox et al. (2020). A random forest model is fit to the mean portion of the
-model specified by <code>formula</code> using <code><a href="https://rdrr.io/pkg/ranger/man/ranger.html" class="external-link">ranger::ranger()</a></code>. Residuals
+model specified by <code>formula</code> using <code><a href="http://imbs-hl.github.io/ranger/reference/ranger.html" class="external-link">ranger::ranger()</a></code>. Residuals
 are computed and used as the response variable in an intercept-only spatial
 linear model fit using <code><a href="spautor.html">spautor()</a></code>. This model object is intended for use with
 <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> to perform prediction, also called random forest
@@ -147,15 +147,15 @@ regression to random forests for large environmental data sets.
 <span class="r-in"><span><span class="va">sprfmod</span> <span class="op">&lt;-</span> <span class="fu">spautorRF</span><span class="op">(</span><span class="va">log_trend</span> <span class="op">~</span> <span class="va">var</span>, data <span class="op">=</span> <span class="va">seal</span>, spcov_type <span class="op">=</span> <span class="st">"car"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">sprfmod</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            1            9           13           15           18           19 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.047560844  0.063245303 -0.035318981  0.007805814 -0.035086249 -0.022768385 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.147344103 -0.138405051 -0.011891639 -0.141375808 -0.084577294 -0.001499124 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           27           32           36           40           42           43 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.015337128 -0.197452009 -0.012918855 -0.032428345 -0.087973916  0.008595976 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.199750988 -0.144013554 -0.248034296 -0.029724767 -0.123418491 -0.098171192 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           44           46           47           48           49           50 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.200895509 -0.074365042 -0.012440013 -0.025842967 -0.162211600 -0.101897529 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.204540119 -0.031879810 -0.027224903 -0.029509110 -0.249278638 -0.015850569 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           51           52           53           54           55           56 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.022099198  0.014858151 -0.036807223  0.023241791 -0.030652813  0.013857662 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.256385467 -0.119217064 -0.014864672 -0.245008427 -0.177209551 -0.035233529 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           57           58           61           62 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.030180964 -0.022308774 -0.087930238 -0.012911933 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.003925909 -0.003416378 -0.015022604 -0.148288372 </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
@@ -164,11 +164,11 @@ regression to random forests for large environmental data sets.
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Michael Dumelle, Matt Higham, Jay M. Ver Hoef.</p>
+  <p>Developed by Michael Dumelle, Matt Higham, Jay M. Ver Hoef.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
 </div>
 
     </footer></div>

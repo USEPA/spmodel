@@ -1,10 +1,10 @@
 pandoc: 2.19.2
-pkgdown: 2.0.7
+pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
   guide: guide.html
+  introduction: introduction.html
   SPGLMs: SPGLMs.html
   technical: technical.html
-  introduction: introduction.html
-last_built: 2024-04-17T14:53Z
+last_built: 2024-04-29T17:19Z
 

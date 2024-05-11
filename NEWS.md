@@ -3,6 +3,7 @@
 ## Minor Updates
 
 * Added `AUC()`  functions to compute AUC values for `spglm()` and `spgautor()` models when `family` is `"binomial"` and the response is binary (i.e., represents a single success or failure).
+* Added a `type` argument to `loocv()` when `cv_predict = TRUE` and using `spglm()` or `spgautor()` models so that predictions may be obtained on the link or response scale.
 
 # spmodel 0.6.0
 

@@ -85,6 +85,7 @@ test_that("generics work spglm point data", {
 
   # loocv
   expect_vector(loocv(spmod1))
+  expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
 
   # model.frame
@@ -236,6 +237,7 @@ test_that("generics work spglm point data with missing", {
 
   # loocv
   expect_vector(loocv(spmod1))
+  expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
 
   # model.frame
@@ -386,6 +388,7 @@ test_that("generics work spglm polygon data with missing", {
 
   # loocv
   expect_vector(loocv(spmod1))
+  expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
 
   # model.frame

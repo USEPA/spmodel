@@ -1,8 +1,15 @@
+#' @param type The scale (\code{response} or \code{link}) of predictions obtained
+#'   when \code{cv_predict = TRUE} and using \code{spglm()} or \code{spgautor} objects.
 #' @rdname loocv
 #' @method loocv spglm
 #' @order 4
 #' @export
-loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
+loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, local, ...) {
+
+
+  # match type argument so the two display
+  type <- match.arg(type)
+
   if (missing(local)) {
     local <- NULL
   }
@@ -123,7 +130,13 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
     loocv_out$stats <- loocv_stats
 
     if (cv_predict) {
-      loocv_out$cv_predict <- cv_predict_val
+      if (type == "link") {
+        loocv_out$cv_predict <- cv_predict_val
+      } else if (type == "response") {
+        loocv_out$cv_predict <- cv_predict_val_invlink
+      } else {
+        stop("Invalid type argument.", call. = FALSE)
+      }
     }
 
     if (se.fit) {
@@ -153,7 +166,11 @@ loocv.spglm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) 
 #' @method loocv spgautor
 #' @order 5
 #' @export
-loocv.spgautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
+loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, local, ...) {
+
+  # match type argument so the two display
+  type <- match.arg(type)
+
   if (missing(local)) {
     local <- NULL
   }
@@ -235,7 +252,13 @@ loocv.spgautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ..
     loocv_out$stats <- loocv_stats
 
     if (cv_predict) {
-      loocv_out$cv_predict <- cv_predict_val
+      if (type == "link") {
+        loocv_out$cv_predict <- cv_predict_val
+      } else if (type == "response") {
+        loocv_out$cv_predict <- cv_predict_val_invlink
+      } else {
+        stop("Invalid type argument.", call. = FALSE)
+      }
     }
 
     if (se.fit) {

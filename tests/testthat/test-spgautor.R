@@ -79,6 +79,7 @@ test_that("generics work spgautor polygon data", {
 
   # loocv
   expect_vector(loocv(spmod1))
+  expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
 
   # model.frame
@@ -217,6 +218,7 @@ test_that("generics work spgautor polygon data with missing", {
 
   # loocv
   expect_vector(loocv(spmod1))
+  expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
 
   # model.frame
@@ -359,6 +361,7 @@ test_that("generics work spgautor polygon data unconnected", {
 
   # loocv
   expect_vector(loocv(spmod1))
+  expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
 
   # model.frame

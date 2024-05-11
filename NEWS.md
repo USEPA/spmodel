@@ -1,3 +1,9 @@
+# spmodel 0.7.0
+
+## Minor Updates
+
+* Added `AUC()`  functions to compute AUC values for `spglm()` and `spgautor()` models when `family` is `"binomial"` and the response is binary (i.e., represents a single success or failure).
+
 # spmodel 0.6.0
 
 ## Minor Updates

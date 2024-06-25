@@ -27,17 +27,17 @@ if (test_local) {
   test_that("the model runs for binomial data", {
     spgmod <- spglm(bern ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml")
     expect_s3_class(spgmod, "spglm")
-    expect_vector(AUC(spgmod))
+    expect_vector(AUROC(spgmod))
     spgmod <- spglm(bernfac ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml")
     expect_s3_class(spgmod, "spglm")
-    expect_vector(AUC(spgmod))
+    expect_vector(AUROC(spgmod))
     expect_error(spglm(bernfac ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml"), NA)
     spgmod <- spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml")
     expect_s3_class(spgmod, "spglm")
-    expect_error(AUC(spgmod))
+    expect_error(AUROC(spgmod))
     spgmod <- spglm(y > 0 ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml")
     expect_s3_class(spgmod, "spglm")
-    expect_vector(AUC(spgmod))
+    expect_vector(AUROC(spgmod))
 
 
     # complicated models
@@ -63,7 +63,7 @@ if (test_local) {
   test_that("the model runs for count data", {
     spgmod <- spglm(count ~ x, family = poisson, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "reml")
     expect_s3_class(spgmod, "spglm")
-    expect_error(AUC(spgmod))
+    expect_error(AUROC(spgmod))
     expect_error(spglm(count ~ x, family = "nbinomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml"), NA)
 
     # complicated models

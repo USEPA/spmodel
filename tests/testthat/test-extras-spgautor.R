@@ -36,7 +36,7 @@ if (test_local) {
   test_that("the model runs for binomial data", {
     spgmod <- spgautor(bern ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml")
     expect_s3_class(spgmod, "spgautor")
-    expect_vector(AUC(spgmod))
+    expect_vector(AUROC(spgmod))
     expect_error(spgautor(bern ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml", range_positive = FALSE), NA)
     expect_error(spgautor(bernfac ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "ml"), NA)
     expect_error(spgautor(cbind(bin, size) ~ x, family = "binomial", data = exdata_poly, spcov_type = "sar", estmethod = "reml"), NA)
@@ -44,7 +44,7 @@ if (test_local) {
     # need to implement a diagonal tolerance for gautor models
     # expect_error(spgautor(cbind(bin, size) ~ x, family = "binomial", data = exdata_poly, spcov_type = "sar", estmethod = "reml"), NA)
     spgmod <- spgautor(bern ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml")
-    expect_vector(AUC(spgmod))
+    expect_vector(AUROC(spgmod))
 
     # complicated models
     expect_error(spgautor(bern ~ x,
@@ -84,7 +84,7 @@ if (test_local) {
   test_that("the model runs for count data", {
     spgmod <- spgautor(count ~ x, family = poisson, data = exdata_poly, spcov_type = "sar", estmethod = "reml")
     expect_s3_class(spgmod, "spgautor")
-    expect_error(AUC(spgmod))
+    expect_error(AUROC(spgmod))
     expect_error(spgautor(count ~ x, family = "nbinomial", data = exdata_poly, spcov_type = "car", estmethod = "ml"), NA)
     expect_error(spgautor(count ~ x, family = "nbinomial", data = exdata_poly, spcov_type = "car", estmethod = "ml", range_positive = FALSE), NA)
 

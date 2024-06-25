@@ -851,6 +851,13 @@ where $\mathbf{G}_a$ is the Hessian evaluated at $\mathbf{a}$ and $|\cdot|$ is t
 
 `AIC()` and `AICc()` for spatial generalized linear models is defined the same as for spatial linear models.
 
+## `AUROC()` {#sec:auroc}
+
+`AUROC()` is the area under the receiver operating characteristic curve and is relevant for binomial (i.e., logistic) regression models where each response represents a single success or failure (i.e.., is binary). The AUROC ranges from zero to one and is a measure of the model's
+classification accuracy averaged over all possible threshold values. More formally,
+it represents the probability that a randomly chosen success (datum value of one) has
+a larger fitted value than the fitted value of a randomly chosen failure (datum value of zero), with an adjustment for ties in the fitted values [@muschelli2020roc]. `AUROC()` in `spmodel` leverages the `auc()` function in `pROC` @robin2011proc. For more on the AUROC, see @hanley1982meaning and @fawcett2006introduction.
+
 ## `anova()` {#sec:anova-glm}
 
 `anova()` for spatial generalized linear models is defined the same as for spatial linear models.

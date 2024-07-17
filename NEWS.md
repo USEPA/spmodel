@@ -9,6 +9,7 @@
 * Minor external data updates (for package testing).
 * Minor vignette updates.
 * Minor documentation updates.
+* Minor error message updates.
 
 # spmodel 0.6.0
 

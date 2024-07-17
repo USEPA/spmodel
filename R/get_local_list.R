@@ -66,7 +66,13 @@ get_local_list_estimation <- function(local, data, xcoord, ycoord, n, partition_
 
   # setting var adjust
   if (!"var_adjust" %in% names_local) {
-    local$var_adjust <- "theoretical"
+    if (n <= 100000) {
+      local$var_adjust <- "theoretical"
+    } else {
+      message('var_adjust was not specified and the sample size exceeds 100,000, so the default var_adjust value is being changed from "theoretical" to "none". To override this behavior, rerun and set var_adjust in local. Be aware that setting var_adjust to "theoretical" may result in exceedingly long computational times.')
+      local$var_adjust <- "none"
+    }
+
   } # "none", "empirical", "theoretical", and "pooled"
 
   # setting partition factor

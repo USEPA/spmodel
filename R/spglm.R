@@ -109,7 +109,8 @@
 #'       matrix of the fixed effects. \code{"none"} for no adjustment, \code{"theoretical"}
 #'       for the theoretically-correct adjustment,
 #'       \code{"pooled"} for the pooled adjustment, and \code{"empirical"} for the
-#'       empirical adjustment. The default is \code{"theoretical"}.
+#'       empirical adjustment. The default is \code{"theoretical"} for samples sizes
+#'       up to 100,000 and \code{"none"} for samples sizes exceeding 100,000.
 #'     \item \code{parallel}: If \code{TRUE}, parallel processing via the
 #'       parallel package is automatically used. The default is \code{FALSE}.
 #'     \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to

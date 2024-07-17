@@ -7,9 +7,13 @@ test_that("generics work splm point data", {
   spmod1 <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
   spmod2 <- splm(y ~ x, exdata, spcov_type = "none", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
 
-  # AIC
+  # AIC, AICc, BIC
   expect_vector(AIC(spmod1))
   expect_s3_class(AIC(spmod1, spmod2), "data.frame") # turn reml fixed effects warning off
+  expect_vector(AICc(spmod1))
+  expect_s3_class(AICc(spmod1, spmod2), "data.frame")
+  expect_vector(BIC(spmod1))
+  expect_s3_class(BIC(spmod1, spmod2), "data.frame")
 
   # anova
   expect_s3_class(anova(spmod1), "data.frame")
@@ -150,9 +154,13 @@ test_that("generics work splm point data with missing", {
   spmod1 <- splm(y ~ x, exdata_M, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
   spmod2 <- splm(y ~ x, exdata_M, spcov_type = "none", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
 
-  # AIC
+  # AIC, AICc, BIC
   expect_vector(AIC(spmod1))
   expect_s3_class(AIC(spmod1, spmod2), "data.frame") # turn reml fixed effects warning off
+  expect_vector(AICc(spmod1))
+  expect_s3_class(AICc(spmod1, spmod2), "data.frame")
+  expect_vector(BIC(spmod1))
+  expect_s3_class(BIC(spmod1, spmod2), "data.frame")
 
   # anova
   expect_s3_class(anova(spmod1), "data.frame")

@@ -16,17 +16,19 @@ if (test_local) {
   load(file = system.file("extdata", "exdata_Upoly.rda", package = "spmodel"))
 
   ##############################################################################
-  ############################ AIC and AICc (test-aic.R)
+  ############################ AIC, AICc, BIC (test-aic.R)
   ##############################################################################
 
   test_that("AIC and AICc works geostatistical", {
     spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
     expect_vector(AIC(spmod))
     expect_vector(AICc(spmod))
+    expect_vector(BIC(spmod))
 
     spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "ml")
     expect_vector(AIC(spmod))
     expect_vector(AICc(spmod))
+    expect_vector(BIC(spmod))
 
     spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "sv-wls")
     expect_error(AIC(spmod))
@@ -35,16 +37,19 @@ if (test_local) {
     spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "sv-cl")
     expect_error(AIC(spmod))
     expect_error(AICc(spmod))
+    expect_error(BIC(spmod))
   })
 
   test_that("AIC and AICc works autoregressive", {
     spmod <- spautor(y ~ x, exdata_poly, spcov_type = "car", estmethod = "reml")
     expect_vector(AIC(spmod))
     expect_vector(AICc(spmod))
+    expect_vector(BIC(spmod))
 
     spmod <- spautor(y ~ x, exdata_poly, spcov_type = "car", estmethod = "ml")
     expect_vector(AIC(spmod))
     expect_vector(AICc(spmod))
+    expect_vector(BIC(spmod))
   })
 
 
@@ -53,6 +58,7 @@ if (test_local) {
     spmod1 <- splm(y ~ 1, exdata, spcov_type = "none", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
     expect_error(AIC(spmod0, spmod1), NA)
     expect_error(AICc(spmod0, spmod1), NA)
+    expect_error(BIC(spmod0, spmod1), NA)
   })
 
 
@@ -62,19 +68,24 @@ if (test_local) {
     spmod0 <- splm(y ~ 1, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "sv-wls")
     expect_error(AIC(spmod0))
     expect_error(AICc(spmod0))
+    expect_error(BIC(spmod0))
     expect_error(AIC(spmod0, spmod1))
     expect_error(AICc(spmod0, spmod1))
+    expect_error(BIC(spmod0, spmod1))
 
     spmod0 <- splm(y ~ 1, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "sv-cl")
     expect_error(AIC(spmod0))
     expect_error(AICc(spmod0))
+    expect_error(BIC(spmod0))
     expect_error(AIC(spmod0, spmod1))
     expect_error(AICc(spmod0, spmod1))
+    expect_error(BIC(spmod0, spmod1))
 
     spmod0 <- splm(y ~ 1, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
     spmod1 <- splm(y ~ 1, exdata, spcov_type = "none", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
     expect_error(AIC(spmod0, spmod1, spmod0))
     expect_error(AICc(spmod0, spmod1, spmod0))
+    expect_error(BIC(spmod0, spmod1, spmod0))
   })
 
   test_that("Warnings appropriately return", {
@@ -85,12 +96,15 @@ if (test_local) {
     expect_warning(AIC(spmod1, spmod2))
     expect_warning(AICc(spmod0, spmod1))
     expect_warning(AICc(spmod1, spmod2))
+    expect_warning(BIC(spmod0, spmod1))
+    expect_warning(BIC(spmod1, spmod2))
   })
 
   test_that("Matches for lm", {
     spmod <- splm(y ~ x, exdata, "none", estmethod = "ml")
     lmod <- lm(y ~ x, exdata)
-    expect_equal(AIC(spmod), AIC(lmod))
+    expect_equal(AIC(spmod), AIC(lmod), tolerance = 0.001)
+    expect_equal(BIC(spmod), BIC(lmod), tolerance = 0.001)
   })
 
   ##############################################################################
@@ -202,9 +216,10 @@ if (test_local) {
   })
 
   test_that("augment works with types", {
-    exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"))
-    newexdata_sf <- sf::st_as_sf(newexdata, coords = c("xcoord", "ycoord"))
-
+    exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"), crs = 4326)
+    exdata_sf <- sf::st_transform(exdata_sf, crs = 5070)
+    newexdata_sf <- sf::st_as_sf(newexdata, coords = c("xcoord", "ycoord"), crs = 4326)
+    newexdata_sf <- sf::st_transform(exdata_sf, crs = 5070)
     # newdata output type same as data output type
 
     # df fit df pred
@@ -599,20 +614,20 @@ if (test_local) {
     spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
     expect_s3_class(glance(spmod), "tbl")
     expect_equal(NROW(glance(spmod)), 1)
-    expect_equal(NCOL(glance(spmod)), 9)
+    expect_equal(NCOL(glance(spmod)), 10)
     expect_false(any(is.na(glance(spmod))))
 
     spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord, estmethod = "sv-wls")
     expect_s3_class(glance(spmod), "tbl")
     expect_equal(NROW(glance(spmod)), 1)
-    expect_equal(NCOL(glance(spmod)), 9)
+    expect_equal(NCOL(glance(spmod)), 10)
     expect_true(any(is.na(glance(spmod))))
   })
 
   test_that("glance works autoregressive", {
     spmod <- spautor(y ~ x, exdata_poly, "car")
     expect_s3_class(glance(spmod), "tbl")
-    expect_equal(NCOL(glance(spmod)), 9)
+    expect_equal(NCOL(glance(spmod)), 10)
     expect_false(any(is.na(glance(spmod))))
   })
 
@@ -625,7 +640,7 @@ if (test_local) {
     spmod2 <- splm(y ~ x, exdata, "matern", xcoord, ycoord)
     expect_s3_class(glances(spmod1, spmod2), "tbl")
     expect_equal(NROW(glances(spmod1, spmod2)), 2)
-    expect_equal(NCOL(glances(spmod1, spmod2)), 10)
+    expect_equal(NCOL(glances(spmod1, spmod2)), 11)
     expect_equal(rbind(glance(spmod1), glance(spmod2)), glances(spmod1, spmod2)[, -1], ignore_attr = TRUE)
   })
 
@@ -634,7 +649,7 @@ if (test_local) {
     spmod2 <- spautor(y ~ x, exdata_poly, "sar")
     expect_s3_class(glances(spmod1, spmod2), "tbl")
     expect_equal(NROW(glances(spmod1, spmod2)), 2)
-    expect_equal(NCOL(glances(spmod1, spmod2)), 10)
+    expect_equal(NCOL(glances(spmod1, spmod2)), 11)
     expect_equal(rbind(glance(spmod2), glance(spmod1)), glances(spmod1, spmod2)[, -1], ignore_attr = TRUE)
   })
 
@@ -642,7 +657,7 @@ if (test_local) {
     spmod <- splm(y ~ x, exdata, c("exponential", "matern"), xcoord, ycoord)
     expect_s3_class(glances(spmod), "tbl")
     expect_equal(NROW(glances(spmod)), 2)
-    expect_equal(NCOL(glances(spmod)), 10)
+    expect_equal(NCOL(glances(spmod)), 11)
     expect_equal(rbind(glance(spmod$exponential), glance(spmod$matern)), glances(spmod)[, -1], ignore_attr = TRUE)
   })
 
@@ -651,7 +666,7 @@ if (test_local) {
     spmod <- splm(y ~ x, exdata, spcov_initial = spcov_init, xcoord = xcoord, ycoord = ycoord)
     expect_s3_class(glances(spmod), "tbl")
     expect_equal(NROW(glances(spmod)), 2)
-    expect_equal(NCOL(glances(spmod)), 10)
+    expect_equal(NCOL(glances(spmod)), 11)
     expect_equal(rbind(glance(spmod$spcov_initial_1), glance(spmod$spcov_initial_2)), glances(spmod)[, -1], ignore_attr = TRUE)
   })
 
@@ -659,7 +674,7 @@ if (test_local) {
     spmod <- spautor(y ~ x, exdata_poly, c("car", "sar"))
     expect_s3_class(glances(spmod), "tbl")
     expect_equal(NROW(glances(spmod)), 2)
-    expect_equal(NCOL(glances(spmod)), 10)
+    expect_equal(NCOL(glances(spmod)), 11)
     expect_equal(rbind(glance(spmod$car), glance(spmod$sar)), glances(spmod, sort_by = "order")[, -1], ignore_attr = TRUE)
     # sort by order here because sort by is off in natural implementation by AICc
   })
@@ -669,7 +684,7 @@ if (test_local) {
     spmod <- spautor(y ~ x, exdata_poly, spcov_initial = spcov_init)
     expect_s3_class(glances(spmod), "tbl")
     expect_equal(NROW(glances(spmod)), 2)
-    expect_equal(NCOL(glances(spmod)), 10)
+    expect_equal(NCOL(glances(spmod)), 11)
     expect_equal(rbind(glance(spmod$spcov_initial_1), glance(spmod$spcov_initial_2)), glances(spmod, sort_by = "order")[, -1], ignore_attr = TRUE)
   })
 

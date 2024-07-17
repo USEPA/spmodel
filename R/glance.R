@@ -14,12 +14,13 @@
 #'     \item \code{n} The sample size.
 #'     \item \code{p} The number of fixed effects.
 #'     \item \code{npar} The number of estimated covariance parameters.
-#'     \item \code{value} The optimized value of the fitting function
+#'     \item \code{value} The optimized value of the fitting function.
 #'     \item \code{AIC} The AIC.
 #'     \item \code{AICc} The AICc.
-#'     \item \code{logLik} The log-likelihood
+#'     \item \code{BIC} The BIC.
+#'     \item \code{logLik} The log-likelihood.
 #'     \item \code{deviance} The deviance.
-#'     \item \code{pseudo.r.squared} The pseudo r-squared
+#'     \item \code{pseudo.r.squared} The pseudo r-squared.
 #'   }
 #'
 #' @name glance.spmodel
@@ -27,7 +28,7 @@
 #' @order 1
 #' @export
 #'
-#' @seealso [AIC.spmodel()] [AICc()] [logLik.spmodel()] [deviance.spmodel()] [pseudoR2()] [tidy.spmodel()] [augment.spmodel()]
+#' @seealso [AIC.spmodel()] [AICc()] [BIC.spmodel()] [logLik.spmodel()] [deviance.spmodel()] [pseudoR2()] [tidy.spmodel()] [augment.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,
@@ -44,6 +45,7 @@ glance.splm <- function(x, ...) {
     value = x$optim$value,
     AIC = ifelse(is_likbased, AIC(x), NA),
     AICc = ifelse(is_likbased, AICc(x), NA),
+    BIC = ifelse(is_likbased, BIC(x), NA),
     logLik = ifelse(is_likbased, logLik(x), NA),
     deviance = ifelse(is_likbased, deviance(x), NA),
     pseudo.r.squared = pseudoR2(x),

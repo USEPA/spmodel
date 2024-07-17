@@ -3,7 +3,12 @@
 ## Minor Updates
 
 * Added `AUROC()`  functions to compute the area under the receiver operating characteristic (AUROC) curve for `spglm()` and `spgautor()` models when `family` is `"binomial"` and the response is binary (i.e., represents a single success or failure).
+* Added a `BIC()` function to compute the Bayesian Information Criterion (BIC) for `splm()`, `spautor()`, `spglm()`, and `spgautor()` models when `estmethod` is `"reml"` (restricted maximum likelihood; the default) or `"ml"` (maximum likelihood).
 * Added a `type` argument to `loocv()` when `cv_predict = TRUE` and using `spglm()` or `spgautor()` models so that predictions may be obtained on the link or response scale.
+* Added a warning message when `data` is an `sf` object and a geographic (i.e., degrees) coordinate system is used instead of a projected coordinate system.
+* Minor external data updates (for package testing).
+* Minor vignette updates.
+* Minor documentation updates.
 
 # spmodel 0.6.0
 

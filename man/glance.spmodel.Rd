@@ -27,12 +27,13 @@ A single-row tibble with columns
 \item \code{n} The sample size.
 \item \code{p} The number of fixed effects.
 \item \code{npar} The number of estimated covariance parameters.
-\item \code{value} The optimized value of the fitting function
+\item \code{value} The optimized value of the fitting function.
 \item \code{AIC} The AIC.
 \item \code{AICc} The AICc.
-\item \code{logLik} The log-likelihood
+\item \code{BIC} The BIC.
+\item \code{logLik} The log-likelihood.
 \item \code{deviance} The deviance.
-\item \code{pseudo.r.squared} The pseudo r-squared
+\item \code{pseudo.r.squared} The pseudo r-squared.
 }
 }
 \description{
@@ -50,5 +51,5 @@ spmod <- splm(z ~ water + tarp,
 glance(spmod)
 }
 \seealso{
-\code{\link[=AIC.spmodel]{AIC.spmodel()}} \code{\link[=AICc]{AICc()}} \code{\link[=logLik.spmodel]{logLik.spmodel()}} \code{\link[=deviance.spmodel]{deviance.spmodel()}} \code{\link[=pseudoR2]{pseudoR2()}} \code{\link[=tidy.spmodel]{tidy.spmodel()}} \code{\link[=augment.spmodel]{augment.spmodel()}}
+\code{\link[=AIC.spmodel]{AIC.spmodel()}} \code{\link[=AICc]{AICc()}} \code{\link[=BIC.spmodel]{BIC.spmodel()}} \code{\link[=logLik.spmodel]{logLik.spmodel()}} \code{\link[=deviance.spmodel]{deviance.spmodel()}} \code{\link[=pseudoR2]{pseudoR2()}} \code{\link[=tidy.spmodel]{tidy.spmodel()}} \code{\link[=augment.spmodel]{augment.spmodel()}}
 }

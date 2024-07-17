@@ -135,6 +135,14 @@ A second approach to determining p-values is a likelihood ratio test. Let $\ell(
 
 For restricted maximum likelihood estimation, likelihood ratio tests can only be used to compare nested models with the same explanatory variables. To use likelihood ratio tests for comparing different explanatory variable structures, parameters must be estimated using maximum likelihood estimation. When using likelihood ratio tests to assess the importance of parameters on the boundary of a parameter space (e.g., a variance parameter being zero), p-values tend to be too large [@self1987asymptotic; @stram1994variance; @goldman2000statistical; @pinheiro2006mixed].
 
+## `BIC()` {#sec:bic-lm}
+
+The `BIC()` function in `spmodel` is defined for restricted maximum likelihood and maximum likelihood estimation, which maximize a likelihood. The BIC as defined by @schwarz1978estimating is given by \begin{equation*}\label{eq:sp_aic}
+    \text{BIC} & = -2\ell(\hat{\boldsymbol{\Theta}}) + \ln(n)(|\hat{\boldsymbol{\Theta}}|)  \\
+\end{equation*} where $n$ is the sample size and $|\hat{\boldsymbol{\Theta}}|$ is the cardinality of $\hat{\boldsymbol{\Theta}}$. For restricted maximum likelihood, $\hat{\boldsymbol{\Theta}} \equiv \{\hat{\boldsymbol{\theta}}\}$. For maximum likelihood, $\hat{\boldsymbol{\Theta}} \equiv \{\hat{\boldsymbol{\theta}}, \hat{\boldsymbol{\beta}}\}$ The discrepancy arises because restricted maximum likelihood integrates the fixed effects out of the likelihood, and so the likelihood does not depend on $\boldsymbol{\beta}$.
+
+BIC comparisons between a model fit using restricted maximum likelihood and a model fit using maximum likelihood are meaningless, as the models are fit with different likelihoods. BIC comparisons between models fit using restricted maximum likelihood are only valid when the models have the same fixed effect structure. In contrast, BIC comparisons between models fit using maximum likelihood are valid when the models have different fixed effect structures. While BIC was derived by @schwarz1978estimating for independent data, @zimmerman2024spatial show it can be useful for spatially-dependent data as well.
+
 ## `coef()` {#sec:coef-lm}
 
 `coef()` returns relevant coefficients based on the `type` argument. When `type = "fixed"` (the default), `coef()` returns \begin{equation*}
@@ -851,6 +859,10 @@ where $\mathbf{G}_a$ is the Hessian evaluated at $\mathbf{a}$ and $|\cdot|$ is t
 
 `AIC()` and `AICc()` for spatial generalized linear models is defined the same as for spatial linear models.
 
+## `anova()` {#sec:anova-glm}
+
+`anova()` for spatial generalized linear models is defined the same as for spatial linear models.
+
 ## `AUROC()` {#sec:auroc}
 
 `AUROC()` is the area under the receiver operating characteristic curve and is relevant for binomial (i.e., logistic) regression models where each response represents a single success or failure (i.e.., is binary). The AUROC ranges from zero to one and is a measure of the model's
@@ -858,9 +870,9 @@ classification accuracy averaged over all possible threshold values. More formal
 it represents the probability that a randomly chosen success (datum value of one) has
 a larger fitted value than the fitted value of a randomly chosen failure (datum value of zero), with an adjustment for ties in the fitted values [@muschelli2020roc]. `AUROC()` in `spmodel` leverages the `auc()` function in `pROC` @robin2011proc. For more on the AUROC, see @hanley1982meaning and @fawcett2006introduction.
 
-## `anova()` {#sec:anova-glm}
+## `BIC()` {#sec:bic-glm}
 
-`anova()` for spatial generalized linear models is defined the same as for spatial linear models.
+`BIC()` for spatial generalized linear models is defined the same as for spatial linear models.
 
 ## `coef()` {#sec:coef-glm}
 

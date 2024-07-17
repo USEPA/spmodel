@@ -270,7 +270,7 @@
 #'   the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
 #'   length one, the list has class \code{spglm}. Many generic functions that
 #'   summarize model fit are available for \code{spglm} objects, including
-#'   \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
+#'   \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{AUROC}, \code{BIC}, \code{coef},
 #'   \code{cooks.distance}, \code{covmatrix}, \code{deviance}, \code{fitted}, \code{formula},
 #'   \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
 #'   \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},

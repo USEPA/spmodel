@@ -137,9 +137,13 @@ test_that("generics work spautor polygon data with missing", {
   spmod1 <- spautor(y ~ x, exdata_Mpoly, spcov_type = "car", estmethod = "reml")
   spmod2 <- spautor(y ~ x, exdata_Mpoly, spcov_type = "sar", estmethod = "reml")
 
-  # AIC
+  # AIC, AICc, BIC
   expect_vector(AIC(spmod1))
   expect_s3_class(AIC(spmod1, spmod2), "data.frame") # turn reml fixed effects warning off
+  expect_vector(AICc(spmod1))
+  expect_s3_class(AICc(spmod1, spmod2), "data.frame")
+  expect_vector(BIC(spmod1))
+  expect_s3_class(BIC(spmod1, spmod2), "data.frame")
 
   # anova
   expect_s3_class(anova(spmod1), "data.frame")
@@ -275,9 +279,13 @@ test_that("generics work spautor polygon data unconnected", {
   spmod1 <- spautor(y ~ x, exdata_Upoly, spcov_type = "car", estmethod = "reml")
   spmod2 <- spautor(y ~ x, exdata_Upoly, spcov_type = "sar", estmethod = "reml")
 
-  # AIC
+  # AIC, AICc, BIC
   expect_vector(AIC(spmod1))
   expect_s3_class(AIC(spmod1, spmod2), "data.frame") # turn reml fixed effects warning off
+  expect_vector(AICc(spmod1))
+  expect_s3_class(AICc(spmod1, spmod2), "data.frame")
+  expect_vector(BIC(spmod1))
+  expect_s3_class(BIC(spmod1, spmod2), "data.frame")
 
   # anova
   expect_s3_class(anova(spmod1), "data.frame")

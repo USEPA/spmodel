@@ -205,7 +205,7 @@ structures. It is a frequentist approach, which means that it does not
 rely on any Bayesian sampling routines, as is common when handling
 complex hierarchical structures. It also formally maximizes a
 likelihood, which is advantageous because it means that likelihood-based
-statistics such as AIC [@akaike1974new; @hoeting2006model] are defined,
+statistics such as AIC [@akaike1974new; @hoeting2006model] and BIC [@schwarz1978estimating] are defined,
 in contrast to approaches that only specify the first two moments of a
 distribution (e.g., quasi-likelihood fit via iteratively re-weighted
 least squares). @ver2023marginal provide the methodology's full details.
@@ -291,7 +291,7 @@ purposes, and their main argument is the fitted model object returned by
 are meant to be illustrative, describing the purpose of the function
 itself. The functions for evaluating model fit
 (see below) return likelihood-based
-statistics like AIC, AICc, and deviance [@mccullagh1989generalized],
+statistics like AIC, AICc, BIC, and deviance [@mccullagh1989generalized],
 return coefficient estimates and confidence intervals, perform cross
 validation, and more. 
 
@@ -299,6 +299,7 @@ validation, and more.
 |------|------|
 | $\texttt{AIC()}$; $\texttt{AICc()}$ | Return AIC and AICc   | 
 | $\texttt{anova()}$ | Perform an analysis of variance |
+| $\texttt{BIC()}$ | Return BIC   | 
 | $\texttt{coef()}$; $\texttt{coefficients()}$ | Return parameter estimates   |
 | $\texttt{confint()}$ | Return confidence intervals  | 
 | $\texttt{covmatrix()}$ | Return the fitted covariance matrix   |

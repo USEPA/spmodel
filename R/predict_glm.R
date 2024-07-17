@@ -53,9 +53,10 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
 
   # deal with local
   if (is.null(local)) {
-    if (object$n > 5000 || NROW(newdata) > 5000) {
+    if (object$n > 10000) {
+    # if (object$n > 5000 || NROW(newdata) > 5000) {
       local <- TRUE
-      message("Because either the sample size of the fitted model object or the number of desired predictions exceeds 5000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun predict() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+      message("Because the sample size of the fitted model object exceeds 10,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun predict() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
     } else {
       local <- FALSE
     }

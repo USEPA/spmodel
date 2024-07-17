@@ -137,10 +137,14 @@ Other options are \code{"confidence"} (for confidence intervals) and
 \item{level}{Tolerance/confidence level. The default is \code{0.95}.}
 
 \item{local}{A optional logical or list controlling the big data approximation. If omitted, \code{local}
-is set to \code{TRUE} or \code{FALSE} based on the sample size of the fitted
-model object and/or the prediction size of \code{newdata} -- if the sample
-size or prediction size exceeds 5000, \code{local} is
-set to \code{TRUE}, otherwise it is set to \code{FALSE}. If \code{FALSE}, no big data approximation
+is set to \code{TRUE} or \code{FALSE} based on the observed data sample size (i.e., sample size of the fitted
+model object) -- if the sample size exceeds 10,000, \code{local} is
+set to \code{TRUE}, otherwise it is set to \code{FALSE}. This default behavior
+occurs because main computational
+burden of the big data approximation depends almost exclusively on the
+observed data sample size, not the number of predictions desired
+(which we feel is not intuitive at first glance).
+If \code{local} is \code{FALSE}, no big data approximation
 is implemented. If a list is provided, the following arguments detail the big
 data approximation:
 \itemize{
@@ -158,7 +162,10 @@ is \code{"covariance"}. Only used with models fit using \code{\link[=splm]{splm(
 is \code{"distance"} or \code{"covariance"}. The default is 100. Only used
 with models fit using \code{\link[=splm]{splm()}} or \code{\link[=spglm]{spglm()}}.
 \item \code{parallel}: If \code{TRUE}, parallel processing via the
-parallel package is automatically used. The default is \code{FALSE}.
+parallel package is automatically used. This can significantly speed
+up computations even when \code{method = "all"} (i.e., no big data
+approximation is used), as predictions
+are spread out over multiple cores. The default is \code{FALSE}.
 \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
 parallelize over. The default is the number of available cores on your machine.
 }

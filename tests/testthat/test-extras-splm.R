@@ -814,7 +814,8 @@ if (test_local) {
   test_that("the model runs for sf and sp objects", {
 
     # point data
-    exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"))
+    exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"), crs = 5070)
+    exdata_sf_geo <- sf::st_transform(exdata_sf_geo, crs = 4326)
 
     spcov_type <- "exponential"
     expect_error(splm(y ~ x, exdata_sf, spcov_type = spcov_type, estmethod = "reml"), NA)
@@ -848,6 +849,9 @@ if (test_local) {
     expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "ml"), NA)
     expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
     expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
+
+    # warning when geographic
+    expect_warning(splm(y ~ x, exdata_sf_geo, spcov_type = spcov_type, estmethod = "reml"))
   })
 
   test_that("extra covr checks", {

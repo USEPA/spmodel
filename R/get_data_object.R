@@ -89,6 +89,20 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     stop("Coordinates must be numeric.", call. = FALSE)
   }
 
+  # check if coordinates are projected
+  if (is_sf) {
+    if (st_is_longlat(crs)) {
+      warning("Coordinates are in a geographic coordinate system. For the most accurate results, please ensure
+            coordinates are in a projected coordinate system (e.g., via sf::st_transform()).", call. = FALSE)
+    }
+  } else {
+    # possible revisit this later and add explicit warning
+    # if (any(abs(c(data[[xcoord]], data[[ycoord]])) <= 360)) {
+    #   warning("Coordinates may be in a geographic coordinate system. For the most accurate results, please ensure
+    #         coordinates are in a projected coordinate system (e.g., via sf::st_transform()).", call. = FALSE)
+    # }
+  }
+
   # subsetting by na and not na values
   ## find response variabale name
   na_index <- is.na(data[[all.vars(formula)[1]]])

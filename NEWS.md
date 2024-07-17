@@ -12,6 +12,10 @@
 * Minor documentation updates.
 * Minor error message updates.
 
+## Bug Fixes
+
+* Fixed a bug that prohibited proper indexing when calling `predict()` with the `local` method `"distance"` on a model object fit with a random effect or partition factor.
+
 # spmodel 0.6.0
 
 ## Minor Updates

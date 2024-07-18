@@ -34,13 +34,17 @@ if (test_local) {
   Mvec <- 1 / W_rowsums # for row-standardized / as vector
 
   test_that("the model runs for binomial data", {
-    expect_error(spgautor(bern ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml"), NA)
+    spgmod <- spgautor(bern ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml")
+    expect_s3_class(spgmod, "spgautor")
+    expect_vector(AUROC(spgmod))
     expect_error(spgautor(bern ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml", range_positive = FALSE), NA)
     expect_error(spgautor(bernfac ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "ml"), NA)
     expect_error(spgautor(cbind(bin, size) ~ x, family = "binomial", data = exdata_poly, spcov_type = "sar", estmethod = "reml"), NA)
     # causes an error with ml estimation as de is near zero and ie is zero, which makes inverse unstable
     # need to implement a diagonal tolerance for gautor models
     # expect_error(spgautor(cbind(bin, size) ~ x, family = "binomial", data = exdata_poly, spcov_type = "sar", estmethod = "reml"), NA)
+    spgmod <- spgautor(bern ~ x, family = binomial, data = exdata_poly, spcov_type = "car", estmethod = "reml")
+    expect_vector(AUROC(spgmod))
 
     # complicated models
     expect_error(spgautor(bern ~ x,
@@ -78,7 +82,9 @@ if (test_local) {
   })
 
   test_that("the model runs for count data", {
-    expect_error(spgautor(count ~ x, family = poisson, data = exdata_poly, spcov_type = "sar", estmethod = "reml"), NA)
+    spgmod <- spgautor(count ~ x, family = poisson, data = exdata_poly, spcov_type = "sar", estmethod = "reml")
+    expect_s3_class(spgmod, "spgautor")
+    expect_error(AUROC(spgmod))
     expect_error(spgautor(count ~ x, family = "nbinomial", data = exdata_poly, spcov_type = "car", estmethod = "ml"), NA)
     expect_error(spgautor(count ~ x, family = "nbinomial", data = exdata_poly, spcov_type = "car", estmethod = "ml", range_positive = FALSE), NA)
 

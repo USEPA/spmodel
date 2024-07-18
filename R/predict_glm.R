@@ -53,9 +53,10 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
 
   # deal with local
   if (is.null(local)) {
-    if (object$n > 5000 || NROW(newdata) > 5000) {
+    if (object$n > 10000) {
+    # if (object$n > 5000 || NROW(newdata) > 5000) {
       local <- TRUE
-      message("Because either the sample size of the fitted model object or the number of desired predictions exceeds 5000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun predict() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+      message("Because the sample size of the fitted model object exceeds 10,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun predict() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
     } else {
       local <- FALSE
     }
@@ -482,18 +483,18 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
 
   dist_vector <- spdist_vectors(newdata_list$row, obdata, xcoord, ycoord, dim_coords)
 
-  # subsetting data if method distance
-  if (local$method == "distance") {
-    n <- length(dist_vector)
-    nn_index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
-    obdata <- obdata[nn_index, , drop = FALSE]
-    dist_vector <- dist_vector[, nn_index]
-    w <- w[nn_index]
-    y <- y[nn_index]
-    if (!is.null(size)) {
-      size <- size[nn_index]
-    }
-  }
+  # # subsetting data if method distance
+  # if (local$method == "distance") {
+  #   n <- length(dist_vector)
+  #   nn_index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
+  #   obdata <- obdata[nn_index, , drop = FALSE]
+  #   dist_vector <- dist_vector[, nn_index]
+  #   w <- w[nn_index]
+  #   y <- y[nn_index]
+  #   if (!is.null(size)) {
+  #     size <- size[nn_index]
+  #   }
+  # }
 
   # making random vector if necessary
   if (!is.null(randcov_params_val)) {
@@ -505,9 +506,24 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
   # making the covariance vector
   cov_vector_val <- cov_vector(spcov_params_val, dist_vector, randcov_vector_val, partition_vector)
 
+  # subsetting data if method distance
+  if (local$method == "distance") {
+    n <- length(cov_vector_val)
+    # want the smallest distance here and order goes from smallest first to largest last (keep last values with are smallest distance)
+    nn_index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
+    obdata <- obdata[nn_index, , drop = FALSE]
+    cov_vector_val <- cov_vector_val[nn_index]
+    w <- w[nn_index]
+    y <- y[nn_index]
+    if (!is.null(size)) {
+      size <- size[nn_index]
+    }
+  }
+
 
   if (local$method == "covariance") {
     n <- length(cov_vector_val)
+    # want the largest covariance here and order goes from smallest first to largest last (keep last values which are largest covariance)
     cov_index <- order(as.numeric(cov_vector_val))[seq(from = n, to = max(1, n - local$size + 1))] # use abs() here?
     obdata <- obdata[cov_index, , drop = FALSE]
     cov_vector_val <- cov_vector_val[cov_index]

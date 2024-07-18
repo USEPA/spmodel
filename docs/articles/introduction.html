@@ -5,7 +5,6 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="spmodel">
 <title>An Introduction to spmodel • spmodel</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
@@ -15,64 +14,48 @@
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="An Introduction to spmodel">
-<meta property="og:description" content="spmodel">
-<meta property="og:image" content="/logo.png">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="An Introduction to spmodel">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/guide.html">A Detailed Guide to spmodel</a>
-    <a class="dropdown-item" href="../articles/introduction.html">An Introduction to spmodel</a>
-    <a class="dropdown-item" href="../articles/SPGLMs.html">Spatial Generalized Linear Models in spmodel</a>
-    <a class="dropdown-item" href="../articles/technical.html">Technical Details</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/guide.html">A Detailed Guide to spmodel</a></li>
+    <li><a class="dropdown-item" href="../articles/introduction.html">An Introduction to spmodel</a></li>
+    <li><a class="dropdown-item" href="../articles/SPGLMs.html">Spatial Generalized Linear Models in spmodel</a></li>
+    <li><a class="dropdown-item" href="../articles/technical.html">Technical Details</a></li>
+  </ul>
 </li>
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/USEPA/spmodel/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/USEPA/spmodel/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -107,8 +90,7 @@ resources to it in the future. We view the <code>spmodel</code> citation
 by running</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span>package <span class="op">=</span> <span class="st">"spmodel"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; To cite spmodel in publications use:</span></span>
+<pre><code><span><span class="co">#&gt; To cite spmodel in publications use:</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   Dumelle M, Higham M, Ver Hoef JM (2023). spmodel: Spatial statistical</span></span>
 <span><span class="co">#&gt;   modeling and prediction in R. PLOS ONE 18(3): e0282524.</span></span>
@@ -135,8 +117,16 @@ website at <a href="https://usepa.github.io/spmodel/" class="external-link">http
 <li>Spatial Generalized Linear Models in `spmodel</li>
 <li>Technical Details</li>
 </ol>
-<p>Additionally, a workbook that accompanied a recent
-<code>spmodel</code> workshop is available at <a href="https://usepa.github.io/spmodel.spatialstat2023/" class="external-link">https://usepa.github.io/spmodel.spatialstat2023/</a></p>
+<p>Additionally, there are two workbooks that have accompanied recent
+<code>spmodel</code> workshops:</p>
+<ol style="list-style-type: decimal">
+<li>2024 Society for Freshwater Science Conference: “Spatial Analysis
+and Statistical Modeling with R and <code>spmodel</code> available at <a href="https://usepa.github.io/spworkshop.sfs24/" class="external-link">https://usepa.github.io/spworkshop.sfs24/</a>
+</li>
+<li>2923 Spatial Statistics Conference: <code>spmodel</code> workshop
+available at <a href="https://usepa.github.io/spmodel.spatialstat2023/" class="external-link">https://usepa.github.io/spmodel.spatialstat2023/</a>
+</li>
+</ol>
 </div>
 <div class="section level2">
 <h2 id="the-data">The Data<a class="anchor" aria-label="anchor" href="#the-data"></a>
@@ -180,40 +170,53 @@ vignette.</p>
 <div class="section level2">
 <h2 id="sec:splm">Spatial Linear Models<a class="anchor" aria-label="anchor" href="#sec:splm"></a>
 </h2>
-<p>Spatial linear models for a quantitative response vector <span class="math inline">\(\mathbf{y}\)</span> have spatially dependent
-random errors and are often parameterized as</p>
-<p><span class="math display">\[
-\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} +
-\boldsymbol{\epsilon},
-\]</span></p>
-<p>where <span class="math inline">\(\mathbf{X}\)</span> is a matrix of
-explanatory variables (usually including a column of 1’s for an
-intercept), <span class="math inline">\(\boldsymbol{\beta}\)</span> is a
-vector of fixed effects that describe the average impact of <span class="math inline">\(\mathbf{X}\)</span> on <span class="math inline">\(\mathbf{y}\)</span>, <span class="math inline">\(\boldsymbol{\tau}\)</span> is a vector of
-spatially dependent (correlated) random errors, and <span class="math inline">\(\boldsymbol{\epsilon}\)</span> is a vector of
-spatially independent (uncorrelated) random errors. The spatial
-dependence of <span class="math inline">\(\boldsymbol{\tau}\)</span> is
-explicitly specified using a spatial covariance function that
-incorporates the variance of <span class="math inline">\(\boldsymbol{\tau}\)</span>, often called the
-partial sill, and a range parameter that controls the behavior of the
-spatial covariance. The variance of <span class="math inline">\(\boldsymbol{\epsilon}\)</span> is often called the
-nugget.</p>
+<p>Spatial linear models for a quantitative response vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>
+have spatially dependent random errors and are often parameterized
+as</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐲</mi><mo>=</mo><mi>𝐗</mi><mi>𝛃</mi><mo>+</mo><mi>𝛕</mi><mo>+</mo><mi>𝛜</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>
+is a matrix of explanatory variables (usually including a column of 1’s
+for an intercept),
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛃</mi><annotation encoding="application/x-tex">\boldsymbol{\beta}</annotation></semantics></math>
+is a vector of fixed effects that describe the average impact of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>
+on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛕</mi><annotation encoding="application/x-tex">\boldsymbol{\tau}</annotation></semantics></math>
+is a vector of spatially dependent (correlated) random errors, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛜</mi><annotation encoding="application/x-tex">\boldsymbol{\epsilon}</annotation></semantics></math>
+is a vector of spatially independent (uncorrelated) random errors. The
+spatial dependence of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛕</mi><annotation encoding="application/x-tex">\boldsymbol{\tau}</annotation></semantics></math>
+is explicitly specified using a spatial covariance function that
+incorporates the variance of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛕</mi><annotation encoding="application/x-tex">\boldsymbol{\tau}</annotation></semantics></math>,
+often called the partial sill, and a range parameter that controls the
+behavior of the spatial covariance. The variance of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛜</mi><annotation encoding="application/x-tex">\boldsymbol{\epsilon}</annotation></semantics></math>
+is often called the nugget.</p>
 <p>Spatial linear models are fit in <code>spmodel</code> for
 point-referenced and areal data. Data are point-referenced when the
-elements in <span class="math inline">\(\mathbf{y}\)</span> are observed
-at point-locations indexed by x-coordinates and y-coordinates on a
-spatially continuous surface with an infinite number of locations. The
-<code><a href="../reference/splm.html">splm()</a></code> function is used to fit spatial linear models for
-point-referenced data (these are often called geostatistical models).
-Data are areal when the elements in <span class="math inline">\(\mathbf{y}\)</span> are observed as part of a
-finite network of polygons whose connections are indexed by a
-neighborhood structure. For example, the polygons may represent counties
-in a state who are neighbors if they share at least one boundary. The
-<code><a href="../reference/spautor.html">spautor()</a></code> function is used to fit spatial linear models for
-areal data (these are often called spatial autoregressive models). This
-vignette focuses on spatial linear models for point-referenced data,
-though <code>spmodel</code>’s other vignettes discuss spatial linear
-models for areal data.</p>
+elements in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>
+are observed at point-locations indexed by x-coordinates and
+y-coordinates on a spatially continuous surface with an infinite number
+of locations. The <code><a href="../reference/splm.html">splm()</a></code> function is used to fit spatial
+linear models for point-referenced data (these are often called
+geostatistical models). Data are areal when the elements in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>
+are observed as part of a finite network of polygons whose connections
+are indexed by a neighborhood structure. For example, the polygons may
+represent counties in a state who are neighbors if they share at least
+one boundary. The <code><a href="../reference/spautor.html">spautor()</a></code> function is used to fit spatial
+linear models for areal data (these are often called spatial
+autoregressive models). This vignette focuses on spatial linear models
+for point-referenced data, though <code>spmodel</code>’s other vignettes
+discuss spatial linear models for areal data.</p>
 <p>The <code><a href="../reference/splm.html">splm()</a></code> function has similar syntax and output as the
 commonly used <code><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm()</a></code> function used to fit non-spatial linear
 models. <code><a href="../reference/splm.html">splm()</a></code> generally requires at least three
@@ -298,11 +301,13 @@ semivariogram weighted least squares, and <code>"sv-cl"</code> for
 semivariogram composite likelihood.</p>
 <p>Printing <code>spmod</code> shows the function call, the estimated
 fixed effect coefficients, and the estimated spatial covariance
-parameters. <code>de</code> is the estimated variance of <span class="math inline">\(\boldsymbol{\tau}\)</span> (the spatially
-dependent random error), <code>ie</code> is the estimated variance of
-<span class="math inline">\(\boldsymbol{\epsilon}\)</span> (the
-spatially independent random error), and <code>range</code> is the range
-parameter.</p>
+parameters. <code>de</code> is the estimated variance of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛕</mi><annotation encoding="application/x-tex">\boldsymbol{\tau}</annotation></semantics></math>
+(the spatially dependent random error), <code>ie</code> is the estimated
+variance of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛜</mi><annotation encoding="application/x-tex">\boldsymbol{\epsilon}</annotation></semantics></math>
+(the spatially independent random error), and <code>range</code> is the
+range parameter.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; </span></span>
@@ -370,17 +375,18 @@ model diagnostics.</p>
 <p>We glance at the model-fit statistics by running</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance</a></span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 9</span></span></span>
-<span><span class="co">#&gt;       n     p  npar value   AIC  AICc logLik deviance pseudo.r.squared</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>   365     2     3  367.  373.  373.  -<span style="color: #BB0000;">184.</span>     363.            0.683</span></span></code></pre>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 10</span></span></span>
+<span><span class="co">#&gt;       n     p  npar value   AIC  AICc   BIC logLik deviance pseudo.r.squared</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>   365     2     3  367.  373.  373.  385.  -<span style="color: #BB0000;">184.</span>     363.            0.683</span></span></code></pre>
 <p>The columns of this <code>tibble</code> represent:</p>
 <ul>
 <li>
 <code>n</code>: The sample size</li>
 <li>
 <code>p</code>: The number of fixed effects (linearly independent
-columns in <span class="math inline">\(\mathbf{X}\)</span>)</li>
+columns in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>)</li>
 <li>
 <code>npar</code>: The number of estimated covariance
 parameters</li>
@@ -406,11 +412,12 @@ this using <code><a href="../reference/glances.html">glances()</a></code> by run
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lmod</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/splm.html">splm</a></span><span class="op">(</span><span class="va">log_Zn</span> <span class="op">~</span> <span class="va">log_dist2road</span>, data <span class="op">=</span> <span class="va">moss</span>, spcov_type <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/glances.html">glances</a></span><span class="op">(</span><span class="va">spmod</span>, <span class="va">lmod</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 10</span></span></span>
-<span><span class="co">#&gt;   model     n     p  npar value   AIC  AICc logLik deviance pseudo.r.squared</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> spmod   365     2     3  367.  373.  373.  -<span style="color: #BB0000;">184.</span>     363.            0.683</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> lmod    365     2     1  634.  636.  636.  -<span style="color: #BB0000;">317.</span>     363.            0.671</span></span></code></pre>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 11</span></span></span>
+<span><span class="co">#&gt;   model     n     p  npar value   AIC  AICc   BIC logLik deviance</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> spmod   365     2     3  367.  373.  373.  385.  -<span style="color: #BB0000;">184.</span>     363.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> lmod    365     2     1  634.  636.  636.  640.  -<span style="color: #BB0000;">317.</span>     363.</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: pseudo.r.squared &lt;dbl&gt;</span></span></span></code></pre>
 <p>The much lower AIC and AICc for the spatial linear model indicates it
 is a much better fit to the data. Outside of <code><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance()</a></code> and
 <code><a href="../reference/glances.html">glances()</a></code>, the functions <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC()</a></code>,
@@ -630,45 +637,77 @@ asymptotic Chi-squared test).</p>
 <div class="section level2">
 <h2 id="spatial-generalized-linear-models">Spatial Generalized Linear Models<a class="anchor" aria-label="anchor" href="#spatial-generalized-linear-models"></a>
 </h2>
-<p>When building spatial linear models, the response vector <span class="math inline">\(\mathbf{y}\)</span> is typically assumed Gaussian
-(given <span class="math inline">\(\mathbf{X}\)</span>). Relaxing this
-assumption on the distribution of <span class="math inline">\(\mathbf{y}\)</span> yields a rich class of spatial
-generalized linear models that can describe binary data, proportion
-data, count data, and skewed data. Spatial generalized linear models are
-parameterized as <span class="math display">\[
-g(\boldsymbol{\mu}) = \boldsymbol{\eta} = \mathbf{X} \boldsymbol{\beta}
-+ \boldsymbol{\tau} + \boldsymbol{\epsilon},
-\]</span> where <span class="math inline">\(g(\cdot)\)</span> is called
-a link function, <span class="math inline">\(\boldsymbol{\mu}\)</span>
-is the mean of <span class="math inline">\(\mathbf{y}\)</span>, and the
-remaining terms <span class="math inline">\(\mathbf{X}\)</span>, <span class="math inline">\(\boldsymbol{\beta}\)</span>, <span class="math inline">\(\boldsymbol{\tau}\)</span>, <span class="math inline">\(\boldsymbol{\epsilon}\)</span> represent the same
-quantities as for the spatial linear models. The link function, <span class="math inline">\(g(\cdot)\)</span>, “links” a function of <span class="math inline">\(\boldsymbol{\mu}\)</span> to the linear term <span class="math inline">\(\boldsymbol{\eta}\)</span>, denoted here as <span class="math inline">\(\mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau}
-+ \boldsymbol{\epsilon}\)</span>, which is familiar from spatial linear
-models. Note that the linking of <span class="math inline">\(\boldsymbol{\mu}\)</span> to <span class="math inline">\(\boldsymbol{\eta}\)</span> applies element-wise to
-each vector. Each link function <span class="math inline">\(g(\cdot)\)</span> has a corresponding inverse link
-function, <span class="math inline">\(g^{-1}(\cdot)\)</span>. The
-inverse link function “links” a function of <span class="math inline">\(\boldsymbol{\eta}\)</span> to <span class="math inline">\(\boldsymbol{\mu}\)</span>. Notice that for spatial
-generalized linear models, we are not modeling <span class="math inline">\(\mathbf{y}\)</span> directly as we do for spatial
-linear models, but rather we are modeling a function of the mean of
-<span class="math inline">\(\mathbf{y}\)</span>. Also notice that <span class="math inline">\(\boldsymbol{\eta}\)</span> is unconstrained but
-<span class="math inline">\(\boldsymbol{\mu}\)</span> is usually
-constrained in some way (e.g., positive). Next we discuss the specific
-distributions and link functions used in <code>spmodel</code>.</p>
+<p>When building spatial linear models, the response vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>
+is typically assumed Gaussian (given
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>).
+Relaxing this assumption on the distribution of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>
+yields a rich class of spatial generalized linear models that can
+describe binary data, proportion data, count data, and skewed data.
+Spatial generalized linear models are parameterized as
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>𝛈</mi><mo>=</mo><mi>𝐗</mi><mi>𝛃</mi><mo>+</mo><mi>𝛕</mi><mo>+</mo><mi>𝛜</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+g(\boldsymbol{\mu}) = \boldsymbol{\eta} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
+</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">g(\cdot)</annotation></semantics></math>
+is called a link function,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛍</mi><annotation encoding="application/x-tex">\boldsymbol{\mu}</annotation></semantics></math>
+is the mean of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>,
+and the remaining terms
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛃</mi><annotation encoding="application/x-tex">\boldsymbol{\beta}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛕</mi><annotation encoding="application/x-tex">\boldsymbol{\tau}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛜</mi><annotation encoding="application/x-tex">\boldsymbol{\epsilon}</annotation></semantics></math>
+represent the same quantities as for the spatial linear models. The link
+function,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">g(\cdot)</annotation></semantics></math>,
+“links” a function of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛍</mi><annotation encoding="application/x-tex">\boldsymbol{\mu}</annotation></semantics></math>
+to the linear term
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛈</mi><annotation encoding="application/x-tex">\boldsymbol{\eta}</annotation></semantics></math>,
+denoted here as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐗</mi><mi>𝛃</mi><mo>+</mo><mi>𝛕</mi><mo>+</mo><mi>𝛜</mi></mrow><annotation encoding="application/x-tex">\mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon}</annotation></semantics></math>,
+which is familiar from spatial linear models. Note that the linking of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛍</mi><annotation encoding="application/x-tex">\boldsymbol{\mu}</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛈</mi><annotation encoding="application/x-tex">\boldsymbol{\eta}</annotation></semantics></math>
+applies element-wise to each vector. Each link function
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">g(\cdot)</annotation></semantics></math>
+has a corresponding inverse link function,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>g</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">g^{-1}(\cdot)</annotation></semantics></math>.
+The inverse link function “links” a function of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛈</mi><annotation encoding="application/x-tex">\boldsymbol{\eta}</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛍</mi><annotation encoding="application/x-tex">\boldsymbol{\mu}</annotation></semantics></math>.
+Notice that for spatial generalized linear models, we are not modeling
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>
+directly as we do for spatial linear models, but rather we are modeling
+a function of the mean of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>.
+Also notice that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛈</mi><annotation encoding="application/x-tex">\boldsymbol{\eta}</annotation></semantics></math>
+is unconstrained but
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛍</mi><annotation encoding="application/x-tex">\boldsymbol{\mu}</annotation></semantics></math>
+is usually constrained in some way (e.g., positive). Next we discuss the
+specific distributions and link functions used in
+<code>spmodel</code>.</p>
 <p><code>spmodel</code> allows fitting of spatial generalized linear
-models when <span class="math inline">\(\mathbf{y}\)</span> is a
-binomial (or Bernoulli), beta, Poisson, negative binomial, gamma, or
-inverse Gaussian random vector. For binomial and beta <span class="math inline">\(\mathbf{y}\)</span>, the logit link function is
-defined as <span class="math inline">\(g(\boldsymbol{\mu}) =
-\ln(\frac{\boldsymbol{\mu}}{1 - \boldsymbol{\mu}}) =
-\boldsymbol{\eta}\)</span>, and the inverse logit link function is
-defined as <span class="math inline">\(g^{-1}(\boldsymbol{\eta}) =
-\frac{\exp(\boldsymbol{\eta})}{1 + \exp(\boldsymbol{\eta})} =
-\boldsymbol{\mu}\)</span>. For Poisson, negative binomial, gamma, and
-inverse Gaussian <span class="math inline">\(\mathbf{y}\)</span>, the
-log link function is defined as <span class="math inline">\(g(\boldsymbol{\mu}) = \ln(\boldsymbol{\mu}) =
-\boldsymbol{\eta}\)</span>, and the inverse log link function is defined
-as <span class="math inline">\(g^{-1}(\boldsymbol{\eta}) =
-\exp(\boldsymbol{\eta}) = \boldsymbol{\mu}\)</span>.</p>
+models when
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>
+is a binomial (or Bernoulli), beta, Poisson, negative binomial, gamma,
+or inverse Gaussian random vector. For binomial and beta
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>,
+the logit link function is defined as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mi>𝛍</mi><mrow><mn>1</mn><mo>−</mo><mi>𝛍</mi></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>𝛈</mi></mrow><annotation encoding="application/x-tex">g(\boldsymbol{\mu}) = \ln(\frac{\boldsymbol{\mu}}{1 - \boldsymbol{\mu}}) = \boldsymbol{\eta}</annotation></semantics></math>,
+and the inverse logit link function is defined as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>g</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛈</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mrow><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛈</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mn>1</mn><mo>+</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛈</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo>=</mo><mi>𝛍</mi></mrow><annotation encoding="application/x-tex">g^{-1}(\boldsymbol{\eta}) = \frac{\exp(\boldsymbol{\eta})}{1 + \exp(\boldsymbol{\eta})} = \boldsymbol{\mu}</annotation></semantics></math>.
+For Poisson, negative binomial, gamma, and inverse Gaussian
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>,
+the log link function is defined as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>𝛈</mi></mrow><annotation encoding="application/x-tex">g(\boldsymbol{\mu}) = \ln(\boldsymbol{\mu}) = \boldsymbol{\eta}</annotation></semantics></math>,
+and the inverse log link function is defined as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>g</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛈</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛈</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>𝛍</mi></mrow><annotation encoding="application/x-tex">g^{-1}(\boldsymbol{\eta}) = \exp(\boldsymbol{\eta}) = \boldsymbol{\mu}</annotation></semantics></math>.</p>
 <p>As with spatial linear models, spatial generalized linear models are
 fit in <code>spmodel</code> for point-referenced and areal data. The
 <code><a href="../reference/spglm.html">spglm()</a></code> function is used to fit spatial generalized linear
@@ -683,7 +722,8 @@ required:</p>
 <ul>
 <li>
 <code>family</code>: the generalized linear model family (i.e., the
-distribution of <span class="math inline">\(\mathbf{y}\)</span>).
+distribution of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>).
 <code>family</code> can be <code>binomial</code>, <code>beta</code>,
 <code>poisson</code>, <code>nbinomial</code>, <code>Gamma</code>, or
 <code>inverse.gaussian</code>.
@@ -744,9 +784,10 @@ restricted maximum likelihood. The other estimation method is
 fixed effect coefficients (on the link scale), the estimated spatial
 covariance parameters, and a dispersion parameter. The dispersion
 parameter is estimated for some spatial generalized linear models and
-changes the mean-variance relationship of <span class="math inline">\(\mathbf{y}\)</span>. For binomial regression
-models, the dispersion parameter is not estimated and is always fixed at
-one.</p>
+changes the mean-variance relationship of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>.
+For binomial regression models, the dispersion parameter is not
+estimated and is always fixed at one.</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">binmod</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; </span></span>
@@ -820,20 +861,21 @@ We tidy the fixed effects (on the link scale) by running</p>
 <p>We glance at the model-fit statistics by running</p>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance</a></span><span class="op">(</span><span class="va">binmod</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 9</span></span></span>
-<span><span class="co">#&gt;       n     p  npar value   AIC  AICc logLik deviance pseudo.r.squared</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>   218     2     3  692.  698.  698.  -<span style="color: #BB0000;">346.</span>     190.          0.003<span style="text-decoration: underline;">11</span></span></span></code></pre>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 10</span></span></span>
+<span><span class="co">#&gt;       n     p  npar value   AIC  AICc   BIC logLik deviance pseudo.r.squared</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>   218     2     3  692.  698.  698.  708.  -<span style="color: #BB0000;">346.</span>     190.          0.003<span style="text-decoration: underline;">11</span></span></span></code></pre>
 <p>We glance at the spatial binomial regression model and a non-spatial
 binomial regression model by running</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">glmod</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spglm.html">spglm</a></span><span class="op">(</span><span class="va">presence</span> <span class="op">~</span> <span class="va">elev</span>, family <span class="op">=</span> <span class="st">"binomial"</span>, data <span class="op">=</span> <span class="va">moose</span>, spcov_type <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/glances.html">glances</a></span><span class="op">(</span><span class="va">binmod</span>, <span class="va">glmod</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 10</span></span></span>
-<span><span class="co">#&gt;   model      n     p  npar value   AIC  AICc logLik deviance pseudo.r.squared</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> binmod   218     2     3  692.  698.  698.  -<span style="color: #BB0000;">346.</span>     190.          0.003<span style="text-decoration: underline;">11</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> glmod    218     2     1  715.  717.  717.  -<span style="color: #BB0000;">358.</span>     302.          0.001<span style="text-decoration: underline;">85</span></span></span></code></pre>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 11</span></span></span>
+<span><span class="co">#&gt;   model      n     p  npar value   AIC  AICc   BIC logLik deviance</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> binmod   218     2     3  692.  698.  698.  708.  -<span style="color: #BB0000;">346.</span>     190.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> glmod    218     2     1  715.  717.  717.  721.  -<span style="color: #BB0000;">358.</span>     302.</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: pseudo.r.squared &lt;dbl&gt;</span></span></span></code></pre>
 <p>The lower AIC and AICc for the spatial binomial regression model
 indicates it is a much better fit to the data.</p>
 <p>We augment the data with diagnostics by running</p>
@@ -921,6 +963,11 @@ response scale):</p>
 <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>: Augment data with diagnostics or new data
 with predictions.</li>
 <li>
+<code><a href="../reference/AUROC.html">AUROC()</a></code>: Compute the area under the receiver operating
+characteristic curve for binary spatial generalized linear models.</li>
+<li>
+<code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC()</a></code>: Compute the BIC.</li>
+<li>
 <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>: Return coefficients.</li>
 <li>
 <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code>: Compute confidence intervals.</li>
@@ -945,7 +992,8 @@ with predictions.</li>
 <li>
 <code><a href="../reference/loocv.html">loocv()</a></code>: Perform leave-one-out cross validation.</li>
 <li>
-<code><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix()</a></code>: Return the model matrix (<span class="math inline">\(\mathbf{X}\)</span>).</li>
+<code><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix()</a></code>: Return the model matrix
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>).</li>
 <li>
 <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>: Create fitted model plots.</li>
 <li>
@@ -1016,7 +1064,7 @@ can be found by running <code>help("generic.spmodel", "spmodel")</code>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
 <div id="ref-pebesma2018sf" class="csl-entry">
 Pebesma, Edzer. 2018. <span>“<span class="nocase">Simple Features for R:
 Standardized Support for Spatial Vector Data</span>.”</span>
@@ -1032,7 +1080,7 @@ Graphics for Data Analysis</em>. Springer-Verlag New York. <a href="https://ggpl
 </div>
 </div>
 </div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
@@ -1043,15 +1091,15 @@ Graphics for Data Analysis</em>. Springer-Verlag New York. <a href="https://ggpl
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>

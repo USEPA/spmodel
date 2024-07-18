@@ -176,7 +176,7 @@ This model is equivalent to one fit using `lm()`. We compute the spatial AIC and
 AIC(spmod, lmod)
 AICc(spmod, lmod)
 ```
-The noticeably lower AIC and AICc of the spatial model indicate that it is a better fit to the data than the non-spatial model. Recall that these AIC and AICc comparisons are valid because both models are fit using restricted maximum likelihood (the default).
+The noticeably lower AIC and AICc of the spatial model indicate that it is a better fit to the data than the non-spatial model. Recall that these AIC and AICc comparisons are valid because both models are fit using restricted maximum likelihood (the default). Similarly, one could use the BIC [@schwarz1978estimating] as a model comparison statistic based on the likelihood.
 
 Another approach to comparing the fitted models is to perform leave-one-out cross validation [@hastie2009elements]. In leave-one-out cross validation, a single observation is removed from the data, the model is re-fit, and a prediction is made for the held-out observation. Then, a loss metric like mean-squared-prediction error is computed and used to evaluate model fit. The lower the mean-squared-prediction error, the better the model fit. For computational efficiency, leave-one-out cross validation in `spmodel` is performed by first estimating $\boldsymbol{\theta}$ using all the data and then re-estimating only $\boldsymbol{\beta}$ as we predict each removed observation. We perform leave-one-out cross validation for the spatial and non-spatial model by running
 ```{r}
@@ -726,7 +726,7 @@ local2 <- splm(sim_response ~ 1, sim_data, spcov_type = "exponential",
                xcoord = x, ycoord = y, local = local2_list)
 ```
 
-Likelihood-based statistics like `AIC()`, `AICc()`, `logLik()`, and `deviance()` should not be used to compare a model fit with a big data approximation to a model fit without a big data approximation.
+Likelihood-based statistics like `AIC()`, `AICc()`, `BIC()`, `logLik()`, and `deviance()` should not be used to compare a model fit with a big data approximation to a model fit without a big data approximation.
 
 ### Prediction {#sec:prediction-big}
 

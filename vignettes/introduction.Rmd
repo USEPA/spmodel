@@ -49,7 +49,10 @@ There are three more `spmodel` vignettes available on our website at [https://us
 2. Spatial Generalized Linear Models in `spmodel 
 3. Technical Details
 
-Additionally, a workbook that accompanied a recent `spmodel` workshop is available at [https://usepa.github.io/spmodel.spatialstat2023/](https://usepa.github.io/spmodel.spatialstat2023/)
+Additionally, there are two workbooks that have accompanied recent `spmodel` workshops:
+
+1. 2024 Society for Freshwater Science Conference: "Spatial Analysis and Statistical Modeling with R and `spmodel` available at [https://usepa.github.io/spworkshop.sfs24/](https://usepa.github.io/spworkshop.sfs24/)
+2. 2923 Spatial Statistics Conference: `spmodel` workshop available at [https://usepa.github.io/spmodel.spatialstat2023/](https://usepa.github.io/spmodel.spatialstat2023/)
 
 # The Data
 
@@ -346,6 +349,8 @@ Here we list some commonly used `spmodel` functions.
 * `AICc()`: Compute the AICc.
 * `anova()`: Perform an analysis of variance.
 * `augment()`: Augment data with diagnostics or new data with predictions.
+* `AUROC()`: Compute the area under the receiver operating characteristic curve for binary spatial generalized linear models.
+* `BIC()`: Compute the BIC.
 * `coef()`: Return coefficients.
 * `confint()`: Compute confidence intervals.
 * `cooks.distance()`: Compute Cook's distance.

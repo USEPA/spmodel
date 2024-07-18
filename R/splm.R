@@ -106,7 +106,8 @@
 #'       matrix of the fixed effects. \code{"none"} for no adjustment, \code{"theoretical"}
 #'       for the theoretically-correct adjustment,
 #'       \code{"pooled"} for the pooled adjustment, and \code{"empirical"} for the
-#'       empirical adjustment. The default is \code{"theoretical"}.
+#'       empirical adjustment. The default is \code{"theoretical"} for samples sizes
+#'       up to 100,000 and \code{"none"} for samples sizes exceeding 100,000.
 #'     \item \code{parallel}: If \code{TRUE}, parallel processing via the
 #'       parallel package is automatically used. The default is \code{FALSE}.
 #'     \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
@@ -207,7 +208,7 @@
 #'   the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
 #'   length one, the list has class \code{splm}. Many generic functions that
 #'   summarize model fit are available for \code{splm} objects, including
-#'   \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{coef},
+#'   \code{AIC}, \code{AICc}, \code{anova}, \code{augment}, \code{BIC}, \code{coef},
 #'   \code{cooks.distance}, \code{covmatrix}, \code{deviance}, \code{fitted}, \code{formula},
 #'   \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
 #'   \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},

@@ -1,3 +1,21 @@
+# spmodel 0.7.0
+
+## Minor Updates
+
+* Added `AUROC()`  functions to compute the area under the receiver operating characteristic (AUROC) curve for `spglm()` and `spgautor()` models when `family` is `"binomial"` and the response is binary (i.e., represents a single success or failure).
+* Added a `BIC()` function to compute the Bayesian Information Criterion (BIC) for `splm()`, `spautor()`, `spglm()`, and `spgautor()` models when `estmethod` is `"reml"` (restricted maximum likelihood; the default) or `"ml"` (maximum likelihood).
+* Added a `type` argument to `loocv()` when `cv_predict = TRUE` and using `spglm()` or `spgautor()` models so that predictions may be obtained on the link or response scale.
+* Added a warning message when `data` is an `sf` object and a geographic (i.e., degrees) coordinate system is used instead of a projected coordinate system.
+* Changed the default behavior of `local` in `predict.spmodel` so that it depends only on the observed data sample size. Now, when the observed data sample size exceeds 10,000 `local` is set to `TRUE` by default. This change was made because prediction for big data depends almost exclusively on the observed data sample size, not the number of predictions desired.
+* Minor external data updates (for package testing).
+* Minor vignette updates.
+* Minor documentation updates.
+* Minor error message updates.
+
+## Bug Fixes
+
+* Fixed a bug that prohibited proper indexing when calling `predict()` with the `local` method `"distance"` on a model object fit with a random effect or partition factor.
+
 # spmodel 0.6.0
 
 ## Minor Updates

@@ -6,9 +6,13 @@ test_that("generics work spgautor polygon data", {
   spmod1 <- spgautor(abs(y) ~ x, family = Gamma, exdata_poly, spcov_type = "car", estmethod = "reml")
   spmod2 <- spgautor(abs(y) ~ x, family = "Gamma", exdata_poly, spcov_type = "sar", estmethod = "reml")
 
-  # AIC
+  # AIC, AICc, BIC
   expect_vector(AIC(spmod1))
   expect_s3_class(AIC(spmod1, spmod2), "data.frame") # turn reml fixed effects warning off
+  expect_vector(AICc(spmod1))
+  expect_s3_class(AICc(spmod1, spmod2), "data.frame")
+  expect_vector(BIC(spmod1))
+  expect_s3_class(BIC(spmod1, spmod2), "data.frame")
 
   # anova
   expect_s3_class(anova(spmod1), "data.frame")
@@ -79,6 +83,7 @@ test_that("generics work spgautor polygon data", {
 
   # loocv
   expect_vector(loocv(spmod1))
+  expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
 
   # model.frame
@@ -142,9 +147,13 @@ test_that("generics work spgautor polygon data with missing", {
   spmod1 <- spgautor(abs(y) ~ x, "Gamma", exdata_Mpoly, spcov_type = "car", estmethod = "reml")
   spmod2 <- spgautor(abs(y) ~ x, Gamma, exdata_Mpoly, spcov_type = "sar", estmethod = "reml")
 
-  # AIC
+  # AIC, AICc, BIC
   expect_vector(AIC(spmod1))
   expect_s3_class(AIC(spmod1, spmod2), "data.frame") # turn reml fixed effects warning off
+  expect_vector(AICc(spmod1))
+  expect_s3_class(AICc(spmod1, spmod2), "data.frame")
+  expect_vector(BIC(spmod1))
+  expect_s3_class(BIC(spmod1, spmod2), "data.frame")
 
   # anova
   expect_s3_class(anova(spmod1), "data.frame")
@@ -217,6 +226,7 @@ test_that("generics work spgautor polygon data with missing", {
 
   # loocv
   expect_vector(loocv(spmod1))
+  expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
 
   # model.frame
@@ -359,6 +369,7 @@ test_that("generics work spgautor polygon data unconnected", {
 
   # loocv
   expect_vector(loocv(spmod1))
+  expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
 
   # model.frame

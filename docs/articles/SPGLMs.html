@@ -5,7 +5,6 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="spmodel">
 <title>Spatial Generalized Linear Models in spmodel • spmodel</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
@@ -15,64 +14,48 @@
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Spatial Generalized Linear Models in spmodel">
-<meta property="og:description" content="spmodel">
-<meta property="og:image" content="/logo.png">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Spatial Generalized Linear Models in spmodel">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">spmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/guide.html">A Detailed Guide to spmodel</a>
-    <a class="dropdown-item" href="../articles/introduction.html">An Introduction to spmodel</a>
-    <a class="dropdown-item" href="../articles/SPGLMs.html">Spatial Generalized Linear Models in spmodel</a>
-    <a class="dropdown-item" href="../articles/technical.html">Technical Details</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/guide.html">A Detailed Guide to spmodel</a></li>
+    <li><a class="dropdown-item" href="../articles/introduction.html">An Introduction to spmodel</a></li>
+    <li><a class="dropdown-item" href="../articles/SPGLMs.html">Spatial Generalized Linear Models in spmodel</a></li>
+    <li><a class="dropdown-item" href="../articles/technical.html">Technical Details</a></li>
+  </ul>
 </li>
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/USEPA/spmodel/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/USEPA/spmodel/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -108,8 +91,7 @@ resources to the package in the future. We view the <code>spmodel</code>
 citation by running</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span>package <span class="op">=</span> <span class="st">"spmodel"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; To cite spmodel in publications use:</span></span>
+<pre><code><span><span class="co">#&gt; To cite spmodel in publications use:</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   Dumelle M, Higham M, Ver Hoef JM (2023). spmodel: Spatial statistical</span></span>
 <span><span class="co">#&gt;   modeling and prediction in R. PLOS ONE 18(3): e0282524.</span></span>
@@ -156,90 +138,165 @@ see <code>spmodel</code>’s documentation manual.</p>
 <h2 id="a-review-of-the-spatial-linear-model">A Review of the Spatial Linear Model<a class="anchor" aria-label="anchor" href="#a-review-of-the-spatial-linear-model"></a>
 </h2>
 <p>We first focus on spatial linear models for a Gaussian response
-vector. The spatial linear model is defined as <span class="math display">\[\begin{equation}\label{eq:splm}
-\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} +
-\boldsymbol{\epsilon},
-\end{equation}\]</span> where for a sample size <span class="math inline">\(n\)</span>, <span class="math inline">\(\mathbf{y}\)</span> is an <span class="math inline">\(n \times 1\)</span> column vector of response
-variables, <span class="math inline">\(\mathbf{X}\)</span> is an <span class="math inline">\(n \times p\)</span> design (model) matrix of
-explanatory variables, <span class="math inline">\(\boldsymbol{\beta}\)</span> is a <span class="math inline">\(p \times 1\)</span> column vector of fixed effects
-controlling the impact of <span class="math inline">\(\mathbf{X}\)</span> on <span class="math inline">\(\mathbf{y}\)</span>, <span class="math inline">\(\boldsymbol{\tau}\)</span> is an <span class="math inline">\(n \times 1\)</span> column vector of spatially
-dependent random errors, and <span class="math inline">\(\boldsymbol{\epsilon}\)</span> is an <span class="math inline">\(n \times 1\)</span> column vector of spatially
-independent random errors. We make a few assumptions about <span class="math inline">\(\boldsymbol{\tau}\)</span> and <span class="math inline">\(\boldsymbol{\epsilon}\)</span> in the spatial
-linear model: first, that <span class="math inline">\(\text{E}(\boldsymbol{\tau}) =
-\text{E}(\boldsymbol{\epsilon}) = \boldsymbol{0}\)</span>, where <span class="math inline">\(\text{E}(\cdot)\)</span> denotes expectation;
-second, that <span class="math inline">\(\text{Cov}(\boldsymbol{\tau}) =
-\sigma^2_\tau \mathbf{R}\)</span>, where <span class="math inline">\(\mathbf{R}\)</span> is an <span class="math inline">\(n \times n\)</span> matrix that determines the
-spatial dependence structure in <span class="math inline">\(\mathbf{y}\)</span> and depends on a range
-parameter, <span class="math inline">\(\phi\)</span>; third, that <span class="math inline">\(\text{Cov}(\boldsymbol{\epsilon}) =
-\sigma^2_\epsilon \mathbf{I}\)</span>, where <span class="math inline">\(\mathbf{I}\)</span> is an <span class="math inline">\(n \times n\)</span> identity matrix; and fourth,
-that <span class="math inline">\(\boldsymbol{\tau}\)</span> and <span class="math inline">\(\boldsymbol{\epsilon}\)</span> are independent of
-one another. The parameter <span class="math inline">\(\sigma^2_{\tau}\)</span> is called the spatially
-dependent random error variance or partial sill. The parameter <span class="math inline">\(\sigma^2_\epsilon\)</span> is called the spatially
-independent random error variance or nugget. These two variance
-parameters are henceforth more intuitively written as <span class="math inline">\(\sigma^2_{de}\)</span> and <span class="math inline">\(\sigma^2_{ie}\)</span>, respectively. The
-covariance of <span class="math inline">\(\mathbf{y}\)</span> is denoted
-<span class="math inline">\(\boldsymbol{\Sigma}\)</span> and given by
-<span class="math display">\[\begin{equation}\label{eq:spcov}
-\boldsymbol{\Sigma} = \sigma^2_{de}\mathbf{R} + \sigma^2_{ie}
-\mathbf{I}.
-\end{equation}\]</span> The parameters <span class="math inline">\(\sigma^2_{de}\)</span>, <span class="math inline">\(\phi\)</span>, and <span class="math inline">\(\sigma^2_{ie}\)</span> are elements of <span class="math inline">\(\boldsymbol{\theta}\)</span>, the covariance
-parameter vector.</p>
+vector. The spatial linear model is defined as
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐲</mi><mo>=</mo><mi>𝐗</mi><mi>𝛃</mi><mo>+</mo><mi>𝛕</mi><mo>+</mo><mi>𝛜</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:splm}
+ \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
+\end{equation}</annotation></semantics></math> where for a sample size
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>
+is an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n \times 1</annotation></semantics></math>
+column vector of response variables,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>
+is an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">n \times p</annotation></semantics></math>
+design (model) matrix of explanatory variables,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛃</mi><annotation encoding="application/x-tex">\boldsymbol{\beta}</annotation></semantics></math>
+is a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>×</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">p \times 1</annotation></semantics></math>
+column vector of fixed effects controlling the impact of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>
+on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛕</mi><annotation encoding="application/x-tex">\boldsymbol{\tau}</annotation></semantics></math>
+is an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n \times 1</annotation></semantics></math>
+column vector of spatially dependent random errors, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛜</mi><annotation encoding="application/x-tex">\boldsymbol{\epsilon}</annotation></semantics></math>
+is an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n \times 1</annotation></semantics></math>
+column vector of spatially independent random errors. We make a few
+assumptions about
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛕</mi><annotation encoding="application/x-tex">\boldsymbol{\tau}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛜</mi><annotation encoding="application/x-tex">\boldsymbol{\epsilon}</annotation></semantics></math>
+in the spatial linear model: first, that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">E</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛕</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mtext mathvariant="normal">E</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛜</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>𝟎</mn></mrow><annotation encoding="application/x-tex">\text{E}(\boldsymbol{\tau}) = \text{E}(\boldsymbol{\epsilon}) = \boldsymbol{0}</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">E</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{E}(\cdot)</annotation></semantics></math>
+denotes expectation; second, that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Cov</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛕</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msubsup><mi>σ</mi><mi>τ</mi><mn>2</mn></msubsup><mi>𝐑</mi></mrow><annotation encoding="application/x-tex">\text{Cov}(\boldsymbol{\tau}) = \sigma^2_\tau \mathbf{R}</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐑</mi><annotation encoding="application/x-tex">\mathbf{R}</annotation></semantics></math>
+is an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">n \times n</annotation></semantics></math>
+matrix that determines the spatial dependence structure in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>
+and depends on a range parameter,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>;
+third, that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Cov</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛜</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msubsup><mi>σ</mi><mi>ϵ</mi><mn>2</mn></msubsup><mi>𝐈</mi></mrow><annotation encoding="application/x-tex">\text{Cov}(\boldsymbol{\epsilon}) = \sigma^2_\epsilon \mathbf{I}</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐈</mi><annotation encoding="application/x-tex">\mathbf{I}</annotation></semantics></math>
+is an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">n \times n</annotation></semantics></math>
+identity matrix; and fourth, that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛕</mi><annotation encoding="application/x-tex">\boldsymbol{\tau}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛜</mi><annotation encoding="application/x-tex">\boldsymbol{\epsilon}</annotation></semantics></math>
+are independent of one another. The parameter
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>σ</mi><mi>τ</mi><mn>2</mn></msubsup><annotation encoding="application/x-tex">\sigma^2_{\tau}</annotation></semantics></math>
+is called the spatially dependent random error variance or partial sill.
+The parameter
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>σ</mi><mi>ϵ</mi><mn>2</mn></msubsup><annotation encoding="application/x-tex">\sigma^2_\epsilon</annotation></semantics></math>
+is called the spatially independent random error variance or nugget.
+These two variance parameters are henceforth more intuitively written as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>σ</mi><mrow><mi>d</mi><mi>e</mi></mrow><mn>2</mn></msubsup><annotation encoding="application/x-tex">\sigma^2_{de}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>σ</mi><mrow><mi>i</mi><mi>e</mi></mrow><mn>2</mn></msubsup><annotation encoding="application/x-tex">\sigma^2_{ie}</annotation></semantics></math>,
+respectively. The covariance of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>
+is denoted
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝚺</mi><annotation encoding="application/x-tex">\boldsymbol{\Sigma}</annotation></semantics></math>
+and given by
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝚺</mi><mo>=</mo><msubsup><mi>σ</mi><mrow><mi>d</mi><mi>e</mi></mrow><mn>2</mn></msubsup><mi>𝐑</mi><mo>+</mo><msubsup><mi>σ</mi><mrow><mi>i</mi><mi>e</mi></mrow><mn>2</mn></msubsup><mi>𝐈</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:spcov}
+ \boldsymbol{\Sigma} = \sigma^2_{de}\mathbf{R} + \sigma^2_{ie} \mathbf{I}.
+\end{equation}</annotation></semantics></math> The parameters
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>σ</mi><mrow><mi>d</mi><mi>e</mi></mrow><mn>2</mn></msubsup><annotation encoding="application/x-tex">\sigma^2_{de}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>σ</mi><mrow><mi>i</mi><mi>e</mi></mrow><mn>2</mn></msubsup><annotation encoding="application/x-tex">\sigma^2_{ie}</annotation></semantics></math>
+are elements of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛉</mi><annotation encoding="application/x-tex">\boldsymbol{\theta}</annotation></semantics></math>,
+the covariance parameter vector.</p>
 <p>The spatial linear model applies to both point-referenced and areal
 (i.e., lattice; polygon) data. Spatial data are point-referenced when
-the elements in <span class="math inline">\(\mathbf{y}\)</span> are
-observed at point-locations indexed by x-coordinates and y-coordinates
-on a spatially continuous surface with an infinite number of locations.
-For example, consider sampling soil at any point-location in a field.
-Spatial linear models for point-referenced data are sometimes called
-geostatistical models. An example of an <span class="math inline">\(\mathbf{R}\)</span> matrix for point-referenced
-data is the spherical correlation matrix given by <span class="math display">\[\begin{equation}\label{eq:spherical}
-\mathbf{R} = \left(1 - 1.5\frac{\mathbf{H}}{\phi} +
-0.5\frac{\mathbf{H}^3}{\phi^3}\right) \odot \mathcal{I}(\mathbf{H} \leq
-\phi),
-\end{equation}\]</span><br>
-where <span class="math inline">\(\mathbf{H}\)</span> is a matrix of
-Euclidean distances among observations, <span class="math inline">\(\mathbf{H}^3\)</span> is a matrix of cubed
-Euclidean distances, <span class="math inline">\(\odot\)</span> is the
-Hadmard (element-wise; direct) product, and <span class="math inline">\(\mathcal{I}(\mathbf{H} \leq \phi)\)</span> is an
-indicator function equal to one when the <span class="math inline">\(ij\)</span>th element of <span class="math inline">\(\mathbf{H}\)</span> is less than <span class="math inline">\(\phi\)</span> (the range) and zero otherwise. A
-second is example is the Matérn correlation matrix given by <span class="math display">\[\begin{equation}\label{eq:matern}
-\mathbf{R} = \frac{2^{1 - \nu}}{\Gamma(\nu)} \left(2\nu \mathbf{H} /
-\phi \right)^{\nu / 2} \odot B_k(2\nu \mathbf{H}, \nu),
-\end{equation}\]</span> where <span class="math inline">\(\nu\)</span>
-is a smoothness parameter, <span class="math inline">\(\odot\)</span> is
-the Hadmart (element-wise; direct) product, and <span class="math inline">\(B_k(\cdot, \nu)\)</span> is a Bessel-K function
-with order <span class="math inline">\(\nu\)</span>. <span class="citation">Chiles and Delfiner (2012)</span> provide examples of
-several spatial dependence structures.</p>
+the elements in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>
+are observed at point-locations indexed by x-coordinates and
+y-coordinates on a spatially continuous surface with an infinite number
+of locations. For example, consider sampling soil at any point-location
+in a field. Spatial linear models for point-referenced data are
+sometimes called geostatistical models. An example of an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐑</mi><annotation encoding="application/x-tex">\mathbf{R}</annotation></semantics></math>
+matrix for point-referenced data is the spherical correlation matrix
+given by
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐑</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mn>1.5</mn><mfrac><mi>𝐇</mi><mi>ϕ</mi></mfrac><mo>+</mo><mn>0.5</mn><mfrac><msup><mi>𝐇</mi><mn>3</mn></msup><msup><mi>ϕ</mi><mn>3</mn></msup></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>⊙</mo><mi>ℐ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐇</mi><mo>≤</mo><mi>ϕ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:spherical}
+\mathbf{R} = \left(1 - 1.5\frac{\mathbf{H}}{\phi} + 0.5\frac{\mathbf{H}^3}{\phi^3}\right) \odot \mathcal{I}(\mathbf{H} \leq \phi),
+\end{equation}</annotation></semantics></math><br>
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐇</mi><annotation encoding="application/x-tex">\mathbf{H}</annotation></semantics></math>
+is a matrix of Euclidean distances among observations,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝐇</mi><mn>3</mn></msup><annotation encoding="application/x-tex">\mathbf{H}^3</annotation></semantics></math>
+is a matrix of cubed Euclidean distances,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>⊙</mo><annotation encoding="application/x-tex">\odot</annotation></semantics></math>
+is the Hadmard (element-wise; direct) product, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℐ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐇</mi><mo>≤</mo><mi>ϕ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{I}(\mathbf{H} \leq \phi)</annotation></semantics></math>
+is an indicator function equal to one when the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mi>j</mi></mrow><annotation encoding="application/x-tex">ij</annotation></semantics></math>th
+element of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐇</mi><annotation encoding="application/x-tex">\mathbf{H}</annotation></semantics></math>
+is less than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
+(the range) and zero otherwise. A second is example is the Matérn
+correlation matrix given by
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐑</mi><mo>=</mo><mfrac><msup><mn>2</mn><mrow><mn>1</mn><mo>−</mo><mi>ν</mi></mrow></msup><mrow><mi>Γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>ν</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mi>ν</mi><mi>𝐇</mi><mi>/</mi><mi>ϕ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>ν</mi><mi>/</mi><mn>2</mn></mrow></msup><mo>⊙</mo><msub><mi>B</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mi>ν</mi><mi>𝐇</mi><mo>,</mo><mi>ν</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:matern}
+\mathbf{R} = \frac{2^{1 - \nu}}{\Gamma(\nu)} \left(2\nu \mathbf{H} / \phi \right)^{\nu / 2} \odot B_k(2\nu \mathbf{H}, \nu),
+\end{equation}</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ν</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math>
+is a smoothness parameter,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>⊙</mo><annotation encoding="application/x-tex">\odot</annotation></semantics></math>
+is the Hadmart (element-wise; direct) product, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo>,</mo><mi>ν</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">B_k(\cdot, \nu)</annotation></semantics></math>
+is a Bessel-K function with order
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ν</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math>.
+<span class="citation">Chiles and Delfiner (2012)</span> provide
+examples of several spatial dependence structures.</p>
 <p>Spatial data are areal when they are observed as part of a finite
 network of polygons whose connections are indexed by a neighborhood
 structure. For example, the polygons may represent counties in a state
 who are neighbors if they share at least one boundary. An example of an
-<span class="math inline">\(\mathbf{R}\)</span> matrix for areal data is
-the simultaneous-autoregressive spatial correlation matrix given by
-<span class="math display">\[\begin{equation*}
-  \mathbf{R} = [(\mathbf{I} - \phi \mathbf{W})(\mathbf{I} - \phi
-\mathbf{W})^\top]^{-1},
-\end{equation*}\]</span> where <span class="math inline">\(\mathbf{W}\)</span> is a weight matrix that
-describes the neighborhood structure among observations. Spatial linear
-models for areal data are sometimes called spatial autoregressive
-models. For thorough reviews of the spatial linear model, see <span class="citation">Cressie (1993)</span>, <span class="citation">Banerjee,
-Carlin, and Gelfand (2014)</span>, and <span class="citation">Schabenberger and Gotway (2017)</span>.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐑</mi><annotation encoding="application/x-tex">\mathbf{R}</annotation></semantics></math>
+matrix for areal data is the simultaneous-autoregressive spatial
+correlation matrix given by
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐑</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐈</mi><mo>−</mo><mi>ϕ</mi><mi>𝐖</mi><mo stretchy="true" form="postfix">)</mo></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐈</mi><mo>−</mo><mi>ϕ</mi><mi>𝐖</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msup><mo stretchy="true" form="postfix">]</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation*}
+  \mathbf{R} = [(\mathbf{I} - \phi \mathbf{W})(\mathbf{I} - \phi \mathbf{W})^\top]^{-1},
+\end{equation*}</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐖</mi><annotation encoding="application/x-tex">\mathbf{W}</annotation></semantics></math>
+is a weight matrix that describes the neighborhood structure among
+observations. Spatial linear models for areal data are sometimes called
+spatial autoregressive models. For thorough reviews of the spatial
+linear model, see <span class="citation">Cressie (1993)</span>, <span class="citation">Banerjee, Carlin, and Gelfand (2014)</span>, and <span class="citation">Schabenberger and Gotway (2017)</span>.</p>
 </div>
 <div class="section level2">
 <h2 id="the-spatial-generalized-linear-model">The Spatial Generalized Linear Model<a class="anchor" aria-label="anchor" href="#the-spatial-generalized-linear-model"></a>
 </h2>
-<p>It is common to implicitly assume <span class="math inline">\(\mathbf{y}\)</span> in the spatial linear model is
-unconstrained and Gaussian. This is a restrictive assumption and often
-inappropriate for binary data, proportion data, count data, and skewed
-data, which are common in many practical applications. These types of
-data are most naturally described using generalized linear models <span class="citation">(Nelder and Wedderburn 1972; McCullagh and Nelder
-1989)</span>. Generalized linear models are an extension of linear
-models that “link” a function of a distribution’s mean to the linear
-function <span class="math inline">\(\mathbf{X}
-\boldsymbol{\beta}\)</span> (the explanatory variables and fixed
-effects). We can extend generalized linear models by adding linear,
-latent (i.e., unobserved) random effects to <span class="math inline">\(\mathbf{X} \boldsymbol{\beta}\)</span>. These
-types of models are called generalized linear mixed models <span class="citation">(Breslow and Clayton 1993)</span> and are often
+<p>It is common to implicitly assume
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>
+in the spatial linear model is unconstrained and Gaussian. This is a
+restrictive assumption and often inappropriate for binary data,
+proportion data, count data, and skewed data, which are common in many
+practical applications. These types of data are most naturally described
+using generalized linear models <span class="citation">(Nelder and
+Wedderburn 1972; McCullagh and Nelder 1989)</span>. Generalized linear
+models are an extension of linear models that “link” a function of a
+distribution’s mean to the linear function
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐗</mi><mi>𝛃</mi></mrow><annotation encoding="application/x-tex">\mathbf{X} \boldsymbol{\beta}</annotation></semantics></math>
+(the explanatory variables and fixed effects). We can extend generalized
+linear models by adding linear, latent (i.e., unobserved) random effects
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐗</mi><mi>𝛃</mi></mrow><annotation encoding="application/x-tex">\mathbf{X} \boldsymbol{\beta}</annotation></semantics></math>.
+These types of models are called generalized linear mixed models <span class="citation">(Breslow and Clayton 1993)</span> and are often
 formulated using a hierarchical construction <span class="citation">(Lee
 and Nelder 1996)</span>. For thorough reviews of generalized linear
 models and generalized linear mixed models, see <span class="citation">Bolker et al. (2009)</span>, <span class="citation">Myers et al. (2012)</span>, <span class="citation">Faraway (2016)</span>, and <span class="citation">Wood
@@ -247,21 +304,54 @@ models and generalized linear mixed models, see <span class="citation">Bolker et
 <p>A recent <code>spmodel</code> release (version 0.4.0) provided
 support for spatial generalized linear models (i.e., a generalized
 linear mixed model with spatial random effects). We define the spatial
-generalized linear model as <span class="math display">\[\begin{equation}\label{eq:spglm}
-f(\boldsymbol{\mu}) \equiv \mathbf{w} = \mathbf{X} \boldsymbol{\beta} +
-\boldsymbol{\tau} + \boldsymbol{\epsilon},
-\end{equation}\]</span> where <span class="math inline">\(f(\cdot)\)</span> is the link function, <span class="math inline">\(\boldsymbol{\mu}\)</span> is the mean of <span class="math inline">\(\mathbf{y}\)</span>, and the remaining terms <span class="math inline">\(\mathbf{X}\)</span>, <span class="math inline">\(\boldsymbol{\beta}\)</span>, <span class="math inline">\(\boldsymbol{\tau}\)</span>, <span class="math inline">\(\boldsymbol{\epsilon}\)</span> represent the same
-quantities as for spatial linear models. That is, <span class="math inline">\(\text{E}(\boldsymbol{\tau}) =
-\text{E}(\boldsymbol{\epsilon}) = \boldsymbol{0}\)</span>, <span class="math inline">\(\text{Cov}(\boldsymbol{\tau}) =
-\sigma^2_{de}\mathbf{R}\)</span>, <span class="math inline">\(\text{Cov}(\boldsymbol{\epsilon}) = \sigma^2_{ie}
-\mathbf{I}\)</span>, <span class="math inline">\(\boldsymbol{\tau}\)</span> is independent of <span class="math inline">\(\boldsymbol{\epsilon}\)</span>, and <span class="math inline">\(\boldsymbol{\Sigma} = \sigma^2_{de} \mathbf{R} +
-\sigma^2_{ie} \mathbf{I}\)</span>. The link function, <span class="math inline">\(f(\cdot)\)</span>, “links” a function of <span class="math inline">\(\boldsymbol{\mu}\)</span> to the linear term <span class="math inline">\(\mathbf{w}\)</span>. Note that the linking of
-<span class="math inline">\(\boldsymbol{\mu}\)</span> to <span class="math inline">\(\mathbf{w}\)</span> applies element-wise to each
-vector. Each link function <span class="math inline">\(f(\cdot)\)</span>
-has a corresponding inverse link function, <span class="math inline">\(f^{-1}(\cdot)\)</span>, which “links” a function
-of <span class="math inline">\(\mathbf{w}\)</span> to <span class="math inline">\(\boldsymbol{\mu}\)</span>. Notice that <span class="math inline">\(\mathbf{w}\)</span> is unconstrained but <span class="math inline">\(\boldsymbol{\mu}\)</span> is usually constrained
-in some way (e.g., positive) that depends on the distribution assumed
-for <span class="math inline">\(\mathbf{y}\)</span>.</p>
+generalized linear model as
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≡</mo><mi>𝐰</mi><mo>=</mo><mi>𝐗</mi><mi>𝛃</mi><mo>+</mo><mi>𝛕</mi><mo>+</mo><mi>𝛜</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:spglm}
+f(\boldsymbol{\mu}) \equiv \mathbf{w} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
+\end{equation}</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\cdot)</annotation></semantics></math>
+is the link function,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛍</mi><annotation encoding="application/x-tex">\boldsymbol{\mu}</annotation></semantics></math>
+is the mean of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>,
+and the remaining terms
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛃</mi><annotation encoding="application/x-tex">\boldsymbol{\beta}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛕</mi><annotation encoding="application/x-tex">\boldsymbol{\tau}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛜</mi><annotation encoding="application/x-tex">\boldsymbol{\epsilon}</annotation></semantics></math>
+represent the same quantities as for spatial linear models. That is,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">E</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛕</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mtext mathvariant="normal">E</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛜</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>𝟎</mn></mrow><annotation encoding="application/x-tex">\text{E}(\boldsymbol{\tau}) = \text{E}(\boldsymbol{\epsilon}) = \boldsymbol{0}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Cov</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛕</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msubsup><mi>σ</mi><mrow><mi>d</mi><mi>e</mi></mrow><mn>2</mn></msubsup><mi>𝐑</mi></mrow><annotation encoding="application/x-tex">\text{Cov}(\boldsymbol{\tau}) = \sigma^2_{de}\mathbf{R}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Cov</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛜</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msubsup><mi>σ</mi><mrow><mi>i</mi><mi>e</mi></mrow><mn>2</mn></msubsup><mi>𝐈</mi></mrow><annotation encoding="application/x-tex">\text{Cov}(\boldsymbol{\epsilon}) = \sigma^2_{ie} \mathbf{I}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛕</mi><annotation encoding="application/x-tex">\boldsymbol{\tau}</annotation></semantics></math>
+is independent of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛜</mi><annotation encoding="application/x-tex">\boldsymbol{\epsilon}</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝚺</mi><mo>=</mo><msubsup><mi>σ</mi><mrow><mi>d</mi><mi>e</mi></mrow><mn>2</mn></msubsup><mi>𝐑</mi><mo>+</mo><msubsup><mi>σ</mi><mrow><mi>i</mi><mi>e</mi></mrow><mn>2</mn></msubsup><mi>𝐈</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\Sigma} = \sigma^2_{de} \mathbf{R} + \sigma^2_{ie} \mathbf{I}</annotation></semantics></math>.
+The link function,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\cdot)</annotation></semantics></math>,
+“links” a function of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛍</mi><annotation encoding="application/x-tex">\boldsymbol{\mu}</annotation></semantics></math>
+to the linear term
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐰</mi><annotation encoding="application/x-tex">\mathbf{w}</annotation></semantics></math>.
+Note that the linking of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛍</mi><annotation encoding="application/x-tex">\boldsymbol{\mu}</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐰</mi><annotation encoding="application/x-tex">\mathbf{w}</annotation></semantics></math>
+applies element-wise to each vector. Each link function
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\cdot)</annotation></semantics></math>
+has a corresponding inverse link function,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>f</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f^{-1}(\cdot)</annotation></semantics></math>,
+which “links” a function of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐰</mi><annotation encoding="application/x-tex">\mathbf{w}</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛍</mi><annotation encoding="application/x-tex">\boldsymbol{\mu}</annotation></semantics></math>.
+Notice that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐰</mi><annotation encoding="application/x-tex">\mathbf{w}</annotation></semantics></math>
+is unconstrained but
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛍</mi><annotation encoding="application/x-tex">\boldsymbol{\mu}</annotation></semantics></math>
+is usually constrained in some way (e.g., positive) that depends on the
+distribution assumed for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math>.</p>
 <p>Spatial linear and generalized linear models rely on the same
 components: explanatory variables, fixed effects, spatially dependent
 random errors, and spatial independent random errors. These components
@@ -282,10 +372,11 @@ does not rely on any Bayesian sampling routines, as is common when
 handling complex hierarchical structures. It also formally maximizes a
 likelihood, which is advantageous because it means that likelihood-based
 statistics such as AIC <span class="citation">(Akaike 1974; Hoeting et
-al. 2006)</span> are defined, in contrast to approaches that only
-specify the first two moments of a distribution (e.g., quasi-likelihood
-fit via iteratively re-weighted least squares). <span class="citation">Ver Hoef et al. (2023)</span> provide the methodology’s
-full details.</p>
+al. 2006)</span> and BIC <span class="citation">(Schwarz 1978)</span>
+are defined, in contrast to approaches that only specify the first two
+moments of a distribution (e.g., quasi-likelihood fit via iteratively
+re-weighted least squares). <span class="citation">Ver Hoef et al.
+(2023)</span> provide the methodology’s full details.</p>
 <p><code>spmodel</code> accommodates the binomial, beta, Poisson,
 negative binomial, gamma, and inverse Gaussian distributions. The
 binomial and beta response distributions (specified by ) use the logit
@@ -310,43 +401,37 @@ data types.</caption>
 <tbody>
 <tr class="odd">
 <td>Binomial</td>
-<td><span class="math inline">\(f(\mathbf{\mu}) = \log(\mathbf{\mu} / (1
-- \mathbf{\mu}))\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mi>/</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\mathbf{\mu}) = \log(\mathbf{\mu} / (1 - \mathbf{\mu}))</annotation></semantics></math></td>
 <td>Logit</td>
 <td>Binary; Binary Count</td>
 </tr>
 <tr class="even">
 <td>Poisson</td>
-<td><span class="math inline">\(f(\mathbf{\mu}) =
-\log(\mathbf{\mu})\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\mathbf{\mu}) = \log(\mathbf{\mu})</annotation></semantics></math></td>
 <td>Log</td>
 <td>Count</td>
 </tr>
 <tr class="odd">
 <td>Negative Binomial</td>
-<td><span class="math inline">\(f(\mathbf{\mu}) =
-\log(\mathbf{\mu})\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\mathbf{\mu}) = \log(\mathbf{\mu})</annotation></semantics></math></td>
 <td>Log</td>
 <td>Count</td>
 </tr>
 <tr class="even">
 <td>Beta</td>
-<td><span class="math inline">\(f(\mathbf{\mu}) = \log(\mathbf{\mu} / (1
-- \mathbf{\mu}))\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mi>/</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\mathbf{\mu}) = \log(\mathbf{\mu} / (1 - \mathbf{\mu}))</annotation></semantics></math></td>
 <td>Logit</td>
 <td>Proportion</td>
 </tr>
 <tr class="odd">
 <td>Gamma</td>
-<td><span class="math inline">\(f(\mathbf{\mu}) =
-\log(\mathbf{\mu})\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\mathbf{\mu}) = \log(\mathbf{\mu})</annotation></semantics></math></td>
 <td>Log</td>
 <td>Skewed</td>
 </tr>
 <tr class="even">
 <td>Inverse Gaussian</td>
-<td><span class="math inline">\(f(\mathbf{\mu}) =
-\log(\mathbf{\mu})\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\mathbf{\mu}) = \log(\mathbf{\mu})</annotation></semantics></math></td>
 <td>Log</td>
 <td>Skewed</td>
 </tr>
@@ -392,95 +477,96 @@ them.</caption>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{formula}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚏𝚘𝚛𝚖𝚞𝚕𝚊</mtext><annotation encoding="application/x-tex">\texttt{formula}</annotation></semantics></math></td>
 <td>Fixed effects formula</td>
 <td>Both</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{family}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚏𝚊𝚖𝚒𝚕𝚢</mtext><annotation encoding="application/x-tex">\texttt{family}</annotation></semantics></math></td>
 <td>Response distribution</td>
 <td>Both</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{data}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚍𝚊𝚝𝚊</mtext><annotation encoding="application/x-tex">\texttt{data}</annotation></semantics></math></td>
 <td>Data Frame or object</td>
 <td>Both</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{spcov_type}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚌𝚘𝚟_𝚝𝚢𝚙𝚎</mtext><annotation encoding="application/x-tex">\texttt{spcov_type}</annotation></semantics></math></td>
 <td>Spatial covariance type</td>
 <td>Both</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{spcov_initial}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚌𝚘𝚟_𝚒𝚗𝚒𝚝𝚒𝚊𝚕</mtext><annotation encoding="application/x-tex">\texttt{spcov_initial}</annotation></semantics></math></td>
 <td>Initial or known spatial covariance parameters</td>
 <td>Both</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{dispersion_initial}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚍𝚒𝚜𝚙𝚎𝚛𝚜𝚒𝚘𝚗_𝚒𝚗𝚒𝚝𝚒𝚊𝚕</mtext><annotation encoding="application/x-tex">\texttt{dispersion_initial}</annotation></semantics></math></td>
 <td>Initial or known dispersion parameter</td>
 <td>Both</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{estmethod}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚎𝚜𝚝𝚖𝚎𝚝𝚑𝚘𝚍</mtext><annotation encoding="application/x-tex">\texttt{estmethod}</annotation></semantics></math></td>
 <td>Estimation method</td>
 <td>Both</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{random}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚛𝚊𝚗𝚍𝚘𝚖</mtext><annotation encoding="application/x-tex">\texttt{random}</annotation></semantics></math></td>
 <td>Random effects formula</td>
 <td>Both</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{randcov_initial}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚛𝚊𝚗𝚍𝚌𝚘𝚟_𝚒𝚗𝚒𝚝𝚒𝚊𝚕</mtext><annotation encoding="application/x-tex">\texttt{randcov_initial}</annotation></semantics></math></td>
 <td>Initial or known random effect variances</td>
 <td>Both</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{partition_factor}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚙𝚊𝚛𝚝𝚒𝚝𝚒𝚘𝚗_𝚏𝚊𝚌𝚝𝚘𝚛</mtext><annotation encoding="application/x-tex">\texttt{partition_factor}</annotation></semantics></math></td>
 <td>A partition factor formula</td>
 <td>Both</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{...}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">...</mtext><annotation encoding="application/x-tex">\texttt{...}</annotation></semantics></math></td>
 <td>Additional arguments</td>
 <td>Both</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{anisotropy}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚊𝚗𝚒𝚜𝚘𝚝𝚛𝚘𝚙𝚢</mtext><annotation encoding="application/x-tex">\texttt{anisotropy}</annotation></semantics></math></td>
 <td>Whether to model anisotropy</td>
-<td><span class="math inline">\(\texttt{spglm()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚐𝚕𝚖()</mtext><annotation encoding="application/x-tex">\texttt{spglm()}</annotation></semantics></math></td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{xcoord}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚡𝚌𝚘𝚘𝚛𝚍</mtext><annotation encoding="application/x-tex">\texttt{xcoord}</annotation></semantics></math></td>
 <td>An x-coordinate name</td>
-<td><span class="math inline">\(\texttt{spglm()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚐𝚕𝚖()</mtext><annotation encoding="application/x-tex">\texttt{spglm()}</annotation></semantics></math></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{ycoord}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚢𝚌𝚘𝚘𝚛𝚍</mtext><annotation encoding="application/x-tex">\texttt{ycoord}</annotation></semantics></math></td>
 <td>A y-coordinate name</td>
-<td><span class="math inline">\(\texttt{spglm()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚐𝚕𝚖()</mtext><annotation encoding="application/x-tex">\texttt{spglm()}</annotation></semantics></math></td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{local}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚕𝚘𝚌𝚊𝚕</mtext><annotation encoding="application/x-tex">\texttt{local}</annotation></semantics></math></td>
 <td>Options for large data sets</td>
-<td><span class="math inline">\(\texttt{spglm()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚐𝚕𝚖()</mtext><annotation encoding="application/x-tex">\texttt{spglm()}</annotation></semantics></math></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{W}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚆</mtext><annotation encoding="application/x-tex">\texttt{W}</annotation></semantics></math></td>
 <td>A neighborhood weight matrix</td>
-<td><span class="math inline">\(\texttt{spgautor()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚐𝚊𝚞𝚝𝚘𝚛()</mtext><annotation encoding="application/x-tex">\texttt{spgautor()}</annotation></semantics></math></td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{row_st}\)</span></td>
-<td>Whether to row-standardize <span class="math inline">\(\texttt{W}\)</span>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚛𝚘𝚠_𝚜𝚝</mtext><annotation encoding="application/x-tex">\texttt{row_st}</annotation></semantics></math></td>
+<td>Whether to row-standardize
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚆</mtext><annotation encoding="application/x-tex">\texttt{W}</annotation></semantics></math>
 </td>
-<td><span class="math inline">\(\texttt{spgautor()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚐𝚊𝚞𝚝𝚘𝚛()</mtext><annotation encoding="application/x-tex">\texttt{spgautor()}</annotation></semantics></math></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{M}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝙼</mtext><annotation encoding="application/x-tex">\texttt{M}</annotation></semantics></math></td>
 <td>A symmetry matrix</td>
-<td><span class="math inline">\(\texttt{spgautor()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚐𝚊𝚞𝚝𝚘𝚛()</mtext><annotation encoding="application/x-tex">\texttt{spgautor()}</annotation></semantics></math></td>
 </tr>
 </tbody>
 </table>
@@ -495,7 +581,7 @@ used for these purposes, and their main argument is the fitted model
 object returned by or . The names of these functions are meant to be
 illustrative, describing the purpose of the function itself. The
 functions for evaluating model fit (see below) return likelihood-based
-statistics like AIC, AICc, and deviance <span class="citation">(McCullagh and Nelder 1989)</span>, return coefficient
+statistics like AIC, AICc, BIC, and deviance <span class="citation">(McCullagh and Nelder 1989)</span>, return coefficient
 estimates and confidence intervals, perform cross validation, and
 more.</p>
 <table class="table">
@@ -512,64 +598,71 @@ spglm() or spgautor() and their purpose.</caption>
 <tbody>
 <tr class="odd">
 <td>
-<span class="math inline">\(\texttt{AIC()}\)</span>; <span class="math inline">\(\texttt{AICc()}\)</span>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝙰𝙸𝙲()</mtext><annotation encoding="application/x-tex">\texttt{AIC()}</annotation></semantics></math>;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝙰𝙸𝙲𝚌()</mtext><annotation encoding="application/x-tex">\texttt{AICc()}</annotation></semantics></math>
 </td>
 <td>Return AIC and AICc</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{anova()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚊𝚗𝚘𝚟𝚊()</mtext><annotation encoding="application/x-tex">\texttt{anova()}</annotation></semantics></math></td>
 <td>Perform an analysis of variance</td>
 </tr>
 <tr class="odd">
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝙱𝙸𝙲()</mtext><annotation encoding="application/x-tex">\texttt{BIC()}</annotation></semantics></math></td>
+<td>Return BIC</td>
+</tr>
+<tr class="even">
 <td>
-<span class="math inline">\(\texttt{coef()}\)</span>; <span class="math inline">\(\texttt{coefficients()}\)</span>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚌𝚘𝚎𝚏()</mtext><annotation encoding="application/x-tex">\texttt{coef()}</annotation></semantics></math>;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚌𝚘𝚎𝚏𝚏𝚒𝚌𝚒𝚎𝚗𝚝𝚜()</mtext><annotation encoding="application/x-tex">\texttt{coefficients()}</annotation></semantics></math>
 </td>
 <td>Return parameter estimates</td>
 </tr>
-<tr class="even">
-<td><span class="math inline">\(\texttt{confint()}\)</span></td>
+<tr class="odd">
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚌𝚘𝚗𝚏𝚒𝚗𝚝()</mtext><annotation encoding="application/x-tex">\texttt{confint()}</annotation></semantics></math></td>
 <td>Return confidence intervals</td>
 </tr>
-<tr class="odd">
-<td><span class="math inline">\(\texttt{covmatrix()}\)</span></td>
+<tr class="even">
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚌𝚘𝚟𝚖𝚊𝚝𝚛𝚒𝚡()</mtext><annotation encoding="application/x-tex">\texttt{covmatrix()}</annotation></semantics></math></td>
 <td>Return the fitted covariance matrix</td>
 </tr>
-<tr class="even">
-<td><span class="math inline">\(\texttt{deviance()}\)</span></td>
+<tr class="odd">
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚍𝚎𝚟𝚒𝚊𝚗𝚌𝚎()</mtext><annotation encoding="application/x-tex">\texttt{deviance()}</annotation></semantics></math></td>
 <td>Return the deviance</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
-<span class="math inline">\(\texttt{glance()}\)</span>; <span class="math inline">\(\texttt{glances()}\)</span>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚐𝚕𝚊𝚗𝚌𝚎()</mtext><annotation encoding="application/x-tex">\texttt{glance()}</annotation></semantics></math>;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚐𝚕𝚊𝚗𝚌𝚎𝚜()</mtext><annotation encoding="application/x-tex">\texttt{glances()}</annotation></semantics></math>
 </td>
 <td>Glance at model fits</td>
 </tr>
-<tr class="even">
-<td><span class="math inline">\(\texttt{logLik()}\)</span></td>
+<tr class="odd">
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚕𝚘𝚐𝙻𝚒𝚔()</mtext><annotation encoding="application/x-tex">\texttt{logLik()}</annotation></semantics></math></td>
 <td>Return the log-likelihood</td>
 </tr>
-<tr class="odd">
-<td><span class="math inline">\(\texttt{loocv()}\)</span></td>
+<tr class="even">
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚕𝚘𝚘𝚌𝚟()</mtext><annotation encoding="application/x-tex">\texttt{loocv()}</annotation></semantics></math></td>
 <td>Perform leave-one-out cross validation</td>
 </tr>
-<tr class="even">
-<td><span class="math inline">\(\texttt{pseudoR2()}\)</span></td>
+<tr class="odd">
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚙𝚜𝚎𝚞𝚍𝚘𝚁𝟸()</mtext><annotation encoding="application/x-tex">\texttt{pseudoR2()}</annotation></semantics></math></td>
 <td>Return the pseudo R-squared</td>
 </tr>
-<tr class="odd">
-<td><span class="math inline">\(\texttt{summary()}\)</span></td>
+<tr class="even">
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚞𝚖𝚖𝚊𝚛𝚢()</mtext><annotation encoding="application/x-tex">\texttt{summary()}</annotation></semantics></math></td>
 <td>Summarize the fitted model</td>
 </tr>
-<tr class="even">
-<td><span class="math inline">\(\texttt{tidy()}\)</span></td>
+<tr class="odd">
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚝𝚒𝚍𝚢()</mtext><annotation encoding="application/x-tex">\texttt{tidy()}</annotation></semantics></math></td>
 <td>Tidy the fitted model</td>
 </tr>
-<tr class="odd">
-<td><span class="math inline">\(\texttt{varcomp()}\)</span></td>
+<tr class="even">
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚟𝚊𝚛𝚌𝚘𝚖𝚙()</mtext><annotation encoding="application/x-tex">\texttt{varcomp()}</annotation></semantics></math></td>
 <td>Compare sources of variability</td>
 </tr>
-<tr class="even">
-<td><span class="math inline">\(\texttt{vcov()}\)</span></td>
+<tr class="odd">
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚟𝚌𝚘𝚟()</mtext><annotation encoding="application/x-tex">\texttt{vcov()}</annotation></semantics></math></td>
 <td>Return variance-covariance matrices</td>
 </tr>
 </tbody>
@@ -591,31 +684,34 @@ spglm() or spgautor() and their purpose.</caption>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{augment()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚊𝚞𝚐𝚖𝚎𝚗𝚝()</mtext><annotation encoding="application/x-tex">\texttt{augment()}</annotation></semantics></math></td>
 <td>Augment model data with diagnostics</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{cooks.distance()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚌𝚘𝚘𝚔𝚜.𝚍𝚒𝚜𝚝𝚊𝚗𝚌𝚎()</mtext><annotation encoding="application/x-tex">\texttt{cooks.distance()}</annotation></semantics></math></td>
 <td>Return Cook’s distances</td>
 </tr>
 <tr class="odd">
 <td>
-<span class="math inline">\(\texttt{fitted()}\)</span>; <span class="math inline">\(\texttt{fitted.values()}\)</span>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚏𝚒𝚝𝚝𝚎𝚍()</mtext><annotation encoding="application/x-tex">\texttt{fitted()}</annotation></semantics></math>;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚏𝚒𝚝𝚝𝚎𝚍.𝚟𝚊𝚕𝚞𝚎𝚜()</mtext><annotation encoding="application/x-tex">\texttt{fitted.values()}</annotation></semantics></math>
 </td>
 <td>Return fitted values</td>
 </tr>
 <tr class="even">
 <td>
-<span class="math inline">\(\texttt{hatvalues()}\)</span>;</td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚑𝚊𝚝𝚟𝚊𝚕𝚞𝚎𝚜()</mtext><annotation encoding="application/x-tex">\texttt{hatvalues()}</annotation></semantics></math>;</td>
 <td>Return hat (leverage) values</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{plot()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚙𝚕𝚘𝚝()</mtext><annotation encoding="application/x-tex">\texttt{plot()}</annotation></semantics></math></td>
 <td>Plot model diagnostics</td>
 </tr>
 <tr class="even">
 <td>
-<span class="math inline">\(\texttt{residuals()}\)</span>; <span class="math inline">\(\texttt{resid()}\)</span>; <span class="math inline">\(\texttt{rstandard()}\)</span>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚛𝚎𝚜𝚒𝚍𝚞𝚊𝚕𝚜()</mtext><annotation encoding="application/x-tex">\texttt{residuals()}</annotation></semantics></math>;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚛𝚎𝚜𝚒𝚍()</mtext><annotation encoding="application/x-tex">\texttt{resid()}</annotation></semantics></math>;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚛𝚜𝚝𝚊𝚗𝚍𝚊𝚛𝚍()</mtext><annotation encoding="application/x-tex">\texttt{rstandard()}</annotation></semantics></math>
 </td>
 <td>Return residuals</td>
 </tr>
@@ -661,39 +757,39 @@ used to augment with predictions, taking the same arguments as .</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{object}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚘𝚋𝚓𝚎𝚌𝚝</mtext><annotation encoding="application/x-tex">\texttt{object}</annotation></semantics></math></td>
 <td>Fitted model object</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{newdata}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚗𝚎𝚠𝚍𝚊𝚝𝚊</mtext><annotation encoding="application/x-tex">\texttt{newdata}</annotation></semantics></math></td>
 <td>New data frame or object</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{type}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚝𝚢𝚙𝚎</mtext><annotation encoding="application/x-tex">\texttt{type}</annotation></semantics></math></td>
 <td>Whether predictions are on the link or response scale</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{se.fit}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚎.𝚏𝚒𝚝</mtext><annotation encoding="application/x-tex">\texttt{se.fit}</annotation></semantics></math></td>
 <td>Whether standard errors should be returned</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{interval}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚒𝚗𝚝𝚎𝚛𝚟𝚊𝚕</mtext><annotation encoding="application/x-tex">\texttt{interval}</annotation></semantics></math></td>
 <td>Interval type (prediction or confidence)</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{level}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚕𝚎𝚟𝚎𝚕</mtext><annotation encoding="application/x-tex">\texttt{level}</annotation></semantics></math></td>
 <td>Prediction or confidence level</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{local}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚕𝚘𝚌𝚊𝚕</mtext><annotation encoding="application/x-tex">\texttt{local}</annotation></semantics></math></td>
 <td>Options for large data sets</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{var_correct}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚟𝚊𝚛_𝚌𝚘𝚛𝚛𝚎𝚌𝚝</mtext><annotation encoding="application/x-tex">\texttt{var_correct}</annotation></semantics></math></td>
 <td>Whether prediction variances should be adjusted</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{...}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">...</mtext><annotation encoding="application/x-tex">\texttt{...}</annotation></semantics></math></td>
 <td>Additional arguments</td>
 </tr>
 </tbody>
@@ -720,31 +816,31 @@ table.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{sprnorm()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚛𝚗𝚘𝚛𝚖()</mtext><annotation encoding="application/x-tex">\texttt{sprnorm()}</annotation></semantics></math></td>
 <td>Simulate spatial Gaussian data</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{sprbinom()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚛𝚋𝚒𝚗𝚘𝚖()</mtext><annotation encoding="application/x-tex">\texttt{sprbinom()}</annotation></semantics></math></td>
 <td>Simulate spatial binomial data</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{sprbeta()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚛𝚋𝚎𝚝𝚊()</mtext><annotation encoding="application/x-tex">\texttt{sprbeta()}</annotation></semantics></math></td>
 <td>Simulate spatial beta data</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{sprpois()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚛𝚙𝚘𝚒𝚜()</mtext><annotation encoding="application/x-tex">\texttt{sprpois()}</annotation></semantics></math></td>
 <td>Simulate spatial Poisson data</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{sprnbinom()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚛𝚗𝚋𝚒𝚗𝚘𝚖()</mtext><annotation encoding="application/x-tex">\texttt{sprnbinom()}</annotation></semantics></math></td>
 <td>Simulate spatial negative binomial data</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{sprgamma()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚛𝚐𝚊𝚖𝚖𝚊()</mtext><annotation encoding="application/x-tex">\texttt{sprgamma()}</annotation></semantics></math></td>
 <td>Simulate spatial gamma data</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{sprinvgauss()}\)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="monospace">𝚜𝚙𝚛𝚒𝚗𝚟𝚐𝚊𝚞𝚜𝚜()</mtext><annotation encoding="application/x-tex">\texttt{sprinvgauss()}</annotation></semantics></math></td>
 <td>Simulate spatial inverse Gaussian data</td>
 </tr>
 </tbody>
@@ -835,14 +931,19 @@ using :</p>
 <p>All three models have the same fixed effect structure, using
 elevation, strata, and their interaction to explain moose presence. The
 three models vary in their covariance structure. The first model, , has
-no spatial covariance (<span class="math inline">\(\sigma^2_{de} =
-0\)</span>). The second model, has a spherical spatial covariance. The
-third model, , has a spherical spatial covariance that incorporates
-geometric anisotropy. Geometric anisotropy allows the spatial covariance
-to vary with direction by evaluating the spatial covariance with <span class="math inline">\(\mathbf{H}^*\)</span> (instead of <span class="math inline">\(\mathbf{H}\)</span>), a matrix of distances
-between transformed coordinates that are rotated and scaled
-appropriately <span class="citation">(Schabenberger and Gotway
-2017)</span>. We evaluate the three models using AIC by running</p>
+no spatial covariance
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>σ</mi><mrow><mi>d</mi><mi>e</mi></mrow><mn>2</mn></msubsup><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\sigma^2_{de} = 0</annotation></semantics></math>).
+The second model, has a spherical spatial covariance. The third model, ,
+has a spherical spatial covariance that incorporates geometric
+anisotropy. Geometric anisotropy allows the spatial covariance to vary
+with direction by evaluating the spatial covariance with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝐇</mi><mo>*</mo></msup><annotation encoding="application/x-tex">\mathbf{H}^*</annotation></semantics></math>
+(instead of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐇</mi><annotation encoding="application/x-tex">\mathbf{H}</annotation></semantics></math>),
+a matrix of distances between transformed coordinates that are rotated
+and scaled appropriately <span class="citation">(Schabenberger and
+Gotway 2017)</span>. We evaluate the three models using AIC by
+running</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">bin_mod</span>, <span class="va">bin_spmod</span>, <span class="va">bin_spmod_anis</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;                df      AIC</span></span>
@@ -894,8 +995,11 @@ R-squared (which quantifies the amount of variability explained by the
 fixed effects), and covariance parameter coefficients. The fixed effects
 coefficients table provides some evidence that elevation and strata are
 associated with with moose presence and that the effect of elevation
-varies across the two strata (all <span class="math inline">\(p~\)</span>values <span class="math inline">\(&lt;\)</span> 0.05). The function returns graphics
-of several model diagnostics. Running</p>
+varies across the two strata (all
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mspace width="0.222em"></mspace></mrow><annotation encoding="application/x-tex">p~</annotation></semantics></math>values
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>&lt;</mo><annotation encoding="application/x-tex">&lt;</annotation></semantics></math>
+0.05). The function returns graphics of several model diagnostics.
+Running</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span>, which <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
@@ -939,20 +1043,21 @@ parameters were assumed unknown and then estimated.</p>
 statistics:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 9</span></span></span>
-<span><span class="co">#&gt;       n     p  npar value   AIC  AICc logLik deviance pseudo.r.squared</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>   218     4     5  668.  678.  678.  -<span style="color: #BB0000;">334.</span>     161.            0.112</span></span></code></pre>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 10</span></span></span>
+<span><span class="co">#&gt;       n     p  npar value   AIC  AICc   BIC logLik deviance pseudo.r.squared</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>   218     4     5  668.  678.  678.  695.  -<span style="color: #BB0000;">334.</span>     161.            0.112</span></span></code></pre>
 <p> can be used to glance at multiple models simultaneously and sorts
 models by ascending AICc:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glances.html">glances</a></span><span class="op">(</span><span class="va">bin_mod</span>, <span class="va">bin_spmod</span>, <span class="va">bin_spmod_anis</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 10</span></span></span>
-<span><span class="co">#&gt;   model         n     p  npar value   AIC  AICc logLik deviance pseudo.r.squared</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> bin_spmo…   218     4     5  668.  678.  678.  -<span style="color: #BB0000;">334.</span>     161.           0.112 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> bin_spmod   218     4     3  681.  687.  687.  -<span style="color: #BB0000;">340.</span>     161.           0.088<span style="text-decoration: underline;">5</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> bin_mod     218     4     1  717.  719.  719.  -<span style="color: #BB0000;">359.</span>     294.           0.028<span style="text-decoration: underline;">3</span></span></span></code></pre>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 11</span></span></span>
+<span><span class="co">#&gt;   model              n     p  npar value   AIC  AICc   BIC logLik deviance</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> bin_spmod_anis   218     4     5  668.  678.  678.  695.  -<span style="color: #BB0000;">334.</span>     161.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> bin_spmod        218     4     3  681.  687.  687.  697.  -<span style="color: #BB0000;">340.</span>     161.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> bin_mod          218     4     1  717.  719.  719.  723.  -<span style="color: #BB0000;">359.</span>     294.</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: pseudo.r.squared &lt;dbl&gt;</span></span></span></code></pre>
 <p>The function augments the data with model diagnostics:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span><span class="op">)</span></span>
@@ -977,10 +1082,11 @@ models by ascending AICc:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 0         430. L      0.165  -<span style="color: #BB0000;">0.600</span> 0.087<span style="text-decoration: underline;">1</span>  0.009<span style="text-decoration: underline;">41</span>       -<span style="color: #BB0000;">0.628</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 208 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: geometry &lt;POINT [m]&gt;</span></span></span></code></pre>
-<p>where are fitted values (the estimated <span class="math inline">\(f^{-1}(\mathbf{w})\)</span>, or moose presence
-probability), are response residuals, values indicate leverage, values
-indicate Cook’s distance (i.e., influence), and are standardized
-residuals.</p>
+<p>where are fitted values (the estimated
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>f</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐰</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f^{-1}(\mathbf{w})</annotation></semantics></math>,
+or moose presence probability), are response residuals, values indicate
+leverage, values indicate Cook’s distance (i.e., influence), and are
+standardized residuals.</p>
 <p>The data contains survey sites that were not sampled. We can use to
 make predictions of the underlying probabilities of moose presence at
 these sites using or . and return the same predictions but augments the
@@ -1097,13 +1203,19 @@ short-hand for . Random effects alter the covariance structure of the
 model, building additional correlation into the model for sites sharing
 a level of the random effect (here, sites within the same strata). More
 formally, when incorporating a random effect, the spatial generalized
-linear model becomes <span class="math display">\[\begin{equation}\label{eq:spglm-rand}
-f(\boldsymbol{\mu}) \equiv \mathbf{w} = \mathbf{X} \boldsymbol{\beta} +
-\mathbf{Z}\mathbf{v} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
-\end{equation}\]</span> where <span class="math inline">\(\mathbf{Z}\)</span> is a design matrix that
-indexes the random effects, <span class="math inline">\(\mathbf{v}\)</span>, and <span class="math inline">\(\text{Cov}(\mathbf{v}) =
-\sigma^2_{v}\mathbf{I}\)</span>. Then the covariance matrix, <span class="math inline">\(\boldsymbol{\Sigma}\)</span>, becomes <span class="math inline">\(\sigma^2_v \mathbf{Z} \mathbf{Z}^\top +
-\sigma^2_{de}\mathbf{R} + \sigma^2_{ie}\mathbf{I}\)</span>.</p>
+linear model becomes
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≡</mo><mi>𝐰</mi><mo>=</mo><mi>𝐗</mi><mi>𝛃</mi><mo>+</mo><mi>𝐙</mi><mi>𝐯</mi><mo>+</mo><mi>𝛕</mi><mo>+</mo><mi>𝛜</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:spglm-rand}
+f(\boldsymbol{\mu}) \equiv \mathbf{w} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z}\mathbf{v} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
+\end{equation}</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐙</mi><annotation encoding="application/x-tex">\mathbf{Z}</annotation></semantics></math>
+is a design matrix that indexes the random effects,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐯</mi><annotation encoding="application/x-tex">\mathbf{v}</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Cov</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐯</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msubsup><mi>σ</mi><mi>v</mi><mn>2</mn></msubsup><mi>𝐈</mi></mrow><annotation encoding="application/x-tex">\text{Cov}(\mathbf{v}) = \sigma^2_{v}\mathbf{I}</annotation></semantics></math>.
+Then the covariance matrix,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝚺</mi><annotation encoding="application/x-tex">\boldsymbol{\Sigma}</annotation></semantics></math>,
+becomes
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>σ</mi><mi>v</mi><mn>2</mn></msubsup><mi>𝐙</mi><msup><mi>𝐙</mi><mi>⊤</mi></msup><mo>+</mo><msubsup><mi>σ</mi><mrow><mi>d</mi><mi>e</mi></mrow><mn>2</mn></msubsup><mi>𝐑</mi><mo>+</mo><msubsup><mi>σ</mi><mrow><mi>i</mi><mi>e</mi></mrow><mn>2</mn></msubsup><mi>𝐈</mi></mrow><annotation encoding="application/x-tex">\sigma^2_v \mathbf{Z} \mathbf{Z}^\top + \sigma^2_{de}\mathbf{R} + \sigma^2_{ie}\mathbf{I}</annotation></semantics></math>.</p>
 <p>Previously we compared models using , but another way to compare
 models is by leave-one-out cross validation <span class="citation">(Hastie et al. 2009)</span>. In leave-one-out cross
 validation, each observation is held-out and the model is re-fit and
@@ -1127,8 +1239,9 @@ running</p>
 <p>The negative binomial model has a lower MSPE, which suggests that
 incorporating overdispersion improves model fit here. Tidying this
 fitted model we see that there is some evidence elevation is related to
-moose counts and that this effect changes across strata (all <span class="math inline">\(p~\)</span>values <span class="math inline">\(&lt;
-0.1\)</span>):</p>
+moose counts and that this effect changes across strata (all
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mspace width="0.222em"></mspace></mrow><annotation encoding="application/x-tex">p~</annotation></semantics></math>values
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&lt;</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">&lt; 0.1</annotation></semantics></math>):</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">count_mod_nb</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 5</span></span></span>
@@ -1202,7 +1315,7 @@ learn more about how to provide feedback or contribute to
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
 <div id="ref-akaike1974new" class="csl-entry">
 Akaike, Hirotugu. 1974. <span>“A New Look at the Statistical Model
 Identification.”</span> <em>IEEE Transactions on Automatic Control</em>
@@ -1302,6 +1415,10 @@ Tibbles</em>. <a href="https://CRAN.R-project.org/package=broom" class="external
 Schabenberger, Oliver, and Carol A Gotway. 2017. <em>Statistical Methods
 for Spatial Data Analysis</em>. CRC press.
 </div>
+<div id="ref-schwarz1978estimating" class="csl-entry">
+Schwarz, Gideon. 1978. <span>“Estimating the Dimension of a
+Model.”</span> <em>The Annals of Statistics</em>, 461–64.
+</div>
 <div id="ref-ver2023marginal" class="csl-entry">
 Ver Hoef, Jay M, Eryn Blagg, Michael Dumelle, Philip M Dixon, Dale L
 Zimmerman, and Paul Conn. 2023. <span>“Marginal Inference for
@@ -1319,7 +1436,7 @@ with <span>R</span></em>. CRC press.
 </div>
 </div>
 </div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
@@ -1330,15 +1447,15 @@ with <span>R</span></em>. CRC press.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>

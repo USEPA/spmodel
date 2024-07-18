@@ -1,6 +1,6 @@
 Package: spmodel
 Title: Spatial Statistical Modeling and Prediction
-Version: 0.6.0
+Version: 0.7.0
 Authors@R: c(
     person(given = "Michael",
            family = "Dumelle",
@@ -28,7 +28,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Depends: 
     R (>= 3.5.0)
 Imports: 
@@ -45,7 +45,8 @@ Suggests:
     testthat (>= 3.0.0),
     ggplot2,
     ranger,
-    statmod
+    statmod,
+    pROC
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 URL: https://usepa.github.io/spmodel/

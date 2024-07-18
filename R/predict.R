@@ -17,10 +17,14 @@
 #'   \code{"prediction"} (for prediction intervals).
 #' @param level Tolerance/confidence level. The default is \code{0.95}.
 #' @param local A optional logical or list controlling the big data approximation. If omitted, \code{local}
-#'   is set to \code{TRUE} or \code{FALSE} based on the sample size of the fitted
-#'   model object and/or the prediction size of \code{newdata} -- if the sample
-#'   size or prediction size exceeds 5000, \code{local} is
-#'   set to \code{TRUE}, otherwise it is set to \code{FALSE}. If \code{FALSE}, no big data approximation
+#'   is set to \code{TRUE} or \code{FALSE} based on the observed data sample size (i.e., sample size of the fitted
+#'   model object) -- if the sample size exceeds 10,000, \code{local} is
+#'   set to \code{TRUE}, otherwise it is set to \code{FALSE}. This default behavior
+#'   occurs because main computational
+#'   burden of the big data approximation depends almost exclusively on the
+#'   observed data sample size, not the number of predictions desired
+#'   (which we feel is not intuitive at first glance).
+#'   If \code{local} is \code{FALSE}, no big data approximation
 #'   is implemented. If a list is provided, the following arguments detail the big
 #'   data approximation:
 #'   \itemize{
@@ -38,7 +42,10 @@
 #'       is \code{"distance"} or \code{"covariance"}. The default is 100. Only used
 #'       with models fit using [splm()] or [spglm()].
 #'     \item \code{parallel}: If \code{TRUE}, parallel processing via the
-#'       parallel package is automatically used. The default is \code{FALSE}.
+#'       parallel package is automatically used. This can significantly speed
+#'       up computations even when \code{method = "all"} (i.e., no big data
+#'       approximation is used), as predictions
+#'       are spread out over multiple cores. The default is \code{FALSE}.
 #'     \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
 #'       parallelize over. The default is the number of available cores on your machine.
 #'   }
@@ -126,9 +133,10 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
 
   # deal with local
   if (is.null(local)) {
-    if (object$n > 5000 || NROW(newdata) > 5000) {
+    if (object$n > 10000) {
+    # if (object$n > 5000 || NROW(newdata) > 5000) {
       local <- TRUE
-      message("Because either the sample size of the fitted model object or the number of desired predictions exceeds 5000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun predict() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+      message("Because the sample size of the fitted model object exceeds 10,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun predict() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
     } else {
       local <- FALSE
     }
@@ -730,13 +738,13 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
 
   dist_vector <- spdist_vectors(newdata_list$row, obdata, xcoord, ycoord, dim_coords)
 
-  # subsetting data if method distance
-  if (local$method == "distance") {
-    n <- length(dist_vector)
-    nn_index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
-    obdata <- obdata[nn_index, , drop = FALSE]
-    dist_vector <- dist_vector[, nn_index]
-  }
+  # # subsetting data if method distance
+  # if (local$method == "distance") {
+  #   n <- length(dist_vector)
+  #   nn_index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
+  #   obdata <- obdata[nn_index, , drop = FALSE]
+  #   dist_vector <- dist_vector[, nn_index]
+  # }
 
   # making random vector if necessary
   if (!is.null(randcov_params_val)) {
@@ -748,9 +756,18 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
   # making the covariance vector
   cov_vector_val <- cov_vector(spcov_params_val, dist_vector, randcov_vector_val, partition_vector)
 
+  # subsetting data if method distance
+  if (local$method == "distance") {
+    n <- length(cov_vector_val)
+    # want the smallest distance here and order goes from smallest first to largest last (keep last values with are smallest distance)
+    nn_index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
+    obdata <- obdata[nn_index, , drop = FALSE]
+    cov_vector_val <- cov_vector_val[nn_index]
+  }
 
   if (local$method == "covariance") {
     n <- length(cov_vector_val)
+    # want the largest covariance here and order goes from smallest first to largest last (keep last values which are largest covariance)
     cov_index <- order(as.numeric(cov_vector_val))[seq(from = n, to = max(1, n - local$size + 1))] # use abs() here?
     obdata <- obdata[cov_index, , drop = FALSE]
     cov_vector_val <- cov_vector_val[cov_index]

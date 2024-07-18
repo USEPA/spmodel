@@ -14,9 +14,23 @@ loocv(object, ...)
 
 \method{loocv}{spautor}(object, cv_predict = FALSE, se.fit = FALSE, local, ...)
 
-\method{loocv}{spglm}(object, cv_predict = FALSE, se.fit = FALSE, local, ...)
+\method{loocv}{spglm}(
+  object,
+  cv_predict = FALSE,
+  type = c("link", "response"),
+  se.fit = FALSE,
+  local,
+  ...
+)
 
-\method{loocv}{spgautor}(object, cv_predict = FALSE, se.fit = FALSE, local, ...)
+\method{loocv}{spgautor}(
+  object,
+  cv_predict = FALSE,
+  type = c("link", "response"),
+  se.fit = FALSE,
+  local,
+  ...
+)
 }
 \arguments{
 \item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
@@ -37,6 +51,9 @@ in \code{\link[=predict.spmodel]{predict.spmodel()}} control the big data approx
 If a logical, \code{TRUE} chooses default list elements for the list version
 of \code{local} as specified in \code{\link[=predict.spmodel]{predict.spmodel()}}. Defaults to \code{FALSE},
 which performs exact computations.}
+
+\item{type}{The scale (\code{response} or \code{link}) of predictions obtained
+when \code{cv_predict = TRUE} and using \code{spglm()} or \code{spgautor} objects.}
 }
 \value{
 If \code{cv_predict = FALSE} and \code{se.fit = FALSE},

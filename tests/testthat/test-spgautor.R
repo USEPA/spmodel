@@ -24,6 +24,9 @@ test_that("generics work spgautor polygon data", {
 
   # augment
   expect_s3_class(augment(spmod1), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "link", type.residuals = "pearson"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response", type.residuals = "response", se_fit = FALSE), "data.frame")
 
   # coef
   expect_vector(coef(spmod1))
@@ -165,7 +168,11 @@ test_that("generics work spgautor polygon data with missing", {
 
   # augment
   expect_s3_class(augment(spmod1), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "link", type.residuals = "pearson"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response", type.residuals = "response", se_fit = FALSE), "data.frame")
   expect_s3_class(augment(spmod1, newdata = spmod1$newdata), "data.frame")
+  expect_s3_class(augment(spmod1, newdata = spmod1$newdata, type.predict = "response", se_fit = FALSE), "data.frame")
 
   # coef
   expect_vector(coef(spmod1))
@@ -310,6 +317,8 @@ test_that("generics work spgautor polygon data unconnected", {
 
   # augment
   expect_s3_class(augment(spmod1), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "link", type.residuals = "pearson"), "data.frame")
 
   # coef
   expect_vector(coef(spmod1))

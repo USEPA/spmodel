@@ -1,3 +1,12 @@
+# spmodel 0.8.0
+
+## Minor Updates
+
+* Changed the `type` argument in `augment()` for `spglm()` and `spgautor()` models to `type.predict` to match `broom::augment.glm()`.
+* `augment()` for `spglm()` and `spgautor()` models now returns fitted values on the link scale by default to match `broom::augment.glm()`.
+* Added a `type.residuals` argument for `spglm()` and `spgautor()` models to match `broom::augment.glm()`.
+
+
 # spmodel 0.7.0
 
 ## Minor Updates

@@ -618,7 +618,7 @@ head(spmod_anis_preds)
 aug_pred <- augment(
   bin_spmod_anis,
   newdata = moose_preds,
-  type = "response", 
+  type.predict = "response", 
   interval = "prediction"
 )
 aug_pred
@@ -756,7 +756,7 @@ Estimated mean moose counts for the \texttt{moose} data (obtained via
 
 ```{r nb, out.width="65%", fig.align="center", fig.cap="Fitted values and predictions for moose counts."}
 aug_mod <- augment(count_mod_nb)
-aug_pred <- augment(count_mod_nb, newdata = moose_preds, type = "response")
+aug_pred <- augment(count_mod_nb, newdata = moose_preds, type.predict = "response")
 aug_mod$type <- "mod"
 aug_pred$type <- "pred"
 keep_cols <- c(".fitted", "type")

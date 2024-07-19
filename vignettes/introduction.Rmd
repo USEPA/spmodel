@@ -338,7 +338,7 @@ ggplot(moose_preds, aes(color = preds)) +
 These predictions have similar spatial patterns as moose presence the observed data. Next we remove the model predictions from `moose_preds` and show how `augment()` can be used to obtain the same predictions alongside prediction intervals (on the response scale):
 ```{r}
 moose_preds$preds <- NULL
-augment(binmod, newdata = moose_preds, type = "response", interval = "prediction")
+augment(binmod, newdata = moose_preds, type.predict = "response", interval = "prediction")
 ```
 
 # Function Glossary

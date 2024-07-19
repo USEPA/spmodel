@@ -34,7 +34,8 @@
   x,
   drop = TRUE,
   newdata = NULL,
-  type = c("link", "response"),
+  type.predict = c("link", "response"),
+  type.residuals = c("deviance", "pearson", "response"),
   se_fit = FALSE,
   interval = c("none", "confidence", "prediction"),
   newdata_size,
@@ -48,7 +49,8 @@
   x,
   drop = TRUE,
   newdata = NULL,
-  type = c("link", "response"),
+  type.predict = c("link", "response"),
+  type.residuals = c("deviance", "pearson", "response"),
   se_fit = FALSE,
   interval = c("none", "confidence", "prediction"),
   newdata_size,
@@ -88,8 +90,12 @@ which performs exact computations.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 
-\item{type}{The scale (\code{response} or \code{link}) of predictions obtained
-using \code{spglm()} or \code{spgautor} objects.}
+\item{type.predict}{The scale (\code{response} or \code{link}) of fitted
+values and predictions obtained using \code{spglm()} or \code{spgautor} objects.}
+
+\item{type.residuals}{The residual type (\code{deviance}, \code{pearson}, or \code{response})
+of fitted models from \code{spglm()} or \code{spgautor} objects. Ignored if
+\code{newdata} is specified.}
 
 \item{newdata_size}{The \code{size} value for each observation in \code{newdata}
 used when predicting for the binomial family.}

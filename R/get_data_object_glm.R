@@ -92,7 +92,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
 
   # check if coordinates are projected
   if (is_sf) {
-    if (st_is_longlat(crs)) {
+    if (!is.na(st_is_longlat(crs)) && st_is_longlat(crs)) {
       warning("Coordinates are in a geographic coordinate system. For the most accurate results, please ensure
             coordinates are in a projected coordinate system (e.g., via sf::st_transform()).", call. = FALSE)
     }

@@ -166,7 +166,6 @@ augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type.predict = c("l
   if (is.null(newdata)) {
     augment_data <- tibble::tibble(.fitted = fitted(x, type = type.predict))
     if (se_fit) {
-      browser()
       preds_data <- predict(x, newdata = data, type = type.predict, se.fit = se_fit, interval = "confidence", ...)
       augment_data$.se.fit <- preds_data$se.fit
     }

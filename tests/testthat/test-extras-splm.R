@@ -815,7 +815,7 @@ if (test_local) {
 
     # point data
     exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"), crs = 5070)
-    exdata_sf_geo <- sf::st_transform(exdata_sf_geo, crs = 4326)
+    exdata_sf_geo <- sf::st_transform(exdata_sf, crs = 4326)
 
     spcov_type <- "exponential"
     expect_error(splm(y ~ x, exdata_sf, spcov_type = spcov_type, estmethod = "reml"), NA)

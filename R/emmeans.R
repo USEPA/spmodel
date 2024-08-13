@@ -19,7 +19,7 @@ recover_data.splm <- function(object, frame = model.frame(object), ...) {
   # recover data (using emmeans code)
   fcall = object$call
   # recognize that lm objects have a $model element that is model.frame(object)
-  emmeans::recover_data(fcall, delete.response(terms(object)), frame = frame, ...)
+  emmeans::recover_data(fcall, delete.response(terms(object)), frame = frame, na.action = NULL, ...)
 }
 
 #' @noRd

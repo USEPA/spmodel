@@ -628,4 +628,18 @@ if (test_local) {
     spcov_type <- "sar"
     expect_error(spautor(y ~ x, exdata_poly, spcov_type, range_positive = FALSE), NA)
   })
+
+  test_that("emmeans works", {
+    spcov_type <- "car"
+    spmod <- spautor(y ~ x * group, exdata_poly, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(as.matrix(model.frame(delete.response(terms(spmod)), spmod$data[spmod$observed_index, , drop = FALSE])), as.matrix(emmeans::recover_data(spmod)))
+    expect_error(emmeans::emmeans(spmod, ~ group, by = "x"), NA)
+  })
+
+  test_that("emmeans works missing", {
+    spcov_type <- "car"
+    spmod <- spautor(y ~ x * group, exdata_Mpoly, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(as.matrix(model.frame(delete.response(terms(spmod)), spmod$data[spmod$observed_index, , drop = FALSE])), as.matrix(emmeans::recover_data(spmod)))
+    expect_error(emmeans::emmeans(spmod, ~ group, by = "x"), NA)
+  })
 }

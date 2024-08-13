@@ -107,4 +107,20 @@ if (test_local) {
       random = ~group, partition_factor = ~subgroup
     ), NA)
   })
+
+
+  test_that("emmeans works", {
+    spcov_type <- "exponential"
+    spgmod <- spglm(abs(y) ~ x * group, family = "Gamma", exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(as.matrix(model.frame(delete.response(terms(spgmod)), spgmod$obdata)), as.matrix(emmeans::recover_data(spgmod)))
+    expect_error(emmeans::emmeans(spgmod, ~ group, by = "x"), NA)
+  })
+
+  test_that("emmeans works missing", {
+    spcov_type <- "exponential"
+    spgmod <- spglm(abs(y) ~ x * group, family = "Gamma", exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(as.matrix(model.frame(delete.response(terms(spgmod)), spgmod$obdata)), as.matrix(emmeans::recover_data(spgmod)))
+    expect_error(emmeans::emmeans(spgmod, ~ group, by = "x"), NA)
+  })
+
 }

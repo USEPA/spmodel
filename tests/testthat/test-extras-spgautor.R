@@ -140,4 +140,18 @@ if (test_local) {
       W = W, random = ~subgroup
     ), NA)
   })
+
+  test_that("emmeans works", {
+    spcov_type <- "car"
+    spgmod <- spgautor(abs(y) ~ x * group, family = "Gamma", exdata_poly, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(as.matrix(model.frame(delete.response(terms(spgmod)), spgmod$data[spgmod$observed_index, , drop = FALSE])), as.matrix(emmeans::recover_data(spgmod)))
+    expect_error(emmeans::emmeans(spgmod, ~ group, by = "x"), NA)
+  })
+
+  test_that("emmeans works missing", {
+    spcov_type <- "car"
+    spgmod <- spgautor(abs(y) ~ x * group, family = "Gamma", exdata_Mpoly, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(as.matrix(model.frame(delete.response(terms(spgmod)), spgmod$data[spgmod$observed_index, , drop = FALSE])), as.matrix(emmeans::recover_data(spgmod)))
+    expect_error(emmeans::emmeans(spgmod, ~ group, by = "x"), NA)
+  })
 }

@@ -1,5 +1,9 @@
 # spmodel 0.8.0
 
+## Major Updates
+
+* Added support for the `emmeans` **R** package for estimating marginal means of `splm()`, `spautor()`, `spglm()`, and `spgautor()` models.
+
 ## Minor Updates
 
 * Changed the `type` argument in `augment()` for `spglm()` and `spgautor()` models to `type.predict` to match `broom::augment.glm()`.

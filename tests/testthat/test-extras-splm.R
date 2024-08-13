@@ -1043,4 +1043,18 @@ if (test_local) {
     expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2,
                       partition_factor = ~group, local = TRUE), NA)
   })
+
+  test_that("emmeans works", {
+    spcov_type <- "exponential"
+    spmod <- splm(y ~ x * group, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(as.matrix(model.frame(delete.response(terms(spmod)), spmod$obdata)), as.matrix(emmeans::recover_data(spmod)))
+    expect_error(emmeans::emmeans(spmod, ~ group, by = "x"), NA)
+  })
+
+  test_that("emmeans works missing", {
+    spcov_type <- "exponential"
+    spmod <- splm(y ~ x * group, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(as.matrix(model.frame(delete.response(terms(spmod)), spmod$obdata)), as.matrix(emmeans::recover_data(spmod)))
+    expect_error(emmeans::emmeans(spmod, ~ group, by = "x"), NA)
+  })
 }

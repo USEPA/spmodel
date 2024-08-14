@@ -51,5 +51,5 @@ spmod <- splm(z ~ water + tarp,
 glance(spmod)
 }
 \seealso{
-\code{\link[=AIC.spmodel]{AIC.spmodel()}} \code{\link[=AICc]{AICc()}} \code{\link[=BIC.spmodel]{BIC.spmodel()}} \code{\link[=logLik.spmodel]{logLik.spmodel()}} \code{\link[=deviance.spmodel]{deviance.spmodel()}} \code{\link[=pseudoR2]{pseudoR2()}} \code{\link[=tidy.spmodel]{tidy.spmodel()}} \code{\link[=augment.spmodel]{augment.spmodel()}}
+\code{\link[stats:AIC]{stats::AIC()}} \code{\link[=AICc]{AICc()}} \code{\link[stats:AIC]{stats::BIC()}} \code{\link[=logLik.spmodel]{logLik.spmodel()}} \code{\link[=deviance.spmodel]{deviance.spmodel()}} \code{\link[=pseudoR2]{pseudoR2()}} \code{\link[=tidy.spmodel]{tidy.spmodel()}} \code{\link[=augment.spmodel]{augment.spmodel()}}
 }

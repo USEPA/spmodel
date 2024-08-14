@@ -83,21 +83,23 @@ if (test_local) {
 
     spmod0 <- splm(y ~ 1, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
     spmod1 <- splm(y ~ 1, exdata, spcov_type = "none", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
-    expect_error(AIC(spmod0, spmod1, spmod0))
     expect_error(AICc(spmod0, spmod1, spmod0))
-    expect_error(BIC(spmod0, spmod1, spmod0))
+    # removing tests after removing spmodel-specific AIC method
+    # expect_error(AIC(spmod0, spmod1, spmod0))
+    # expect_error(BIC(spmod0, spmod1, spmod0))
   })
 
   test_that("Warnings appropriately return", {
     spmod0 <- splm(y ~ 1, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
     spmod1 <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
     spmod2 <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "ml")
-    expect_warning(AIC(spmod0, spmod1))
-    expect_warning(AIC(spmod1, spmod2))
     expect_warning(AICc(spmod0, spmod1))
     expect_warning(AICc(spmod1, spmod2))
-    expect_warning(BIC(spmod0, spmod1))
-    expect_warning(BIC(spmod1, spmod2))
+    # removing tests after removing spmodel-specific AIC method
+    # expect_warning(AIC(spmod0, spmod1))
+    # expect_warning(AIC(spmod1, spmod2))
+    # expect_warning(BIC(spmod0, spmod1))
+    # expect_warning(BIC(spmod1, spmod2))
   })
 
   test_that("Matches for lm", {

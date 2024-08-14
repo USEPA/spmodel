@@ -30,6 +30,7 @@ Authors:
 Other contributors:
 \itemize{
   \item Ryan A. Hill \email{hill.ryan@epa.gov} (\href{https://orcid.org/0000-0001-9583-0426}{ORCID}) [contributor]
+  \item Michael Mahon \email{Mahon.Michael@epa.gov} (\href{https://orcid.org/0000-0002-9436-2998}{ORCID}) [contributor]
 }
 
 }

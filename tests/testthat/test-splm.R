@@ -110,6 +110,8 @@ test_that("generics work splm point data", {
   expect_vector(predict(spmod1, newdata = newexdata))
   expect_type(predict(spmod1, newdata = newexdata, interval = "prediction", se.fit = TRUE, local = TRUE), "list")
   expect_true(inherits(predict(spmod1, newdata = newexdata, interval = "confidence", level = 0.9), "matrix"))
+  expect_true(inherits(predict(spmod1, newdata = newexdata, type = "terms"), "matrix"))
+  expect_type(predict(spmod1, newdata = newexdata, type = "terms", interval = "confidence"), "list")
 
   # print
   expect_output(print(spmod1))
@@ -257,7 +259,8 @@ test_that("generics work splm point data with missing", {
   expect_vector(predict(spmod1, newdata = newexdata))
   expect_type(predict(spmod1, newdata = newexdata, interval = "prediction", se.fit = TRUE, local = TRUE), "list")
   expect_true(inherits(predict(spmod1, newdata = newexdata, interval = "confidence", level = 0.9), "matrix"))
-
+  expect_true(inherits(predict(spmod1, newdata = newexdata, type = "terms"), "matrix"))
+  expect_type(predict(spmod1, newdata = newexdata, type = "terms", interval = "confidence"), "list")
 
   # print
   expect_output(print(spmod1))
@@ -400,6 +403,8 @@ test_that("generics work splm polygon data with missing", {
   expect_vector(predict(spmod1))
   expect_type(predict(spmod1, interval = "prediction", se.fit = TRUE, local = TRUE), "list")
   expect_true(inherits(predict(spmod1, interval = "confidence", level = 0.9), "matrix"))
+  expect_true(inherits(predict(spmod1, type = "terms"), "matrix"))
+  expect_type(predict(spmod1, type = "terms", interval = "confidence"), "list")
 
   # print
   expect_output(print(spmod1))

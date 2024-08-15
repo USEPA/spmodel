@@ -1315,6 +1315,24 @@ if (test_local) {
     lmod1 <- lm(y ~ poly(x, degree = 2, raw = FALSE), exdata)
     lmpred1 <- predict(lmod1, newexdata)
     expect_equal(unname(pred1), unname(lmpred1))
+
+    # terms matches
+    pt_spmod1 <- predict(spmod1, newdata = newexdata, type = "terms")
+    pt_lmod1 <- predict(lmod1, newdata = newexdata, type = "terms")
+    expect_equal(pt_spmod1, pt_lmod1, tolerance = 0.01)
+    expect_equal(attr(pt_spmod1, "constant"), attr(pt_lmod1, "constant"), tolerance = 0.01)
+    pt_spmod1 <- predict(spmod1, newdata = newexdata, type = "terms", se.fit = TRUE, interval = "confidence")
+    pt_lmod1 <- predict(spmod1, newdata = newexdata, type = "terms", se.fit = TRUE, interval = "confidence")
+    expect_true(all(names(pt_spmod1) %in% names(pt_lmod1)))
+    expect_equal(pt_spmod1$fit, pt_lmod1$fit, tolerance = 0.01)
+    expect_equal(attr(pt_spmod1$fit, "constant"), attr(pt_lmod1$fit, "constant"), tolerance = 0.01)
+    expect_equal(pt_spmod1$se.fit, pt_lmod1$se.fit, tolerance = 0.01)
+    # both attributes are null when returning se (i.e., for se, there is no constant attribute)
+    expect_equal(attr(pt_spmod1$se, "constant"), attr(pt_lmod1$se, "constant"), tolerance = 0.01)
+    expect_equal(pt_spmod1$lwr, pt_lmod1$lwr, tolerance = 0.01)
+    expect_equal(attr(pt_spmod1$lwr, "constant"), attr(pt_lmod1$lwr, "constant"), tolerance = 0.01)
+    expect_equal(pt_spmod1$upr, pt_lmod1$upr, tolerance = 0.01)
+    expect_equal(attr(pt_spmod1$upr, "constant"), attr(pt_lmod1$upr, "constant"), tolerance = 0.01)
   })
 
   test_that("prediction values match for both approaches autoregressive", {

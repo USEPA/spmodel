@@ -1,5 +1,3 @@
-#' @param type The scale (\code{response} or \code{link}) of predictions obtained
-#'   using \code{spglm()} or \code{spgautor} objects.
 #' @param newdata_size The \code{size} value for each observation in \code{newdata}
 #'   used when predicting for the binomial family.
 #' @param var_correct A logical indicating whether to return the corrected prediction
@@ -9,8 +7,8 @@
 #' @method predict spglm
 #' @order 9
 #' @export
-predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                          newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
+predict.spglm <- function(object, newdata, type = c("link", "response", "terms"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
+                          newdata_size, level = 0.95, local, var_correct = TRUE, terms = NULL, ...) {
 
 
 
@@ -132,6 +130,12 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
+
+  # call terms if needed
+  if (type == "terms") {
+    # glm supports standard errors for terms objects but not intervals (no interval argument)
+    return(predict_terms(object, newdata_model, se.fit, interval, level, add_newdata_rows, terms, ...))
+  }
 
   # storing newdata as a list
   newdata_rows_list <- split(newdata, seq_len(NROW(newdata)))
@@ -586,9 +590,9 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
 #' @method predict spgautor
 #' @order 10
 #' @export
-predict.spgautor <- function(object, newdata, type = c("link", "response"), se.fit = FALSE,
+predict.spgautor <- function(object, newdata, type = c("link", "response", "terms"), se.fit = FALSE,
                              interval = c("none", "confidence", "prediction"),
-                             newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
+                             newdata_size, level = 0.95, local, var_correct = TRUE, terms = NULL, ...) {
 
   # match type argument so the two display
   type <- match.arg(type)
@@ -660,6 +664,12 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
+
+  # call terms if needed
+  if (type == "terms") {
+    return(predict_terms(object, newdata_model, se.fit, interval, level, add_newdata_rows = TRUE, terms, ...))
+  }
+
 
   # storing newdata as a list
   newdata_list <- split(newdata, seq_len(NROW(newdata)))

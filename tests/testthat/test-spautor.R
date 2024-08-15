@@ -236,6 +236,8 @@ test_that("generics work spautor polygon data with missing", {
   expect_vector(predict(spmod1))
   expect_type(predict(spmod1, interval = "prediction", se.fit = TRUE, local = FALSE), "list")
   expect_true(inherits(predict(spmod1, interval = "confidence", level = 0.9), "matrix"))
+  expect_true(inherits(predict(spmod1, type = "terms"), "matrix"))
+  expect_type(predict(spmod1, type = "terms", interval = "confidence"), "list")
 
   # print
   expect_output(print(spmod1))

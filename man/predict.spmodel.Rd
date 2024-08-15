@@ -22,7 +22,9 @@
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
+  type = c("response", "terms"),
   local,
+  terms = NULL,
   ...
 )
 
@@ -32,7 +34,9 @@
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
+  type = c("response", "terms"),
   local,
+  terms = NULL,
   ...
 )
 
@@ -67,26 +71,28 @@
 \method{predict}{spglm}(
   object,
   newdata,
-  type = c("link", "response"),
+  type = c("link", "response", "terms"),
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
   newdata_size,
   level = 0.95,
   local,
   var_correct = TRUE,
+  terms = NULL,
   ...
 )
 
 \method{predict}{spgautor}(
   object,
   newdata,
-  type = c("link", "response"),
+  type = c("link", "response", "terms"),
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
   newdata_size,
   level = 0.95,
   local,
   var_correct = TRUE,
+  terms = NULL,
   ...
 )
 
@@ -136,6 +142,9 @@ Other options are \code{"confidence"} (for confidence intervals) and
 
 \item{level}{Tolerance/confidence level. The default is \code{0.95}.}
 
+\item{type}{The prediction type, either on the response scale, link scale (only for
+\code{spglm()} or \code{spgautor()} model objects), or terms scale.}
+
 \item{local}{A optional logical or list controlling the big data approximation. If omitted, \code{local}
 is set to \code{TRUE} or \code{FALSE} based on the observed data sample size (i.e., sample size of the fitted
 model object) -- if the sample size exceeds 10,000, \code{local} is
@@ -175,12 +184,12 @@ If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 that \code{local} is transformed into
 \code{list(size = 100, method = "covariance", parallel = FALSE)}.}
 
+\item{terms}{If \code{type} is \code{"terms"}, the type of terms to be returned,
+specified via either numeric position or name. The default is all terms are included.}
+
 \item{...}{Other arguments. Only used for models fit using \code{splmRF()}
 or \code{spautorRF()} where \code{...} indicates other
 arguments to \code{ranger::predict.ranger()}.}
-
-\item{type}{The scale (\code{response} or \code{link}) of predictions obtained
-using \code{spglm()} or \code{spgautor} objects.}
 
 \item{newdata_size}{The \code{size} value for each observation in \code{newdata}
 used when predicting for the binomial family.}

@@ -11,6 +11,7 @@
 * Added a `type.residuals` argument for `spglm()` and `spgautor()` models to match `broom::augment.glm()`.
 * Updated `logLik()` to match `lm()` and `glm()` behavior. `logLik()` now returns a vector with class `logLik` and attributes `nobs` and `df`.
 * Added support for using `AIC()` and `BIC()` from `stats` and removed `spmodel`-specific `AIC()` and `BIC()` methods.
+* Added support for `"terms"` prediction for `splm()`, `spautor()`, `spglm()`, and `spgautor()` models.
 
 
 # spmodel 0.7.0

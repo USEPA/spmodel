@@ -1428,6 +1428,26 @@ if (test_local) {
     expect_equal(fitted(spmod1), fitted(spmod2) + exdata_Mpoly$offset[!is.na(exdata_Mpoly$y)])
   })
 
+  test_that("prediction for splm scale/df works", {
+    spmod1 <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
+    pred1 <- predict(spmod1, newexdata, se.fit = TRUE, scale = 1, interval = "prediction")
+    pred2 <- predict(spmod1, newexdata, se.fit = TRUE, interval = "prediction")
+    expect_equal(pred1, pred2, tolerance = .01)
+    pred1 <- predict(spmod1, newexdata, se.fit = TRUE, scale = 2)
+    pred2 <- predict(spmod1, newexdata, se.fit = TRUE)
+    expect_equal(pred1$fit, pred2$fit, tolerance = 0.01)
+    expect_equal(pred1$se.fit / 2, pred2$se.fit, tolerance = 0.01)
+    df <- 4
+    pred1 <- predict(spmod1, newexdata, se.fit = TRUE, scale = 1, df = df, interval = "confidence")
+    pred2 <- predict(spmod1, newexdata, se.fit = TRUE, interval = "confidence")
+    expect_equal(pred1$fit[, "fit"], pred2$fit[, "fit"], tolerance = 0.01)
+    expect_equal(pred1$se.fit, pred2$se.fit, tolerance = 0.01)
+    level <- 0.95
+    tcrit <- qt(1 - (1 - level) / 2, df = df)
+    expect_equal(as.vector(pred1$fit[, "lwr"]), as.vector(pred2$fit[, "fit"] - tcrit * pred2$se.fit), tolerance = 0.01)
+    expect_equal(as.vector(pred1$fit[, "upr"]), as.vector(pred2$fit[, "fit"] + tcrit * pred2$se.fit), tolerance = 0.01)
+  })
+
   ##############################################################################
   ############################ print (test-print.R)
   ##############################################################################

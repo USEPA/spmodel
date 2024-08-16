@@ -134,7 +134,8 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms")
   # call terms if needed
   if (type == "terms") {
     # glm supports standard errors for terms objects but not intervals (no interval argument)
-    return(predict_terms(object, newdata_model, se.fit, interval, level, add_newdata_rows, terms, ...))
+    # scale df not used for glms
+    return(predict_terms(object, newdata_model, se.fit, scale = NULL, df = Inf, interval, level, add_newdata_rows, terms, ...))
   }
 
   # storing newdata as a list
@@ -667,7 +668,8 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
 
   # call terms if needed
   if (type == "terms") {
-    return(predict_terms(object, newdata_model, se.fit, interval, level, add_newdata_rows = TRUE, terms, ...))
+    # scale df not used for glms
+    return(predict_terms(object, newdata_model, se.fit, scale = NULL, df = Inf, interval, level, add_newdata_rows = TRUE, terms, ...))
   }
 
 

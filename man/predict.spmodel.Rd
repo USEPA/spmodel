@@ -20,6 +20,8 @@
   object,
   newdata,
   se.fit = FALSE,
+  scale = NULL,
+  df = Inf,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
   type = c("response", "terms"),
@@ -32,6 +34,8 @@
   object,
   newdata,
   se.fit = FALSE,
+  scale = NULL,
+  df = Inf,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
   type = c("response", "terms"),
@@ -135,6 +139,15 @@ fitted model object are used.}
 
 \item{se.fit}{A logical indicating if standard errors are returned.
 The default is \code{FALSE}.}
+
+\item{scale}{A numeric constant by which to scale the regular standard errors and intervals.
+Similar to but slightly different than \code{scale} for \code{\link[stats:predict.lm]{stats::predict.lm()}}, because
+predictions form a spatial model may have different residual variances for each
+observation in \code{newdata}. The default is \code{NULL}, which returns
+the regular standard errors and intervals.}
+
+\item{df}{Degrees of freedom to use for confidence or prediction intervals
+(ignored if \code{scale} is not specified). The default is \code{Inf}.}
 
 \item{interval}{Type of interval calculation. The default is \code{"none"}.
 Other options are \code{"confidence"} (for confidence intervals) and

@@ -1,4 +1,4 @@
-predict_terms <- function(object, X_newdata, se.fit, interval, level, add_newdata_rows, terms, ...) {
+predict_terms <- function(object, X_newdata, se.fit, scale, df, interval, level, add_newdata_rows, terms, ...) {
 
   if (interval == "prediction") {
     stop('If type = "terms", interval must be "none" or "confidence".', call. = FALSE)
@@ -67,14 +67,21 @@ predict_terms <- function(object, X_newdata, se.fit, interval, level, add_newdat
 
   fit <- structure(fit, constant = constant)
   out <- list(fit = fit)
-  if (se.fit) {
-    out$se.fit <- se
-  }
-  if (interval == "confidence") {
+  if (se.fit || interval == "confidence") {
     # for some reason, predict.lm returns se even if se.fit = FALSE when
     # interval is confidence
     out$se.fit <- se
-    tstar <- qnorm(1 - (1 - level) / 2)
+    if (!is.null(scale)) {
+      # lm replaces with total variance, we will "scale" by a certain constant
+      out$se.fit <- out$se.fit * scale
+      df <- df
+    } else {
+      df <- Inf
+    }
+  }
+  if (interval == "confidence") {
+
+    tstar <- qt(1 - (1 - level) / 2, df = df)
     out$lwr <- out$fit - tstar * se
     out$upr <- out$fit + tstar * se
   }

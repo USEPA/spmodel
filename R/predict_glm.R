@@ -3,12 +3,27 @@
 #' @param var_correct A logical indicating whether to return the corrected prediction
 #'   variances when predicting via models fit using \code{spglm()} or \code{spgautor()}. The default is
 #'   \code{TRUE}.
+#' @param dispersion The dispersion of assumed when computing the prediction standard errors
+#'   for \code{spglm()} or \code{spgautor()} model objects when \code{family}
+#'   is \code{"nbinomial"}, \code{"beta"}, \code{"Gamma"}, or \code{"inverse.gaussian"}.
+#'   If omitted, the model object dispersion parameter is used.
 #' @rdname predict.spmodel
 #' @method predict spglm
 #' @order 9
 #' @export
+#' @examples
+#' \donttest{
+#' spgmod <- spglm(presence ~ elev * strat,
+#'   family = "binomial",
+#'   data = moose,
+#'   spcov_type = "exponential"
+#' )
+#' predict(spgmod, moose_preds)
+#' predict(spgmod, moose_preds, interval = "prediction")
+#' augment(spgmod, newdata = moose_preds, interval = "prediction")
+#' }
 predict.spglm <- function(object, newdata, type = c("link", "response", "terms"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                          newdata_size, level = 0.95, local, var_correct = TRUE, terms = NULL, ...) {
+                          level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size, ...) {
 
 
 
@@ -24,6 +39,14 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms")
   # deal with local
   if (missing(local)) {
     local <- NULL
+  }
+
+  # handle dispersion argument if provided
+  if (!is.null(dispersion)) {
+    if (object$family %in% c("binomial", "poisson") && dispersion != 1) {
+      stop("dispersion is fixed at one for binomial and poisson families.", call. = FALSE)
+    }
+    object$coefficients$dispersion[1] <- dispersion
   }
 
   # error if newdata missing from arguments and object
@@ -593,7 +616,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
 #' @export
 predict.spgautor <- function(object, newdata, type = c("link", "response", "terms"), se.fit = FALSE,
                              interval = c("none", "confidence", "prediction"),
-                             newdata_size, level = 0.95, local, var_correct = TRUE, terms = NULL, ...) {
+                             level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size, ...) {
 
   # match type argument so the two display
   type <- match.arg(type)
@@ -607,6 +630,14 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
   # deal with local
   if (missing(local)) {
     local <- NULL
+  }
+
+  # handle dispersion argument if provided
+  if (!is.null(dispersion)) {
+    if (object$family %in% c("binomial", "poisson") && dispersion != 1) {
+      stop("dispersion is fixed at one for binomial and poisson families.", call. = FALSE)
+    }
+    object$coefficients$dispersion[1] <- dispersion
   }
 
   # error if newdata missing from arguments and object

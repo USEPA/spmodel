@@ -13,6 +13,7 @@
 * Added support for using `AIC()` and `BIC()` from `stats` and removed `spmodel`-specific `AIC()` and `BIC()` methods.
 * Added support for `"terms"` prediction for `splm()`, `spautor()`, `spglm()`, and `spgautor()` models.
 * Added `scale` and `df` arguments to `predict()` for `splm()` and `spautor()` models.
+* Add `dispersion` argument to `predict()` for `spglm()` and `spgautor()` models.
 
 
 # spmodel 0.7.0

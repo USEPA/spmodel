@@ -130,6 +130,10 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
     stop("scale must be numeric.", call. = FALSE)
   }
 
+  # handle na action -- this is an inefficient workaround that should be fixed later
+  # placeholder as a reminder to consider adding na.action argument at a later date
+  # na_action <- as.character(substitute(na.action))
+
   # error if newdata missing from arguments and object
   if (missing(newdata) && is.null(object$newdata)) {
     stop("No missing data to predict. newdata must be specified in the newdata argument or object$newdata must be non-NULL.", call. = FALSE)

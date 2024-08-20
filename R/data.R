@@ -148,3 +148,46 @@
 #' Alaska Department of Fish and Game, Division of Wildlife Conservation has released
 #'   this data set under the CC0 license.
 "moose_preds"
+
+#' National Lakes Assessment Data
+#'
+#' @description Lake data collected as part of the United States Environmental Protection
+#'   Agency's 2012 and 2017 National Lakes Assessment and LakeCat.
+#'
+#' @format An \code{sf} object with 102 rows and 9 columns:
+#'
+#' \itemize{
+#'   \item comid: A common identifier from NHDPlusV2.
+#'   \item log_cond: The natural logarithm of lake conductivity.
+#'   \item state: The US state: One of Arizona (AZ), Colorado (CO), Nevada (NV),
+#'     Colorado (CO)
+#'   \item temp: Lake catchment 30-year average temperature.
+#'   \item precip: Lake watershed 30-year average precipitation.
+#'   \item elev: Lake elevation (in meters)
+#'   \item origin: Lake origin (human-made or natural).
+#'   \item year: A factor representing year (2012 or 2017).
+#'   \item geometry: \code{POINT} geometry representing coordinates in a NAD83
+#'     projection (EPSG: 5070).
+#' }
+"lake"
+
+#' Lakes Prediction Data
+#'
+#' @description Lake prediction data collected as part of the United States Environmental Protection
+#'   Agency's 2012 and 2017 National Lakes Assessment and LakeCat.
+#'
+#' @format An \code{sf} object with 10 rows and 8 columns:
+#'
+#' \itemize{
+#'   \item comid: A common identifier from NHDPlusV2.
+#'   \item state: The US state: One of Arizona (AZ), Colorado (CO), Nevada (NV),
+#'     Colorado (CO)
+#'   \item temp: Lake catchment 30-year average temperature.
+#'   \item precip: Lake watershed 30-year average precipitation.
+#'   \item elev: Lake elevation (in meters)
+#'   \item origin: Lake origin (human-made or natural).
+#'   \item year: A factor representing year (2012 or 2017).
+#'   \item geometry: \code{POINT} geometry representing coordinates in a NAD83
+#'     projection (EPSG: 5070).
+#' }
+"lake_preds"

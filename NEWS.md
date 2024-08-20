@@ -3,6 +3,7 @@
 ## Major Updates
 
 * Added support for the `emmeans` **R** package for estimating marginal means of `splm()`, `spautor()`, `spglm()`, and `spgautor()` models.
+* Added the `lake` and `lake_preds` data sets, which contain data from the United States Environmental Protection Agency's National Lakes Assessment.
 
 ## Minor Updates
 

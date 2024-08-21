@@ -642,4 +642,13 @@ if (test_local) {
     expect_equal(as.matrix(model.frame(delete.response(terms(spmod)), spmod$data[spmod$observed_index, , drop = FALSE])), as.matrix(emmeans::recover_data(spmod)))
     expect_error(emmeans::emmeans(spmod, ~ group, by = "x"), NA)
   })
+
+  test_that("point distance works missing", {
+    exdata_sf <- st_as_sf(exdata, coords = c("xcoord", "ycoord"), crs = NA)
+    spcov_type <- "car"
+    expect_error(spautor(y ~ x, exdata_sf, spcov_type = spcov_type, cutoff = 1), NA)
+    expect_error(spautor(y ~ x, exdata_sf, spcov_type = spcov_type, cutoff = 1, row_st = FALSE), NA)
+    expect_error(spautor(y ~ x, exdata_sf, spcov_type = spcov_type, cutoff = NULL)) # can't be NULL
+    expect_error(spautor(y ~ x, exdata_sf, spcov_type = spcov_type, cutoff = 1e-8)) # too small of distance so no neighbors
+  })
 }

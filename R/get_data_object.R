@@ -304,7 +304,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
 
 get_data_object_spautor <- function(formula, data, spcov_initial,
                                     estmethod, W, M, random, randcov_initial,
-                                    partition_factor, row_st, range_positive, ...) {
+                                    partition_factor, row_st, range_positive, cutoff, ...) {
   ## convert sp to sf object
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
@@ -325,8 +325,21 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
   # units are nieghbors with themselves, so we need to set the diagonal of the
   # matrix equal to zero
   if (is.null(W)) {
-    W <- sf::st_intersects(data, sparse = FALSE)
-    diag(W) <- 0
+    geom_type <- st_geometry_type(data, by_geometry = FALSE)
+    if (geom_type == "POINT") {
+      if (is.null(cutoff)) {
+        stop("cutoff must be specified if using a distance-based neighbor cutoff.", call. = FALSE)
+      }
+      coords_val <- st_coordinates(data)
+      W <- 1 * (as.matrix(dist(coords_val)) <= cutoff)
+      diag(W) <- 0
+      if (sum(W) == 0) {
+        stop("cutoff must be larger than the smallest distance between potential neighbors.", call. = FALSE)
+      }
+    } else {
+      W <- sf::st_intersects(data, sparse = FALSE)
+      diag(W) <- 0
+    }
   }
 
   # turn W into a sparse Matrix and logical regardless of whether provided by us or user

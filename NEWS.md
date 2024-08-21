@@ -4,7 +4,9 @@
 
 * Added support for the `emmeans` **R** package for estimating marginal means of `splm()`, `spautor()`, `spglm()`, and `spgautor()` models.
 * Added support for distance-based neighborhood definitions of `spautor()` and `spgautor()` models via the `cutoff` argument, required when `data` are an `sf` object with `POINT` geometry and `W` is not specified.
+* Added the `texas` data set, which contains voter turnout data from eligible voters in Texas, USA, during the 1980 Presidential election.
 * Added the `lake` and `lake_preds` data sets, which contain data from the United States Environmental Protection Agency's National Lakes Assessment and LakeCat.
+
 
 ## Minor Updates
 

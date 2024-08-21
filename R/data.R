@@ -191,3 +191,21 @@
 #'     projection (EPSG: 5070).
 #' }
 "lake_preds"
+
+#' Texas Turnout Data
+#'
+#' @description Texas voter turnout data collected during the United States 1980 Presidential
+#'   election.
+#'
+#' @format An \code{sf} object with 254 rows and 4 columns:
+#'
+#' \itemize{
+#'   \item FIPS: Federal Information Processing System (FIPS) county codes.
+#'   \item turnout: Proportion of eligible voters who voted.
+#'   \item log_income: The natural logarithm of average income.
+#'   \item geometry: \code{POINT} geometry representing coordinates in a NAD83
+#'     projection (EPSG: 5070).
+#' }
+#' @source
+#' The data source is the \code{elect80} data set in the \code{spData} R package.
+"texas"

@@ -20,7 +20,8 @@
 * Add `dispersion` argument to `predict()` for `spglm()` and `spgautor()` models.
 * Enhanced numeric stability of deviance and pseudo R-squared for `spglm()` or `spgautor()` models when `family = "beta"`.
 * Added the `cov_type` argument to `covmatrix()` to return observed by observed, prediction by observed, observed by prediction, and prediction by prediction covariance matrices.
-
+* Minor vignette updates
+* Minor documentation updates
 
 # spmodel 0.7.0
 

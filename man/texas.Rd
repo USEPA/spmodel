@@ -10,7 +10,7 @@ An \code{sf} object with 254 rows and 4 columns:
 \itemize{
 \item FIPS: Federal Information Processing System (FIPS) county codes.
 \item turnout: Proportion of eligible voters who voted.
-\item log_income: The natural logarithm of average per capita (in thousands of dollars) income.
+\item log_income: The natural logarithm of average per capita (in dollars) income.
 \item geometry: \code{POINT} geometry representing coordinates in a NAD83
 projection (EPSG: 5070). Distances between points are in meters.
 }

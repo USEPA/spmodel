@@ -47,8 +47,10 @@ test_that("generics work spglm point data", {
   expect_vector(cooks.distance(spmod1))
 
   # covmatrix
-  expect_true(inherits(covmatrix(spmod1), "matrix"))
-  expect_true(inherits(covmatrix(spmod1, newexdata), "matrix"))
+  expect_equal(dim(covmatrix(spmod1)), c(100, 100))
+  expect_equal(dim(covmatrix(spmod1, newdata = newexdata)), c(10, 100))
+  expect_equal(dim(covmatrix(spmod1, newdata = newexdata, cov_type = "obs.pred")), c(100, 10))
+  expect_equal(dim(covmatrix(spmod1, newdata = newexdata, cov_type = "pred.pred")), c(10, 10))
 
   # deviance
   expect_vector(deviance(spmod1))
@@ -210,8 +212,10 @@ test_that("generics work spglm point data with missing", {
   expect_vector(cooks.distance(spmod1))
 
   # covmatrix
-  expect_true(inherits(covmatrix(spmod1), "matrix"))
-  expect_true(inherits(covmatrix(spmod1, newdata = spmod1$newdata), "matrix"))
+  expect_equal(dim(covmatrix(spmod1)), c(99, 99))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata)), c(1, 99))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "obs.pred")), c(99, 1))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "pred.pred")), c(1, 1))
 
   # deviance
   expect_vector(deviance(spmod1))
@@ -368,8 +372,10 @@ test_that("generics work spglm polygon data with missing", {
   expect_vector(cooks.distance(spmod1))
 
   # covmatrix
-  expect_true(inherits(covmatrix(spmod1), "matrix"))
-  expect_true(inherits(covmatrix(spmod1, newdata = spmod1$newdata), "matrix"))
+  expect_equal(dim(covmatrix(spmod1)), c(48, 48))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata)), c(1, 48))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "obs.pred")), c(48, 1))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "pred.pred")), c(1, 1))
 
   # deviance
   expect_vector(deviance(spmod1))

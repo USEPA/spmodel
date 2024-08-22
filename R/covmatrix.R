@@ -11,6 +11,18 @@
 #'   must contain variables that represent coordinates having the same name as
 #'   the coordinates from the observed data used to fit \code{object}. If an
 #'   \code{sf} object, coordinates are obtained from the geometry of \code{newdata}.
+#' @param cov_type The type of covariance matrix returned. If \code{newdata}
+#'   is omitted or \code{cov_type} is \code{"obs.obs"},
+#'   the \eqn{n \times n} covariance matrix of the observed
+#'   data is returned, where \eqn{n} is the sample size used to fit \code{object}.
+#'   If \code{newdata} is provided and \code{cov_type} is \code{"pred.obs"}
+#'   (the default when \code{newdata} is provided),
+#'   the \eqn{m \times n} covariance matrix of the prediction and observed data is returned,
+#'   where \eqn{m} is the number of elements in the prediction data.
+#'   If \code{newdata} is provided and \code{cov_type} is \code{"obs.pred"},
+#'   the \eqn{n \times m} covariance matrix of the observed and prediction data is returned.
+#'   If \code{newdata} is provided and \code{cov_type} is \code{"pred.pred"},
+#'   the \eqn{m \times m} covariance matrix of the prediction data is returned.
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @return If \code{newdata} is omitted, the covariance matrix of the observed
@@ -35,7 +47,30 @@ covmatrix <- function(object, newdata, ...) {
 #' @method covmatrix splm
 #' @order 2
 #' @export
-covmatrix.splm <- function(object, newdata, ...) {
+covmatrix.splm <- function(object, newdata, cov_type, ...) {
+
+  if (missing(newdata)) {
+    cov_type <- "obs.obs"
+  } else {
+    if (missing(cov_type)) {
+      cov_type <- "pred.obs"
+    }
+  }
+
+  if (cov_type != "obs.obs") {
+    if (is.null(newdata)) {
+      stop("No prediction data for which to create a covariance matrix.", call. = FALSE)
+    }
+  }
+
+  if (cov_type == "pred.pred") {
+    if (inherits(object$newdata, "sf")) {
+      object$obdata <- sf_to_df(newdata)
+    } else {
+      object$obdata <- newdata
+    }
+    return(covmatrix(object))
+  }
 
   # spcov
   spcov_params_val <- coef(object, type = "spcov")
@@ -43,7 +78,8 @@ covmatrix.splm <- function(object, newdata, ...) {
   # randcov
   randcov_params_val <- coef(object, type = "randcov")
 
-  if (missing(newdata)) {
+  # if (missing(newdata)) {
+  if (cov_type == "obs.obs") {
     # coordinate stuff
     if (object$anisotropy) {
       new_coords <- transform_anis(
@@ -69,7 +105,8 @@ covmatrix.splm <- function(object, newdata, ...) {
       partition_matrix = partition_matrix_val,
       diagtol = object$diagtol
     )
-  } else {
+  } else if (cov_type %in% c("pred.obs", "obs.pred")) {
+
     # rename relevant quantities
     obdata <- object$obdata
     xcoord <- object$xcoord
@@ -117,6 +154,13 @@ covmatrix.splm <- function(object, newdata, ...) {
 
     # cov vector
     cov_val <- cov_vector(spcov_params_val, dist_vector, randcov_vector_val, partition_vector_val)
+
+    if (cov_type == "obs.pred") {
+      cov_val <- t(cov_val)
+    }
+
+  } else {
+    stop('cov_type must be "obs.obs", "obs.pred", "pred.obs", "pred.pred"', call. = FALSE)
   }
 
   # return covariance value as a base R matrix (not a Matrix matrix)
@@ -127,7 +171,21 @@ covmatrix.splm <- function(object, newdata, ...) {
 #' @method covmatrix spautor
 #' @order 3
 #' @export
-covmatrix.spautor <- function(object, newdata, ...) {
+covmatrix.spautor <- function(object, newdata, cov_type, ...) {
+
+  if (missing(newdata)) {
+    cov_type <- "obs.obs"
+  } else {
+    if (missing(cov_type)) {
+      cov_type <- "pred.obs"
+    }
+  }
+
+  if (cov_type != "obs.obs") {
+    if (is.null(newdata)) {
+      stop("No prediction data for which to create a covariance matrix.", call. = FALSE)
+    }
+  }
 
   # spcov
   spcov_params_val <- coef(object, type = "spcov")
@@ -152,12 +210,19 @@ covmatrix.spautor <- function(object, newdata, ...) {
     partition_matrix = partition_matrix_val, object$M
   )
 
-  if (missing(newdata)) {
+  if (cov_type == "obs.obs") {
     # observed covariance matrix
     cov_val <- cov_matrix_val[object$observed_index, object$observed_index, drop = FALSE]
-  } else {
+  } else if (cov_type == "pred.obs") {
     # new covariance vector
     cov_val <- cov_matrix_val[object$missing_index, object$observed_index, drop = FALSE]
+  } else if (cov_type == "obs.pred") {
+    # new covariance vector
+    cov_val <- cov_matrix_val[object$observed_index, object$missing_index, drop = FALSE]
+  } else if (cov_type == "pred.pred") {
+    cov_val <- cov_matrix_val[object$missing_index, object$missing_index, drop = FALSE]
+  } else {
+    stop('cov_type must be "obs.obs", "obs.pred", "pred.obs", "pred.pred"', call. = FALSE)
   }
 
   # return covariance value as a base R matrix (not a Matrix matrix)

@@ -1057,4 +1057,12 @@ if (test_local) {
     expect_equal(as.matrix(model.frame(delete.response(terms(spmod)), spmod$obdata)), as.matrix(emmeans::recover_data(spmod)))
     expect_error(emmeans::emmeans(spmod, ~ group, by = "x"), NA)
   })
+
+  test_that("covmatrix errors properly", {
+    spcov_type <- "exponential"
+    spmod <- splm(y ~ x * group, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_error(covmatrix(spmod, newdata = NULL))
+    expect_error(covmatrix(spmod, cov_type = "xyz"), NA) # when newdata not specified cov_type silently ignored
+    expect_error(covmatrix(spmod, newdata = spmod$newdata, cov_type = "xyz"))
+  })
 }

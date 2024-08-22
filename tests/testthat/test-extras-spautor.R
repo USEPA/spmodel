@@ -651,4 +651,13 @@ if (test_local) {
     expect_error(spautor(y ~ x, exdata_sf, spcov_type = spcov_type, cutoff = NULL)) # can't be NULL
     expect_error(spautor(y ~ x, exdata_sf, spcov_type = spcov_type, cutoff = 1e-8)) # too small of distance so no neighbors
   })
+
+  test_that("covmatrix errors properly", {
+    spcov_type <- "car"
+    spmod <- spautor(y ~ x * group, exdata_Mpoly, spcov_type = spcov_type, estmethod = "reml")
+    expect_error(covmatrix(spmod, newdata = NULL))
+    expect_error(covmatrix(spmod, cov_type = "xyz"), NA) # when newdata not specified cov_type silently ignored
+    expect_error(covmatrix(spmod, newdata = spmod$newdata, cov_type = "xyz"))
+  })
+
 }

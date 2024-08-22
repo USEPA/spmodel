@@ -44,7 +44,7 @@ test_that("generics work spgautor polygon data", {
   expect_vector(cooks.distance(spmod1))
 
   # covmatrix
-  expect_true(inherits(covmatrix(spmod1), "matrix"))
+  expect_equal(dim(covmatrix(spmod1)), c(49, 49))
 
   # deviance
   expect_vector(deviance(spmod1))
@@ -190,8 +190,10 @@ test_that("generics work spgautor polygon data with missing", {
   expect_vector(cooks.distance(spmod1))
 
   # covmatrix
-  expect_true(inherits(covmatrix(spmod1), "matrix"))
-  expect_true(inherits(covmatrix(spmod1, newdata = spmod1$newdata), "matrix"))
+  expect_equal(dim(covmatrix(spmod1, cov_type = "obs.obs")), c(48, 48))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "pred.obs")), c(1, 48))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "obs.pred")), c(48, 1))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "pred.pred")), c(1, 1))
 
   # deviance
   expect_vector(deviance(spmod1))
@@ -339,7 +341,7 @@ test_that("generics work spgautor polygon data unconnected", {
   expect_vector(cooks.distance(spmod1))
 
   # covmatrix
-  expect_true(inherits(covmatrix(spmod1), "matrix"))
+  expect_equal(dim(covmatrix(spmod1)), c(45, 45))
 
   # deviance
   expect_vector(deviance(spmod1))

@@ -10,13 +10,13 @@
 \usage{
 covmatrix(object, newdata, ...)
 
-\method{covmatrix}{splm}(object, newdata, ...)
+\method{covmatrix}{splm}(object, newdata, cov_type, ...)
 
-\method{covmatrix}{spautor}(object, newdata, ...)
+\method{covmatrix}{spautor}(object, newdata, cov_type, ...)
 
-\method{covmatrix}{spglm}(object, newdata, ...)
+\method{covmatrix}{spglm}(object, newdata, cov_type, ...)
 
-\method{covmatrix}{spgautor}(object, newdata, ...)
+\method{covmatrix}{spgautor}(object, newdata, cov_type, ...)
 }
 \arguments{
 \item{object}{A fitted model object (e.g., \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}).}
@@ -31,6 +31,19 @@ the coordinates from the observed data used to fit \code{object}. If an
 \code{sf} object, coordinates are obtained from the geometry of \code{newdata}.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
+
+\item{cov_type}{The type of covariance matrix returned. If \code{newdata}
+is omitted or \code{cov_type} is \code{"obs.obs"},
+the \eqn{n \times n} covariance matrix of the observed
+data is returned, where \eqn{n} is the sample size used to fit \code{object}.
+If \code{newdata} is provided and \code{cov_type} is \code{"pred.obs"}
+(the default when \code{newdata} is provided),
+the \eqn{m \times n} covariance matrix of the prediction and observed data is returned,
+where \eqn{m} is the number of elements in the prediction data.
+If \code{newdata} is provided and \code{cov_type} is \code{"obs.pred"},
+the \eqn{n \times m} covariance matrix of the observed and prediction data is returned.
+If \code{newdata} is provided and \code{cov_type} is \code{"pred.pred"},
+the \eqn{m \times m} covariance matrix of the prediction data is returned.}
 }
 \value{
 If \code{newdata} is omitted, the covariance matrix of the observed

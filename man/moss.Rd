@@ -22,7 +22,7 @@ of the haul road).
 \item log_dist2road: The log of distance (in meters) to the haul road.
 \item log_Zn: The log of zinc concentration in moss tissue (mg/kg).
 \item geometry: \code{POINT} geometry representing coordinates in an Alaska
-Albers projection (EPSG: 3338).
+Albers projection (EPSG: 3338). Distances between points are in meters.
 }
 }
 \source{

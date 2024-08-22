@@ -9,15 +9,14 @@ An \code{sf} object with 10 rows and 8 columns:
 
 \itemize{
 \item comid: A common identifier from NHDPlusV2.
-\item state: The US state: One of Arizona (AZ), Colorado (CO), Nevada (NV),
-Colorado (CO)
-\item temp: Lake catchment 30-year average temperature.
-\item precip: Lake watershed 30-year average precipitation.
-\item elev: Lake elevation (in meters)
+\item state: The US state: One of Arizona (AZ), Nevada (NV), Utah (UT).
+\item temp: Lake catchment 30-year average temperature (in degrees Celsius).
+\item precip: Lake watershed 30-year average precipitation (in centimeters).
+\item elev: Lake elevation (in meters).
 \item origin: Lake origin (human-made or natural).
 \item year: A factor representing year (2012 or 2017).
 \item geometry: \code{POINT} geometry representing coordinates in a NAD83
-projection (EPSG: 5070).
+projection (EPSG: 5070). Distances between points are in meters.
 }
 }
 \usage{

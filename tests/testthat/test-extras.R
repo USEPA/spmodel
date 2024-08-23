@@ -703,6 +703,42 @@ if (test_local) {
     spmod5 <- splm(y ~ 1, exdata, "spherical", xcoord, ycoord, estmethod = "sv-wls")
     spmod6 <- splm(y ~ 1, exdata, "gaussian", xcoord, ycoord, estmethod = "sv-cl")
     expect_warning(glances(spmod1, spmod2, spmod5, spmod6), NA)
+    spmod7 <- splm(y ~ x, exdata[-1, ], "exponential", xcoord, ycoord)
+    expect_warning(glances(spmod1, spmod7))
+
+    # glm families
+    spgmod1 <- spglm(y > 0 ~ x, data = exdata, family = "binomial", "exponential", xcoord, ycoord)
+    spgmod2 <- spglm(abs(y) / 10 ~ x, exdata, family = "beta", "exponential", xcoord, ycoord)
+    spgmod3 <- spglm(round(abs(y)) ~ x, exdata, family = "poisson", "exponential", xcoord, ycoord)
+    spgmod4 <- spglm(round(abs(y)) ~ x, exdata, family = "nbinomial", "exponential", xcoord, ycoord)
+    spgmod5 <- spglm(abs(y) ~ x, exdata, family = "Gamma", "exponential", xcoord, ycoord)
+    spgmod6 <- spglm(abs(y) ~ x, exdata, family = "inverse.gaussian", "exponential", xcoord, ycoord)
+
+    ## no warnings
+    expect_warning(glances(spgmod1, spgmod1), NA)
+    expect_warning(glances(spgmod2, spgmod2), NA)
+    expect_warning(glances(spgmod3, spgmod3), NA)
+    expect_warning(glances(spgmod4, spgmod4), NA)
+    expect_warning(glances(spgmod5, spgmod5), NA)
+    expect_warning(glances(spgmod6, spgmod6), NA)
+    expect_warning(glances(spgmod3, spgmod4), NA)
+    expect_warning(glances(spgmod5, spgmod6), NA)
+
+    ## warnings
+    expect_warning(glances(spgmod1, spgmod2))
+    expect_warning(glances(spgmod1, spgmod3))
+    expect_warning(glances(spgmod1, spgmod4))
+    expect_warning(glances(spgmod1, spgmod5))
+    expect_warning(glances(spgmod1, spgmod6))
+    expect_warning(glances(spgmod2, spgmod3))
+    expect_warning(glances(spgmod2, spgmod4))
+    expect_warning(glances(spgmod2, spgmod5))
+    expect_warning(glances(spgmod2, spgmod6))
+    expect_warning(glances(spgmod3, spgmod5))
+    expect_warning(glances(spgmod3, spgmod6))
+    expect_warning(glances(spgmod4, spgmod5))
+    expect_warning(glances(spgmod4, spgmod6))
+
   })
 
   ##############################################################################

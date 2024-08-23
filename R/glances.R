@@ -88,7 +88,19 @@ glances.spautor_list <- glances.splm_list
 
 check_likstat_use <- function(model_list) {
 
+
   est_methods <- vapply(model_list, function(x) x$estmethod, character(1))
+  n <- vapply(model_list, function(x) x$n, numeric(1))
+
+  if (any(est_methods %in% c("ml", "reml"))) {
+    if (length(unique(n)) > 1) {
+      warning('Likelihood-based comparisons (e.g., AIC, AICc, BIC) should only be used to compare models that have the same response variable values (and sample size).', call. = FALSE)
+    }
+    # probably should also check that the response vectors (sorted) are actually equal
+    # e.g., any(sort(model.response(model.frame(model1))) != sort(model.response(model.frame(model2))))
+    # any problems here we don't foresee?
+  }
+
   if (any("reml" %in% est_methods) && any("ml" %in% est_methods)) {
     warning('Likelihood-based comparisons (e.g., AIC, AICc, BIC) should not be used to compare a model fit with estmethod = "ml" to a model with estmethod = "reml".', call. = FALSE)
   }
@@ -99,5 +111,44 @@ check_likstat_use <- function(model_list) {
       warning('Likelihood-based comparisons (e.g., AIC, AICc, BIC) should not be used to compare models fit with estmethod = "reml" when the models have distinct explanatory variable structures (i.e., distinct formula arguments).', call. = FALSE)
     }
   }
+  if (inherits(model_list[[1]], c("spglm", "spgautor"))) {
+    check_wrong_family(model_list)
+  }
   # NULL
+}
+
+check_wrong_family <- function(model_list) {
+
+  families <- vapply(model_list, function(x) x$family, character(1))
+
+  wrong_family <- 0
+
+  # binomial warning
+  is_family_in <- families %in% "binomial"
+  if (any(is_family_in) && any(!is_family_in)) {
+    wrong_family <- wrong_family + 1
+  }
+
+  # beta warning
+  is_family_in <- families %in% "beta"
+  if (any(is_family_in) && any(!is_family_in)) {
+    wrong_family <- wrong_family + 1
+  }
+
+  # count warning
+  is_family_in <- families %in% c("poisson", "nbinomial")
+  if (any(is_family_in) && any(!is_family_in)) {
+    wrong_family <- wrong_family + 1
+  }
+
+  # skewed warning
+  is_family_in <- families %in% c("Gamma", "inverse.gaussian")
+  if (any(is_family_in) && any(!is_family_in)) {
+    wrong_family <- wrong_family + 1
+  }
+
+  if (wrong_family > 0) {
+    warning('Likelihood-based comparisons (e.g., AIC, AICc, BIC) should only be used to compare models fit with the same response variable support.', call. = FALSE)
+  }
+
 }

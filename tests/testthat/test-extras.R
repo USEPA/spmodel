@@ -690,6 +690,19 @@ if (test_local) {
     expect_equal(rbind(glance(spmod$spcov_initial_1), glance(spmod$spcov_initial_2)), glances(spmod, sort_by = "order")[, -1], ignore_attr = TRUE)
   })
 
+  test_that("glances throws proper warnings", {
+    spmod1 <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
+    spmod2 <- splm(y ~ x, exdata, "matern", xcoord, ycoord)
+    expect_warning(glances(spmod1, spmod2), NA)
+    spmod3 <- splm(y ~ 1, exdata, "exponential", xcoord, ycoord, estmethod = "ml")
+    expect_warning(glances(spmod1, spmod2, spmod3))
+    spmod4 <- splm(y ~ 1, exdata, "spherical", xcoord, ycoord, estmethod = "reml")
+    expect_warning(glances(spmod1, spmod2, spmod3))
+    spmod5 <- splm(y ~ 1, exdata, "spherical", xcoord, ycoord, estmethod = "sv-wls")
+    spmod6 <- splm(y ~ 1, exdata, "gaussian", xcoord, ycoord, estmethod = "sv-cl")
+    expect_warning(glances(spmod1, spmod2, spmod5, spmod6), NA)
+  })
+
   ##############################################################################
   ############################ hatvalues (test-hatvalues.R)
   ##############################################################################

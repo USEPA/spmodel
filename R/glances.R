@@ -42,6 +42,9 @@ glances.splm <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
     stop("All models must be of class splm or spautor", call. = FALSE)
   }
   model_list_names <- c(as.character(as.list(substitute(list(object)))[-1]), as.character(as.list(substitute(list(...)))[-1]))
+  if (length(model_list) > 1) {
+    check_likstat_use(model_list)
+  }
   model_glance <- lapply(model_list, function(x) glance(x))
   model_bind <- do.call(rbind, model_glance)
   model_bind <- cbind(data.frame(model = model_list_names), model_bind)
@@ -80,3 +83,20 @@ glances.splm_list <- function(object, ..., sort_by = "AICc", decreasing = FALSE)
 #' @order 5
 #' @export
 glances.spautor_list <- glances.splm_list
+
+
+check_likstat_use <- function(model_list) {
+
+  est_methods <- vapply(model_list, function(x) x$estmethod, character(1))
+  if (any("reml" %in% est_methods) && any("ml" %in% est_methods)) {
+    warning('Likelihood-based comparisons (e.g., AIC, AICc, BIC) should not be used to compare a model fit with estmethod = "ml" to a model with estmethod = "reml".', call. = FALSE)
+  }
+  reml_model_list <- model_list[est_methods == "reml"]
+  if (length(reml_model_list) > 1) {
+    mm_names <- lapply(reml_model_list, function(x) sort(colnames(model.matrix(x))))
+    if (any(!duplicated(mm_names)[-1])) { # drop first as it is always FALSE
+      warning('Likelihood-based comparisons (e.g., AIC, AICc, BIC) should not be used to compare models fit with estmethod = "reml" when the models have distinct explanatory variable structures (i.e., distinct formula arguments).', call. = FALSE)
+    }
+  }
+  # NULL
+}

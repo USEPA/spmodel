@@ -2,12 +2,15 @@
 #' @method glances spglm
 #' @order 6
 #' @export
-glances.spglm <- function(object, ..., sort_by = "AICc", decreasing = FALSE) {
+glances.spglm <- function(object, ..., sort_by = "AICc", decreasing = FALSE, warning = TRUE) {
   model_list <- c(list(object), list(...))
   if (any(!(vapply(model_list, function(x) class(x), character(1)) %in% c("spglm", "spgautor")))) {
     stop("All models must be of class spglm or spgautor", call. = FALSE)
   }
   model_list_names <- c(as.character(as.list(substitute(list(object)))[-1]), as.character(as.list(substitute(list(...)))[-1]))
+  if (warning && length(model_list) > 1) {
+    check_likstat_use(model_list)
+  }
   model_glance <- lapply(model_list, function(x) glance(x))
   model_bind <- do.call(rbind, model_glance)
   model_bind <- cbind(data.frame(model = model_list_names), model_bind)

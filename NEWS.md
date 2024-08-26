@@ -21,10 +21,14 @@
 * Add `dispersion` argument to `predict()` for `spglm()` and `spgautor()` models.
 * Enhanced numeric stability of deviance and pseudo R-squared for `spglm()` or `spgautor()` models when `family = "beta"`.
 * Added the `cov_type` argument to `covmatrix()` to return observed by observed, prediction by observed, observed by prediction, and prediction by prediction covariance matrices.
+* Added a `warning` argument to `glances()` that determines whether relevant warnings should be displayed or not.
 * Added a warning message to `glances()` about interpreting likelihood-based statistics (e.g., AIC, AICc, BIC) when a one model has `estmethod = "ml"` and another model has `estmethod = "reml"`.
 * Added a warning message to `glances()` about interpreting likelihood-based statistics (e.g., AIC, AICc, BIC) when two models with `estmethod = "reml"` have distinct `formula` arguments.
-* Minor vignette updates
-* Minor documentation updates
+* Added a warning message to `glances()` about interpreting likelihood-based statistics (e.g., AIC, AICc, BIC) when two models have different sample sizes.
+* Added a warning message to `glances()` about interpreting likelihood-based statistics (e.g., AIC, AICc, BIC) when two models have different family supports (which can happen with `spglm()` and `spgautor()` models).
+* All data sets now have `tbl_df` and `tbl` classes (i.e., are tibbles).
+* Minor vignette updates.
+* Minor documentation updates.
 
 # spmodel 0.7.0
 

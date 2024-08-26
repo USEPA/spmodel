@@ -137,9 +137,11 @@ For restricted maximum likelihood estimation, likelihood ratio tests can only be
 
 ## `BIC()` {#sec:bic-lm}
 
-The `BIC()` function in `spmodel` is defined for restricted maximum likelihood and maximum likelihood estimation, which maximize a likelihood. The BIC as defined by @schwarz1978estimating is given by \begin{equation*}\label{eq:sp_aic}
-    \text{BIC} & = -2\ell(\hat{\boldsymbol{\Theta}}) + \ln(n)(|\hat{\boldsymbol{\Theta}}|)  \\
-\end{equation*} where $n$ is the sample size and $|\hat{\boldsymbol{\Theta}}|$ is the cardinality of $\hat{\boldsymbol{\Theta}}$. For restricted maximum likelihood, $\hat{\boldsymbol{\Theta}} \equiv \{\hat{\boldsymbol{\theta}}\}$. For maximum likelihood, $\hat{\boldsymbol{\Theta}} \equiv \{\hat{\boldsymbol{\theta}}, \hat{\boldsymbol{\beta}}\}$ The discrepancy arises because restricted maximum likelihood integrates the fixed effects out of the likelihood, and so the likelihood does not depend on $\boldsymbol{\beta}$.
+The `BIC()` function in `spmodel` is defined for restricted maximum likelihood and maximum likelihood estimation, which maximize a likelihood. The BIC as defined by @schwarz1978estimating is given by \begin{equation*}\label{eq:sp_bic}
+    \text{BIC} = -2\ell(\hat{\boldsymbol{\Theta}}) + \ln(n)(|\hat{\boldsymbol{\Theta}}|),
+\end{equation*}
+where $n$ is the sample size and
+$|\hat{\boldsymbol{\Theta}}|$ is the cardinality of $\hat{\boldsymbol{\Theta}}$. For restricted maximum likelihood, $\hat{\boldsymbol{\Theta}} \equiv \{\hat{\boldsymbol{\theta}}\}$. For maximum likelihood, $\hat{\boldsymbol{\Theta}} \equiv \{\hat{\boldsymbol{\theta}}, \hat{\boldsymbol{\beta}}\}$ The discrepancy arises because restricted maximum likelihood integrates the fixed effects out of the likelihood, and so the likelihood does not depend on $\boldsymbol{\beta}$.
 
 BIC comparisons between a model fit using restricted maximum likelihood and a model fit using maximum likelihood are meaningless, as the models are fit with different likelihoods. BIC comparisons between models fit using restricted maximum likelihood are only valid when the models have the same fixed effect structure. In contrast, BIC comparisons between models fit using maximum likelihood are valid when the models have different fixed effect structures. While BIC was derived by @schwarz1978estimating for independent data, @zimmerman2024spatial show it can be useful for spatially-dependent data as well.
 

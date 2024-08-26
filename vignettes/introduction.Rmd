@@ -52,7 +52,7 @@ There are three more `spmodel` vignettes available on our website at [https://us
 Additionally, there are two workbooks that have accompanied recent `spmodel` workshops:
 
 1. 2024 Society for Freshwater Science Conference: "Spatial Analysis and Statistical Modeling with R and `spmodel` available at [https://usepa.github.io/spworkshop.sfs24/](https://usepa.github.io/spworkshop.sfs24/)
-2. 2923 Spatial Statistics Conference: `spmodel` workshop available at [https://usepa.github.io/spmodel.spatialstat2023/](https://usepa.github.io/spmodel.spatialstat2023/)
+2. 2023 Spatial Statistics Conference: `spmodel` workshop available at [https://usepa.github.io/spmodel.spatialstat2023/](https://usepa.github.io/spmodel.spatialstat2023/)
 
 # The Data
 

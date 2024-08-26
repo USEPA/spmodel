@@ -12,23 +12,23 @@
 \alias{glances.spgautor_list}
 \title{Glance at many fitted model objects}
 \usage{
-glances(object, ..., sort_by = "AICc", decreasing = FALSE)
+glances(object, ...)
 
-\method{glances}{splm}(object, ..., sort_by = "AICc", decreasing = FALSE)
+\method{glances}{splm}(object, ..., sort_by = "AICc", decreasing = FALSE, warning = TRUE)
 
-\method{glances}{spautor}(object, ..., sort_by = "AICc", decreasing = FALSE)
+\method{glances}{spautor}(object, ..., sort_by = "AICc", decreasing = FALSE, warning = TRUE)
 
-\method{glances}{splm_list}(object, ..., sort_by = "AICc", decreasing = FALSE)
+\method{glances}{splm_list}(object, ..., sort_by = "AICc", decreasing = FALSE, warning = TRUE)
 
-\method{glances}{spautor_list}(object, ..., sort_by = "AICc", decreasing = FALSE)
+\method{glances}{spautor_list}(object, ..., sort_by = "AICc", decreasing = FALSE, warning = TRUE)
 
-\method{glances}{spglm}(object, ..., sort_by = "AICc", decreasing = FALSE)
+\method{glances}{spglm}(object, ..., sort_by = "AICc", decreasing = FALSE, warning = TRUE)
 
-\method{glances}{spgautor}(object, ..., sort_by = "AICc", decreasing = FALSE)
+\method{glances}{spgautor}(object, ..., sort_by = "AICc", decreasing = FALSE, warning = TRUE)
 
-\method{glances}{spglm_list}(object, ..., sort_by = "AICc", decreasing = FALSE)
+\method{glances}{spglm_list}(object, ..., sort_by = "AICc", decreasing = FALSE, warning = TRUE)
 
-\method{glances}{spgautor_list}(object, ..., sort_by = "AICc", decreasing = FALSE)
+\method{glances}{spgautor_list}(object, ..., sort_by = "AICc", decreasing = FALSE, warning = TRUE)
 }
 \arguments{
 \item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
@@ -40,7 +40,10 @@ if \code{object} has class \code{splm_list}, \code{spautor_list}, \code{spglm_li
 output from \code{glance()} or the order of model input (\code{sort_by = "order"}).
 The default is \code{"AICc"}.}
 
-\item{decreasing}{Should \code{sort_by} be decreasing or not? The default is \code{FALSE}.}
+\item{decreasing}{Whether \code{sort_by} should sort by decreasing order? The default is \code{FALSE}.}
+
+\item{warning}{Whether a warning is displayed when model comparisons violate certain rules.
+The default is \code{TRUE}.}
 }
 \value{
 A tibble where each row represents the output of \code{glance()} for

@@ -1,0 +1,246 @@
+---
+title: "Using emmeans to Estimate Marginal Means of spmodel Objects."
+author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
+bibliography: '`r system.file("references.bib", package="spmodel")`'
+output:
+    html_document:
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+# # jss style
+# knitr::opts_chunk$set(prompt=TRUE, echo = TRUE, highlight = FALSE, continue = " + ", comment = "")
+# options(replace.assign=TRUE, width=90, prompt="R> ")
+
+# rmd style
+knitr::opts_chunk$set(collapse = FALSE, comment = "#>", warning = FALSE, message = FALSE)
+
+# loading
+library(ggplot2)
+library(spmodel)
+library(emmeans)
+```
+
+# Introduction {#sec:introduction}
+
+`spmodel` is an \textbf{\textsf{R}} package used to fit, summarize, and
+predict for a variety of spatial statistical models. The vignette
+provides an estimating marginal means (i.e., least-squares means) of `spmodel` objects using the `emmeans`.
+**R** package [@lenth2024emmeans]. Before proceeding, we
+load `spmodel` and `emmeans` by running
+
+```{r, eval = FALSE}
+library(spmodel)
+library(emmeans)
+```
+
+If using `spmodel` in a formal publication or report, please cite it.
+Citing `spmodel` lets us devote more resources to the package in the
+future. We view the `spmodel` citation by running
+
+```{r}
+citation(package = "spmodel")
+```
+
+# Applying emmeans to spmodel Objects
+
+In this section, we use the point-referenced `lake` data, an `sf` object that contains data on lake conductivty for some southwestern states (Arizona, Colorado, Nevada, Utah) in the United States. We view the first few rows of `lake` by running
+```{r}
+lake
+```
+
+We can learn more about `lake` by running `help("lake", "spmodel")`, and we can visualize the distribution of log conductivity in `lake` by state and year by running
+```{r log_cond, fig.cap="Distribution of log conductivity in the lake data.", out.width = "65%", fig.align="center"}
+ggplot(lake, aes(color = log_cond)) +
+  geom_sf() +
+  scale_color_viridis_c() +
+  theme_gray(base_size = 14)
+```
+
+## A Single-Factor Model
+
+First we explore a single-factor model that characterizes the response variable, log conductivity, by each state (AZ, CO, NV, UT). We fit and summarize this model by running:
+```{r}
+spmod1 <- splm(
+  formula = log_cond ~ state,
+  data = lake,
+  spcov_type = "exponential"
+)
+summary(spmod1)
+```
+
+The `summary()` output provides mean estimates for each state relative to the difference from a *reference group* (here, AZ). Often, however, the question "What is the mean in each group?" is of interest, and this is not straightforward to obtain from `summary()`. Fortunately, `emmeans` makes this information readily available via the `emmeans` function:
+```{r}
+em11 <- emmeans(spmod1, ~ state)
+```
+
+which, when printed, returns the mean estimates, standard errors, and confidence intervals for each factor level:
+```{r}
+em11
+```
+
+The `emmeans` object `em11` is an `emmGrid` object, but it can easily be converted into a data frame using `data.frame()` or `tibble::as_tibble()`:
+```{r}
+data.frame(em11)
+```
+
+We then visualize the means and confidence intervals:
+```{r}
+plot(em11)
+```
+
+Recall that `summary()` provides mean estimates for each state relative to the difference from a *reference group* (i.e., contrasts with a reference group). Contrasts between mean estimates that are not reference groups, however, is again not straightforward to obtain from `summary()`. Fortunately, `pairs()` provides a simple solution, creating contrasts for comparisons of each factor level to all other factor levels that are easily visualized:
+```{r}
+pairs(em11)
+plot(pairs(em11))
+```
+
+By default, the p-values are adjusted according to the Tukey method. The model suggests no significant evidence (p-values > 0.1) that the average log conductivity is different among the states. Other p-value adjustment methods can be passed via `adjust`. For example, we can use the Bonferroni method instead of Tukey method 
+```{r}
+pairs(em11, adjust = "bonferroni")
+```
+
+or apply no adjustment method at all:
+```{r}
+pairs(em11, adjust = "none")
+```
+
+## A Multi-Factor Model
+
+Now we explore a model that adds a second factor: `year`, with two levels, 2012 and 2017:
+```{r}
+spmod2 <- splm(
+  formula = log_cond ~ state + year,
+  data = lake,
+  spcov_type = "exponential"
+)
+```
+
+We can view the factors separately:
+```{r}
+em21 <- emmeans(spmod2, ~ state)
+em21
+em22 <- emmeans(spmod2, ~ year)
+em22
+```
+
+Or, we can view the factors simultaneously (by providing both variables separated by `+`):
+```{r}
+em23 <- emmeans(spmod2, ~ state + year)
+em23
+plot(em23)
+```
+
+## A Multi-Factor Model With an Interaction
+
+We can supplement the model with an interaction, which lets the effect of state to vary by year. Recall that shorthand for `state + year + state:year` is `state * year`:
+```{r}
+spmod3 <- splm(
+  formula = log_cond ~ state * year,
+  data = lake,
+  spcov_type = "exponential"
+)
+```
+
+Because the effect of state varies by year, single-variable summaries of `emmeans` can be misleading, which `emmeans` warns users about:
+```{r}
+emmeans(spmod3, ~ state)
+```
+
+Instead, it is helpful to quantify the effect of state *separately for each year*:
+```{r}
+em31 <- emmeans(spmod2, ~ state, by = "year")
+em31
+pairs(em31)
+plot(em31)
+```
+
+And similarly, we can quantify the effect of year *separately for each state*
+```{r}
+em32 <- emmeans(spmod2, ~ year, by = "state")
+pairs(em32)
+```
+
+And we can quantify the effect of each combination of `state` and `year`:
+```{r}
+em33 <- emmeans(spmod2, ~ state + year)
+em33
+pairs(em33)
+```
+
+## A Single-Factor Numeric Model With an Interaction
+
+Suppose it is of interest to supplement the state model (`spmod1`) with a continuous temperature variable:
+```{r}
+spmod4 <- splm(
+  formula = log_cond ~ state * temp,
+  data = lake,
+  spcov_type = "exponential"
+)
+```
+
+Because our model has a state-by-year interaction, the effect of temperature varies by state. Supplying the `by` argument lets us quantify the effect of state at the average temperature value:
+```{r}
+em41 <- emmeans(spmod4, ~ state, by = "temp")
+em41
+pairs(em41)
+```
+
+If we want to quantify the effect of state at specific temperature values, we can supply them via the `at` argument:
+```{r}
+em42 <- emmeans(spmod4, ~ state, by = "temp", at = list(temp = c(2, 8)))
+pairs(em42)
+```
+
+We use `emmip()` to visualize the change in the effect of state at varying temperature values:
+```{r}
+emmip(spmod4, state ~ temp, at = list(temp = c(0:10)), style = "factor")
+```
+
+And `emtrends` to quantify the effect of temperature separately for each state:
+```{r}
+em43 <- emtrends(spmod4, ~ state, var = "temp")
+em43
+```
+
+## A Multi-Factor Numeric Model With Interactions
+
+We can extend the single-factor numeric model to include multiple factors:
+```{r}
+spmod5 <- splm(log_cond ~ state * year * temp, data = lake, spcov_type = "exponential")
+em51 <- emmeans(spmod5, ~ state, by = c("temp", "year"))
+em51
+em52 <- emmeans(spmod5, ~ year, by = c("temp", "state"))
+em52
+em53 <- emmeans(spmod5, ~ state + year, by = "temp")
+pairs(em53)
+em54 <- emtrends(spmod5, ~ state, by = "year", var = "temp")
+em54
+em55 <- emtrends(spmod5, ~ year, by = "state", var = "temp")
+em55
+em56 <- emtrends(spmod5, ~ state + year, var = "temp")
+em56
+```
+
+# Pairing with `anova()` from `spmodel`
+
+The `anova()` function from `spmodel` is especially helpful to further contextualize `emmeans` output. The `emmeans` functions are very helpful for contrasting factor levels, but `anova()` is built to answer the question "Are any of these factor levels significantly related to the response variable?". Recall `spmod5`, which quantifies the effects of `state`, `year`, and `temp` (and their interactions) on log conductivity:
+```{r}
+summary(spmod5)
+```
+
+We perform an analysis of variance by running:
+```{r}
+anova(spmod5)
+```
+
+The analysis of variance suggests a significant intercept, temperature effect, and state-by-temperature interaction (p-values < 0.01) but no other significant effects (p-values > 0.1).
+
+# Additional Tools
+
+We only showed a small subset of all possible tools that `emmeans` can apply to `spmodel` objects. Additional tools provide support for enhanced visualizations and printing, contrasts, joint hypothesis testing, p-value adjustments, and variable transformations (e.g., when using a `spglm()` or `spgautor()` model object), among many others. To learn more about `emmeans`, visit the website [here](https://rvlenth.github.io/emmeans/).
+
+# References {.unnumbered}
+
+<div id="refs"></div>

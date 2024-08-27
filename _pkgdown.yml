@@ -2,3 +2,12 @@ url: ~
 template:
   bootstrap: 5
 
+articles:
+- title: Articles
+  navbar: ~
+  contents:
+  - introduction
+  - articles/guide
+  - articles/SPGLMs
+  - articles/emmeans
+  - articles/technical

@@ -19,6 +19,7 @@ spgautor(
   row_st = TRUE,
   M,
   range_positive = TRUE,
+  cutoff,
   ...
 )
 }
@@ -87,9 +88,10 @@ specifying the partition factor.  The partition factor assumes observations
 from different levels of the partition factor are uncorrelated.}
 
 \item{W}{Weight matrix specifying the neighboring structure used.
-Not required if \code{data} is an \code{sf} polygon object,
+Not required if \code{data} is an \code{sf} object wtih \code{POLYGON} geometry,
 as \code{W} is calculated internally using queen contiguity. If calculated internally,
-\code{W} is computed using \code{sf::st_intersects()}.}
+\code{W} is computed using \code{sf::st_intersects()}. Also not required if \code{data}
+is an \code{sf} object with \code{POINT} geometry as long as \code{cutoff} is specified.}
 
 \item{row_st}{A logical indicating whether row standardization be performed on
 \code{W}. The default is \code{TRUE}.}
@@ -106,6 +108,11 @@ or given as a vector or one-column matrix assumed to be the diagonal.}
 
 \item{range_positive}{Whether the range should be constrained to be positive.
 The default is \code{TRUE}.}
+
+\item{cutoff}{The numeric, distance-based cutoff used to determine \code{W}
+when \code{W} is not specified. For an \code{sf} object with \code{POINT} geometry,
+two locations are considered neighbors if the distance between them is less
+than or equal to \code{cutoff}.}
 
 \item{...}{Other arguments to \code{\link[stats:optim]{stats::optim()}}.}
 }

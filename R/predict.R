@@ -12,10 +12,19 @@
 #'   fitted model object are used.
 #' @param se.fit A logical indicating if standard errors are returned.
 #'   The default is \code{FALSE}.
+#' @param scale A numeric constant by which to scale the regular standard errors and intervals.
+#'   Similar to but slightly different than \code{scale} for [stats::predict.lm()], because
+#'   predictions form a spatial model may have different residual variances for each
+#'   observation in \code{newdata}. The default is \code{NULL}, which returns
+#'   the regular standard errors and intervals.
+#' @param df Degrees of freedom to use for confidence or prediction intervals
+#'   (ignored if \code{scale} is not specified). The default is \code{Inf}.
 #' @param interval Type of interval calculation. The default is \code{"none"}.
 #'   Other options are \code{"confidence"} (for confidence intervals) and
 #'   \code{"prediction"} (for prediction intervals).
 #' @param level Tolerance/confidence level. The default is \code{0.95}.
+#' @param type The prediction type, either on the response scale, link scale (only for
+#'   \code{spglm()} or \code{spgautor()} model objects), or terms scale.
 #' @param local A optional logical or list controlling the big data approximation. If omitted, \code{local}
 #'   is set to \code{TRUE} or \code{FALSE} based on the observed data sample size (i.e., sample size of the fitted
 #'   model object) -- if the sample size exceeds 10,000, \code{local} is
@@ -54,6 +63,8 @@
 #'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 #'   that \code{local} is transformed into
 #'   \code{list(size = 100, method = "covariance", parallel = FALSE)}.
+#' @param terms If \code{type} is \code{"terms"}, the type of terms to be returned,
+#'   specified via either numeric position or name. The default is all terms are included.
 #' @param ... Other arguments. Only used for models fit using \code{splmRF()}
 #'   or \code{spautorRF()} where \code{...} indicates other
 #'   arguments to \code{ranger::predict.ranger()}.
@@ -102,16 +113,26 @@
 #' predict(spmod, sulfate_preds)
 #' predict(spmod, sulfate_preds, interval = "prediction")
 #' augment(spmod, newdata = sulfate_preds, interval = "prediction")
-predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                         level = 0.95, local, ...) {
+predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf, interval = c("none", "confidence", "prediction"),
+                         level = 0.95, type = c("response", "terms"), local, terms = NULL, ...) {
 
   # match interval argument so the three display
   interval <- match.arg(interval)
+  type <- match.arg(type)
 
   # deal with local
   if (missing(local)) {
     local <- NULL
   }
+
+  # check scale is numeric (if specified)
+  if (!is.null(scale) && !is.numeric(scale)) {
+    stop("scale must be numeric.", call. = FALSE)
+  }
+
+  # handle na action -- this is an inefficient workaround that should be fixed later
+  # placeholder as a reminder to consider adding na.action argument at a later date
+  # na_action <- as.character(substitute(na.action))
 
   # error if newdata missing from arguments and object
   if (missing(newdata) && is.null(object$newdata)) {
@@ -211,6 +232,11 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
 
+  # call terms if needed
+  if (type == "terms") {
+    return(predict_terms(object, newdata_model, se.fit, scale, df, interval, level, add_newdata_rows, terms, ...))
+  }
+
   # storing newdata as a list
   newdata_rows_list <- split(newdata, seq_len(NROW(newdata)))
 
@@ -219,7 +245,6 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
 
   # storing newdata as a list
   newdata_list <- mapply(x = newdata_rows_list, y = newdata_model_list, FUN = function(x, y) list(row = x, x0 = y), SIMPLIFY = FALSE)
-
 
   if (interval %in% c("none", "prediction")) {
 
@@ -420,6 +445,9 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
       if (se.fit) {
         vars <- vapply(pred_splm, function(x) x$var, numeric(1))
         se <- sqrt(vars)
+        if (!is.null(scale)) {
+          se <- se * scale
+        }
         if (add_newdata_rows) {
           names(fit) <- object$missing_index
           names(se) <- object$missing_index
@@ -441,8 +469,15 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
       }
       vars <- vapply(pred_splm, function(x) x$var, numeric(1))
       se <- sqrt(vars)
+      if (!is.null(scale)) {
+        se <- se * scale
+        df <- df
+      } else {
+        df <- Inf
+      }
+      tstar <- qt(1 - (1 - level) / 2, df = df)
       # tstar <- qt(1 - (1 - level) / 2, df = object$n - object$p)
-      tstar <- qnorm(1 - (1 - level) / 2)
+      # tstar <- qnorm(1 - (1 - level) / 2)
       lwr <- fit - tstar * se
       upr <- fit + tstar * se
       fit <- cbind(fit, lwr, upr)
@@ -470,8 +505,13 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
     newdata_model_list <- split(newdata_model, seq_len(NROW(newdata_model)))
     vars <- as.numeric(vapply(newdata_model_list, function(x) crossprod(x, vcov(object) %*% x), numeric(1)))
     se <- sqrt(vars)
-    # tstar <- qt(1 - (1 - level) / 2, df = object$n - object$p)
-    tstar <- qnorm(1 - (1 - level) / 2)
+    if (!is.null(scale)) {
+      se <- se * scale
+      df <- df
+    } else {
+      df <- Inf
+    }
+    tstar <- qt(1 - (1 - level) / 2, df = df)
     lwr <- fit - tstar * se
     upr <- fit + tstar * se
     fit <- cbind(fit, lwr, upr)
@@ -497,27 +537,31 @@ predict.splm <- function(object, newdata, se.fit = FALSE, interval = c("none", "
 #' @method predict spautor
 #' @order 2
 #' @export
-predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                            level = 0.95, local, ...) {
+predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf, interval = c("none", "confidence", "prediction"),
+                            level = 0.95, type = c("response", "terms"), local, terms = NULL, ...) {
 
   # match interval argument so the three display
   interval <- match.arg(interval)
+  type <- match.arg(type)
 
   # deal with local
   if (missing(local)) {
     local <- NULL
   }
 
-  # error if newdata missing from arguments and object
-  if (missing(newdata) && is.null(object$newdata)) {
-    stop("No missing data to predict. newdata must be specified in the newdata argument or object$newdata must be non-NULL.", call. = FALSE)
-  }
-
-
-
   # deal with local
   if (is.null(local)) {
     local <- FALSE
+  }
+
+  # check scale is numeric (if specified)
+  if (!is.null(scale) && !is.numeric(scale)) {
+    stop("scale must be numeric.", call. = FALSE)
+  }
+
+  # error if newdata missing from arguments and object
+  if (missing(newdata) && is.null(object$newdata)) {
+    stop("No missing data to predict. newdata must be specified in the newdata argument or object$newdata must be non-NULL.", call. = FALSE)
   }
 
   # write newdata if predicting missing data
@@ -558,6 +602,13 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none"
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
+
+  # call terms if needed
+  if (type == "terms") {
+    # may want to add add_newdata_rows if we allow spautor prediction for the observed model matrix
+    return(predict_terms(object, newdata_model, se.fit, scale, df, interval, level, add_newdata_rows = TRUE, terms, ...))
+  }
+
 
   # storing newdata as a list
   newdata_list <- split(newdata, seq_len(NROW(newdata)))
@@ -647,6 +698,9 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none"
       if (se.fit) {
         vars <- vapply(pred_spautor, function(x) x$var, numeric(1))
         se <- sqrt(vars)
+        if (!is.null(scale)) {
+          se <- se * scale
+        }
         names(fit) <- object$missing_index
         names(se) <- object$missing_index
         return(list(fit = fit, se.fit = se))
@@ -664,8 +718,13 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none"
       }
       vars <- vapply(pred_spautor, function(x) x$var, numeric(1))
       se <- sqrt(vars)
-      # tstar <- qt(1 - (1 - level) / 2, df = object$n - object$p)
-      tstar <- qnorm(1 - (1 - level) / 2)
+      if (!is.null(scale)) {
+        se <- se * scale
+        df <- df
+      } else {
+        df <- Inf
+      }
+      tstar <- qt(1 - (1 - level) / 2, df = df)
       lwr <- fit - tstar * se
       upr <- fit + tstar * se
       fit <- cbind(fit, lwr, upr)
@@ -688,8 +747,13 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, interval = c("none"
     }
     vars <- as.numeric(vapply(newdata_model_list, function(x) crossprod(x, vcov(object) %*% x), numeric(1)))
     se <- sqrt(vars)
-    # tstar <- qt(1 - (1 - level) / 2, df = object$n - object$p)
-    tstar <- qnorm(1 - (1 - level) / 2)
+    if (!is.null(scale)) {
+      se <- se * scale
+      df <- df
+    } else {
+      df <- Inf
+    }
+    tstar <- qt(1 - (1 - level) / 2, df = df)
     lwr <- fit - tstar * se
     upr <- fit + tstar * se
     fit <- cbind(fit, lwr, upr)

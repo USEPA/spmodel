@@ -19,7 +19,7 @@
 #'   \item log_dist2road: The log of distance (in meters) to the haul road.
 #'   \item log_Zn: The log of zinc concentration in moss tissue (mg/kg).
 #'   \item geometry: \code{POINT} geometry representing coordinates in an Alaska
-#'     Albers projection (EPSG: 3338).
+#'     Albers projection (EPSG: 3338). Distances between points are in meters.
 #' }
 #' @source Data were obtained from Peter Neitlich and Linda Hasselbach of the National
 #'   Park Service.  Data were used in the publications listed in References.
@@ -85,7 +85,7 @@
 #' \itemize{
 #'   \item sulfate: Total wet deposition sulfate in kilograms per hectare.
 #'   \item geometry: \code{POINT} geometry representing coordinates in a
-#'     Conus Albers projection (EPSG: 5070).
+#'     Conus Albers projection (EPSG: 5070). Distances between points are in meters.
 #' }
 #' @source
 #' These data were used in the publication listed in References. Data were downloaded from the
@@ -126,7 +126,7 @@
 #'   \item presence: A binary factor representing whether no moose were observed (value \code{0}) or at least one moose was observed
 #'     (va ue \code{1}).
 #'   \item geometry: \code{POINT} geometry representing coordinates in an Alaska
-#'     Albers projection (EPSG: 3338).
+#'     Albers projection (EPSG: 3338). Distances between points are in meters.
 #' }
 #' @source
 #' Alaska Department of Fish and Game, Division of Wildlife Conservation has released
@@ -142,9 +142,69 @@
 #'   \item elev: The elevation.
 #'   \item strat: A factor representing strata (used for sampling). Can take values \code{L} and \code{M}.
 #'   \item geometry: \code{POINT} geometry representing coordinates in an Alaska
-#'     Albers projection (EPSG: 3338).
+#'     Albers projection (EPSG: 3338). Distances between points are in meters.
 #' }
 #' @source
 #' Alaska Department of Fish and Game, Division of Wildlife Conservation has released
 #'   this data set under the CC0 license.
 "moose_preds"
+
+#' National Lakes Assessment Data
+#'
+#' @description Lake data collected as part of the United States Environmental Protection
+#'   Agency's 2012 and 2017 National Lakes Assessment and LakeCat.
+#'
+#' @format An \code{sf} object with 102 rows and 9 columns:
+#'
+#' \itemize{
+#'   \item comid: A common identifier from NHDPlusV2.
+#'   \item log_cond: The natural logarithm of lake conductivity.
+#'   \item state: The US state: One of Arizona (AZ), Colorado (CO), Nevada (NV),
+#'     Utah (UT).
+#'   \item temp: Lake catchment 30-year average temperature (in degrees Celsius).
+#'   \item precip: Lake watershed 30-year average precipitation (in centimeters).
+#'   \item elev: Lake elevation (in meters).
+#'   \item origin: Lake origin (human-made or natural).
+#'   \item year: A factor representing year (2012 or 2017).
+#'   \item geometry: \code{POINT} geometry representing coordinates in a NAD83
+#'     projection (EPSG: 5070). Distances between points are in meters.
+#' }
+"lake"
+
+#' Lakes Prediction Data
+#'
+#' @description Lake prediction data collected as part of the United States Environmental Protection
+#'   Agency's 2012 and 2017 National Lakes Assessment and LakeCat.
+#'
+#' @format An \code{sf} object with 10 rows and 8 columns:
+#'
+#' \itemize{
+#'   \item comid: A common identifier from NHDPlusV2.
+#'   \item state: The US state: One of Arizona (AZ), Nevada (NV), Utah (UT).
+#'   \item temp: Lake catchment 30-year average temperature (in degrees Celsius).
+#'   \item precip: Lake watershed 30-year average precipitation (in centimeters).
+#'   \item elev: Lake elevation (in meters).
+#'   \item origin: Lake origin (human-made or natural).
+#'   \item year: A factor representing year (2012 or 2017).
+#'   \item geometry: \code{POINT} geometry representing coordinates in a NAD83
+#'     projection (EPSG: 5070). Distances between points are in meters.
+#' }
+"lake_preds"
+
+#' Texas Turnout Data
+#'
+#' @description Texas voter turnout data collected during the United States 1980 Presidential
+#'   election.
+#'
+#' @format An \code{sf} object with 254 rows and 4 columns:
+#'
+#' \itemize{
+#'   \item FIPS: Federal Information Processing System (FIPS) county codes.
+#'   \item turnout: Proportion of eligible voters who voted.
+#'   \item log_income: The natural logarithm of average per capita (in dollars) income.
+#'   \item geometry: \code{POINT} geometry representing coordinates in a NAD83
+#'     projection (EPSG: 5070). Distances between points are in meters.
+#' }
+#' @source
+#' The data source is the \code{elect80} data set in the \code{spData} R package.
+"texas"

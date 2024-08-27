@@ -25,7 +25,11 @@ test_that("generics work spglm point data", {
 
   # augment
   expect_s3_class(augment(spmod1), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "link", type.residuals = "pearson"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response", type.residuals = "response", se_fit = TRUE), "data.frame")
   expect_s3_class(augment(spmod1, newdata = newexdata), "data.frame")
+  expect_s3_class(augment(spmod1, newdata = newexdata, type.predict = "response", se_fit = TRUE), "data.frame")
 
   # coef
   expect_vector(coef(spmod1))
@@ -43,8 +47,10 @@ test_that("generics work spglm point data", {
   expect_vector(cooks.distance(spmod1))
 
   # covmatrix
-  expect_true(inherits(covmatrix(spmod1), "matrix"))
-  expect_true(inherits(covmatrix(spmod1, newexdata), "matrix"))
+  expect_equal(dim(covmatrix(spmod1)), c(100, 100))
+  expect_equal(dim(covmatrix(spmod1, newdata = newexdata)), c(10, 100))
+  expect_equal(dim(covmatrix(spmod1, newdata = newexdata, cov_type = "obs.pred")), c(100, 10))
+  expect_equal(dim(covmatrix(spmod1, newdata = newexdata, cov_type = "pred.pred")), c(10, 10))
 
   # deviance
   expect_vector(deviance(spmod1))
@@ -116,6 +122,9 @@ test_that("generics work spglm point data", {
   expect_vector(predict(spmod1, newdata = newexdata, type = "response"))
   expect_type(predict(spmod1, newdata = newexdata, type = "response", interval = "prediction", se.fit = TRUE, local = TRUE, var_correct = FALSE), "list")
   expect_true(inherits(predict(spmod1, newdata = newexdata, type = "response", interval = "confidence", level = 0.9), "matrix"))
+  expect_true(inherits(predict(spmod1, newdata = newexdata, type = "terms"), "matrix"))
+  expect_type(predict(spmod1, newdata = newexdata, type = "terms", interval = "confidence"), "list")
+  expect_vector(predict(spmod1, newdata = newexdata, dispersion = 1))
 
   # print
   expect_output(print(spmod1))
@@ -181,7 +190,11 @@ test_that("generics work spglm point data with missing", {
 
   # augment
   expect_s3_class(augment(spmod1), "data.frame")
-  expect_s3_class(augment(spmod1, newdata = spmod1$newdata), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "link", type.residuals = "pearson"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response", type.residuals = "response", se_fit = TRUE), "data.frame")
+  expect_s3_class(augment(spmod1, newdata = newexdata), "data.frame")
+  expect_s3_class(augment(spmod1, newdata = newexdata, type.predict = "response", se_fit = TRUE), "data.frame")
 
   # coef
   expect_vector(coef(spmod1))
@@ -199,8 +212,10 @@ test_that("generics work spglm point data with missing", {
   expect_vector(cooks.distance(spmod1))
 
   # covmatrix
-  expect_true(inherits(covmatrix(spmod1), "matrix"))
-  expect_true(inherits(covmatrix(spmod1, newdata = spmod1$newdata), "matrix"))
+  expect_equal(dim(covmatrix(spmod1)), c(99, 99))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata)), c(1, 99))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "obs.pred")), c(99, 1))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "pred.pred")), c(1, 1))
 
   # deviance
   expect_vector(deviance(spmod1))
@@ -272,6 +287,9 @@ test_that("generics work spglm point data with missing", {
   expect_vector(predict(spmod1, newdata = newexdata, type = "response"))
   expect_type(predict(spmod1, newdata = newexdata, type = "response", interval = "prediction", se.fit = TRUE, local = TRUE, var_correct = FALSE), "list")
   expect_true(inherits(predict(spmod1, newdata = newexdata, type = "response", interval = "confidence", level = 0.9), "matrix"))
+  expect_true(inherits(predict(spmod1, newdata = newexdata, type = "terms"), "matrix"))
+  expect_type(predict(spmod1, newdata = newexdata, type = "terms", interval = "confidence"), "list")
+  expect_vector(predict(spmod1, newdata = newexdata, dispersion = 1))
 
   # print
   expect_output(print(spmod1))
@@ -332,7 +350,11 @@ test_that("generics work spglm polygon data with missing", {
 
   # augment
   expect_s3_class(augment(spmod1), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "link", type.residuals = "pearson"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response", type.residuals = "response", se_fit = TRUE), "data.frame")
   expect_s3_class(augment(spmod1, newdata = spmod1$newdata), "data.frame")
+  expect_s3_class(augment(spmod1, newdata = spmod1$newdata, type.predict = "response", se_fit = TRUE), "data.frame")
 
   # coef
   expect_vector(coef(spmod1))
@@ -350,8 +372,10 @@ test_that("generics work spglm polygon data with missing", {
   expect_vector(cooks.distance(spmod1))
 
   # covmatrix
-  expect_true(inherits(covmatrix(spmod1), "matrix"))
-  expect_true(inherits(covmatrix(spmod1, newdata = spmod1$newdata), "matrix"))
+  expect_equal(dim(covmatrix(spmod1)), c(48, 48))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata)), c(1, 48))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "obs.pred")), c(48, 1))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "pred.pred")), c(1, 1))
 
   # deviance
   expect_vector(deviance(spmod1))
@@ -423,6 +447,9 @@ test_that("generics work spglm polygon data with missing", {
   expect_vector(predict(spmod1, type = "response"))
   expect_type(predict(spmod1, type = "response", interval = "prediction", se.fit = TRUE, local = TRUE, var_correct = FALSE), "list")
   expect_true(inherits(predict(spmod1, type = "response", interval = "confidence", level = 0.9), "matrix"))
+  expect_true(inherits(predict(spmod1, type = "terms"), "matrix"))
+  expect_type(predict(spmod1, type = "terms", interval = "confidence"), "list")
+  expect_vector(predict(spmod1, dispersion = 1))
 
   # print
   expect_output(print(spmod1))

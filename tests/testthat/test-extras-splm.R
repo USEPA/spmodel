@@ -815,7 +815,8 @@ if (test_local) {
 
     # point data
     exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"), crs = 5070)
-    exdata_sf_geo <- sf::st_transform(exdata_sf_geo, crs = 4326)
+    exdata_sf_geo <- sf::st_transform(exdata_sf, crs = 4326)
+    exdata_sf_NA <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"), crs = NA)
 
     spcov_type <- "exponential"
     expect_error(splm(y ~ x, exdata_sf, spcov_type = spcov_type, estmethod = "reml"), NA)
@@ -852,6 +853,7 @@ if (test_local) {
 
     # warning when geographic
     expect_warning(splm(y ~ x, exdata_sf_geo, spcov_type = spcov_type, estmethod = "reml"))
+    expect_warning(splm(y ~ x, exdata_sf_NA, spcov_type = spcov_type, estmethod = "reml"), NA)
   })
 
   test_that("extra covr checks", {
@@ -1040,5 +1042,27 @@ if (test_local) {
     expect_equal(0, unname(fitted(spmod, type = "randcov")[["1 | group2"]]["group2.new_group_level"]))
     expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2,
                       partition_factor = ~group, local = TRUE), NA)
+  })
+
+  test_that("emmeans works", {
+    spcov_type <- "exponential"
+    spmod <- splm(y ~ x * group, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(as.matrix(model.frame(delete.response(terms(spmod)), spmod$obdata)), as.matrix(emmeans::recover_data(spmod)))
+    expect_error(emmeans::emmeans(spmod, ~ group, by = "x"), NA)
+  })
+
+  test_that("emmeans works missing", {
+    spcov_type <- "exponential"
+    spmod <- splm(y ~ x * group, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(as.matrix(model.frame(delete.response(terms(spmod)), spmod$obdata)), as.matrix(emmeans::recover_data(spmod)))
+    expect_error(emmeans::emmeans(spmod, ~ group, by = "x"), NA)
+  })
+
+  test_that("covmatrix errors properly", {
+    spcov_type <- "exponential"
+    spmod <- splm(y ~ x * group, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    expect_error(covmatrix(spmod, newdata = NULL))
+    expect_error(covmatrix(spmod, cov_type = "xyz"), NA) # when newdata not specified cov_type silently ignored
+    expect_error(covmatrix(spmod, newdata = spmod$newdata, cov_type = "xyz"))
   })
 }

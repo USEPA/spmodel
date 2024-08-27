@@ -1,3 +1,38 @@
+# spmodel 0.8.0
+
+## Major Updates
+
+* Added support for the `emmeans` **R** package for estimating marginal means of `splm()`, `spautor()`, `spglm()`, and `spgautor()` models.
+* Added a vignette to the [`spmodel` website](https://usepa.github.io/spmodel/) titled "Using emmeans to Estimate Marginal Means of spmodel Objects".
+* Added support for distance-based neighborhood definitions of `spautor()` and `spgautor()` models via the `cutoff` argument, required when `data` are an `sf` object with `POINT` geometry and `W` is not specified.
+* Added the `texas` data set, which contains voter turnout data from eligible voters in Texas, USA, during the 1980 Presidential election.
+* Added the `lake` and `lake_preds` data sets, which contain data from the United States Environmental Protection Agency's National Lakes Assessment and LakeCat.
+
+
+## Minor Updates
+
+* Changed the `type` argument in `augment()` for `spglm()` and `spgautor()` models to `type.predict` to match `broom::augment.glm()`.
+* `augment()` for `spglm()` and `spgautor()` models now returns fitted values on the link scale by default to match `broom::augment.glm()`.
+* Added a `type.residuals` argument for `spglm()` and `spgautor()` models to match `broom::augment.glm()`.
+* Updated `logLik()` to match `lm()` and `glm()` behavior. `logLik()` now returns a vector with class `logLik` and attributes `nobs` and `df`.
+* Added support for using `AIC()` and `BIC()` from `stats` and removed `spmodel`-specific `AIC()` and `BIC()` methods.
+* Added support for `"terms"` prediction for `splm()`, `spautor()`, `spglm()`, and `spgautor()` models.
+* Added `scale` and `df` arguments to `predict()` for `splm()` and `spautor()` models.
+* Add `dispersion` argument to `predict()` for `spglm()` and `spgautor()` models.
+* Enhanced numeric stability of deviance and pseudo R-squared for `spglm()` or `spgautor()` models when `family = "beta"`.
+* Added the `cov_type` argument to `covmatrix()` to return observed by observed, prediction by observed, observed by prediction, and prediction by prediction covariance matrices.
+* Added a `warning` argument to `glances()` that determines whether relevant warnings should be displayed or not.
+* Added a warning message to `glances()` about interpreting likelihood-based statistics (e.g., AIC, AICc, BIC) when a one model has `estmethod = "ml"` and another model has `estmethod = "reml"`.
+* Added a warning message to `glances()` about interpreting likelihood-based statistics (e.g., AIC, AICc, BIC) when two models with `estmethod = "reml"` have distinct `formula` arguments.
+* Added a warning message to `glances()` about interpreting likelihood-based statistics (e.g., AIC, AICc, BIC) when two models have different sample sizes.
+* Added a warning message to `glances()` about interpreting likelihood-based statistics (e.g., AIC, AICc, BIC) when two models have different family supports (which can happen with `spglm()` and `spgautor()` models).
+* All data sets now have `tbl_df` and `tbl` classes (i.e., are tibbles).
+* Added a `cloud` argument to `esv()` to return a cloud semivariogram.
+* `esv()` output now has `tbl_df` and `tbl` classes (i.e., are tibbles) and an `esv` class.
+* Added a `plot()` method for `esv` objects.
+* Minor vignette updates.
+* Minor documentation updates.
+
 # spmodel 0.7.0
 
 ## Minor Updates

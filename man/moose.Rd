@@ -13,7 +13,7 @@ An \code{sf} object with 218 rows and 5 columns.
 \item presence: A binary factor representing whether no moose were observed (value \code{0}) or at least one moose was observed
 (va ue \code{1}).
 \item geometry: \code{POINT} geometry representing coordinates in an Alaska
-Albers projection (EPSG: 3338).
+Albers projection (EPSG: 3338). Distances between points are in meters.
 }
 }
 \source{

@@ -83,21 +83,23 @@ if (test_local) {
 
     spmod0 <- splm(y ~ 1, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
     spmod1 <- splm(y ~ 1, exdata, spcov_type = "none", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
-    expect_error(AIC(spmod0, spmod1, spmod0))
     expect_error(AICc(spmod0, spmod1, spmod0))
-    expect_error(BIC(spmod0, spmod1, spmod0))
+    # removing tests after removing spmodel-specific AIC method
+    # expect_error(AIC(spmod0, spmod1, spmod0))
+    # expect_error(BIC(spmod0, spmod1, spmod0))
   })
 
   test_that("Warnings appropriately return", {
     spmod0 <- splm(y ~ 1, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
     spmod1 <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
     spmod2 <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "ml")
-    expect_warning(AIC(spmod0, spmod1))
-    expect_warning(AIC(spmod1, spmod2))
     expect_warning(AICc(spmod0, spmod1))
     expect_warning(AICc(spmod1, spmod2))
-    expect_warning(BIC(spmod0, spmod1))
-    expect_warning(BIC(spmod1, spmod2))
+    # removing tests after removing spmodel-specific AIC method
+    # expect_warning(AIC(spmod0, spmod1))
+    # expect_warning(AIC(spmod1, spmod2))
+    # expect_warning(BIC(spmod0, spmod1))
+    # expect_warning(BIC(spmod1, spmod2))
   })
 
   test_that("Matches for lm", {
@@ -451,41 +453,64 @@ if (test_local) {
 
     # regular implementation
     esv1 <- esv(y ~ x, exdata, xcoord, ycoord)
+    expect_s3_class(esv1, "esv")
+    expect_s3_class(esv1, "tbl_df")
+    expect_s3_class(esv1, "tbl")
     expect_s3_class(esv1, "data.frame")
     expect_equal(NROW(esv1), 15)
     expect_equal(NCOL(esv1), 4)
 
     esv1_q <- esv(y ~ x, exdata, "xcoord", "ycoord")
+    expect_s3_class(esv1_q, "esv")
+    expect_s3_class(esv1_q, "tbl_df")
+    expect_s3_class(esv1_q, "tbl")
     expect_s3_class(esv1_q, "data.frame")
     expect_equal(NROW(esv1_q), 15)
     expect_equal(NCOL(esv1_q), 4)
 
-    # quoting works
-    expect_equal(esv1, esv1_q)
+    # quoting works (need to NULL out call attribute as that is different)
+    esv1_cn <- esv1
+    attr(esv1_cn, "call") <- NULL
+    esv1_q_cn <- esv1_q
+    attr(esv1_q_cn, "call") <- NULL
+    expect_equal(esv1_cn, esv1_q_cn)
 
     # specifying bins and cutoff
     esv2 <- esv(y ~ x, exdata, xcoord, ycoord, bins = 30, cutoff = 5)
+    expect_s3_class(esv2, "esv")
+    expect_s3_class(esv2, "tbl_df")
+    expect_s3_class(esv2, "tbl")
     expect_s3_class(esv2, "data.frame")
     expect_equal(NROW(esv2), 30)
-    expect_equal(NCOL(esv1), 4)
+    expect_equal(NCOL(esv2), 4)
     dist_matrix <- spdist(exdata, "xcoord", "ycoord")
 
     # specifying distance matrix
     esv3 <- esv(y ~ x, exdata, dist_matrix = dist_matrix)
+    expect_s3_class(esv3, "esv")
+    expect_s3_class(esv3, "tbl_df")
+    expect_s3_class(esv3, "tbl")
     expect_s3_class(esv3, "data.frame")
     expect_equal(NROW(esv3), 15)
-    expect_equal(NCOL(esv1), 4)
+    expect_equal(NCOL(esv3), 4)
 
     # specifying partition factor
     esv4 <- esv(y ~ x, exdata, xcoord, ycoord, partition_factor = ~group)
-    expect_s3_class(esv1, "data.frame")
-    expect_equal(NROW(esv1), 15)
-    expect_equal(NCOL(esv1), 4)
+    expect_s3_class(esv4, "esv")
+    expect_s3_class(esv4, "tbl_df")
+    expect_s3_class(esv4, "tbl")
+    expect_s3_class(esv4, "data.frame")
+    expect_equal(NROW(esv4), 15)
+    expect_equal(NCOL(esv4), 4)
     expect_false(identical(esv1, esv4)) # make sure results are not identical to full esv
 
     # works with sf object
     exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"))
     expect_error(esv(y ~ x, exdata_sf), NA)
+    esv5 <- esv(y ~ x, exdata_sf)
+    esv5_cn <- esv5
+    attr(esv5_cn, "call") <- NULL
+    expect_true(identical(esv1_cn, esv5_cn))
 
     # works with one dimension
     expect_error(esv(y ~ x, exdata, xcoord), NA)
@@ -494,6 +519,21 @@ if (test_local) {
     expect_error(esv(y ~ x, exdata))
     expect_error(esv(y ~ x, exdata, xcoord_xyz))
     expect_error(esv(y ~ x, exdata, xcoord, ycoord_xyz))
+
+    # works with cloud argument
+    esv1c <- esv(y ~ x, exdata, xcoord, ycoord, cloud = TRUE)
+    expect_s3_class(esv1c, "esv")
+    expect_s3_class(esv1c, "tbl_df")
+    expect_s3_class(esv1c, "tbl")
+    expect_s3_class(esv1c, "data.frame")
+    expect_equal(NROW(esv1c), 3965)
+    expect_equal(NCOL(esv1c), 2)
+
+    # plot works
+    expect_error(plot(esv1), NA)
+    expect_error(plot(esv1, pch = 1), NA)
+    expect_error(plot(esv1c), NA)
+    expect_error(plot(esv1c, pch = 19), NA)
   })
 
   ##############################################################################
@@ -686,6 +726,57 @@ if (test_local) {
     expect_equal(NROW(glances(spmod)), 2)
     expect_equal(NCOL(glances(spmod)), 11)
     expect_equal(rbind(glance(spmod$spcov_initial_1), glance(spmod$spcov_initial_2)), glances(spmod, sort_by = "order")[, -1], ignore_attr = TRUE)
+  })
+
+  test_that("glances throws proper warnings", {
+    spmod1 <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
+    spmod2 <- splm(y ~ x, exdata, "matern", xcoord, ycoord)
+    expect_warning(glances(spmod1, spmod2), NA)
+    spmod3 <- splm(y ~ 1, exdata, "exponential", xcoord, ycoord, estmethod = "ml")
+    expect_warning(glances(spmod1, spmod2, spmod3))
+    expect_warning(glances(spmod1, spmod2, spmod3, warning = FALSE), NA)
+    spmod4 <- splm(y ~ 1, exdata, "spherical", xcoord, ycoord, estmethod = "reml")
+    expect_warning(glances(spmod1, spmod2, spmod3))
+    expect_warning(glances(spmod1, spmod2, spmod3, warning = FALSE), NA)
+    spmod5 <- splm(y ~ 1, exdata, "spherical", xcoord, ycoord, estmethod = "sv-wls")
+    spmod6 <- splm(y ~ 1, exdata, "gaussian", xcoord, ycoord, estmethod = "sv-cl")
+    expect_warning(glances(spmod1, spmod2, spmod5, spmod6), NA)
+    spmod7 <- splm(y ~ x, exdata[-1, ], "exponential", xcoord, ycoord)
+    expect_warning(glances(spmod1, spmod7))
+
+    # glm families
+    spgmod1 <- spglm(y > 0 ~ x, data = exdata, family = "binomial", "exponential", xcoord, ycoord)
+    spgmod2 <- spglm(abs(y) / 10 ~ x, exdata, family = "beta", "exponential", xcoord, ycoord)
+    spgmod3 <- spglm(round(abs(y)) ~ x, exdata, family = "poisson", "exponential", xcoord, ycoord)
+    spgmod4 <- spglm(round(abs(y)) ~ x, exdata, family = "nbinomial", "exponential", xcoord, ycoord)
+    spgmod5 <- spglm(abs(y) ~ x, exdata, family = "Gamma", "exponential", xcoord, ycoord)
+    spgmod6 <- spglm(abs(y) ~ x, exdata, family = "inverse.gaussian", "exponential", xcoord, ycoord)
+
+    ## no warnings
+    expect_warning(glances(spgmod1, spgmod1), NA)
+    expect_warning(glances(spgmod2, spgmod2), NA)
+    expect_warning(glances(spgmod3, spgmod3), NA)
+    expect_warning(glances(spgmod4, spgmod4), NA)
+    expect_warning(glances(spgmod5, spgmod5), NA)
+    expect_warning(glances(spgmod6, spgmod6), NA)
+    expect_warning(glances(spgmod3, spgmod4), NA)
+    expect_warning(glances(spgmod5, spgmod6), NA)
+
+    ## warnings
+    expect_warning(glances(spgmod1, spgmod2))
+    expect_warning(glances(spgmod1, spgmod3))
+    expect_warning(glances(spgmod1, spgmod4))
+    expect_warning(glances(spgmod1, spgmod5))
+    expect_warning(glances(spgmod1, spgmod6))
+    expect_warning(glances(spgmod2, spgmod3))
+    expect_warning(glances(spgmod2, spgmod4))
+    expect_warning(glances(spgmod2, spgmod5))
+    expect_warning(glances(spgmod2, spgmod6))
+    expect_warning(glances(spgmod3, spgmod5))
+    expect_warning(glances(spgmod3, spgmod6))
+    expect_warning(glances(spgmod4, spgmod5))
+    expect_warning(glances(spgmod4, spgmod6))
+
   })
 
   ##############################################################################
@@ -1313,6 +1404,24 @@ if (test_local) {
     lmod1 <- lm(y ~ poly(x, degree = 2, raw = FALSE), exdata)
     lmpred1 <- predict(lmod1, newexdata)
     expect_equal(unname(pred1), unname(lmpred1))
+
+    # terms matches
+    pt_spmod1 <- predict(spmod1, newdata = newexdata, type = "terms")
+    pt_lmod1 <- predict(lmod1, newdata = newexdata, type = "terms")
+    expect_equal(pt_spmod1, pt_lmod1, tolerance = 0.01)
+    expect_equal(attr(pt_spmod1, "constant"), attr(pt_lmod1, "constant"), tolerance = 0.01)
+    pt_spmod1 <- predict(spmod1, newdata = newexdata, type = "terms", se.fit = TRUE, interval = "confidence")
+    pt_lmod1 <- predict(spmod1, newdata = newexdata, type = "terms", se.fit = TRUE, interval = "confidence")
+    expect_true(all(names(pt_spmod1) %in% names(pt_lmod1)))
+    expect_equal(pt_spmod1$fit, pt_lmod1$fit, tolerance = 0.01)
+    expect_equal(attr(pt_spmod1$fit, "constant"), attr(pt_lmod1$fit, "constant"), tolerance = 0.01)
+    expect_equal(pt_spmod1$se.fit, pt_lmod1$se.fit, tolerance = 0.01)
+    # both attributes are null when returning se (i.e., for se, there is no constant attribute)
+    expect_equal(attr(pt_spmod1$se, "constant"), attr(pt_lmod1$se, "constant"), tolerance = 0.01)
+    expect_equal(pt_spmod1$lwr, pt_lmod1$lwr, tolerance = 0.01)
+    expect_equal(attr(pt_spmod1$lwr, "constant"), attr(pt_lmod1$lwr, "constant"), tolerance = 0.01)
+    expect_equal(pt_spmod1$upr, pt_lmod1$upr, tolerance = 0.01)
+    expect_equal(attr(pt_spmod1$upr, "constant"), attr(pt_lmod1$upr, "constant"), tolerance = 0.01)
   })
 
   test_that("prediction values match for both approaches autoregressive", {
@@ -1406,6 +1515,26 @@ if (test_local) {
     spmod1 <- spautor(y ~ x + offset(offset), exdata_Mpoly, "car")
     spmod2 <- spautor(y2 ~ x, exdata_Mpoly, "car")
     expect_equal(fitted(spmod1), fitted(spmod2) + exdata_Mpoly$offset[!is.na(exdata_Mpoly$y)])
+  })
+
+  test_that("prediction for splm scale/df works", {
+    spmod1 <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
+    pred1 <- predict(spmod1, newexdata, se.fit = TRUE, scale = 1, interval = "prediction")
+    pred2 <- predict(spmod1, newexdata, se.fit = TRUE, interval = "prediction")
+    expect_equal(pred1, pred2, tolerance = .01)
+    pred1 <- predict(spmod1, newexdata, se.fit = TRUE, scale = 2)
+    pred2 <- predict(spmod1, newexdata, se.fit = TRUE)
+    expect_equal(pred1$fit, pred2$fit, tolerance = 0.01)
+    expect_equal(pred1$se.fit / 2, pred2$se.fit, tolerance = 0.01)
+    df <- 4
+    pred1 <- predict(spmod1, newexdata, se.fit = TRUE, scale = 1, df = df, interval = "confidence")
+    pred2 <- predict(spmod1, newexdata, se.fit = TRUE, interval = "confidence")
+    expect_equal(pred1$fit[, "fit"], pred2$fit[, "fit"], tolerance = 0.01)
+    expect_equal(pred1$se.fit, pred2$se.fit, tolerance = 0.01)
+    level <- 0.95
+    tcrit <- qt(1 - (1 - level) / 2, df = df)
+    expect_equal(as.vector(pred1$fit[, "lwr"]), as.vector(pred2$fit[, "fit"] - tcrit * pred2$se.fit), tolerance = 0.01)
+    expect_equal(as.vector(pred1$fit[, "upr"]), as.vector(pred2$fit[, "fit"] + tcrit * pred2$se.fit), tolerance = 0.01)
   })
 
   ##############################################################################

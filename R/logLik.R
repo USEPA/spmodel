@@ -24,9 +24,19 @@ logLik.splm <- function(object, ...) {
   if (object$estmethod %in% c("reml", "ml")) {
     minus2loglik <- object$optim$value
     loglik <- -1 / 2 * minus2loglik
+    # number of estimated parameters
+    if (object$estmethod == "ml") {
+      n_est_param <- object$npar + object$p
+    } else {
+      n_est_param <- object$npar
+    }
+    # lm also returns nall which does help with reml warnings of models
+    # with different fixed effect structures
+    # still insufficient compared to previous version
+    loglik <- structure(loglik, nobs = object$n, df = n_est_param, class = "logLik")
     return(loglik)
   } else {
-    stop("log likelihood is only defined for the reml or ml estimation")
+    stop("logLik is only defined if estmethod is \"ml\" or \"reml\".", call. = FALSE)
   }
 }
 

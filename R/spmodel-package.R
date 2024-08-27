@@ -5,7 +5,7 @@
 #' @importFrom generics tidy glance augment
 #' @importFrom graphics abline par points title
 #' @importFrom parallel detectCores makeCluster parLapply stopCluster
-#' @importFrom sf st_as_sf st_centroid st_coordinates st_crs st_drop_geometry st_intersects st_is_longlat
+#' @importFrom sf st_as_sf st_centroid st_coordinates st_crs st_drop_geometry st_geometry_type st_intersects st_is_longlat
 #' @importFrom stats AIC anova BIC coef coefficients complete.cases confint cooks.distance cor
 #'   dbeta dbinom dgamma dnbinom dpois
 #'   delete.response deviance dist fitted fitted.values formula .getXlevels hatvalues

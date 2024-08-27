@@ -20,9 +20,13 @@
   object,
   newdata,
   se.fit = FALSE,
+  scale = NULL,
+  df = Inf,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
+  type = c("response", "terms"),
   local,
+  terms = NULL,
   ...
 )
 
@@ -30,9 +34,13 @@
   object,
   newdata,
   se.fit = FALSE,
+  scale = NULL,
+  df = Inf,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
+  type = c("response", "terms"),
   local,
+  terms = NULL,
   ...
 )
 
@@ -67,26 +75,30 @@
 \method{predict}{spglm}(
   object,
   newdata,
-  type = c("link", "response"),
+  type = c("link", "response", "terms"),
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
-  newdata_size,
   level = 0.95,
+  dispersion = NULL,
+  terms = NULL,
   local,
   var_correct = TRUE,
+  newdata_size,
   ...
 )
 
 \method{predict}{spgautor}(
   object,
   newdata,
-  type = c("link", "response"),
+  type = c("link", "response", "terms"),
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
-  newdata_size,
   level = 0.95,
+  dispersion = NULL,
+  terms = NULL,
   local,
   var_correct = TRUE,
+  newdata_size,
   ...
 )
 
@@ -130,11 +142,23 @@ fitted model object are used.}
 \item{se.fit}{A logical indicating if standard errors are returned.
 The default is \code{FALSE}.}
 
+\item{scale}{A numeric constant by which to scale the regular standard errors and intervals.
+Similar to but slightly different than \code{scale} for \code{\link[stats:predict.lm]{stats::predict.lm()}}, because
+predictions form a spatial model may have different residual variances for each
+observation in \code{newdata}. The default is \code{NULL}, which returns
+the regular standard errors and intervals.}
+
+\item{df}{Degrees of freedom to use for confidence or prediction intervals
+(ignored if \code{scale} is not specified). The default is \code{Inf}.}
+
 \item{interval}{Type of interval calculation. The default is \code{"none"}.
 Other options are \code{"confidence"} (for confidence intervals) and
 \code{"prediction"} (for prediction intervals).}
 
 \item{level}{Tolerance/confidence level. The default is \code{0.95}.}
+
+\item{type}{The prediction type, either on the response scale, link scale (only for
+\code{spglm()} or \code{spgautor()} model objects), or terms scale.}
 
 \item{local}{A optional logical or list controlling the big data approximation. If omitted, \code{local}
 is set to \code{TRUE} or \code{FALSE} based on the observed data sample size (i.e., sample size of the fitted
@@ -175,19 +199,24 @@ If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 that \code{local} is transformed into
 \code{list(size = 100, method = "covariance", parallel = FALSE)}.}
 
+\item{terms}{If \code{type} is \code{"terms"}, the type of terms to be returned,
+specified via either numeric position or name. The default is all terms are included.}
+
 \item{...}{Other arguments. Only used for models fit using \code{splmRF()}
 or \code{spautorRF()} where \code{...} indicates other
 arguments to \code{ranger::predict.ranger()}.}
 
-\item{type}{The scale (\code{response} or \code{link}) of predictions obtained
-using \code{spglm()} or \code{spgautor} objects.}
-
-\item{newdata_size}{The \code{size} value for each observation in \code{newdata}
-used when predicting for the binomial family.}
+\item{dispersion}{The dispersion of assumed when computing the prediction standard errors
+for \code{spglm()} or \code{spgautor()} model objects when \code{family}
+is \code{"nbinomial"}, \code{"beta"}, \code{"Gamma"}, or \code{"inverse.gaussian"}.
+If omitted, the model object dispersion parameter is used.}
 
 \item{var_correct}{A logical indicating whether to return the corrected prediction
 variances when predicting via models fit using \code{spglm()} or \code{spgautor()}. The default is
 \code{TRUE}.}
+
+\item{newdata_size}{The \code{size} value for each observation in \code{newdata}
+used when predicting for the binomial family.}
 }
 \value{
 For \code{splm} or \code{spautor} objects, if \code{se.fit} is \code{FALSE}, \code{predict()} returns
@@ -238,6 +267,16 @@ sulfate$var <- rnorm(NROW(sulfate)) # add noise variable
 sulfate_preds$var <- rnorm(NROW(sulfate_preds)) # add noise variable
 sprfmod <- splmRF(sulfate ~ var, data = sulfate, spcov_type = "exponential")
 predict(sprfmod, sulfate_preds)
+}
+\donttest{
+spgmod <- spglm(presence ~ elev * strat,
+  family = "binomial",
+  data = moose,
+  spcov_type = "exponential"
+)
+predict(spgmod, moose_preds)
+predict(spgmod, moose_preds, interval = "prediction")
+augment(spgmod, newdata = moose_preds, interval = "prediction")
 }
 }
 \references{

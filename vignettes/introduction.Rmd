@@ -52,7 +52,7 @@ There are three more `spmodel` vignettes available on our website at [https://us
 Additionally, there are two workbooks that have accompanied recent `spmodel` workshops:
 
 1. 2024 Society for Freshwater Science Conference: "Spatial Analysis and Statistical Modeling with R and `spmodel` available at [https://usepa.github.io/spworkshop.sfs24/](https://usepa.github.io/spworkshop.sfs24/)
-2. 2923 Spatial Statistics Conference: `spmodel` workshop available at [https://usepa.github.io/spmodel.spatialstat2023/](https://usepa.github.io/spmodel.spatialstat2023/)
+2. 2023 Spatial Statistics Conference: `spmodel` workshop available at [https://usepa.github.io/spmodel.spatialstat2023/](https://usepa.github.io/spmodel.spatialstat2023/)
 
 # The Data
 
@@ -149,6 +149,7 @@ The columns of this `tibble` represent:
 * `value`: The value of the minimized objective function used when fitting the model
 * `AIC`: The Akaike Information Criterion (AIC)
 * `AICc`: The AIC with a small sample size correction
+* `BIC`: The Bayesian Information Criterion (BIC)
 * `logLik`: The log-likelihood
 * `deviance`: The deviance
 * `pseudo.r.squared`: The pseudo r-squared
@@ -159,7 +160,7 @@ lmod <- splm(log_Zn ~ log_dist2road, data = moss, spcov_type = "none")
 glances(spmod, lmod)
 ```
 
-The much lower AIC and AICc for the spatial linear model indicates it is a much better fit to the data. Outside of `glance()` and `glances()`, the functions `AIC()`, `AICc()`, `logLik()`, `deviance()`, and `pseudoR2()` are available to compute the relevant statistics.
+The much lower AIC and AICc for the spatial linear model indicates it is a much better fit to the data. Outside of `glance()` and `glances()`, the functions `AIC()`, `AICc()`, `BIC()` `logLik()`, `deviance()`, and `pseudoR2()` are available to compute the relevant statistics.
 
 We augment the data with diagnostics by running
 ```{r}
@@ -338,7 +339,7 @@ ggplot(moose_preds, aes(color = preds)) +
 These predictions have similar spatial patterns as moose presence the observed data. Next we remove the model predictions from `moose_preds` and show how `augment()` can be used to obtain the same predictions alongside prediction intervals (on the response scale):
 ```{r}
 moose_preds$preds <- NULL
-augment(binmod, newdata = moose_preds, type = "response", interval = "prediction")
+augment(binmod, newdata = moose_preds, type.predict = "response", interval = "prediction")
 ```
 
 # Function Glossary
@@ -390,6 +391,13 @@ For a full list of `spmodel` functions alongside their documentation, see the do
 Documentation for methods of generic functions that are defined outside of `spmodel` can be found
 by running `help("generic.spmodel", "spmodel")` (e.g., `help("summary.spmodel", "spmodel")`, `help("predict.spmodel", "spmodel")`, etc.).
 Note that `?generic.spmodel` is shorthand for `help("generic.spmodel", "spmodel")`.
+
+# Support for Additional **R** Packages
+
+`spmodel` provides support for:
+
+1. The `tidy()`, `glance()` and `augment()` functions from the `broom` **R** package [@robinson2021broom].
+2. The `emmeans` **R** package [@lenth2024emmeans] applied to `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects from `spmodel`.
 
 # References {.unnumbered}
 

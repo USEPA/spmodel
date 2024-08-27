@@ -1,5 +1,8 @@
-#' @param type The scale (\code{response} or \code{link}) of predictions obtained
-#'   using \code{spglm()} or \code{spgautor} objects.
+#' @param type.predict The scale (\code{response} or \code{link}) of fitted
+#'   values and predictions obtained using \code{spglm()} or \code{spgautor} objects.
+#' @param type.residuals The residual type (\code{deviance}, \code{pearson}, or \code{response})
+#'   of fitted models from \code{spglm()} or \code{spgautor} objects. Ignored if
+#'   \code{newdata} is specified.
 #' @param newdata_size The \code{size} value for each observation in \code{newdata}
 #'   used when predicting for the binomial family.
 #' @param var_correct A logical indicating whether to return the corrected prediction
@@ -9,11 +12,25 @@
 #' @method augment spglm
 #' @order 3
 #' @export
-augment.spglm <- function(x, drop = TRUE, newdata = NULL, type = c("link", "response"), se_fit = FALSE,
+augment.spglm <- function(x, drop = TRUE, newdata = NULL, type.predict = c("link", "response"),
+                          type.residuals = c("deviance", "pearson", "response"), se_fit = FALSE,
                           interval = c("none", "confidence", "prediction"), newdata_size,
                           level = 0.95, local = local, var_correct = TRUE, ...) {
-  type <- match.arg(type)
+
+
+  # the below code does not work because type tries to match to both type.predict
+  # and type.residuals. For now, we just have to live with implementing a breaking
+  # change, as there is no way to help users who have "type" specified in <= v0.7.0
+  # dotlist <- list(...)
+  # if ("type" %in% names(dotlist)) {
+  #   warning('"type" is deprecated. Using the "type.predict" argument instead.', call. = FALSE)
+  # }
+
+  type.predict <- match.arg(type.predict)
+  type.residuals <- match.arg(type.residuals)
   interval <- match.arg(interval)
+
+
 
   # set data and newdata
   if (is.null(newdata)) {
@@ -29,17 +46,17 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type = c("link", "resp
   }
 
   if (is.null(newdata)) {
-    augment_data <- tibble::tibble(.fitted = fitted(x))
+    augment_data <- tibble::tibble(.fitted = fitted(x, type = type.predict))
     if (se_fit) {
-      preds_data <- predict(x, newdata = data, se.fit = se_fit, interval = "confidence", ...)
+      preds_data <- predict(x, newdata = data, type = type.predict, se.fit = se_fit, interval = "confidence", ...)
       augment_data$.se.fit <- preds_data$se.fit
     }
-    tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x)))
+    tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x, type = type.residuals)))
   } else {
     if (missing(newdata_size)) newdata_size <- NULL
     if (missing(local)) local <- NULL
     preds_newdata <- predict(x,
-      newdata = newdata, type = type, se.fit = se_fit, interval = interval,
+      newdata = newdata, type = type.predict, se.fit = se_fit, interval = interval,
       newdata_size = newdata_size, level = level, local = local, var_correct = var_correct
     )
     if (se_fit) {
@@ -114,10 +131,21 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type = c("link", "resp
 #' @method augment spgautor
 #' @order 4
 #' @export
-augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type = c("link", "response"), se_fit = FALSE,
+augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type.predict = c("link", "response"),
+                             type.residuals = c("deviance", "pearson", "response"), se_fit = FALSE,
                              interval = c("none", "confidence", "prediction"), newdata_size,
                              level = 0.95, local, var_correct = TRUE, ...) {
-  type <- match.arg(type)
+
+  # the below code does not work because type tries to match to both type.predict
+  # and type.residuals. For now, we just have to live with implementing a breaking
+  # change, as there is no way to help users who have "type" specified in <= v0.7.0
+  # dotlist <- list(...)
+  # if ("type" %in% names(dotlist)) {
+  #   warning('"type" is deprecated. Using the "type.predict" argument instead.', call. = FALSE)
+  # }
+
+  type.predict <- match.arg(type.predict)
+  type.residuals <- match.arg(type.residuals)
   interval <- match.arg(interval)
 
   # set data and newdata
@@ -136,21 +164,21 @@ augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type = c("link", "r
 
 
   if (is.null(newdata)) {
-    augment_data <- tibble::tibble(.fitted = fitted(x))
+    augment_data <- tibble::tibble(.fitted = fitted(x, type = type.predict))
     if (se_fit) {
-      preds_data <- predict(x, newdata = data, se.fit = se_fit, interval = "confidence", ...)
+      preds_data <- predict(x, newdata = data, type = type.predict, se.fit = se_fit, interval = "confidence", ...)
       augment_data$.se.fit <- preds_data$se.fit
     }
     if (x$is_sf && drop) {
-      tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x), data_sf))
+      tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x, type = type.residuals), data_sf))
     } else {
-      tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x)))
+      tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x, type = type.residuals)))
     }
   } else {
     if (missing(newdata_size)) newdata_size <- NULL
     if (missing(local)) local <- NULL
     preds_newdata <- predict(x,
-      newdata = newdata, type = type, se.fit = se_fit, interval = interval,
+      newdata = newdata, type = type.predict, se.fit = se_fit, interval = interval,
       newdata_size = newdata_size, level = level, local = local, var_correct = var_correct
     )
     if (se_fit) {

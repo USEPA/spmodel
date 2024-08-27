@@ -9,7 +9,7 @@ An \code{sf} object with 197 rows and 2 columns.
 \itemize{
 \item sulfate: Total wet deposition sulfate in kilograms per hectare.
 \item geometry: \code{POINT} geometry representing coordinates in a
-Conus Albers projection (EPSG: 5070).
+Conus Albers projection (EPSG: 5070). Distances between points are in meters.
 }
 }
 \source{

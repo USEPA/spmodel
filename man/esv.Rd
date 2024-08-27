@@ -2,6 +2,7 @@
 % Please edit documentation in R/esv.R
 \name{esv}
 \alias{esv}
+\alias{plot.esv}
 \title{Compute the empirical semivariogram}
 \usage{
 esv(
@@ -9,11 +10,14 @@ esv(
   data,
   xcoord,
   ycoord,
-  dist_matrix,
+  cloud = FALSE,
   bins = 15,
   cutoff,
+  dist_matrix,
   partition_factor
 )
+
+\method{plot}{esv}(x, ...)
 }
 \arguments{
 \item{formula}{A formula describing the fixed effect structure.}
@@ -27,21 +31,34 @@ Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 \item{ycoord}{Name of the variable in \code{data} representing the y-coordinate.
 Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 
-\item{dist_matrix}{A distance matrix to be used instead of providing coordinate names.}
+\item{cloud}{A logical indicating whether the empirical semivariogram should
+be summarized by distance class or not. When \code{cloud = FALSE} (the default), pairwise semivariances
+are binned and averaged within distance classes. When \code{cloud} = TRUE,
+all pairwise semivariances and distances are returned (this is known as
+the "cloud" semivariogram).}
 
-\item{bins}{The number of equally spaced bins. The default is 15.}
+\item{bins}{The number of equally spaced bins. The default is 15. Ignored if
+\code{cloud = TRUE}.}
 
 \item{cutoff}{The maximum distance considered.
 The default is half the diagonal of the bounding box from the coordinates.}
 
+\item{dist_matrix}{A distance matrix to be used instead of providing coordinate names.}
+
 \item{partition_factor}{An optional formula specifying the partition factor.
 If specified, semivariances are only computed for observations sharing the
 same level of the partition factor.}
+
+\item{x}{An object from \code{esv()}.}
+
+\item{...}{Other arguments passed to other methods.}
 }
 \value{
-A data frame with distance bins (\code{bins}), the  average distance
-(\code{dist}), the semivariance (\code{gamma}), and the
-number of (unique) pairs (\code{np}).
+If \code{cloud = FALSE}, a tibble (data.frame) with distance bins
+(\code{bins}), the average distance (\code{dist}), the average semivariance (\code{gamma}), and the
+number of (unique) pairs (\code{np}). If \code{cloud = TRUE}, a tibble
+(data.frame) with distance (\code{dist}) and semivariance (\code{gamma})
+for each unique pair.
 }
 \description{
 Compute the empirical semivariogram for varying bin sizes and
@@ -72,4 +89,5 @@ covariance parameters.
 }
 \examples{
 esv(sulfate ~ 1, sulfate)
+plot(esv(sulfate ~ 1, sulfate))
 }

@@ -24,6 +24,9 @@ test_that("generics work spgautor polygon data", {
 
   # augment
   expect_s3_class(augment(spmod1), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "link", type.residuals = "pearson"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response", type.residuals = "response", se_fit = FALSE), "data.frame")
 
   # coef
   expect_vector(coef(spmod1))
@@ -41,7 +44,7 @@ test_that("generics work spgautor polygon data", {
   expect_vector(cooks.distance(spmod1))
 
   # covmatrix
-  expect_true(inherits(covmatrix(spmod1), "matrix"))
+  expect_equal(dim(covmatrix(spmod1)), c(49, 49))
 
   # deviance
   expect_vector(deviance(spmod1))
@@ -165,7 +168,11 @@ test_that("generics work spgautor polygon data with missing", {
 
   # augment
   expect_s3_class(augment(spmod1), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "link", type.residuals = "pearson"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response", type.residuals = "response", se_fit = FALSE), "data.frame")
   expect_s3_class(augment(spmod1, newdata = spmod1$newdata), "data.frame")
+  expect_s3_class(augment(spmod1, newdata = spmod1$newdata, type.predict = "response", se_fit = FALSE), "data.frame")
 
   # coef
   expect_vector(coef(spmod1))
@@ -183,8 +190,10 @@ test_that("generics work spgautor polygon data with missing", {
   expect_vector(cooks.distance(spmod1))
 
   # covmatrix
-  expect_true(inherits(covmatrix(spmod1), "matrix"))
-  expect_true(inherits(covmatrix(spmod1, newdata = spmod1$newdata), "matrix"))
+  expect_equal(dim(covmatrix(spmod1, cov_type = "obs.obs")), c(48, 48))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "pred.obs")), c(1, 48))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "obs.pred")), c(48, 1))
+  expect_equal(dim(covmatrix(spmod1, newdata = spmod1$newdata, cov_type = "pred.pred")), c(1, 1))
 
   # deviance
   expect_vector(deviance(spmod1))
@@ -250,6 +259,9 @@ test_that("generics work spgautor polygon data with missing", {
   expect_type(predict(spmod1, interval = "prediction", se.fit = TRUE, local = FALSE), "list")
   expect_type(predict(spmod1, interval = "prediction", se.fit = TRUE, local = FALSE, var_correct = FALSE), "list")
   expect_true(inherits(predict(spmod1, interval = "confidence", level = 0.9), "matrix"))
+  expect_true(inherits(predict(spmod1, type = "terms"), "matrix"))
+  expect_type(predict(spmod1, type = "terms", interval = "confidence"), "list")
+  expect_vector(predict(spmod1, dispersion = 1))
 
   # print
   expect_output(print(spmod1))
@@ -310,6 +322,8 @@ test_that("generics work spgautor polygon data unconnected", {
 
   # augment
   expect_s3_class(augment(spmod1), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "response"), "data.frame")
+  expect_s3_class(augment(spmod1, type.predict = "link", type.residuals = "pearson"), "data.frame")
 
   # coef
   expect_vector(coef(spmod1))
@@ -327,7 +341,7 @@ test_that("generics work spgautor polygon data unconnected", {
   expect_vector(cooks.distance(spmod1))
 
   # covmatrix
-  expect_true(inherits(covmatrix(spmod1), "matrix"))
+  expect_equal(dim(covmatrix(spmod1)), c(45, 45))
 
   # deviance
   expect_vector(deviance(spmod1))

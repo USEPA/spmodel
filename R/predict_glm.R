@@ -1,16 +1,29 @@
-#' @param type The scale (\code{response} or \code{link}) of predictions obtained
-#'   using \code{spglm()} or \code{spgautor} objects.
 #' @param newdata_size The \code{size} value for each observation in \code{newdata}
 #'   used when predicting for the binomial family.
 #' @param var_correct A logical indicating whether to return the corrected prediction
 #'   variances when predicting via models fit using \code{spglm()} or \code{spgautor()}. The default is
 #'   \code{TRUE}.
+#' @param dispersion The dispersion of assumed when computing the prediction standard errors
+#'   for \code{spglm()} or \code{spgautor()} model objects when \code{family}
+#'   is \code{"nbinomial"}, \code{"beta"}, \code{"Gamma"}, or \code{"inverse.gaussian"}.
+#'   If omitted, the model object dispersion parameter is used.
 #' @rdname predict.spmodel
 #' @method predict spglm
 #' @order 9
 #' @export
-predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                          newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
+#' @examples
+#' \donttest{
+#' spgmod <- spglm(presence ~ elev * strat,
+#'   family = "binomial",
+#'   data = moose,
+#'   spcov_type = "exponential"
+#' )
+#' predict(spgmod, moose_preds)
+#' predict(spgmod, moose_preds, interval = "prediction")
+#' augment(spgmod, newdata = moose_preds, interval = "prediction")
+#' }
+predict.spglm <- function(object, newdata, type = c("link", "response", "terms"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
+                          level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size, ...) {
 
 
 
@@ -26,6 +39,14 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
   # deal with local
   if (missing(local)) {
     local <- NULL
+  }
+
+  # handle dispersion argument if provided
+  if (!is.null(dispersion)) {
+    if (object$family %in% c("binomial", "poisson") && dispersion != 1) {
+      stop("dispersion is fixed at one for binomial and poisson families.", call. = FALSE)
+    }
+    object$coefficients$dispersion[1] <- dispersion
   }
 
   # error if newdata missing from arguments and object
@@ -132,6 +153,13 @@ predict.spglm <- function(object, newdata, type = c("link", "response"), se.fit 
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
+
+  # call terms if needed
+  if (type == "terms") {
+    # glm supports standard errors for terms objects but not intervals (no interval argument)
+    # scale df not used for glms
+    return(predict_terms(object, newdata_model, se.fit, scale = NULL, df = Inf, interval, level, add_newdata_rows, terms, ...))
+  }
 
   # storing newdata as a list
   newdata_rows_list <- split(newdata, seq_len(NROW(newdata)))
@@ -586,9 +614,9 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
 #' @method predict spgautor
 #' @order 10
 #' @export
-predict.spgautor <- function(object, newdata, type = c("link", "response"), se.fit = FALSE,
+predict.spgautor <- function(object, newdata, type = c("link", "response", "terms"), se.fit = FALSE,
                              interval = c("none", "confidence", "prediction"),
-                             newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
+                             level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size, ...) {
 
   # match type argument so the two display
   type <- match.arg(type)
@@ -602,6 +630,14 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
   # deal with local
   if (missing(local)) {
     local <- NULL
+  }
+
+  # handle dispersion argument if provided
+  if (!is.null(dispersion)) {
+    if (object$family %in% c("binomial", "poisson") && dispersion != 1) {
+      stop("dispersion is fixed at one for binomial and poisson families.", call. = FALSE)
+    }
+    object$coefficients$dispersion[1] <- dispersion
   }
 
   # error if newdata missing from arguments and object
@@ -660,6 +696,13 @@ predict.spgautor <- function(object, newdata, type = c("link", "response"), se.f
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
+
+  # call terms if needed
+  if (type == "terms") {
+    # scale df not used for glms
+    return(predict_terms(object, newdata_model, se.fit, scale = NULL, df = Inf, interval, level, add_newdata_rows = TRUE, terms, ...))
+  }
+
 
   # storing newdata as a list
   newdata_list <- split(newdata, seq_len(NROW(newdata)))

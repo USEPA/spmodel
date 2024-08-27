@@ -9,6 +9,7 @@ if (test_local) {
 
   # SPMODEL PACKAGE NEEDS TO BE INSTALLED VIA DEVTOOLS::INSTALL() BEFORE RUNNING TESTS IF THOSE TESTS HAVE PARALLELIZATION
 
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
   load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
   load(file = system.file("extdata", "exdata_Upoly.rda", package = "spmodel"))
@@ -139,5 +140,28 @@ if (test_local) {
       family = Gamma, data = exdata_Upoly, spcov_type = "sar", estmethod = "reml",
       W = W, random = ~subgroup
     ), NA)
+  })
+
+  test_that("emmeans works", {
+    spcov_type <- "car"
+    spgmod <- spgautor(abs(y) ~ x * group, family = "Gamma", exdata_poly, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(as.matrix(model.frame(delete.response(terms(spgmod)), spgmod$data[spgmod$observed_index, , drop = FALSE])), as.matrix(emmeans::recover_data(spgmod)))
+    expect_error(emmeans::emmeans(spgmod, ~ group, by = "x"), NA)
+  })
+
+  test_that("emmeans works missing", {
+    spcov_type <- "car"
+    spgmod <- spgautor(abs(y) ~ x * group, family = "Gamma", exdata_Mpoly, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(as.matrix(model.frame(delete.response(terms(spgmod)), spgmod$data[spgmod$observed_index, , drop = FALSE])), as.matrix(emmeans::recover_data(spgmod)))
+    expect_error(emmeans::emmeans(spgmod, ~ group, by = "x"), NA)
+  })
+
+  test_that("point distance works missing", {
+    exdata_sf <- st_as_sf(exdata, coords = c("xcoord", "ycoord"), crs = NA)
+    spcov_type <- "sar"
+    expect_error(spgautor(abs(y) ~ x, family = "Gamma", exdata_sf, spcov_type = spcov_type, cutoff = 1), NA)
+    expect_error(spgautor(abs(y) ~ x, family = Gamma, exdata_sf, spcov_type = spcov_type, cutoff = 1, row_st = FALSE), NA)
+    expect_error(spgautor(abs(y) ~ x, family = "Gamma", exdata_sf, spcov_type = spcov_type, cutoff = NULL)) # can't be NULL
+    expect_error(spgautor(abs(y) ~ x, family = Gamma, exdata_sf, spcov_type = spcov_type, cutoff = 1e-8)) # too small of distance so no neighbors
   })
 }

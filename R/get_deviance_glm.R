@@ -23,7 +23,9 @@ get_deviance_glm <- function(family, y, fitted_response, size, dispersion) {
   } else if (family == "inverse.gaussian") {
     half_deviance_i <- 0.5 * (y - fitted_response)^2 / (y * fitted_response^2)
   } else if (family == "beta") {
-    constant <- log(gamma(fitted_response * dispersion)) + log(gamma((1 - fitted_response) * dispersion)) - log(gamma(y * dispersion)) - log(gamma((1 - y) * dispersion))
+    # has NA problem for large dispersion
+    # constant <- log(gamma(fitted_response * dispersion)) + log(gamma((1 - fitted_response) * dispersion)) - log(gamma(y * dispersion)) - log(gamma((1 - y) * dispersion))
+    constant <- lgamma(fitted_response * dispersion) + lgamma((1 - fitted_response) * dispersion) - lgamma(y * dispersion) - lgamma((1 - y) * dispersion)
     half_deviance_i <- constant + (y - fitted_response) * dispersion * log(y) + ((1 - y) - (1 - fitted_response)) * dispersion * log(1 - y)
   }
   deviance_i <- 2 * half_deviance_i

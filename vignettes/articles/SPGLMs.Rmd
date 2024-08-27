@@ -208,7 +208,7 @@ likelihood, which is advantageous because it means that likelihood-based
 statistics such as AIC [@akaike1974new; @hoeting2006model] and BIC [@schwarz1978estimating] are defined,
 in contrast to approaches that only specify the first two moments of a
 distribution (e.g., quasi-likelihood fit via iteratively re-weighted
-least squares). @ver2023marginal provide the methodology's full details.
+least squares). @ver2024marginal provide the methodology's full details.
 
 `spmodel` accommodates the binomial, beta, Poisson, negative binomial,
 gamma, and inverse Gaussian distributions. The binomial and beta
@@ -277,6 +277,8 @@ observations can utilize `spmodel`'s large data set options.
 | $\texttt{W}$ | A neighborhood weight matrix | $\texttt{spgautor()}$  |
 | $\texttt{row_st}$ | Whether to row-standardize $\texttt{W}$ | $\texttt{spgautor()}$  |
 | $\texttt{M}$ | A symmetry matrix | $\texttt{spgautor()}$  |
+| $\texttt{range_positive}$ | Whether the range parameter is restricted to be positive |
+| $\texttt{cutoff}$ | Distance cutoff if using distance-based neighbor definition |
 
 : Arguments to spglm() and spgautor(), their purpose, and whether the
 argument applies to both spglm() and spgautor() or just one of them.
@@ -299,6 +301,7 @@ validation, and more.
 |------|------|
 | $\texttt{AIC()}$; $\texttt{AICc()}$ | Return AIC and AICc   | 
 | $\texttt{anova()}$ | Perform an analysis of variance |
+| $\texttt{AUROC()}$ | Compute the area under the receiver operating characteristic curve |
 | $\texttt{BIC()}$ | Return BIC   | 
 | $\texttt{coef()}$; $\texttt{coefficients()}$ | Return parameter estimates   |
 | $\texttt{confint()}$ | Return confidence intervals  | 
@@ -518,7 +521,6 @@ in the spatial dependence. Next we inspect \texttt{bin\_spmod\_anis} and
 later use it to predict moose presence probability at unobserved sites.
 
 We summarize \texttt{bin\_spmod\_anis} using \texttt{summary()}:
-
 ```{r}
 summary(bin_spmod_anis)
 ```
@@ -531,7 +533,14 @@ quantifies the amount of variability explained by the fixed effects),
 and covariance parameter coefficients. The fixed effects coefficients
 table provides some evidence that elevation and strata are associated
 with with moose presence and that the effect of elevation varies across
-the two strata (all $p~$values $<$ 0.05). The \texttt{plot()} function
+the two strata (all $p~$values $<$ 0.05). 
+
+The area under the receiver receiver operating characteristic (AUROC) curve quantifies the effectiveness of a classifier [@robin2011proc]. It ranges from zero to one, and higher values indicate better model performance. The AUROC of \texttt{bin\_spmod\_anis} is
+```{r}
+AUROC(bin_spmod_anis)
+```
+
+The \texttt{plot()} function
 returns graphics of several model diagnostics. Running
 
 ```{r, eval = FALSE}
@@ -618,7 +627,7 @@ head(spmod_anis_preds)
 aug_pred <- augment(
   bin_spmod_anis,
   newdata = moose_preds,
-  type = "response", 
+  type.predict = "response", 
   interval = "prediction"
 )
 aug_pred
@@ -756,7 +765,7 @@ Estimated mean moose counts for the \texttt{moose} data (obtained via
 
 ```{r nb, out.width="65%", fig.align="center", fig.cap="Fitted values and predictions for moose counts."}
 aug_mod <- augment(count_mod_nb)
-aug_pred <- augment(count_mod_nb, newdata = moose_preds, type = "response")
+aug_pred <- augment(count_mod_nb, newdata = moose_preds, type.predict = "response")
 aug_mod$type <- "mod"
 aug_pred$type <- "pred"
 keep_cols <- c(".fitted", "type")

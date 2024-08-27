@@ -1,6 +1,6 @@
 Package: spmodel
 Title: Spatial Statistical Modeling and Prediction
-Version: 0.7.0
+Version: 0.8.0
 Authors@R: c(
     person(given = "Michael",
            family = "Dumelle",
@@ -17,6 +17,11 @@ Authors@R: c(
        role = "ctb",
        email = "hill.ryan@epa.gov",
        comment = c(ORCID = "0000-0001-9583-0426")),
+    person(given = "Michael",
+       family = "Mahon",
+       role = "ctb",
+       email = "Mahon.Michael@epa.gov",
+       comment = c(ORCID = "0000-0002-9436-2998")),
     person(given = "Jay M.",
        family = "Ver Hoef",
        role = "aut",
@@ -46,7 +51,9 @@ Suggests:
     ggplot2,
     ranger,
     statmod,
-    pROC
+    pROC,
+    emmeans (>= 1.4),
+    estimability
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 URL: https://usepa.github.io/spmodel/

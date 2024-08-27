@@ -28,7 +28,7 @@
 #' @order 1
 #' @export
 #'
-#' @seealso [AIC.spmodel()] [AICc()] [BIC.spmodel()] [logLik.spmodel()] [deviance.spmodel()] [pseudoR2()] [tidy.spmodel()] [augment.spmodel()]
+#' @seealso [stats::AIC()] [AICc()] [stats::BIC()] [logLik.spmodel()] [deviance.spmodel()] [pseudoR2()] [tidy.spmodel()] [augment.spmodel()]
 #'
 #' @examples
 #' spmod <- splm(z ~ water + tarp,

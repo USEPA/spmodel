@@ -96,7 +96,7 @@ pairs(em11)
 plot(pairs(em11))
 ```
 
-By default, the p-values are adjusted according to the Tukey method. The model suggests no significant evidence (p-values > 0.1) that the average log conductivity is different among the states. Other p-value adjustment methods can be passed via `adjust`. For example, we can use the Bonferroni method instead of Tukey method 
+By default, the p-values and confidence intervals from the output and plot above are adjusted according to the Tukey method. The model suggests no significant evidence (p-values > 0.1) that the average log conductivity is different among the states. Other p-value adjustment methods can be passed via `adjust`. For example, we can use the Bonferroni method instead of Tukey method 
 ```{r}
 pairs(em11, adjust = "bonferroni")
 ```
@@ -144,7 +144,7 @@ spmod3 <- splm(
 ```
 
 Because the effect of state varies by year, single-variable summaries of `emmeans` can be misleading, which `emmeans` warns users about:
-```{r}
+```{r, message = TRUE}
 emmeans(spmod3, ~ state)
 ```
 

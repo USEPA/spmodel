@@ -20,3 +20,37 @@ get_esv_dotlist <- function(..., max_halfdist) {
   # make dotlist esv
   dotlist_esv <- list(bins = dotlist$bins, cutoff = dotlist$cutoff)
 }
+
+
+get_esv_dotlist_defaults <- function(x, dotlist, cloud) {
+
+  names_dotlist <- names(dotlist)
+
+  # set defaults
+  if (!"main" %in% names_dotlist) {
+    dotlist$main <- "Empirical Semivariogram"
+    if (cloud) dotlist$main <- paste0(dotlist$main, " (Cloud)")
+  }
+
+  if (!"xlab" %in% names_dotlist) {
+    dotlist$xlab <- "Distance"
+  }
+
+  if (!"ylab" %in% names_dotlist) {
+    dotlist$ylab <- "Semivariance"
+  }
+
+  if (!cloud && !"pch" %in% names_dotlist) {
+    dotlist$pch <- 19
+  }
+
+  if (!cloud && !"cex" %in% names_dotlist) {
+    dotlist$cex <- (x$np - min(x$np)) / (max(x$np) - min(x$np)) * 2 + 1
+  }
+
+  if (!"ylim" %in% names_dotlist) {
+    dotlist$ylim <- c(0, 1.1 * max(x$gamma))
+  }
+
+  dotlist
+}

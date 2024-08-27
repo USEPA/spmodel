@@ -10,8 +10,14 @@
 #'   Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.
 #' @param ycoord Name of the variable in \code{data} representing the y-coordinate.
 #'   Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.
+#' @param cloud A logical indicating whether the empirical semivariogram should
+#'   be summarized by distance class or not. When \code{cloud = FALSE} (the default), pairwise semivariances
+#'   are binned and averaged within distance classes. When \code{cloud} = TRUE,
+#'   all pairwise semivariances and distances are returned (this is known as
+#'   the "cloud" semivariogram).
 #' @param dist_matrix A distance matrix to be used instead of providing coordinate names.
-#' @param bins The number of equally spaced bins. The default is 15.
+#' @param bins The number of equally spaced bins. The default is 15. Ignored if
+#'   \code{cloud = TRUE}.
 #' @param cutoff The maximum distance considered.
 #'   The default is half the diagonal of the bounding box from the coordinates.
 #' @param partition_factor An optional formula specifying the partition factor.
@@ -40,15 +46,20 @@
 #'   semivariogram is calculated internally and used to estimate spatial
 #'   covariance parameters.
 #'
-#' @return A data frame with distance bins (\code{bins}), the  average distance
-#'   (\code{dist}), the semivariance (\code{gamma}), and the
-#'   number of (unique) pairs (\code{np}).
+#' @name esv
+#'
+#' @return If \code{cloud = FALSE}, a tibble (data.frame) with distance bins
+#'   (\code{bins}), the average distance (\code{dist}), the average semivariance (\code{gamma}), and the
+#'   number of (unique) pairs (\code{np}). If \code{cloud = TRUE}, a tibble
+#'   (data.frame) with distance (\code{dist}) and semivariance (\code{gamma})
+#'   for each unique pair.
 #'
 #' @export
 #'
 #' @examples
 #' esv(sulfate ~ 1, sulfate)
-esv <- function(formula, data, xcoord, ycoord, dist_matrix, bins = 15, cutoff, partition_factor) {
+#' plot(esv(sulfate ~ 1, sulfate))
+esv <- function(formula, data, xcoord, ycoord, cloud = FALSE, bins = 15, cutoff, dist_matrix, partition_factor) {
 
   # filter out missing response values
   na_index <- is.na(data[[all.vars(formula)[1]]])
@@ -152,28 +163,42 @@ esv <- function(formula, data, xcoord, ycoord, dist_matrix, bins = 15, cutoff, p
   residual_vector <- residual_vector[dist_index]
   residual_vector2 <- residual_vector^2
 
-  # compute semivariogram classes
-  dist_classes <- cut(dist_vector, breaks = seq(0, cutoff, length.out = bins + 1))
-
-  # compute squared differences within each class
-  gamma <- tapply(residual_vector2, dist_classes, function(x) mean(x) / 2)
-
-  # compute pairs within each class
-  np <- tapply(residual_vector2, dist_classes, length)
-
-  # set as zero if necessary
-  np <- ifelse(is.na(np), 0, np)
-
-  # compute average distance within each class
-  dist <- tapply(dist_vector, dist_classes, mean)
-
-  # return output
-  esv_out <- data.frame(bins = factor(levels(dist_classes), levels = levels(dist_classes)), dist, gamma, np)
-
-  # set row names to NULL
-  row.names(esv_out) <- NULL
+  if (cloud) {
+    esv_out <- get_esv_cloud(residual_vector2, dist_vector, formula)
+  } else {
+    esv_out <- get_esv(residual_vector2, dist_vector, bins, cutoff)
+  }
 
   # remove NA
   # esv_out <- na.omit(esv_out)
-  return(esv_out)
+  esv_out <- structure(esv_out, class = c("esv", class(esv_out)), call = match.call(), cloud = cloud)
+  esv_out
+}
+
+#' @rdname esv
+#' @method plot esv
+#' @param x An object from \code{esv()}.
+#' @param ... Other arguments passed to other methods.
+#' @export
+plot.esv <- function(x, ...) {
+
+  cal <- attr(x, "call")
+  if (!is.na(m.f <- match("formula", names(cal)))) {
+    cal <- cal[c(1, m.f)]
+    names(cal)[2L] <- ""
+  }
+  cc <- deparse(cal, 80)
+  nc <- nchar(cc[1L], "c")
+  abbr <- length(cc) > 1 || nc > 75
+  sub.caption <- if (abbr) {
+    paste(substr(cc[1L], 1L, min(75L, nc)), "...")
+  } else {
+    cc[1L]
+  }
+
+  dotlist <- list(...)
+  dotlist <- get_esv_dotlist_defaults(x, dotlist, cloud = attr(x, "cloud"))
+
+  do.call("plot", c(list(x = x$dist, y = x$gamma), dotlist))
+  title(sub = sub.caption)
 }

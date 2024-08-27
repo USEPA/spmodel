@@ -453,41 +453,64 @@ if (test_local) {
 
     # regular implementation
     esv1 <- esv(y ~ x, exdata, xcoord, ycoord)
+    expect_s3_class(esv1, "esv")
+    expect_s3_class(esv1, "tbl_df")
+    expect_s3_class(esv1, "tbl")
     expect_s3_class(esv1, "data.frame")
     expect_equal(NROW(esv1), 15)
     expect_equal(NCOL(esv1), 4)
 
     esv1_q <- esv(y ~ x, exdata, "xcoord", "ycoord")
+    expect_s3_class(esv1_q, "esv")
+    expect_s3_class(esv1_q, "tbl_df")
+    expect_s3_class(esv1_q, "tbl")
     expect_s3_class(esv1_q, "data.frame")
     expect_equal(NROW(esv1_q), 15)
     expect_equal(NCOL(esv1_q), 4)
 
-    # quoting works
-    expect_equal(esv1, esv1_q)
+    # quoting works (need to NULL out call attribute as that is different)
+    esv1_cn <- esv1
+    attr(esv1_cn, "call") <- NULL
+    esv1_q_cn <- esv1_q
+    attr(esv1_q_cn, "call") <- NULL
+    expect_equal(esv1_cn, esv1_q_cn)
 
     # specifying bins and cutoff
     esv2 <- esv(y ~ x, exdata, xcoord, ycoord, bins = 30, cutoff = 5)
+    expect_s3_class(esv2, "esv")
+    expect_s3_class(esv2, "tbl_df")
+    expect_s3_class(esv2, "tbl")
     expect_s3_class(esv2, "data.frame")
     expect_equal(NROW(esv2), 30)
-    expect_equal(NCOL(esv1), 4)
+    expect_equal(NCOL(esv2), 4)
     dist_matrix <- spdist(exdata, "xcoord", "ycoord")
 
     # specifying distance matrix
     esv3 <- esv(y ~ x, exdata, dist_matrix = dist_matrix)
+    expect_s3_class(esv3, "esv")
+    expect_s3_class(esv3, "tbl_df")
+    expect_s3_class(esv3, "tbl")
     expect_s3_class(esv3, "data.frame")
     expect_equal(NROW(esv3), 15)
-    expect_equal(NCOL(esv1), 4)
+    expect_equal(NCOL(esv3), 4)
 
     # specifying partition factor
     esv4 <- esv(y ~ x, exdata, xcoord, ycoord, partition_factor = ~group)
-    expect_s3_class(esv1, "data.frame")
-    expect_equal(NROW(esv1), 15)
-    expect_equal(NCOL(esv1), 4)
+    expect_s3_class(esv4, "esv")
+    expect_s3_class(esv4, "tbl_df")
+    expect_s3_class(esv4, "tbl")
+    expect_s3_class(esv4, "data.frame")
+    expect_equal(NROW(esv4), 15)
+    expect_equal(NCOL(esv4), 4)
     expect_false(identical(esv1, esv4)) # make sure results are not identical to full esv
 
     # works with sf object
     exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"))
     expect_error(esv(y ~ x, exdata_sf), NA)
+    esv5 <- esv(y ~ x, exdata_sf)
+    esv5_cn <- esv5
+    attr(esv5_cn, "call") <- NULL
+    expect_true(identical(esv1_cn, esv5_cn))
 
     # works with one dimension
     expect_error(esv(y ~ x, exdata, xcoord), NA)
@@ -496,6 +519,21 @@ if (test_local) {
     expect_error(esv(y ~ x, exdata))
     expect_error(esv(y ~ x, exdata, xcoord_xyz))
     expect_error(esv(y ~ x, exdata, xcoord, ycoord_xyz))
+
+    # works with cloud argument
+    esv1c <- esv(y ~ x, exdata, xcoord, ycoord, cloud = TRUE)
+    expect_s3_class(esv1c, "esv")
+    expect_s3_class(esv1c, "tbl_df")
+    expect_s3_class(esv1c, "tbl")
+    expect_s3_class(esv1c, "data.frame")
+    expect_equal(NROW(esv1c), 3965)
+    expect_equal(NCOL(esv1c), 2)
+
+    # plot works
+    expect_error(plot(esv1), NA)
+    expect_error(plot(esv1, pch = 1), NA)
+    expect_error(plot(esv1c), NA)
+    expect_error(plot(esv1c, pch = 19), NA)
   })
 
   ##############################################################################

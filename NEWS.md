@@ -27,6 +27,9 @@
 * Added a warning message to `glances()` about interpreting likelihood-based statistics (e.g., AIC, AICc, BIC) when two models have different sample sizes.
 * Added a warning message to `glances()` about interpreting likelihood-based statistics (e.g., AIC, AICc, BIC) when two models have different family supports (which can happen with `spglm()` and `spgautor()` models).
 * All data sets now have `tbl_df` and `tbl` classes (i.e., are tibbles).
+* Added a `cloud` argument to `esv()` to return a cloud semivariogram.
+* `esv()` output now has `tbl_df` and `tbl` classes (i.e., are tibbles) and an `esv` class.
+* Added a `plot()` method for `esv` objects.
 * Minor vignette updates.
 * Minor documentation updates.
 

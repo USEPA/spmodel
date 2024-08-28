@@ -2,7 +2,8 @@ use_laploglik_anis <- function(spcov_initial, dispersion_initial, data_object, e
                                randcov_initial = NULL, randcov_profiled = NULL, optim_dotlist) {
 
   # transforming to optim paramters (log odds or log scale)
-  spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = spcov_profiled)
+  spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = spcov_profiled,
+                                           data_object = data_object)
 
   # transforming to optim parameters
   dispersion_orig2optim_val <- dispersion_orig2optim(dispersion_initial)

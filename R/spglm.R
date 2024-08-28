@@ -121,6 +121,14 @@
 #'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 #'   that \code{local} is transformed into
 #'   \code{list(size = 100, method = "kmeans", var_adjust = "theoretical", parallel = FALSE)}.
+#' @param range_constrain An optional logical that indicates whether the range
+#'   should be constrained to enhance numerical stability. If \code{range_constrain = TRUE},
+#'   the maximum possible range value is 5 times the maximum distance in the domain.
+#'   If \code{range_constrain = FALSE}, then maximum possible range is unbounded.
+#'   The default is \code{FALSE}.
+#'   Note that if \code{range_constrain = TRUE} and the value of \code{range} in \code{spcov_initial}
+#'   is larger than \code{range_constrain}, then \code{range_constrain} is set to
+#'   \code{FALSE}.
 #' @param ... Other arguments to [esv()] or [stats::optim()].
 #'
 #' @details The spatial generalized linear model for point-referenced data
@@ -299,7 +307,7 @@
 #' McCullagh P. and Nelder, J. A. (1989) \emph{Generalized Linear Models}. London: Chapman and Hall.
 spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initial,
                   dispersion_initial, estmethod = "reml", anisotropy = FALSE,
-                  random, randcov_initial, partition_factor, local, ...) {
+                  random, randcov_initial, partition_factor, local, range_constrain, ...) {
 
   # set exponential as default if nothing specified
   if (missing(spcov_type) && missing(spcov_initial)) {
@@ -387,6 +395,10 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
     local <- NULL
   }
 
+  if (missing(range_constrain)) {
+    range_constrain <- TRUE
+  }
+
   # non standard evaluation for x and y coordinates
   xcoord <- substitute(xcoord)
   ycoord <- substitute(ycoord)
@@ -395,7 +407,7 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
   data_object <- get_data_object_spglm(
     formula, family, data, spcov_initial, xcoord, ycoord,
     estmethod, anisotropy, random, randcov_initial,
-    partition_factor, local, ...
+    partition_factor, local, range_constrain, ...
   )
 
   # parallel cluster if necessary

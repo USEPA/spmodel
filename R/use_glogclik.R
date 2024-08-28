@@ -6,6 +6,7 @@
 #' @param dist_matrix A distance matrix (Euclidean)
 #' @param partition_matrix A partition matrix
 #' @param optim_dotlist An optim dotlist
+#' @param data_object Data object
 #'
 #' @return The covariance parameter estimates
 #'
@@ -41,7 +42,8 @@ use_glogclik <- function(spcov_initial, data_object, dist_matrix_list, partition
   residual_vector <- residual_vector[dist_index]
   residual_vector2 <- residual_vector^2
   # transforming to optim paramters (log scale)
-  spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = FALSE)
+  spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = FALSE,
+                                           data_object = data_object)
 
   # get optim par
   optim_par <- get_optim_par(spcov_orig2optim_val)
@@ -56,13 +58,15 @@ use_glogclik <- function(spcov_initial, data_object, dist_matrix_list, partition
       fn = glogclik,
       spcov_orig2optim = spcov_orig2optim_val,
       residual_vector2 = residual_vector2,
-      dist_vector = dist_vector
+      dist_vector = dist_vector,
+      data_object = data_object
     ),
     optim_dotlist
   ))
 
   # transforming to original scale
-  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim_val, optim_output$par, spcov_profiled = FALSE)
+  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim_val, optim_output$par, spcov_profiled = FALSE,
+                                     data_object = data_object)
   # making a covariance parameter vector
   spcov_params_val <- get_spcov_params(spcov_type = class(spcov_orig2optim_val), spcov_orig_val = spcov_orig_val)
   # replace range and extra param

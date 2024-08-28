@@ -1,5 +1,6 @@
 get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, estmethod,
-                                 anisotropy, random, randcov_initial, partition_factor, local, ...) {
+                                 anisotropy, random, randcov_initial, partition_factor, local,
+                                 range_constrain, ...) {
 
 
   # covert sp to sf
@@ -198,6 +199,40 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   y_range <- range(obdata[[ycoord]])
   max_halfdist <- sqrt((max(x_range) - min(x_range))^2 + (max(y_range) - min(y_range))^2) / 2
 
+  # if (is.logical(range_constrain)) {
+  #   if (range_constrain) {
+  #     range_constrain_value <- 2 * max_halfdist * 5
+  #   } else {
+  #     range_constrain_value <- Inf
+  #   }
+  # } else if (is.numeric(range_constrain)) {
+  #   range_constrain <- TRUE
+  #   range_constrain_value <- 0
+  # } else {
+  #   stop("range_constrain must be logical or numeric.", call. = FALSE)
+  # }
+
+  # range constrain
+  max_range_scale <- 5
+  range_constrain_value <- 2 * max_halfdist * max_range_scale
+  if ("range" %in% names(spcov_initial$is_known)) {
+    if (spcov_initial$is_known[["range"]] || (spcov_initial$initial[["range"]] > range_constrain_value)) {
+      range_constrain <- FALSE
+    }
+  }
+
+  if (inherits(spcov_initial, "none")) {
+    range_constrain <- FALSE
+  }
+
+  if (is.logical(range_constrain)) {
+    if (!range_constrain) {
+      range_constrain_value <- NULL
+    }
+  } else {
+    stop("range_constrain must be logical.", call. = FALSE)
+  }
+
   # override anisotropy argument if needed
   anisotropy <- get_anisotropy_corrected(anisotropy, spcov_initial)
 
@@ -295,7 +330,8 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     randcov_list = randcov_list, randcov_names = randcov_names,
     sf_column_name = sf_column_name, terms = terms_val, var_adjust = local$var_adjust,
     X_list = X_list, xcoord = xcoord, xlevels = xlevels, y_list = y_list, ycoord = ycoord,
-    ycoord_orig_name = ycoord_orig_name, ycoord_orig_val = ycoord_orig_val, s2 = s2, diagtol = diagtol
+    ycoord_orig_name = ycoord_orig_name, ycoord_orig_val = ycoord_orig_val, s2 = s2, diagtol = diagtol,
+    range_constrain = range_constrain, range_constrain_value = range_constrain_value
   )
 }
 

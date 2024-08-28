@@ -7,16 +7,18 @@
 #' @param weights wls weights
 #' @param optim_dotlist An optim dotlist
 #' @param esv Empirical semivariogram
+#' @param data_object Data object
 #'
 #' @return The covariance parameter estimates
 #'
 #' @noRd
-use_svloss <- function(spcov_initial, dist_matrix_list, esv, weights, optim_dotlist) {
+use_svloss <- function(spcov_initial, dist_matrix_list, esv, weights, optim_dotlist, data_object) {
 
 
 
   # transforming to optim paramters (log scale)
-  spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = FALSE)
+  spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = FALSE,
+                                           data_object = data_object)
 
   # get optim par
   optim_par <- get_optim_par(spcov_orig2optim_val)
@@ -31,13 +33,15 @@ use_svloss <- function(spcov_initial, dist_matrix_list, esv, weights, optim_dotl
       fn = svloss,
       spcov_orig2optim = spcov_orig2optim_val,
       esv = esv,
-      weights = weights
+      weights = weights,
+      data_object = data_object
     ),
     optim_dotlist
   ))
 
   # transforming to original scale
-  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim_val, optim_output$par, spcov_profiled = FALSE)
+  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim_val, optim_output$par, spcov_profiled = FALSE,
+                                     data_object = data_object)
 
   # making a covariance parameter vector
   spcov_params_val <- get_spcov_params(spcov_type = class(spcov_orig2optim_val), spcov_orig_val = spcov_orig_val)

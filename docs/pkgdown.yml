@@ -7,5 +7,8 @@ articles:
   introduction: introduction.html
   SPGLMs: SPGLMs.html
   technical: technical.html
-last_built: 2024-08-27T23:39Z
+last_built: 2024-08-28T17:55Z
+urls:
+  reference: https://usepa.github.io/spmodel/reference
+  article: https://usepa.github.io/spmodel/articles
 

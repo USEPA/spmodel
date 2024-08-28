@@ -1,303 +1,315 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/404.html</loc>
+    <loc>https://usepa.github.io/spmodel/404.html</loc>
   </url>
   <url>
-    <loc>/articles/basics.html</loc>
+    <loc>https://usepa.github.io/spmodel/articles/articles/emmeans.html</loc>
   </url>
   <url>
-    <loc>/articles/emmeans.html</loc>
+    <loc>https://usepa.github.io/spmodel/articles/articles/guide.html</loc>
   </url>
   <url>
-    <loc>/articles/guide.html</loc>
+    <loc>https://usepa.github.io/spmodel/articles/articles/SPGLMs.html</loc>
   </url>
   <url>
-    <loc>/articles/index.html</loc>
+    <loc>https://usepa.github.io/spmodel/articles/articles/technical.html</loc>
   </url>
   <url>
-    <loc>/articles/introduction.html</loc>
+    <loc>https://usepa.github.io/spmodel/articles/basics.html</loc>
   </url>
   <url>
-    <loc>/articles/SPGLMs.html</loc>
+    <loc>https://usepa.github.io/spmodel/articles/emmeans.html</loc>
   </url>
   <url>
-    <loc>/articles/technical.html</loc>
+    <loc>https://usepa.github.io/spmodel/articles/guide.html</loc>
   </url>
   <url>
-    <loc>/authors.html</loc>
+    <loc>https://usepa.github.io/spmodel/articles/index.html</loc>
   </url>
   <url>
-    <loc>/index.html</loc>
+    <loc>https://usepa.github.io/spmodel/articles/introduction.html</loc>
   </url>
   <url>
-    <loc>/LICENSE.html</loc>
+    <loc>https://usepa.github.io/spmodel/articles/SPGLMs.html</loc>
   </url>
   <url>
-    <loc>/news/index.html</loc>
+    <loc>https://usepa.github.io/spmodel/articles/technical.html</loc>
   </url>
   <url>
-    <loc>/reference/AIC.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/authors.html</loc>
   </url>
   <url>
-    <loc>/reference/AIC.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/index.html</loc>
   </url>
   <url>
-    <loc>/reference/AICc.html</loc>
+    <loc>https://usepa.github.io/spmodel/LICENSE.html</loc>
   </url>
   <url>
-    <loc>/reference/anova.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/news/index.html</loc>
   </url>
   <url>
-    <loc>/reference/anova.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/AIC.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/augment.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/AIC.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/augment.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/AICc.html</loc>
   </url>
   <url>
-    <loc>/reference/AUROC.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/anova.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/BIC.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/anova.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/caribou.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/augment.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/coef.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/augment.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/coef.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/AUROC.html</loc>
   </url>
   <url>
-    <loc>/reference/confint.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/BIC.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/confint.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/caribou.html</loc>
   </url>
   <url>
-    <loc>/reference/cooks.distance.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/coef.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/cooks.distance.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/coef.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/covmatrix.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/confint.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/deviance.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/confint.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/deviance.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/cooks.distance.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/dispersion_initial.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/cooks.distance.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/dispersion_params.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/covmatrix.html</loc>
   </url>
   <url>
-    <loc>/reference/esv.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/deviance.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/fitted.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/deviance.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/fitted.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/dispersion_initial.html</loc>
   </url>
   <url>
-    <loc>/reference/formula.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/dispersion_params.html</loc>
   </url>
   <url>
-    <loc>/reference/formula.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/esv.html</loc>
   </url>
   <url>
-    <loc>/reference/glance.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/fitted.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/glance.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/fitted.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/glances.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/formula.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/hatvalues.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/formula.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/hatvalues.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/glance.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/index.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/glance.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/influence.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/glances.html</loc>
   </url>
   <url>
-    <loc>/reference/influence.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/hatvalues.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/labels.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/hatvalues.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/labels.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/index.html</loc>
   </url>
   <url>
-    <loc>/reference/lake.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/influence.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/lake_preds.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/influence.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/logLik.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/labels.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/logLik.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/labels.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/loocv.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/lake.html</loc>
   </url>
   <url>
-    <loc>/reference/model.frame.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/lake_preds.html</loc>
   </url>
   <url>
-    <loc>/reference/model.frame.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/logLik.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/model.matrix.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/logLik.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/model.matrix.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/loocv.html</loc>
   </url>
   <url>
-    <loc>/reference/moose.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/model.frame.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/moose_preds.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/model.frame.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/moss.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/model.matrix.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/plot.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/model.matrix.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/plot.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/moose.html</loc>
   </url>
   <url>
-    <loc>/reference/predict.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/moose_preds.html</loc>
   </url>
   <url>
-    <loc>/reference/predict.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/moss.html</loc>
   </url>
   <url>
-    <loc>/reference/predict.spmodRF.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/plot.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/print.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/plot.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/print.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/predict.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/pseudoR2.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/predict.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/randcov_initial.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/predict.spmodRF.html</loc>
   </url>
   <url>
-    <loc>/reference/randcov_params.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/print.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/reexports.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/print.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/residuals.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/pseudoR2.html</loc>
   </url>
   <url>
-    <loc>/reference/residuals.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/randcov_initial.html</loc>
   </url>
   <url>
-    <loc>/reference/seal.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/randcov_params.html</loc>
   </url>
   <url>
-    <loc>/reference/spautor.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/reexports.html</loc>
   </url>
   <url>
-    <loc>/reference/spautorRF.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/residuals.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/spcov_initial.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/residuals.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/spcov_params.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/seal.html</loc>
   </url>
   <url>
-    <loc>/reference/spgautor.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/spautor.html</loc>
   </url>
   <url>
-    <loc>/reference/spglm.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/spautorRF.html</loc>
   </url>
   <url>
-    <loc>/reference/splm.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/spcov_initial.html</loc>
   </url>
   <url>
-    <loc>/reference/splmRF.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/spcov_params.html</loc>
   </url>
   <url>
-    <loc>/reference/spmodel-package.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/spgautor.html</loc>
   </url>
   <url>
-    <loc>/reference/sprbeta.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/spglm.html</loc>
   </url>
   <url>
-    <loc>/reference/sprbinom.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/splm.html</loc>
   </url>
   <url>
-    <loc>/reference/sprgamma.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/splmRF.html</loc>
   </url>
   <url>
-    <loc>/reference/sprinvgauss.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/spmodel-package.html</loc>
   </url>
   <url>
-    <loc>/reference/sprnbinom.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/sprbeta.html</loc>
   </url>
   <url>
-    <loc>/reference/sprnorm.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/sprbinom.html</loc>
   </url>
   <url>
-    <loc>/reference/sprpois.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/sprgamma.html</loc>
   </url>
   <url>
-    <loc>/reference/sulfate.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/sprinvgauss.html</loc>
   </url>
   <url>
-    <loc>/reference/sulfate_preds.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/sprnbinom.html</loc>
   </url>
   <url>
-    <loc>/reference/summary.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/sprnorm.html</loc>
   </url>
   <url>
-    <loc>/reference/summary.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/sprpois.html</loc>
   </url>
   <url>
-    <loc>/reference/texas.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/sulfate.html</loc>
   </url>
   <url>
-    <loc>/reference/tidy.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/sulfate_preds.html</loc>
   </url>
   <url>
-    <loc>/reference/tidy.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/summary.spmod.html</loc>
   </url>
   <url>
-    <loc>/reference/varcomp.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/summary.spmodel.html</loc>
   </url>
   <url>
-    <loc>/reference/vcov.spmod.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/texas.html</loc>
   </url>
   <url>
-    <loc>/reference/vcov.spmodel.html</loc>
+    <loc>https://usepa.github.io/spmodel/reference/tidy.spmod.html</loc>
+  </url>
+  <url>
+    <loc>https://usepa.github.io/spmodel/reference/tidy.spmodel.html</loc>
+  </url>
+  <url>
+    <loc>https://usepa.github.io/spmodel/reference/varcomp.html</loc>
+  </url>
+  <url>
+    <loc>https://usepa.github.io/spmodel/reference/vcov.spmod.html</loc>
+  </url>
+  <url>
+    <loc>https://usepa.github.io/spmodel/reference/vcov.spmodel.html</loc>
   </url>
 </urlset>

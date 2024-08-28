@@ -1,6 +1,6 @@
-url: ~
+url: https://usepa.github.io/spmodel/
 template:
-  bootstrap: 5
+  bootstrap: 3
 
 articles:
 - title: Articles
@@ -11,3 +11,8 @@ articles:
   - articles/SPGLMs
   - articles/emmeans
   - articles/technical
+
+# toc broken in bootstrap 5, pkgdown 2.1.0
+# toc broken in bootstrap 3, pkgdown 2.1.0
+# toc broken in bootstrap 5, pkgdown 2.0.9
+# toc working for all but technical.Rmd in bootstrap 3, pkgdown 2.0.9

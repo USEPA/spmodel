@@ -3,9 +3,7 @@ title: "Using emmeans to Estimate Marginal Means of spmodel Objects"
 author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
 bibliography: '`r system.file("references.bib", package="spmodel")`'
 output:
-    html_document:
-editor_options: 
-  chunk_output_type: console
+  html_document:
 ---
 
 ```{r setup, include = FALSE}

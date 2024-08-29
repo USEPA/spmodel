@@ -3,7 +3,7 @@ title: "Technical Details"
 author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
 bibliography: '`r system.file("references.bib", package="spmodel")`'
 output:
-    html_document:
+  html_document:
 ---
 
 ```{r setup, include = FALSE}

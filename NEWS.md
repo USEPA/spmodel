@@ -1,3 +1,9 @@
+# spmodel 0.9.0
+
+## Major Updates
+
+* Added the `range_constrain` argument to `splm()` and `spglm()` to contrain the range parameter to enhance numerical stability.
+
 # spmodel 0.8.0
 
 ## Major Updates

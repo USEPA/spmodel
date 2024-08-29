@@ -22,7 +22,8 @@ use_gloglik_anis <- function(spcov_initial, data_object, estmethod, spcov_profil
                              randcov_initial = NULL, randcov_profiled = NULL, optim_dotlist) {
 
   # transforming to optim paramters (log odds or log scale)
-  spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = spcov_profiled)
+  spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = spcov_profiled,
+                                           data_object = data_object)
 
 
   # transforming random effect parameters (if they are there else NULL)
@@ -55,7 +56,8 @@ use_gloglik_anis <- function(spcov_initial, data_object, estmethod, spcov_profil
   ))
 
   # transforming to original scale
-  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim_val, optim_output$par, spcov_profiled = spcov_profiled)
+  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim_val, optim_output$par, spcov_profiled = spcov_profiled,
+                                     data_object = data_object)
 
   # making a covariance parameter vector
   spcov_params_val <- get_spcov_params(spcov_type = class(spcov_orig2optim_val), spcov_orig_val = spcov_orig_val)

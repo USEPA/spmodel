@@ -43,7 +43,8 @@ cov_estimate_sv <- function(data_object, formula, spcov_initial, estmethod,
   if (all(spcov_initial_val$is_known)) {
     spcov_estimate_val <- use_svloss_known(spcov_initial_val, dist_matrix_list, cov_initial_val$esv, weights)
   } else {
-    spcov_estimate_val <- use_svloss(spcov_initial_val, dist_matrix_list, cov_initial_val$esv, weights, optim_dotlist)
+    spcov_estimate_val <- use_svloss(spcov_initial_val, dist_matrix_list, cov_initial_val$esv, weights, optim_dotlist,
+                                     data_object = data_object)
   }
   spcov_estimate_val
 }

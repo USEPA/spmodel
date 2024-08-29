@@ -19,6 +19,7 @@ spglm(
   randcov_initial,
   partition_factor,
   local,
+  range_constrain,
   ...
 )
 }
@@ -152,6 +153,15 @@ initialize default arguments for the other list elements.
 If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 that \code{local} is transformed into
 \code{list(size = 100, method = "kmeans", var_adjust = "theoretical", parallel = FALSE)}.}
+
+\item{range_constrain}{An optional logical that indicates whether the range
+should be constrained to enhance numerical stability. If \code{range_constrain = TRUE},
+the maximum possible range value is 5 times the maximum distance in the domain.
+If \code{range_constrain = FALSE}, then maximum possible range is unbounded.
+The default is \code{FALSE}.
+Note that if \code{range_constrain = TRUE} and the value of \code{range} in \code{spcov_initial}
+is larger than \code{range_constrain}, then \code{range_constrain} is set to
+\code{FALSE}.}
 
 \item{...}{Other arguments to \code{\link[=esv]{esv()}} or \code{\link[stats:optim]{stats::optim()}}.}
 }

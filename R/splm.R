@@ -313,8 +313,9 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
   }
 
   if (missing(range_constrain)) {
-    range_constrain <- TRUE
+    range_constrain <- FALSE
   }
+  # make this default of TRUE later
 
   # non standard evaluation for x and y coordinates
   xcoord <- substitute(xcoord)

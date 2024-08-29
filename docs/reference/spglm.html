@@ -20,7 +20,7 @@ anisotropy, partition factors, and big data methods."><meta property="og:image" 
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.8.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9.0</span>
       </span>
     </div>
 
@@ -96,6 +96,7 @@ anisotropy, partition factors, and big data methods.</p>
 <span>  <span class="va">randcov_initial</span>,</span>
 <span>  <span class="va">partition_factor</span>,</span>
 <span>  <span class="va">local</span>,</span>
+<span>  <span class="va">range_constrain</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -255,6 +256,17 @@ initialize default arguments for the other list elements.
 If <code>local</code> is <code>TRUE</code>, defaults for <code>local</code> are chosen such
 that <code>local</code> is transformed into
 <code>list(size = 100, method = "kmeans", var_adjust = "theoretical", parallel = FALSE)</code>.</p></dd>
+
+
+<dt>range_constrain</dt>
+<dd><p>An optional logical that indicates whether the range
+should be constrained to enhance numerical stability. If <code>range_constrain = TRUE</code>,
+the maximum possible range value is 5 times the maximum distance in the domain.
+If <code>range_constrain = FALSE</code>, then maximum possible range is unbounded.
+The default is <code>FALSE</code>.
+Note that if <code>range_constrain = TRUE</code> and the value of <code>range</code> in <code>spcov_initial</code>
+is larger than <code>range_constrain</code>, then <code>range_constrain</code> is set to
+<code>FALSE</code>.</p></dd>
 
 
 <dt>...</dt>

@@ -1,4 +1,4 @@
-# spmodel: Spatial Statistical Modeling and Prediction <img src="man/figures/logo.png" align="right" height="138" alt="" />
+# spmodel: Spatial Statistical Modeling and Prediction <a href="https://usepa.github.io/spmodel/"><img src="man/figures/logo.png" align="right" height="139" alt="spmodel website" /></a>
 
 <!-- badges: start -->
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)

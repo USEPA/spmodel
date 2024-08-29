@@ -41,9 +41,16 @@ spcov_orig2optim.exponential <- function(spcov_initial, spcov_profiled, data_obj
 
   # range changes based on type
   range <- spcov_initial$initial[["range"]]
-  range_log <- log(range)
-  spcov_orig2optim_val <- c(spcov_orig2optim_val, range_log = range_log)
-  spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_log = spcov_initial$is_known[["range"]])
+  if (data_object$range_constrain) {
+    range_prop <- range / data_object$range_constrain_value
+    range_logodds <- logit(range_prop)
+    spcov_orig2optim_val <- c(spcov_orig2optim_val, range_logodds = range_logodds)
+    spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_logodds = spcov_initial$is_known[["range"]])
+  } else {
+    range_log <- log(range)
+    spcov_orig2optim_val <- c(spcov_orig2optim_val, range_log = range_log)
+    spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_log = spcov_initial$is_known[["range"]])
+  }
 
   # anisotropy parameters
   ## rotate (between 0 and pi radians)
@@ -124,9 +131,20 @@ spcov_orig2optim.matern <- function(spcov_initial, spcov_profiled, data_object, 
 
   # range changes based on type
   range <- spcov_initial$initial[["range"]]
-  range_log <- log(range)
-  spcov_orig2optim_val <- c(spcov_orig2optim_val, range_log = range_log)
-  spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_log = spcov_initial$is_known[["range"]])
+  if (data_object$range_constrain) {
+    range_prop <- range / data_object$range_constrain_value
+    range_logodds <- logit(range_prop)
+    spcov_orig2optim_val <- c(spcov_orig2optim_val, range_logodds = range_logodds)
+    spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_logodds = spcov_initial$is_known[["range"]])
+  } else {
+    range_log <- log(range)
+    spcov_orig2optim_val <- c(spcov_orig2optim_val, range_log = range_log)
+    spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_log = spcov_initial$is_known[["range"]])
+  }
+  # range <- spcov_initial$initial[["range"]]
+  # range_log <- log(range)
+  # spcov_orig2optim_val <- c(spcov_orig2optim_val, range_log = range_log)
+  # spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_log = spcov_initial$is_known[["range"]])
 
   # # extra p log (for now)
   # extra <- spcov_initial$initial[["extra"]]
@@ -191,9 +209,20 @@ spcov_orig2optim.cauchy <- function(spcov_initial, spcov_profiled, data_object, 
 
   # range changes based on type
   range <- spcov_initial$initial[["range"]]
-  range_log <- log(range)
-  spcov_orig2optim_val <- c(spcov_orig2optim_val, range_log = range_log)
-  spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_log = spcov_initial$is_known[["range"]])
+  if (data_object$range_constrain) {
+    range_prop <- range / data_object$range_constrain_value
+    range_logodds <- logit(range_prop)
+    spcov_orig2optim_val <- c(spcov_orig2optim_val, range_logodds = range_logodds)
+    spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_logodds = spcov_initial$is_known[["range"]])
+  } else {
+    range_log <- log(range)
+    spcov_orig2optim_val <- c(spcov_orig2optim_val, range_log = range_log)
+    spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_log = spcov_initial$is_known[["range"]])
+  }
+  # range <- spcov_initial$initial[["range"]]
+  # range_log <- log(range)
+  # spcov_orig2optim_val <- c(spcov_orig2optim_val, range_log = range_log)
+  # spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_log = spcov_initial$is_known[["range"]])
 
   # extra p log
   extra <- spcov_initial$initial[["extra"]]
@@ -252,9 +281,20 @@ spcov_orig2optim.pexponential <- function(spcov_initial, spcov_profiled, data_ob
 
   # range changes based on type
   range <- spcov_initial$initial[["range"]]
-  range_log <- log(range)
-  spcov_orig2optim_val <- c(spcov_orig2optim_val, range_log = range_log)
-  spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_log = spcov_initial$is_known[["range"]])
+  if (data_object$range_constrain) {
+    range_prop <- range / data_object$range_constrain_value
+    range_logodds <- logit(range_prop)
+    spcov_orig2optim_val <- c(spcov_orig2optim_val, range_logodds = range_logodds)
+    spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_logodds = spcov_initial$is_known[["range"]])
+  } else {
+    range_log <- log(range)
+    spcov_orig2optim_val <- c(spcov_orig2optim_val, range_log = range_log)
+    spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_log = spcov_initial$is_known[["range"]])
+  }
+  # range <- spcov_initial$initial[["range"]]
+  # range_log <- log(range)
+  # spcov_orig2optim_val <- c(spcov_orig2optim_val, range_log = range_log)
+  # spcov_orig2optim_is_known <- c(spcov_orig2optim_is_known, range_log = spcov_initial$is_known[["range"]])
 
   # extra p logodds (for now)
   extra <- spcov_initial$initial[["extra"]]

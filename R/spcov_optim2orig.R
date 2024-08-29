@@ -24,7 +24,12 @@ spcov_optim2orig.exponential <- function(spcov_orig2optim, par, spcov_profiled, 
     ie <- exp(fill_optim_par_val[["ie_log"]])
   }
 
-  range <- exp(fill_optim_par_val[["range_log"]])
+  if (data_object$range_constrain) {
+    range <- expit(fill_optim_par_val[["range_logodds"]]) * data_object$range_constrain_value
+  } else {
+    range <- exp(fill_optim_par_val[["range_log"]])
+  }
+
   rotate <- pi * expit(fill_optim_par_val[["rotate_logodds"]])
   scale <- expit(fill_optim_par_val[["scale_logodds"]])
 
@@ -76,7 +81,12 @@ spcov_optim2orig.matern <- function(spcov_orig2optim, par, spcov_profiled, data_
   extra_t <- expit(fill_optim_par_val[["extra_logodds"]])
   # fix to be in [1/5, 5]
   extra <- extra_t * (5 - 1 / 5) + 1 / 5
-  range <- exp(fill_optim_par_val[["range_log"]])
+  # range <- exp(fill_optim_par_val[["range_log"]])
+  if (data_object$range_constrain) {
+    range <- expit(fill_optim_par_val[["range_logodds"]]) * data_object$range_constrain_value
+  } else {
+    range <- exp(fill_optim_par_val[["range_log"]])
+  }
   rotate <- pi * expit(fill_optim_par_val[["rotate_logodds"]])
   scale <- expit(fill_optim_par_val[["scale_logodds"]])
 
@@ -99,7 +109,12 @@ spcov_optim2orig.cauchy <- function(spcov_orig2optim, par, spcov_profiled, data_
 
 
   extra <- exp(fill_optim_par_val[["extra_log"]])
-  range <- exp(fill_optim_par_val[["range_log"]])
+  # range <- exp(fill_optim_par_val[["range_log"]])
+  if (data_object$range_constrain) {
+    range <- expit(fill_optim_par_val[["range_logodds"]]) * data_object$range_constrain_value
+  } else {
+    range <- exp(fill_optim_par_val[["range_log"]])
+  }
   rotate <- pi * expit(fill_optim_par_val[["rotate_logodds"]])
   scale <- expit(fill_optim_par_val[["scale_logodds"]])
 
@@ -122,7 +137,12 @@ spcov_optim2orig.pexponential <- function(spcov_orig2optim, par, spcov_profiled,
 
   extra_half <- expit(fill_optim_par_val[["extra_logodds"]])
   extra <- 2 * extra_half
-  range <- exp(fill_optim_par_val[["range_log"]])
+  # range <- exp(fill_optim_par_val[["range_log"]])
+  if (data_object$range_constrain) {
+    range <- expit(fill_optim_par_val[["range_logodds"]]) * data_object$range_constrain_value
+  } else {
+    range <- exp(fill_optim_par_val[["range_log"]])
+  }
   rotate <- pi * expit(fill_optim_par_val[["rotate_logodds"]])
   scale <- expit(fill_optim_par_val[["scale_logodds"]])
 

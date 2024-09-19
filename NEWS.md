@@ -4,6 +4,10 @@
 
 * Added the `range_constrain` argument to `splm()` and `spglm()` to contrain the range parameter to enhance numerical stability.
 
+## Minor Updates
+
+* Changed diagonal tolerance threshold for `spglm()` and `spgautor()` model objects. See [this link](https://usepa.github.io/spmodel/articles/technical.html#sec:computational) for details.
+
 # spmodel 0.8.0
 
 ## Major Updates

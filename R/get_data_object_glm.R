@@ -222,8 +222,8 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
   betahat <- backsolve(R_val, qr.qty(qr_val, y_trans))
   resid <- y_trans - X %*% betahat
   s2 <- sum(resid^2) / (n - p)
-  # diagtol <- 1e-4
-  diagtol <- min(1e-4, 1e-4 * s2)
+  diagtol <- 1e-4
+  # diagtol <- min(1e-4, 1e-4 * s2)
 
 
 

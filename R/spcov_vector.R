@@ -59,6 +59,10 @@ spcov_vector.none <- function(spcov_params, dist_vector) {
   spcov_vector_val
 }
 
+# spcov_vector ie
+#' @export
+spcov_vector.ie <- spcov_vector.none
+
 # spcov_vector cubic
 #' @export
 spcov_vector.cubic <- function(spcov_params, dist_vector) {

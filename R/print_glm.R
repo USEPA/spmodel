@@ -24,7 +24,7 @@ print.spglm <- function(x, digits = max(3L, getOption("digits") - 3L),
   if (!x$anisotropy) {
     spcoef <- spcoef[-which(names(spcoef) %in% c("rotate", "scale"))]
   }
-  if (inherits(coef(x, type = "spcov"), "none")) {
+  if (inherits(coef(x, type = "spcov"), c("none", "ie"))) {
     spcoef <- spcoef["ie"]
   }
 
@@ -160,7 +160,7 @@ print.summary.spglm <- function(x,
   if (!x$anisotropy) {
     spcoef <- spcoef[-which(names(spcoef) %in% c("rotate", "scale"))]
   }
-  if (inherits(x$coefficients$spcov, "none")) {
+  if (inherits(x$coefficients$spcov, c("none", "ie"))) {
     spcoef <- spcoef["ie"]
   }
 

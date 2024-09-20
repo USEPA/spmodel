@@ -18,7 +18,7 @@ cov_betahat_adjust <- function(invcov_betahat_list, betahat_list,
                                randcov_params, cov_betahat_noadjust, var_adjust) {
   P <- length(betahat_list)
   # reset var_adjust if only one partition
-  if (P == 1 || inherits(spcov_params, "none")) {
+  if (P == 1 || inherits(spcov_params, c("none", "ie"))) {
     var_adjust <- "none"
   }
   # reset var_adjust if partitioning used but no local option used

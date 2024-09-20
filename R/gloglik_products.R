@@ -85,6 +85,8 @@ gloglik_products.circular <- gloglik_products.exponential
 #' @export
 gloglik_products.none <- gloglik_products.exponential
 #' @export
+gloglik_products.ie <- gloglik_products.none
+#' @export
 gloglik_products.cubic <- gloglik_products.exponential
 #' @export
 gloglik_products.pentaspherical <- gloglik_products.exponential

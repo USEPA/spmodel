@@ -64,7 +64,7 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
   }
 
   # iid if relevant otherwise pass
-  if (inherits(coef(object, type = "spcov"), "none") && is.null(object$random)) {
+  if (inherits(coef(object, type = "spcov"), c("none", "ie")) && is.null(object$random)) {
     return(loocv_iid(object, cv_predict, se.fit, local))
   }
 

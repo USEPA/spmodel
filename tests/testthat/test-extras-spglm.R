@@ -46,6 +46,13 @@ if (test_local) {
     expect_error(spglm(bern ~ x + offset(offset), family = binomial, data = exdata[-1, , drop = FALSE], xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~group, anisotropy = TRUE, local = TRUE), NA)
     expect_error(spglm(bernfac ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~group, anisotropy = TRUE, local = TRUE), NA)
     expect_error(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml", partition_factor = ~group), NA)
+
+    # check glm
+    spgmod1 <- spglm(bern ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none")
+    spgmod2 <- spglm(bern ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential")
+    expect_false(isTRUE(all.equal(as.vector(coef(spgmod1)), as.vector(coef(spgmod2)), tolerance = 0.0001)))
+    gmod1 <- stats::glm(bern ~ x, family = binomial, data = exdata)
+    expect_true(isTRUE(all.equal(as.vector(coef(spgmod1)), as.vector(coef(gmod1)), tolerance = 0.0001)))
   })
 
   test_that("the model runs for proportion data", {

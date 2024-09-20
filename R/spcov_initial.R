@@ -71,7 +71,7 @@
 #'
 #'   All spatial covariance functions are valid in one spatial dimension. All
 #'   spatial covariance functions except \code{triangular} and \code{cosine} are
-#'   valid in two dimensions.
+#'   valid in two dimensions. An alias for \code{none} is \code{ie}.
 #'
 #'   When the spatial covariance function is \code{car} or \code{sar}, \code{extra}
 #'   represents the variance parameter for the observations in \code{W} without
@@ -100,7 +100,7 @@ spcov_initial <- function(spcov_type, de, ie, range, extra, rotate, scale, known
     stop("spcov_type must be specified", call. = FALSE)
   } else if (!spcov_type %in% c(
     "exponential", "spherical", "gaussian", "triangular", "circular",
-    "none", "cubic", "pentaspherical", "cosine", "wave", "matern", "car", "sar", "jbessel",
+    "none", "ie", "cubic", "pentaspherical", "cosine", "wave", "matern", "car", "sar", "jbessel",
     "gravity", "rquad", "magnetic", "cauchy", "pexponential"
   )) {
     stop(paste(spcov_type, "is not a valid spatial covariance function", sep = " "), call. = FALSE)

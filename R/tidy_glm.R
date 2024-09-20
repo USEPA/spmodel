@@ -41,7 +41,7 @@ tidy.spglm <- function(x, conf.int = FALSE,
       which_scale <- which(result$term == "scale")
       result <- result[-c(which_rotate, which_scale), , drop = FALSE]
     }
-    if (inherits(spcoef, "none")) {
+    if (inherits(spcoef, c("none", "ie"))) {
       which_ie <- which(result$term == "ie")
       result <- result[which_ie, , drop = FALSE]
     }

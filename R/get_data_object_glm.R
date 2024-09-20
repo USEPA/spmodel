@@ -32,7 +32,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     data_sf <- NULL
   }
 
-  if (!is_sf && missing(xcoord) && !inherits(spcov_initial, "none")) {
+  if (!is_sf && missing(xcoord) && !inherits(spcov_initial, c("none", "ie"))) {
     stop("The xcoord argument must be specified.", call. = FALSE)
   }
 
@@ -53,7 +53,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
   ycoord_orig_name <- NULL
   ycoord_orig_val <- NULL
   # find coordinate dimension and set defaults
-  if (inherits(spcov_initial, "none") && estmethod %in% c("reml", "ml")) {
+  if (inherits(spcov_initial, c("none", "ie")) && estmethod %in% c("reml", "ml")) {
     dim_coords <- 0
     if (missing(xcoord)) {
       xcoord <- ".xcoord"
@@ -241,7 +241,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     }
   }
 
-  if (inherits(spcov_initial, "none")) {
+  if (inherits(spcov_initial, c("none", "ie"))) {
     range_constrain <- FALSE
   }
 

@@ -2,11 +2,12 @@
 
 ## Major Updates
 
-* Added the `range_constrain` argument to `splm()` and `spglm()` to contrain the range parameter to enhance numerical stability.
+* Added the `range_constrain` argument to `splm()` and `spglm()` to constrain the range parameter to enhance numerical stability.
 
 ## Minor Updates
 
 * Changed diagonal tolerance threshold for `spglm()` and `spgautor()` model objects. See [this link](https://usepa.github.io/spmodel/articles/technical.html#sec:computational) for details.
+* Added the `"ie"` spatial covariance type to `splm()` and `spglm()` models. For `splm()` models, `"ie"` is an alias for `"none"`. For `spglm()` models, `"none"` now fixes both the `de` and `ie` covariance parameters at zero, while `"ie"` fixes the `de` covariance parameter at zero but allows the `ie` covariance parameter to vary. Thus, `"none"` from `spmodel $\le$ v0.8.0` matches `"ie"` from `spmodel` v0.9.0 and but is different from `"none"` from `spmodel v0.9.0`.
 
 # spmodel 0.8.0
 

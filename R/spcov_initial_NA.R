@@ -36,7 +36,7 @@ spcov_initial_NA <- function(spcov_initial, anisotropy = FALSE, is_W_connected =
       spcov_val_default <- c(de = NA, ie = 0, range = NA, extra = NA)
       spcov_known_default <- c(de = FALSE, ie = TRUE, range = FALSE, extra = FALSE)
     }
-  } else if (inherits(spcov_initial, "none")) {
+  } else if (inherits(spcov_initial, c("none", "ie"))) {
     spcov_names <- c("de", "ie", "range", "rotate", "scale")
     spcov_val_default <- c(de = 0, ie = NA, range = Inf, rotate = 0, scale = 1)
     spcov_known_default <- c(de = TRUE, ie = FALSE, range = TRUE, rotate = TRUE, scale = TRUE)
@@ -50,7 +50,7 @@ spcov_initial_NA <- function(spcov_initial, anisotropy = FALSE, is_W_connected =
   # put in is_known not in initial
   spcov_initial$is_known[spcov_out] <- spcov_known_default[spcov_out]
   # reorder names
-  if (inherits(spcov_initial, "none")) {
+  if (inherits(spcov_initial, c("none", "ie"))) {
     # reset if none covariance
     spcov_initial$initial[c("de", "range", "rotate", "scale")] <- spcov_val_default[c("de", "range", "rotate", "scale")]
     # put in is_known not in initial

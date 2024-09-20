@@ -380,7 +380,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
       # )
       cov_matrix_val <- covmatrix(object)
       # handling closed form of none covariance
-      if (inherits(spcov_params_val, "none") && is.null(randcov_params_val)) {
+      if (inherits(spcov_params_val, c("none", "ie")) && is.null(randcov_params_val)) {
         cov_lowchol <- cov_matrix_val
         diag(cov_lowchol) <- sqrt(diag(cov_lowchol)) # already diagonal don't need transpose
       } else {

@@ -12,7 +12,7 @@ spgautor_checks <- function(family, spcov_type, W_given, data, estmethod) {
     "exponential", "spherical", "gaussian", "triangular",
     "circular", "cubic", "pentaspherical", "cosine", "wave",
     "jbessel", "gravity", "rquad", "magnetic",
-    "matern", "cauchy", "pexponential", "none"
+    "matern", "cauchy", "pexponential", "none", "ie"
   )) {
     stop("Invalid spatial covariance type for spautor(). To fit models for point-referenced data, use splm().", call. = FALSE)
   }

@@ -9,7 +9,7 @@
 #'   \code{"pentaspherical"}, \code{"cosine"}, \code{"wave"},
 #'   \code{"jbessel"}, \code{"gravity"}, \code{"rquad"},
 #'   \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
-#'   \code{"car"}, \code{"sar"}, and \code{"none"}.
+#'   \code{"car"}, \code{"sar"}, \code{"none"}, and \code{"ie"} (an alias for \code{"none"}).
 #' @param de The spatially dependent (correlated) random error variance. Commonly referred to as
 #'   a partial sill.
 #' @param ie The spatially independent (uncorrelated) random error variance. Commonly referred to as
@@ -44,7 +44,7 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     stop("spcov_type must be specified", call. = FALSE)
   } else if (!spcov_type %in% c(
     "exponential", "spherical", "gaussian", "triangular", "circular",
-    "none", "cubic", "pentaspherical", "cosine", "wave", "matern", "car", "sar", "jbessel",
+    "none", "ie", "cubic", "pentaspherical", "cosine", "wave", "matern", "car", "sar", "jbessel",
     "gravity", "rquad", "magnetic", "cauchy", "pexponential"
   )) {
     stop(paste(spcov_type), "is not a valid spatial covariance function.")
@@ -54,7 +54,7 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     stop("spcov_type must be specified.", call. = FALSE)
   }
 
-  if (spcov_type == "none") {
+  if (spcov_type %in% c("none", "ie")) {
     de <- 0
     range <- Inf
   }
@@ -69,11 +69,11 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
   }
 
   # some parameter specification checks
-  if (spcov_type != "none" && any(missing(de), missing(ie), missing(range))) {
+  if ((!spcov_type %in% c("none", "ie")) && any(missing(de), missing(ie), missing(range))) {
     stop("de, ie, and range must be specified.", call. = FALSE)
   }
 
-  if (spcov_type == "none" && missing(ie)) {
+  if (spcov_type %in% c("none", "ie") && missing(ie)) {
     stop("ie must be specified.", call. = FALSE)
   }
 
@@ -117,7 +117,7 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     stop("extra must be positive and no larger than 2.", call. = FALSE)
   }
 
-  if (spcov_type %in% c("exponential", "spherical", "gaussian", "triangular", "circular", "none", "cubic", "pentaspherical", "cosine", "wave", "jbessel", "gravity", "rquad", "magnetic")) {
+  if (spcov_type %in% c("exponential", "spherical", "gaussian", "triangular", "circular", "none", "ie", "cubic", "pentaspherical", "cosine", "wave", "jbessel", "gravity", "rquad", "magnetic")) {
     extra <- NULL
   }
   if (spcov_type %in% c("car", "sar")) {

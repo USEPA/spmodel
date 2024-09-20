@@ -13,7 +13,7 @@ spcov_params(spcov_type, de, ie, range, extra, rotate = 0, scale = 1)
 \code{"pentaspherical"}, \code{"cosine"}, \code{"wave"},
 \code{"jbessel"}, \code{"gravity"}, \code{"rquad"},
 \code{"magnetic"}, \code{"matern"}, \code{"cauchy"}, \code{"pexponential"},
-\code{"car"}, \code{"sar"}, and \code{"none"}.}
+\code{"car"}, \code{"sar"}, \code{"none"}, and \code{"ie"} (an alias for \code{"none"}).}
 
 \item{de}{The spatially dependent (correlated) random error variance. Commonly referred to as
 a partial sill.}

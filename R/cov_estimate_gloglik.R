@@ -19,7 +19,7 @@ cov_estimate_gloglik_splm <- function(data_object, formula, spcov_initial, estme
   if (data_object$anisotropy) {
     dist_matrix_list <- NULL
   } else {
-    if (inherits(spcov_initial, "none") && is.null(data_object$randcov_initial)) {
+    if (inherits(spcov_initial, c("none", "ie")) && is.null(data_object$randcov_initial)) {
       dist_matrix_list <- NULL
     } else {
       dist_matrix_list <- lapply(data_object$obdata_list, function(x) spdist(x, data_object$xcoord, data_object$ycoord))

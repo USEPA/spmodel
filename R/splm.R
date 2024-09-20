@@ -164,7 +164,7 @@
 #'
 #'   All spatial covariance functions are valid in one spatial dimension. All
 #'   spatial covariance functions except \code{triangular} and \code{cosine} are
-#'   valid in two dimensions.
+#'   valid in two dimensions. An alias for \code{none} is \code{ie}.
 #'
 #' \code{estmethod} Details: The various estimation methods are
 #'   \itemize{
@@ -304,7 +304,7 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
   }
 
   # set local explicitly to FALSE if iid
-  if (inherits(spcov_initial, "none") && is.null(random)) {
+  if (inherits(spcov_initial, c("none", "ie")) && is.null(random)) {
     local <- FALSE
   }
 
@@ -355,7 +355,7 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
 
 
 
-  if (inherits(cov_est_object$spcov_params_val, "none") && is.null(random)) {
+  if (inherits(cov_est_object$spcov_params_val, c("none", "ie")) && is.null(random)) {
     model_stats <- get_model_stats_splm_iid(cov_est_object, data_object, estmethod)
   } else {
     model_stats <- get_model_stats_splm(cov_est_object, data_object, estmethod)

@@ -266,6 +266,12 @@ sprnorm.none <- function(spcov_params, mean = 0, samples = 1, data, randcov_para
 
   sprnorm_val
 }
+
+#' @rdname sprnorm
+#' @method sprnorm ie
+#' @export
+sprnorm.ie <- sprnorm.none
+
 #' @rdname sprnorm
 #' @method sprnorm car
 #' @export

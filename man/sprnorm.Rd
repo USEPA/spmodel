@@ -4,6 +4,7 @@
 \alias{sprnorm}
 \alias{sprnorm.exponential}
 \alias{sprnorm.none}
+\alias{sprnorm.ie}
 \alias{sprnorm.car}
 \title{Simulate a spatial normal (Gaussian) random variable}
 \usage{
@@ -30,6 +31,16 @@ sprnorm(
 )
 
 \method{sprnorm}{none}(
+  spcov_params,
+  mean = 0,
+  samples = 1,
+  data,
+  randcov_params,
+  partition_factor,
+  ...
+)
+
+\method{sprnorm}{ie}(
   spcov_params,
   mean = 0,
   samples = 1,

@@ -220,7 +220,7 @@ for \eqn{h} distance between observations:
 
 All spatial covariance functions are valid in one spatial dimension. All
 spatial covariance functions except \code{triangular} and \code{cosine} are
-valid in two dimensions.
+valid in two dimensions. An alias for \code{none} is \code{ie}.
 
 \code{estmethod} Details: The various estimation methods are
 \itemize{

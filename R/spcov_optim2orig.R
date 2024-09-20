@@ -48,6 +48,8 @@ spcov_optim2orig.circular <- spcov_optim2orig.exponential
 #' @export
 spcov_optim2orig.none <- spcov_optim2orig.exponential
 #' @export
+spcov_optim2orig.ie <- spcov_optim2orig.none
+#' @export
 spcov_optim2orig.cubic <- spcov_optim2orig.exponential
 #' @export
 spcov_optim2orig.pentaspherical <- spcov_optim2orig.exponential

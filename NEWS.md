@@ -2,7 +2,7 @@
 
 ## Major Updates
 
-* Added the `range_constrain` argument to `splm()` and `spglm()` to constrain the range parameter to enhance numerical stability.
+* Added the `range_constrain` argument to `splm()` and `spglm()` to constrain the range parameter to enhance numerical stability. The default for `range_constrain` is `FALSE`, implying the range is not constrained.
 
 ## Minor Updates
 

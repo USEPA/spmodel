@@ -139,7 +139,13 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L) {
       stop("The fixed effect coefficients must be the same when performing a likeihood ratio test using the reml estimation method. To perform the likelihood ratio tests for different fixed effect and covariance coefficients simultaneously, refit the models using the ml estimation method.", call. = FALSE)
     }
     Chi2_stat <- abs(-2 * (logLik(object2) - logLik(object)))
-    df_diff <- abs(object2$npar - object$npar)
+
+    # df for ml vs reml
+    df1 <- object$npar
+    df2 <- object2$npar
+    if (object$estmethod == "ml") df1 <- df1 + object$p
+    if (object2$estmethod == "ml") df2 <- df2 + object2$p
+    df_diff <- abs(df1 - df2)
     p_value <- pchisq(Chi2_stat, df_diff, lower.tail = FALSE)
     if (object2$npar < object$npar) {
       full_name <- as.character(substitute(object))

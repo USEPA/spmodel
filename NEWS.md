@@ -9,6 +9,10 @@
 * Changed diagonal tolerance threshold for `spglm()` and `spgautor()` model objects. See [this link](https://usepa.github.io/spmodel/articles/technical.html#sec:computational) for details.
 * Added the `"ie"` spatial covariance type to `splm()` and `spglm()` models. For `splm()` models, `"ie"` is an alias for `"none"`. For `spglm()` models, `"none"` now fixes both the `de` and `ie` covariance parameters at zero, while `"ie"` fixes the `de` covariance parameter at zero but allows the `ie` covariance parameter to vary. Thus, `"none"` from `spmodel $\le$ v0.8.0` matches `"ie"` from `spmodel` v0.9.0 and but is different from `"none"` from `spmodel v0.9.0`.
 
+## Bug Fixes
+
+* Fixed a bug causing incorrect degrees of freedom for the likelihood ratio test (`anova(model1, model2)`) when `estmethod` is `"ml"` for both models.
+
 # spmodel 0.8.0
 
 ## Major Updates

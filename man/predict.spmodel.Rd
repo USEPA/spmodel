@@ -153,7 +153,11 @@ the regular standard errors and intervals.}
 
 \item{interval}{Type of interval calculation. The default is \code{"none"}.
 Other options are \code{"confidence"} (for confidence intervals) and
-\code{"prediction"} (for prediction intervals).}
+\code{"prediction"} (for prediction intervals). When \code{interval}
+is \code{"none"} or \code{"prediction"}, predictions are returned (and when
+requested, their corresponding uncertainties). When \code{interval}
+is \code{"confidence"}, mean estimates are returned (and when
+requested, their corresponding uncertainties).}
 
 \item{level}{Tolerance/confidence level. The default is \code{0.95}.}
 

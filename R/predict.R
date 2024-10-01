@@ -21,7 +21,11 @@
 #'   (ignored if \code{scale} is not specified). The default is \code{Inf}.
 #' @param interval Type of interval calculation. The default is \code{"none"}.
 #'   Other options are \code{"confidence"} (for confidence intervals) and
-#'   \code{"prediction"} (for prediction intervals).
+#'   \code{"prediction"} (for prediction intervals). When \code{interval}
+#'   is \code{"none"} or \code{"prediction"}, predictions are returned (and when
+#'   requested, their corresponding uncertainties). When \code{interval}
+#'   is \code{"confidence"}, mean estimates are returned (and when
+#'   requested, their corresponding uncertainties).
 #' @param level Tolerance/confidence level. The default is \code{0.95}.
 #' @param type The prediction type, either on the response scale, link scale (only for
 #'   \code{spglm()} or \code{spgautor()} model objects), or terms scale.

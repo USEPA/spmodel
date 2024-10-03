@@ -157,7 +157,9 @@ Other options are \code{"confidence"} (for confidence intervals) and
 is \code{"none"} or \code{"prediction"}, predictions are returned (and when
 requested, their corresponding uncertainties). When \code{interval}
 is \code{"confidence"}, mean estimates are returned (and when
-requested, their corresponding uncertainties).}
+requested, their corresponding uncertainties). This \code{"none"} behavior
+differs from that of \code{lm()}, as \code{lm()} returns confidence
+uncertainties (in \code{.$se.fit}).}
 
 \item{level}{Tolerance/confidence level. The default is \code{0.95}.}
 

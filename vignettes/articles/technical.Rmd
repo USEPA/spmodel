@@ -472,9 +472,10 @@ For point-referenced data, the spatial covariance is given by \begin{equation*}
 | $\texttt{"matern"}$         | $\frac{2^{(1 - \xi)}}{\Gamma(\xi)} \alpha^\xi B_k(\alpha, \xi), \alpha = \sqrt{2\xi \eta}, B_k$ is Bessel-K with order $\xi$, $\xi \in [1/5, 5]$ |
 | $\texttt{"cauchy"}$       | $(1 + \eta^2)^{-\xi}$, $\xi > 0$                                                                                                                 |
 | $\texttt{"pexponential"}$  | $exp(-h^\xi / \phi)$, $\xi \in (0, 2]$                                                                                                           |
-| $\texttt{"none"}$          | $0$                                                                                                                                              |
+| $\texttt{"none"}$      | $0$                                                                                                                                              |
+| $\texttt{"ie"}$      | $0$                                                                                                                                              |
 
-: The forms of R for each spatial covariance type available in splm(). All spatial covariance functions are valid in two dimensions except the triangular and cosine functions, which are only valid in one dimension.
+: The forms of R for each spatial covariance type available in splm(). All spatial covariance functions are valid in two dimensions except the triangular and cosine functions, which are only valid in one dimension. An alias for none is ie.
 
 ### Model-fitting {#sec:estimation-lm}
 
@@ -992,7 +993,7 @@ Covariance functions for `spgautor()` are defined the same as covariance functio
 
 ### `spglm()` Spatial Covariance Functions {#sec:spglm-glm}
 
-Covariance functions for `spglm()` are defined the same as covariance functions for `splm()`.
+Covariance functions for `spglm()` are defined the same as covariance functions for `splm()` except that for `"none"`, the `ie` parameter is also set to zero (analogous to `glm()` models).
 
 ### Model-fitting {#sec:estimation-glm}
 

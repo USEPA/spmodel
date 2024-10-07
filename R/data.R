@@ -62,9 +62,12 @@
 #'
 #' @description Estimated harbor-seal trends from abundance data in southeast Alaska, USA.
 #'
-#' @format A \code{sf} object with 62 rows and 2 columns:
+#' @format A \code{sf} object with 149 rows and 2 columns:
 #' \itemize{
 #'   \item log_trend: The log of the estimated harbor-seal trends from abundance data.
+#'   \item stock: A seal stock factor with two levels: 8 and 10. The factor levels indicate the
+#'     type of seal stock (i.e., type of seal). Stocks 8 and 10 are two distinct stocks
+#'     (out of 13 total stocks) in southeast Alaska.
 #'   \item geometry: \code{POLYGON} geometry representing polygons in an Alaska
 #'     Albers projection (EPSG: 3338).
 #' }

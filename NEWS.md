@@ -3,6 +3,7 @@
 ## Major Updates
 
 * Added the `range_constrain` argument to `splm()` and `spglm()` to constrain the range parameter to enhance numerical stability. The default for `range_constrain` is `FALSE`, implying the range is not constrained.
+* Updated the `seal` data with additional polygons and a variable `stock` that indicates seal stock (i.e., seal type).
 
 ## Minor Updates
 

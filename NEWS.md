@@ -12,7 +12,8 @@
 
 ## Bug Fixes
 
-* Fixed a bug causing incorrect degrees of freedom for the likelihood ratio test (`anova(model1, model2)`) when `estmethod` is `"ml"` for both models.
+* Fixed a bug that caused incorrect degrees of freedom for the likelihood ratio test (`anova(model1, model2)`) when `estmethod` is `"ml"` for both models.
+* Fixed a bug that caused an error in `anova(object1, object2)` when the name of `object1` had special characters (e.g., `$`).
 
 # spmodel 0.8.0
 

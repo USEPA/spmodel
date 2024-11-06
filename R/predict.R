@@ -71,6 +71,8 @@
 #'   \code{list(size = 100, method = "covariance", parallel = FALSE)}.
 #' @param terms If \code{type} is \code{"terms"}, the type of terms to be returned,
 #'   specified via either numeric position or name. The default is all terms are included.
+#' @param na.action Missing (\code{NA}) values in \code{newdata} will return an error and should
+#'   be removed before proceeding.
 #' @param ... Other arguments. Only used for models fit using \code{splmRF()}
 #'   or \code{spautorRF()} where \code{...} indicates other
 #'   arguments to \code{ranger::predict.ranger()}.
@@ -120,7 +122,7 @@
 #' predict(spmod, sulfate_preds, interval = "prediction")
 #' augment(spmod, newdata = sulfate_preds, interval = "prediction")
 predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf, interval = c("none", "confidence", "prediction"),
-                         level = 0.95, type = c("response", "terms"), local, terms = NULL, ...) {
+                         level = 0.95, type = c("response", "terms"), local, terms = NULL, na.action = na.fail, ...) {
 
   # match interval argument so the three display
   interval <- match.arg(interval)
@@ -237,6 +239,12 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
+
+  # finding rows w/out NA
+  ob_predictors <- complete.cases(newdata_model)
+  if (any(!ob_predictors)) {
+    stop("Cannot have NA values in predictors.", call. = FALSE)
+  }
 
   # call terms if needed
   if (type == "terms") {
@@ -544,7 +552,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
 #' @order 2
 #' @export
 predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf, interval = c("none", "confidence", "prediction"),
-                            level = 0.95, type = c("response", "terms"), local, terms = NULL, ...) {
+                            level = 0.95, type = c("response", "terms"), local, terms = NULL, na.action = na.fail, ...) {
 
   # match interval argument so the three display
   interval <- match.arg(interval)
@@ -608,6 +616,15 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = 
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
+
+  # finding rows w/out NA
+  # this isn't really needed, because the error should come on model building
+  # but someone could accidentally write over their newdata object after fitting
+  # so it is good to keep for completeness
+  ob_predictors <- complete.cases(newdata_model)
+  if (any(!ob_predictors)) {
+    stop("Cannot have NA values in predictors.", call. = FALSE)
+  }
 
   # call terms if needed
   if (type == "terms") {
@@ -912,8 +929,10 @@ get_pred_spautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat,
 #' @method predict splm_list
 #' @order 3
 #' @export
-predict.splm_list <- function(object, newdata, se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                              level = 0.95, local, ...) {
+predict.splm_list <- function(object, newdata, se.fit = FALSE, scale = NULL,
+                              df = Inf, interval = c("none", "confidence", "prediction"),
+                              level = 0.95, type = c("response", "terms"), local,
+                              terms = NULL, na.action = na.fail, ...) {
   # match interval argument so the three display
   interval <- match.arg(interval)
 
@@ -924,11 +943,34 @@ predict.splm_list <- function(object, newdata, se.fit = FALSE, interval = c("non
 
   if (missing(newdata)) {
     preds <- lapply(object, function(x) {
-      predict(x, se.fit = se.fit, interval = interval, level = level, local = local, ...)
+      predict(
+        x,
+        se.fit = se.fit,
+        scale = scale,
+        df = df,
+        interval = interval,
+        level = level,
+        type = type,
+        local = local,
+        terms = terms, # don't need na.action as it is fixed in predict
+        ...
+      )
     })
   } else {
     preds <- lapply(object, function(x) {
-      predict(x, newdata = newdata, se.fit = se.fit, interval = interval, level = level, local = local, ...)
+      predict(
+        x,
+        newdata = newdata,
+        se.fit = se.fit,
+        scale = scale,
+        df = df,
+        interval = interval,
+        level = level,
+        type = type,
+        local = local,
+        terms = terms, # don't need na.action as it is fixed in predict
+        ...
+      )
     })
   }
   names(preds) <- names(object)

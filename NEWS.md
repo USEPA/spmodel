@@ -3,12 +3,14 @@
 ## Major Updates
 
 * Added the `range_constrain` argument to `splm()` and `spglm()` to constrain the range parameter to enhance numerical stability. The default for `range_constrain` is `FALSE`, implying the range is not constrained.
-* Updated the `seal` data with additional polygons and a variable `stock` that indicates seal stock (i.e., seal type).
+* Updated the `seal` data with additional polygons and a factor variable, `stock`, with two levels (`8` and `10`) that indicates seal stock (i.e., seal type).
 
 ## Minor Updates
 
 * Changed diagonal tolerance threshold for `spglm()` and `spgautor()` model objects. See [this link](https://usepa.github.io/spmodel/articles/technical.html#sec:computational) for details.
 * Added the `"ie"` spatial covariance type to `splm()` and `spglm()` models. For `splm()` models, `"ie"` is an alias for `"none"`. For `spglm()` models, `"none"` now fixes both the `de` and `ie` covariance parameters at zero, while `"ie"` fixes the `de` covariance parameter at zero but allows the `ie` covariance parameter to vary. Thus, `"none"` from `spmodel $\le$ v0.8.0` matches `"ie"` from `spmodel` v0.9.0 and but is different from `"none"` from `spmodel v0.9.0`.
+* Added the `na.action` argument to `predict.spmodel()` functions to clarify that missing values in `newdata` return an error.
+* Minor documentation updates.
 
 ## Bug Fixes
 
@@ -160,7 +162,7 @@
 * Fixed a bug in `spautor()` that prevented an error from occurring when a partition factor was not categorical or not a factor
 * Fixed a bug in `covmatrix(object, newdata)` that returned a matrix with improper dimensions when `spcov_type` was `"none"`.
 * Fixed a bug in `predict()` that caused an error when at least one level of a fixed effect factor was not observed within a local neighborhood (when the `local` method was `"covariance"` or `"distance")`.
-* Fixed a bug in `cooks.distance()` that used the Pearson residuals instead of the standarized residuals.
+* Fixed a bug in `cooks.distance()` that used the Pearson residuals instead of the standardized residuals.
 
 # spmodel 0.3.0
 

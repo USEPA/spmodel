@@ -130,4 +130,10 @@ if (test_local) {
     expect_error(emmeans::emmeans(spgmod, ~ group, by = "x"), NA)
   })
 
+  test_that("range_constrain works", {
+    spcov_type <- "exponential"
+    expect_error(spglm(abs(y) ~ x * group, family = "Gamma", exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", range_constrain = TRUE), NA)
+    expect_error(spglm(abs(y) ~ x * group, family = "Gamma", exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", range_constrain = TRUE), NA)
+  })
+
 }

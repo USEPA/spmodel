@@ -213,7 +213,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   # }
 
   # range constrain
-  max_range_scale <- 5
+  max_range_scale <- 4
   range_constrain_value <- 2 * max_halfdist * max_range_scale
   if ("range" %in% names(spcov_initial$is_known)) {
     if (spcov_initial$is_known[["range"]] || (spcov_initial$initial[["range"]] > range_constrain_value)) {

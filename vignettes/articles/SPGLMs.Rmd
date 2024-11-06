@@ -409,7 +409,7 @@ data in `spmodel`. These functions are summarized in the following table.
 
 : Functions to simulate spatial data and their purpose.
 
-# An application to binary (presence/abscence) data {#sec:application-binary}
+# An application to binary (presence/absence) data {#sec:application-binary}
 
 In the next two sections we to show how to use `spmodel` to analyze data
 collected on moose in the Togiak region of Alaska, USA. The
@@ -761,7 +761,7 @@ standardized residuals tend to be spread out around zero.
 Estimated mean moose counts for the \texttt{moose} data (obtained via
 \texttt{fitted()}) and predicted mean moose counts for the
 \texttt{moose\_preds} data (obtained via \texttt{predict()} or
-\texttt{augment()}) share similiar patterns and are overlain by running
+\texttt{augment()}) share similar patterns and are overlain by running
 
 ```{r nb, out.width="65%", fig.align="center", fig.cap="Fitted values and predictions for moose counts."}
 aug_mod <- augment(count_mod_nb)

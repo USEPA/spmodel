@@ -1082,4 +1082,10 @@ if (test_local) {
     expect_error(covmatrix(spmod, cov_type = "xyz"), NA) # when newdata not specified cov_type silently ignored
     expect_error(covmatrix(spmod, newdata = spmod$newdata, cov_type = "xyz"))
   })
+
+  test_that("range_constrain works", {
+    spcov_type <- "exponential"
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", range_constrain = TRUE), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", range_constrain = TRUE), NA)
+  })
 }

@@ -27,6 +27,7 @@
   type = c("response", "terms"),
   local,
   terms = NULL,
+  na.action = na.fail,
   ...
 )
 
@@ -41,6 +42,7 @@
   type = c("response", "terms"),
   local,
   terms = NULL,
+  na.action = na.fail,
   ...
 )
 
@@ -48,9 +50,14 @@
   object,
   newdata,
   se.fit = FALSE,
+  scale = NULL,
+  df = Inf,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
+  type = c("response", "terms"),
   local,
+  terms = NULL,
+  na.action = na.fail,
   ...
 )
 
@@ -58,9 +65,14 @@
   object,
   newdata,
   se.fit = FALSE,
+  scale = NULL,
+  df = Inf,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
+  type = c("response", "terms"),
   local,
+  terms = NULL,
+  na.action = na.fail,
   ...
 )
 
@@ -84,6 +96,7 @@
   local,
   var_correct = TRUE,
   newdata_size,
+  na.action = na.fail,
   ...
 )
 
@@ -99,32 +112,39 @@
   local,
   var_correct = TRUE,
   newdata_size,
+  na.action = na.fail,
   ...
 )
 
 \method{predict}{spglm_list}(
   object,
   newdata,
-  type = c("link", "response"),
+  type = c("link", "response", "terms"),
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
-  newdata_size,
   level = 0.95,
+  dispersion = NULL,
+  terms = NULL,
   local,
   var_correct = TRUE,
+  newdata_size,
+  na.action = na.fail,
   ...
 )
 
 \method{predict}{spgautor_list}(
   object,
   newdata,
-  type = c("link", "response"),
+  type = c("link", "response", "terms"),
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
-  newdata_size,
   level = 0.95,
+  dispersion = NULL,
+  terms = NULL,
   local,
   var_correct = TRUE,
+  newdata_size,
+  na.action = na.fail,
   ...
 )
 }
@@ -207,6 +227,9 @@ that \code{local} is transformed into
 
 \item{terms}{If \code{type} is \code{"terms"}, the type of terms to be returned,
 specified via either numeric position or name. The default is all terms are included.}
+
+\item{na.action}{Missing (\code{NA}) values in \code{newdata} will return an error and should
+be removed before proceeding.}
 
 \item{...}{Other arguments. Only used for models fit using \code{splmRF()}
 or \code{spautorRF()} where \code{...} indicates other

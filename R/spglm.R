@@ -123,7 +123,7 @@
 #'   \code{list(size = 100, method = "kmeans", var_adjust = "theoretical", parallel = FALSE)}.
 #' @param range_constrain An optional logical that indicates whether the range
 #'   should be constrained to enhance numerical stability. If \code{range_constrain = TRUE},
-#'   the maximum possible range value is 5 times the maximum distance in the domain.
+#'   the maximum possible range value is 4 times the maximum distance in the domain.
 #'   If \code{range_constrain = FALSE}, then maximum possible range is unbounded.
 #'   The default is \code{FALSE}.
 #'   Note that if \code{range_constrain = TRUE} and the value of \code{range} in \code{spcov_initial}

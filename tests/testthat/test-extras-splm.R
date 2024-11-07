@@ -539,6 +539,23 @@ if (test_local) {
     expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "sv-cl"), NA)
   })
 
+  test_that("the model runs for ie", {
+    spcov_type <- "ie"
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml"), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
+    spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml"), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml"), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "sv-wls"), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "sv-cl"), NA)
+    mod1 <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
+    mod2 <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "reml")
+    expect_equal(as.vector(coef(mod1, "spcov")), as.vector(coef(mod2, "spcov")), tolerance = 0.01)
+  })
+
+
   test_that("the model runs for cubic", {
     spcov_type <- "cubic"
     expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"), NA)
@@ -1064,5 +1081,11 @@ if (test_local) {
     expect_error(covmatrix(spmod, newdata = NULL))
     expect_error(covmatrix(spmod, cov_type = "xyz"), NA) # when newdata not specified cov_type silently ignored
     expect_error(covmatrix(spmod, newdata = spmod$newdata, cov_type = "xyz"))
+  })
+
+  test_that("range_constrain works", {
+    spcov_type <- "exponential"
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", range_constrain = TRUE), NA)
+    expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", range_constrain = TRUE), NA)
   })
 }

@@ -462,6 +462,9 @@ cov_initial_search_glm.none <- function(spcov_initial_NA, dispersion_initial_NA,
 }
 
 #' @export
+cov_initial_search_glm.ie <- cov_initial_search_glm.none
+
+#' @export
 cov_initial_search_glm.matern <- function(spcov_initial_NA, dispersion_initial_NA, estmethod, data_object,
                                           dist_matrix_list, weights,
                                           randcov_initial_NA = NULL, esv_dotlist, ...) {

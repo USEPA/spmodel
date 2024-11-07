@@ -167,7 +167,7 @@ from different levels of the partition factor are uncorrelated.</p></dd>
 
 <dt>W</dt>
 <dd><p>Weight matrix specifying the neighboring structure used.
-Not required if <code>data</code> is an <code>sf</code> object wtih <code>POLYGON</code> geometry,
+Not required if <code>data</code> is an <code>sf</code> object with <code>POLYGON</code> geometry,
 as <code>W</code> is calculated internally using queen contiguity. If calculated internally,
 <code>W</code> is computed using <code><a href="https://r-spatial.github.io/sf/reference/geos_binary_pred.html" class="external-link">sf::st_intersects()</a></code>. Also not required if <code>data</code>
 is an <code>sf</code> object with <code>POINT</code> geometry as long as <code>cutoff</code> is specified.</p></dd>
@@ -289,18 +289,16 @@ so they have variance 1 before optimization.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> spautor(formula = log_trend ~ 1, data = seal, spcov_type = "car")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Residuals:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      Min       1Q   Median       3Q      Max </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.34455 -0.10417  0.04410  0.07338  0.20475 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       Min        1Q    Median        3Q       Max </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.402385 -0.073439  0.004368  0.073465  0.848290 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (fixed):</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error z value Pr(&gt;|z|)   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) -0.07090    0.02497  -2.839  0.00452 **</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error z value Pr(&gt;|z|)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) -0.01306    0.02004  -0.652    0.514</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (car spatial covariance):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      de   range   extra </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.03252 0.42037 0.02177 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.04936 0.56167 0.01750 </span>
 </code></pre></div>
     </div>
   </div>

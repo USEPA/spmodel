@@ -151,7 +151,7 @@ that \code{local} is transformed into
 
 \item{range_constrain}{An optional logical that indicates whether the range
 should be constrained to enhance numerical stability. If \code{range_constrain = TRUE},
-the maximum possible range value is 5 times the maximum distance in the domain.
+the maximum possible range value is 4 times the maximum distance in the domain.
 If \code{range_constrain = FALSE}, then maximum possible range is unbounded.
 The default is \code{FALSE}.
 Note that if \code{range_constrain = TRUE} and the value of \code{range} in \code{spcov_initial}
@@ -220,7 +220,7 @@ for \eqn{h} distance between observations:
 
 All spatial covariance functions are valid in one spatial dimension. All
 spatial covariance functions except \code{triangular} and \code{cosine} are
-valid in two dimensions.
+valid in two dimensions. An alias for \code{none} is \code{ie}.
 
 \code{estmethod} Details: The various estimation methods are
 \itemize{

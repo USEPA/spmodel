@@ -95,7 +95,7 @@ parameter called \eqn{extra}, \eqn{extra \ge 0}.
 
 All spatial covariance functions are valid in one spatial dimension. All
 spatial covariance functions except \code{triangular} and \code{cosine} are
-valid in two dimensions.
+valid in two dimensions. An alias for \code{none} is \code{ie}.
 
 When the spatial covariance function is \code{car} or \code{sar}, \code{extra}
 represents the variance parameter for the observations in \code{W} without

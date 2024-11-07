@@ -121,6 +121,8 @@ laploglik_products.circular <- laploglik_products.exponential
 #' @export
 laploglik_products.none <- laploglik_products.exponential
 #' @export
+laploglik_products.ie <- laploglik_products.none
+#' @export
 laploglik_products.cubic <- laploglik_products.exponential
 #' @export
 laploglik_products.pentaspherical <- laploglik_products.exponential

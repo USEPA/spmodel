@@ -70,10 +70,23 @@
     </div>
 
     <div class="section level2">
-<h2 class="page-header" data-toc-text="0.9.0" id="spmodel-090">spmodel 0.9.0<a class="anchor" aria-label="anchor" href="#spmodel-090"></a></h2>
+<h2 class="page-header" data-toc-text="0.9.0" id="spmodel-090">spmodel 0.9.0<small>2024-11-06</small><a class="anchor" aria-label="anchor" href="#spmodel-090"></a></h2>
 <div class="section level3">
 <h3 id="major-updates-0-9-0">Major Updates<a class="anchor" aria-label="anchor" href="#major-updates-0-9-0"></a></h3>
-<ul><li>Added the <code>range_constrain</code> argument to <code><a href="../reference/splm.html">splm()</a></code> and <code><a href="../reference/spglm.html">spglm()</a></code> to contrain the range parameter to enhance numerical stability.</li>
+<ul><li>Added the <code>range_constrain</code> argument to <code><a href="../reference/splm.html">splm()</a></code> and <code><a href="../reference/spglm.html">spglm()</a></code> to constrain the range parameter to enhance numerical stability. The default for <code>range_constrain</code> is <code>FALSE</code>, implying the range is not constrained.</li>
+<li>Updated the <code>seal</code> data with additional polygons and a factor variable, <code>stock</code>, with two levels (<code>8</code> and <code>10</code>) that indicates seal stock (i.e., seal type).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="minor-updates-0-9-0">Minor Updates<a class="anchor" aria-label="anchor" href="#minor-updates-0-9-0"></a></h3>
+<ul><li>Changed diagonal tolerance threshold for <code><a href="../reference/spglm.html">spglm()</a></code> and <code><a href="../reference/spgautor.html">spgautor()</a></code> model objects. See <a href="https://usepa.github.io/spmodel/articles/technical.html#sec:computational">this link</a> for details.</li>
+<li>Added the <code>"ie"</code> spatial covariance type to <code><a href="../reference/splm.html">splm()</a></code> and <code><a href="../reference/spglm.html">spglm()</a></code> models. For <code><a href="../reference/splm.html">splm()</a></code> models, <code>"ie"</code> is an alias for <code>"none"</code>. For <code><a href="../reference/spglm.html">spglm()</a></code> models, <code>"none"</code> now fixes both the <code>de</code> and <code>ie</code> covariance parameters at zero, while <code>"ie"</code> fixes the <code>de</code> covariance parameter at zero but allows the <code>ie</code> covariance parameter to vary. Thus, <code>"none"</code> from <code>spmodel $\le$ v0.8.0</code> matches <code>"ie"</code> from <code>spmodel</code> v0.9.0 and but is different from <code>"none"</code> from <code>spmodel v0.9.0</code>.</li>
+<li>Added the <code>na.action</code> argument to <code><a href="../reference/predict.spmodel.html">predict.spmodel()</a></code> functions to clarify that missing values in <code>newdata</code> return an error.</li>
+<li>Minor documentation updates.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-9-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-9-0"></a></h3>
+<ul><li>Fixed a bug that caused incorrect degrees of freedom for the likelihood ratio test (<code>anova(model1, model2)</code>) when <code>estmethod</code> is <code>"ml"</code> for both models.</li>
+<li>Fixed a bug that caused an error in <code>anova(object1, object2)</code> when the name of <code>object1</code> had special characters (e.g., <code>$</code>).</li>
 </ul></div>
 </div>
     <div class="section level2">
@@ -235,7 +248,7 @@
 <li>Fixed a bug in <code><a href="../reference/spautor.html">spautor()</a></code> that prevented an error from occurring when a partition factor was not categorical or not a factor</li>
 <li>Fixed a bug in <code>covmatrix(object, newdata)</code> that returned a matrix with improper dimensions when <code>spcov_type</code> was <code>"none"</code>.</li>
 <li>Fixed a bug in <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> that caused an error when at least one level of a fixed effect factor was not observed within a local neighborhood (when the <code>local</code> method was <code>"covariance"</code> or <code>"distance")</code>.</li>
-<li>Fixed a bug in <code><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">cooks.distance()</a></code> that used the Pearson residuals instead of the standarized residuals.</li>
+<li>Fixed a bug in <code><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">cooks.distance()</a></code> that used the Pearson residuals instead of the standardized residuals.</li>
 </ul></div>
 </div>
     <div class="section level2">

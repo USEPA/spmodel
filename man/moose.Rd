@@ -11,7 +11,7 @@ An \code{sf} object with 218 rows and 5 columns.
 \item strat: A factor representing strata (used for sampling). Can take values \code{L} and \code{M}.
 \item count: The count (number) of moose observed.
 \item presence: A binary factor representing whether no moose were observed (value \code{0}) or at least one moose was observed
-(va ue \code{1}).
+(value \code{1}).
 \item geometry: \code{POINT} geometry representing coordinates in an Alaska
 Albers projection (EPSG: 3338). Distances between points are in meters.
 }

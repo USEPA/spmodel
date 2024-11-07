@@ -23,7 +23,7 @@
 #' augment(spgmod, newdata = moose_preds, interval = "prediction")
 #' }
 predict.spglm <- function(object, newdata, type = c("link", "response", "terms"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                          level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size, ...) {
+                          level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size, na.action = na.fail, ...) {
 
 
 
@@ -153,6 +153,12 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms")
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
+
+  # finding rows w/out NA
+  ob_predictors <- complete.cases(newdata_model)
+  if (any(!ob_predictors)) {
+    stop("Cannot have NA values in predictors.", call. = FALSE)
+  }
 
   # call terms if needed
   if (type == "terms") {
@@ -616,7 +622,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
 #' @export
 predict.spgautor <- function(object, newdata, type = c("link", "response", "terms"), se.fit = FALSE,
                              interval = c("none", "confidence", "prediction"),
-                             level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size, ...) {
+                             level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size, na.action = na.fail, ...) {
 
   # match type argument so the two display
   type <- match.arg(type)
@@ -696,6 +702,15 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
+
+  # finding rows w/out NA
+  # this isn't really needed, because the error should come on model building
+  # but someone could accidentally write over their newdata object after fitting
+  # so it is good to keep for completeness
+  ob_predictors <- complete.cases(newdata_model)
+  if (any(!ob_predictors)) {
+    stop("Cannot have NA values in predictors.", call. = FALSE)
+  }
 
   # call terms if needed
   if (type == "terms") {
@@ -923,8 +938,10 @@ get_pred_spgautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat
 #' @method predict spglm_list
 #' @order 11
 #' @export
-predict.spglm_list <- function(object, newdata, type = c("link", "response"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                               newdata_size, level = 0.95, local, var_correct = TRUE, ...) {
+predict.spglm_list <- function(object, newdata, type = c("link", "response", "terms"), se.fit = FALSE,
+                               interval = c("none", "confidence", "prediction"), level = 0.95,
+                               dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size,
+                               na.action = na.fail, ...) {
   type <- match.arg(type)
   # match interval argument so the three display
   interval <- match.arg(interval)
@@ -941,11 +958,36 @@ predict.spglm_list <- function(object, newdata, type = c("link", "response"), se
 
   if (missing(newdata)) {
     preds <- lapply(object, function(x) {
-      predict(x, type = type, se.fit = se.fit, interval = interval, newdata_size = newdata_size, level = level, local = local, var_correct = var_correct, ...)
+      predict(
+        x,
+        type = type,
+        se.fit = se.fit,
+        interval = interval,
+        level = level,
+        dispersion = dispersion,
+        terms = terms,
+        local = local,
+        var_correct = var_correct,
+        newdata_size = newdata_size, # don't need na.action as it is fixed in predict
+        ...
+      )
     })
   } else {
     preds <- lapply(object, function(x) {
-      predict(x, newdata = newdata, type = type, se.fit = se.fit, interval = interval, newdata_size = newdata_size, level = level, local = local, var_correct = var_correct, ...)
+      predict(
+        x,
+        newdata = newdata,
+        type = type,
+        se.fit = se.fit,
+        interval = interval,
+        level = level,
+        dispersion = dispersion,
+        terms = terms,
+        local = local,
+        var_correct = var_correct,
+        newdata_size = newdata_size, # don't need na.action as it is fixed in predict
+        ...
+      )
     })
   }
   names(preds) <- names(object)

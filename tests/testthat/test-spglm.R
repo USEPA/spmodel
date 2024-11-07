@@ -5,7 +5,7 @@ test_that("generics work spglm point data", {
   load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
 
   spmod1 <- spglm(abs(y) ~ x, "Gamma", exdata, spcov_type = "exponential", xcoord = "xcoord", ycoord = "ycoord", estmethod = "reml")
-  spmod2 <- spglm(abs(y) ~ x, Gamma, exdata, spcov_type = "none", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
+  spmod2 <- spglm(abs(y) ~ x, Gamma, exdata, spcov_type = "ie", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
 
   # AIC, AICc, BIC
   expect_vector(AIC(spmod1))
@@ -170,7 +170,7 @@ test_that("generics work spglm point data with missing", {
   load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
 
   spmod1 <- spglm(abs(y) ~ x, family = "Gamma", data = exdata_M, spcov_type = "exponential", xcoord = "xcoord", ycoord = "ycoord", estmethod = "reml")
-  spmod2 <- spglm(abs(y) ~ x, family = Gamma, data = exdata_M, spcov_type = "none", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
+  spmod2 <- spglm(abs(y) ~ x, family = Gamma, data = exdata_M, spcov_type = "ie", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
 
   # AIC, AICc, BIC
   expect_vector(AIC(spmod1))
@@ -334,7 +334,7 @@ test_that("generics work spglm polygon data with missing", {
   load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
 
   spmod1 <- spglm(abs(y) ~ x, "Gamma", exdata_Mpoly, spcov_type = "exponential", xcoord = "xcoord", ycoord = "ycoord", estmethod = "reml")
-  spmod2 <- spglm(abs(y) ~ x, Gamma, exdata_Mpoly, spcov_type = "none", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
+  spmod2 <- spglm(abs(y) ~ x, Gamma, exdata_Mpoly, spcov_type = "ie", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
 
   # AIC
   expect_vector(AIC(spmod1))

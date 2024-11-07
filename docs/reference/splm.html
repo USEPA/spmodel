@@ -254,7 +254,7 @@ that <code>local</code> is transformed into
 <dt>range_constrain</dt>
 <dd><p>An optional logical that indicates whether the range
 should be constrained to enhance numerical stability. If <code>range_constrain = TRUE</code>,
-the maximum possible range value is 5 times the maximum distance in the domain.
+the maximum possible range value is 4 times the maximum distance in the domain.
 If <code>range_constrain = FALSE</code>, then maximum possible range is unbounded.
 The default is <code>FALSE</code>.
 Note that if <code>range_constrain = TRUE</code> and the value of <code>range</code> in <code>spcov_initial</code>
@@ -321,7 +321,7 @@ for \(h\) distance between observations:</p><ul><li><p>exponential: \(exp(- \eta
 <li><p>none: \(0\)</p></li>
 </ul><p>All spatial covariance functions are valid in one spatial dimension. All
 spatial covariance functions except <code>triangular</code> and <code>cosine</code> are
-valid in two dimensions.</p>
+valid in two dimensions. An alias for <code>none</code> is <code>ie</code>.</p>
 <p><code>estmethod</code> Details: The various estimation methods are</p><ul><li><p><code>reml</code>: Maximize the restricted log-likelihood.</p></li>
 <li><p><code>ml</code>: Maximize the log-likelihood.</p></li>
 <li><p><code>sv-wls</code>: Minimize the semivariogram weighted least squares loss.</p></li>

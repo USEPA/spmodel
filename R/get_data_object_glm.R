@@ -32,7 +32,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     data_sf <- NULL
   }
 
-  if (!is_sf && missing(xcoord) && !inherits(spcov_initial, "none")) {
+  if (!is_sf && missing(xcoord) && !inherits(spcov_initial, c("none", "ie"))) {
     stop("The xcoord argument must be specified.", call. = FALSE)
   }
 
@@ -53,7 +53,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
   ycoord_orig_name <- NULL
   ycoord_orig_val <- NULL
   # find coordinate dimension and set defaults
-  if (inherits(spcov_initial, "none") && estmethod %in% c("reml", "ml")) {
+  if (inherits(spcov_initial, c("none", "ie")) && estmethod %in% c("reml", "ml")) {
     dim_coords <- 0
     if (missing(xcoord)) {
       xcoord <- ".xcoord"
@@ -222,8 +222,8 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
   betahat <- backsolve(R_val, qr.qty(qr_val, y_trans))
   resid <- y_trans - X %*% betahat
   s2 <- sum(resid^2) / (n - p)
-  # diagtol <- 1e-4
-  diagtol <- min(1e-4, 1e-4 * s2)
+  diagtol <- 1e-4
+  # diagtol <- min(1e-4, 1e-4 * s2)
 
 
 
@@ -233,7 +233,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
   max_halfdist <- sqrt((max(x_range) - min(x_range))^2 + (max(y_range) - min(y_range))^2) / 2
 
   # range constrain
-  max_range_scale <- 5
+  max_range_scale <- 4
   range_constrain_value <- 2 * max_halfdist * max_range_scale
   if ("range" %in% names(spcov_initial$is_known)) {
     if (spcov_initial$is_known[["range"]] || (spcov_initial$initial[["range"]] > range_constrain_value)) {
@@ -241,7 +241,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     }
   }
 
-  if (inherits(spcov_initial, "none")) {
+  if (inherits(spcov_initial, c("none", "ie"))) {
     range_constrain <- FALSE
   }
 

@@ -586,6 +586,9 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
 }
 
 #' @export
+cov_initial_search.ie <- cov_initial_search.none
+
+#' @export
 cov_initial_search.matern <- function(spcov_initial_NA, estmethod, data_object,
                                       dist_matrix_list, weights,
                                       randcov_initial_NA = NULL, esv_dotlist, ...) {

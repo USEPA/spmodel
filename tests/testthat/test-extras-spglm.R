@@ -46,6 +46,13 @@ if (test_local) {
     expect_error(spglm(bern ~ x + offset(offset), family = binomial, data = exdata[-1, , drop = FALSE], xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~group, anisotropy = TRUE, local = TRUE), NA)
     expect_error(spglm(bernfac ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~group, anisotropy = TRUE, local = TRUE), NA)
     expect_error(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml", partition_factor = ~group), NA)
+
+    # check glm
+    spgmod1 <- spglm(bern ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none")
+    spgmod2 <- spglm(bern ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential")
+    expect_false(isTRUE(all.equal(as.vector(coef(spgmod1)), as.vector(coef(spgmod2)), tolerance = 0.0001)))
+    gmod1 <- stats::glm(bern ~ x, family = binomial, data = exdata)
+    expect_true(isTRUE(all.equal(as.vector(coef(spgmod1)), as.vector(coef(gmod1)), tolerance = 0.0001)))
   })
 
   test_that("the model runs for proportion data", {
@@ -121,6 +128,12 @@ if (test_local) {
     spgmod <- spglm(abs(y) ~ x * group, family = "Gamma", exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml")
     expect_equal(as.matrix(model.frame(delete.response(terms(spgmod)), spgmod$obdata)), as.matrix(emmeans::recover_data(spgmod)))
     expect_error(emmeans::emmeans(spgmod, ~ group, by = "x"), NA)
+  })
+
+  test_that("range_constrain works", {
+    spcov_type <- "exponential"
+    expect_error(spglm(abs(y) ~ x * group, family = "Gamma", exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", range_constrain = TRUE), NA)
+    expect_error(spglm(abs(y) ~ x * group, family = "Gamma", exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", range_constrain = TRUE), NA)
   })
 
 }

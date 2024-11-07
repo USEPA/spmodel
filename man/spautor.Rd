@@ -73,7 +73,7 @@ specifying the partition factor.  The partition factor assumes observations
 from different levels of the partition factor are uncorrelated.}
 
 \item{W}{Weight matrix specifying the neighboring structure used.
-Not required if \code{data} is an \code{sf} object wtih \code{POLYGON} geometry,
+Not required if \code{data} is an \code{sf} object with \code{POLYGON} geometry,
 as \code{W} is calculated internally using queen contiguity. If calculated internally,
 \code{W} is computed using \code{sf::st_intersects()}. Also not required if \code{data}
 is an \code{sf} object with \code{POINT} geometry as long as \code{cutoff} is specified.}

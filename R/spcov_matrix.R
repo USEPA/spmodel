@@ -70,6 +70,10 @@ spcov_matrix.none <- function(spcov_params, dist_matrix, diagtol = 0, ...) {
   spcov_matrix_val
 }
 
+# spcov_matrix ie
+#' @export
+spcov_matrix.ie <- spcov_matrix.none
+
 # spcov_matrix cubic
 #' @export
 spcov_matrix.cubic <- function(spcov_params, dist_matrix, diagtol = 0, ...) {

@@ -27,6 +27,7 @@
   type = c("response", "terms"),
   local,
   terms = NULL,
+  na.action = na.fail,
   ...
 )
 
@@ -41,6 +42,7 @@
   type = c("response", "terms"),
   local,
   terms = NULL,
+  na.action = na.fail,
   ...
 )
 
@@ -48,9 +50,14 @@
   object,
   newdata,
   se.fit = FALSE,
+  scale = NULL,
+  df = Inf,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
+  type = c("response", "terms"),
   local,
+  terms = NULL,
+  na.action = na.fail,
   ...
 )
 
@@ -58,9 +65,14 @@
   object,
   newdata,
   se.fit = FALSE,
+  scale = NULL,
+  df = Inf,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
+  type = c("response", "terms"),
   local,
+  terms = NULL,
+  na.action = na.fail,
   ...
 )
 
@@ -84,6 +96,7 @@
   local,
   var_correct = TRUE,
   newdata_size,
+  na.action = na.fail,
   ...
 )
 
@@ -99,32 +112,39 @@
   local,
   var_correct = TRUE,
   newdata_size,
+  na.action = na.fail,
   ...
 )
 
 \method{predict}{spglm_list}(
   object,
   newdata,
-  type = c("link", "response"),
+  type = c("link", "response", "terms"),
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
-  newdata_size,
   level = 0.95,
+  dispersion = NULL,
+  terms = NULL,
   local,
   var_correct = TRUE,
+  newdata_size,
+  na.action = na.fail,
   ...
 )
 
 \method{predict}{spgautor_list}(
   object,
   newdata,
-  type = c("link", "response"),
+  type = c("link", "response", "terms"),
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
-  newdata_size,
   level = 0.95,
+  dispersion = NULL,
+  terms = NULL,
   local,
   var_correct = TRUE,
+  newdata_size,
+  na.action = na.fail,
   ...
 )
 }
@@ -153,7 +173,13 @@ the regular standard errors and intervals.}
 
 \item{interval}{Type of interval calculation. The default is \code{"none"}.
 Other options are \code{"confidence"} (for confidence intervals) and
-\code{"prediction"} (for prediction intervals).}
+\code{"prediction"} (for prediction intervals). When \code{interval}
+is \code{"none"} or \code{"prediction"}, predictions are returned (and when
+requested, their corresponding uncertainties). When \code{interval}
+is \code{"confidence"}, mean estimates are returned (and when
+requested, their corresponding uncertainties). This \code{"none"} behavior
+differs from that of \code{lm()}, as \code{lm()} returns confidence
+uncertainties (in \code{.$se.fit}).}
 
 \item{level}{Tolerance/confidence level. The default is \code{0.95}.}
 
@@ -201,6 +227,9 @@ that \code{local} is transformed into
 
 \item{terms}{If \code{type} is \code{"terms"}, the type of terms to be returned,
 specified via either numeric position or name. The default is all terms are included.}
+
+\item{na.action}{Missing (\code{NA}) values in \code{newdata} will return an error and should
+be removed before proceeding.}
 
 \item{...}{Other arguments. Only used for models fit using \code{splmRF()}
 or \code{spautorRF()} where \code{...} indicates other

@@ -33,6 +33,10 @@ get_initial_range.circular <- function(spcov_type, max_halfdist, ...) {
 get_initial_range.none <- function(spcov_type, max_halfdist, ...) {
   Inf
 }
+
+#' @export
+get_initial_range.ie <- get_initial_range.none
+
 #' @export
 get_initial_range.cubic <- function(spcov_type, max_halfdist, ...) {
   max_halfdist

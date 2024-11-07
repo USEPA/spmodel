@@ -1248,7 +1248,7 @@ the extra parameter is denoted as <span class="math inline">\(\xi\)</span> (when
 <caption>The forms of R for each spatial covariance type available in
 splm(). All spatial covariance functions are valid in two dimensions
 except the triangular and cosine functions, which are only valid in one
-dimension.</caption>
+dimension. An alias for none is ie.</caption>
 <colgroup>
 <col width="56%">
 <col width="43%">
@@ -1343,6 +1343,10 @@ Bessel-K with order <span class="math inline">\(\xi\)</span>, <span class="math 
 </tr>
 <tr class="odd">
 <td><span class="math inline">\(\texttt{"none"}\)</span></td>
+<td><span class="math inline">\(0\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\texttt{"ie"}\)</span></td>
 <td><span class="math inline">\(0\)</span></td>
 </tr>
 </tbody>
@@ -2756,7 +2760,9 @@ as covariance functions for <code><a href="../reference/spautor.html">spautor()<
 <code>spglm()</code> Spatial Covariance Functions<a class="anchor" aria-label="anchor" href="#sec:spglm-glm"></a>
 </h4>
 <p>Covariance functions for <code><a href="../reference/spglm.html">spglm()</a></code> are defined the same as
-covariance functions for <code><a href="../reference/splm.html">splm()</a></code>.</p>
+covariance functions for <code><a href="../reference/splm.html">splm()</a></code> except that for
+<code>"none"</code>, the <code>ie</code> parameter is also set to zero
+(analogous to <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> models).</p>
 </div>
 <div class="section level4">
 <h4 id="sec:estimation-glm">Model-fitting<a class="anchor" aria-label="anchor" href="#sec:estimation-glm"></a>
@@ -3471,11 +3477,13 @@ Specifically, for spatial linear models, <span class="math inline">\(\sigma^2_{i
 \sigma^2_{de}/10^4)\)</span>, where <span class="math inline">\(\sigma^2_{ie, up}\)</span> denotes an “updated”
 version of <span class="math inline">\(\sigma^2_{ie}\)</span>. For
 spatial generalized linear models, <span class="math inline">\(\sigma^2_{ie, up} = \text{max}(\sigma^2_{ie},
-\sigma^2_{de}/10^4, d)\)</span>, where <span class="math inline">\(d =
-\text{max}(1/10^4, s^2/10^4)\)</span>, where <span class="math inline">\(s^2\)</span> is the sample variance of a linear
-regression of <span class="math inline">\(\ln(\mathbf{y} + 1)\)</span>
-on <span class="math inline">\(\mathbf{X}\)</span>. This value of <span class="math inline">\(\sigma^2_{ie, up}\)</span> is also added to the
-diagonal of <span class="math inline">\(\mathbf{X}^\top
+\sigma^2_{de}/10^4, d)\)</span>, where d = <span class="math inline">\(1/10^4\)</span>. Previously (<code>spmodel</code>
+v<span class="math inline">\(\le 0.8.0\)</span>), <span class="math inline">\(d = \text{min}(1/10^4, s^2/10^4)\)</span>, where
+<span class="math inline">\(s^2\)</span> is the sample variance of a
+linear regression of <span class="math inline">\(\ln(\mathbf{y} +
+1)\)</span> on <span class="math inline">\(\mathbf{X}\)</span>. This
+value of <span class="math inline">\(\sigma^2_{ie, up}\)</span> is also
+added to the diagonal of <span class="math inline">\(\mathbf{X}^\top
 \boldsymbol{\Sigma}^{-1} \mathbf{X} + \mathbf{X}^\top
 \boldsymbol{\Sigma}^{-1} (\mathbf{D} - \boldsymbol{\Sigma}^{-1})^{-1}
 \boldsymbol{\Sigma}^{-1} \mathbf{X}\)</span>, used via the

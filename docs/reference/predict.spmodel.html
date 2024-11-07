@@ -87,6 +87,7 @@
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"response"</span>, <span class="st">"terms"</span><span class="op">)</span>,</span>
 <span>  <span class="va">local</span>,</span>
 <span>  terms <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  na.action <span class="op">=</span> <span class="va">na.fail</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -102,6 +103,7 @@
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"response"</span>, <span class="st">"terms"</span><span class="op">)</span>,</span>
 <span>  <span class="va">local</span>,</span>
 <span>  terms <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  na.action <span class="op">=</span> <span class="va">na.fail</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -110,9 +112,14 @@
 <span>  <span class="va">object</span>,</span>
 <span>  <span class="va">newdata</span>,</span>
 <span>  se.fit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  df <span class="op">=</span> <span class="cn">Inf</span>,</span>
 <span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"response"</span>, <span class="st">"terms"</span><span class="op">)</span>,</span>
 <span>  <span class="va">local</span>,</span>
+<span>  terms <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  na.action <span class="op">=</span> <span class="va">na.fail</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -121,9 +128,14 @@
 <span>  <span class="va">object</span>,</span>
 <span>  <span class="va">newdata</span>,</span>
 <span>  se.fit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  df <span class="op">=</span> <span class="cn">Inf</span>,</span>
 <span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"response"</span>, <span class="st">"terms"</span><span class="op">)</span>,</span>
 <span>  <span class="va">local</span>,</span>
+<span>  terms <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  na.action <span class="op">=</span> <span class="va">na.fail</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -152,6 +164,7 @@
 <span>  <span class="va">local</span>,</span>
 <span>  var_correct <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">newdata_size</span>,</span>
+<span>  na.action <span class="op">=</span> <span class="va">na.fail</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -168,6 +181,7 @@
 <span>  <span class="va">local</span>,</span>
 <span>  var_correct <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">newdata_size</span>,</span>
+<span>  na.action <span class="op">=</span> <span class="va">na.fail</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -175,13 +189,16 @@
 <span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span></span>
 <span>  <span class="va">object</span>,</span>
 <span>  <span class="va">newdata</span>,</span>
-<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"link"</span>, <span class="st">"response"</span><span class="op">)</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"link"</span>, <span class="st">"response"</span>, <span class="st">"terms"</span><span class="op">)</span>,</span>
 <span>  se.fit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
-<span>  <span class="va">newdata_size</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  dispersion <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  terms <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">local</span>,</span>
 <span>  var_correct <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">newdata_size</span>,</span>
+<span>  na.action <span class="op">=</span> <span class="va">na.fail</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -189,13 +206,16 @@
 <span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span></span>
 <span>  <span class="va">object</span>,</span>
 <span>  <span class="va">newdata</span>,</span>
-<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"link"</span>, <span class="st">"response"</span><span class="op">)</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"link"</span>, <span class="st">"response"</span>, <span class="st">"terms"</span><span class="op">)</span>,</span>
 <span>  se.fit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
-<span>  <span class="va">newdata_size</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  dispersion <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  terms <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">local</span>,</span>
 <span>  var_correct <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">newdata_size</span>,</span>
+<span>  na.action <span class="op">=</span> <span class="va">na.fail</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -237,7 +257,13 @@ the regular standard errors and intervals.</p></dd>
 <dt>interval</dt>
 <dd><p>Type of interval calculation. The default is <code>"none"</code>.
 Other options are <code>"confidence"</code> (for confidence intervals) and
-<code>"prediction"</code> (for prediction intervals).</p></dd>
+<code>"prediction"</code> (for prediction intervals). When <code>interval</code>
+is <code>"none"</code> or <code>"prediction"</code>, predictions are returned (and when
+requested, their corresponding uncertainties). When <code>interval</code>
+is <code>"confidence"</code>, mean estimates are returned (and when
+requested, their corresponding uncertainties). This <code>"none"</code> behavior
+differs from that of <code><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm()</a></code>, as <code><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm()</a></code> returns confidence
+uncertainties (in <code>.$se.fit</code>).</p></dd>
 
 
 <dt>level</dt>
@@ -290,6 +316,11 @@ that <code>local</code> is transformed into
 <dt>terms</dt>
 <dd><p>If <code>type</code> is <code>"terms"</code>, the type of terms to be returned,
 specified via either numeric position or name. The default is all terms are included.</p></dd>
+
+
+<dt>na.action</dt>
+<dd><p>Missing (<code>NA</code>) values in <code>newdata</code> will return an error and should
+be removed before proceeding.</p></dd>
 
 
 <dt>...</dt>

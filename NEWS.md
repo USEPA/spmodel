@@ -1,3 +1,9 @@
+# spmodel 0.10.0
+
+## Minor updates
+
+* Added `"none"` and `"ie"` spatial covariance types (via `spcov_type` or `spcov_initial`) to `spautor()`, `spgautor()`, and `spautorRF()` ([#27](https://github.com/USEPA/spmodel/issues/27)).
+
 # spmodel 0.9.0
 
 ## Major Updates

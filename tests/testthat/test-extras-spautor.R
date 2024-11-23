@@ -660,4 +660,28 @@ if (test_local) {
     expect_error(covmatrix(spmod, newdata = spmod$newdata, cov_type = "xyz"))
   })
 
+  test_that("spcov_type none and ie work properly", {
+    spcov_type <- "none"
+    spmod <- spautor(y ~ x * group, exdata_Mpoly, spcov_type = spcov_type, estmethod = "reml")
+    expect_true(inherits(spmod, "splm"))
+    spmod_lm <- splm(y ~ x * group, exdata_Mpoly, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(spmod, spmod_lm)
+    spcov_type <- "ie"
+    spmod <- spautor(y ~ x * group, exdata_Upoly, spcov_type = spcov_type, estmethod = "reml")
+    expect_true(inherits(spmod, "splm"))
+    spmod_lm <- splm(y ~ x * group, exdata_Upoly, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(spmod, spmod_lm)
+    spmod <- spautor(y ~ x * group, exdata_poly, spcov_type = c("none", "ie", "car", "sar"), estmethod = "reml")
+    expect_true(inherits(spmod, "spautor_list"))
+    expect_true(inherits(spmod$none, "splm"))
+    expect_true(inherits(coef(spmod$none, type = "spcov"), "none"))
+    expect_true(inherits(spmod$ie, "splm"))
+    expect_true(inherits(coef(spmod$ie, type = "spcov"), "ie"))
+    expect_true(inherits(spmod$car, "spautor"))
+    expect_true(inherits(coef(spmod$car, type = "spcov"), "car"))
+    expect_true(inherits(spmod$sar, "spautor"))
+    expect_true(inherits(coef(spmod$sar, type = "spcov"), "sar"))
+    expect_error(glances(spmod), NA)
+  })
+
 }

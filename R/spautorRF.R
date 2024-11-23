@@ -116,10 +116,14 @@ spautorRF <- function(formula, data, ...) {
     data <- data[order(c(which(!na_index), which(na_index))), , drop = FALSE]
     # perform splm
     spautor_out <- do.call(spmodel::spautor, c(list(formula = .ranger_resid ~ 1, data = data), spautor_args), envir = penv)
-    if (inherits(spautor_out, "spautor")) {
+    if (inherits(spautor_out, c("spautor"))) {
       spautor_out$call <- NA
       # output list with names and class
       sprf_out <- structure(list(call = match.call(), ranger = ranger_out, spautor = spautor_out, newdata = newdata), class = "spautorRF")
+    } else if (inherits(spautor_out, c("splm"))) { # splm for none and ie covariance
+      spautor_out$call <- NA
+      # output list with names and class
+      sprf_out <- structure(list(call = match.call(), ranger = ranger_out, spautor = spautor_out, newdata = newdata), class = "splmRF")
     } else {
       spautor_out <- lapply(spautor_out, function(x) {
         x$call <- NA

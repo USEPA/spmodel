@@ -164,4 +164,29 @@ if (test_local) {
     expect_error(spgautor(abs(y) ~ x, family = "Gamma", exdata_sf, spcov_type = spcov_type, cutoff = NULL)) # can't be NULL
     expect_error(spgautor(abs(y) ~ x, family = Gamma, exdata_sf, spcov_type = spcov_type, cutoff = 1e-8)) # too small of distance so no neighbors
   })
+
+  test_that("spcov_type none and ie work properly", {
+    spcov_type <- "none"
+    spgmod <- spgautor(bern ~ x * group, family = "binomial", exdata_poly, spcov_type = spcov_type, estmethod = "reml")
+    expect_true(inherits(spgmod, "spglm"))
+    spgmod_lm <- spglm(bern ~ x * group, family = "binomial", exdata_poly, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(spgmod, spgmod_lm)
+    spcov_type <- "ie"
+    spgmod <- spgautor(bern ~ x * group, family = binomial, exdata_poly, spcov_type = spcov_type, estmethod = "reml")
+    expect_true(inherits(spgmod, "spglm"))
+    spgmod_lm <- spglm(bern ~ x * group, family = binomial, exdata_poly, spcov_type = spcov_type, estmethod = "reml")
+    expect_equal(spgmod, spgmod_lm)
+    spgmod <- spgautor(bern ~ x * group, family = "binomial", exdata_poly, spcov_type = c("none", "ie", "car", "sar"), estmethod = "reml")
+    expect_true(inherits(spgmod, "spgautor_list"))
+    expect_true(inherits(spgmod$none, "spglm"))
+    expect_true(inherits(coef(spgmod$none, type = "spcov"), "none"))
+    expect_true(inherits(spgmod$ie, "spglm"))
+    expect_true(inherits(coef(spgmod$ie, type = "spcov"), "ie"))
+    expect_true(inherits(spgmod$car, "spgautor"))
+    expect_true(inherits(coef(spgmod$car, type = "spcov"), "car"))
+    expect_true(inherits(spgmod$sar, "spgautor"))
+    expect_true(inherits(coef(spgmod$sar, type = "spcov"), "sar"))
+    expect_error(glances(spgmod), NA)
+  })
+
 }

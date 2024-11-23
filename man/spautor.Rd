@@ -31,14 +31,15 @@ the variables in \code{fixed}, \code{random}, and \code{partition_factor},
 as well as potentially geographical information.}
 
 \item{spcov_type}{The spatial covariance type. Available options include
-\code{"car"} and \code{"sar"}. Parameterizations of each spatial covariance type are
+\code{"car"}, \code{"sar"}, and \code{"none"}. Parameterizations of each spatial covariance type are
 available in Details. When \code{spcov_type} is specified, relevant spatial
 covariance parameters are assumed unknown, requiring estimation.
 \code{spcov_type} is not required (and is
 ignored) if \code{spcov_initial} is provided.  Multiple values can be
 provided in a character vector. Then \code{spautor()} is called iteratively
 for each element and a list is returned for each model fit.
-The default for \code{spcov_type} is \code{"car"}.}
+The default for \code{spcov_type} is \code{"car"}. When \code{spcov_type}
+is \code{"none"}, \code{\link[=splm]{splm()}} is called.}
 
 \item{spcov_initial}{An object from \code{\link[=spcov_initial]{spcov_initial()}} specifying initial and/or
 known values for the spatial covariance parameters.
@@ -145,6 +146,7 @@ eigenvalue of \code{W} and the reciprocal of the minimum eigenvalue of
 symmetry condition matrix \eqn{M}
 \item sar: \eqn{[(I - range * W)(I - range * W)^T]^{-1}},
 weights matrix \eqn{W}, \eqn{^T} indicates matrix transpose
+\item none: \eqn{0}
 }
 If there are observations with no neighbors, they are given a unique variance
 parameter called \code{extra}, which must be non-negative.

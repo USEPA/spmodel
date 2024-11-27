@@ -27,7 +27,7 @@
 #'   For [splm()] and [spglm()] fitted model objects, there are two additional values of \code{which}:
 #'   \itemize{
 #'     \item 7: Fitted spatial covariance function vs distance
-#'     \item 8: Fitted anisotropic level curve of equal correlation
+#'     \item 8: Fitted anisotropic (or isotropic) level curve of equal correlation
 #'   }
 #'
 #' @return No return value. Function called for plotting side effects.
@@ -195,17 +195,23 @@ plot.splm <- function(x, which, ...) {
       x_new <- x_orig
       y_new <- y_orig
     }
+    if (x$anisotropy) {
+      main_new <- "Anisotropic level curve"
+    } else {
+      main_new <- "Isotropic level curve"
+    }
     plot(
       x = x_new,
       y = y_new,
       xlab = "x-distance",
       ylab = "y-distance",
-      main = "Anisotropic level curve", # of equal correlation
+      main =  main_new,
       type = "l",
       xlim = c(-1, 1),
       ylim = c(-1, 1),
       xaxt = "n", # remove axis information
       yaxt = "n", # remove axis information
+      asp = 1, # set equal aspect ratio
       ...
     )
     title(sub = sub.caption)

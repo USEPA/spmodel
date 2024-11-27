@@ -51,7 +51,7 @@ corresponding plot:
 For \code{\link[=splm]{splm()}} and \code{\link[=spglm]{spglm()}} fitted model objects, there are two additional values of \code{which}:
 \itemize{
 \item 7: Fitted spatial covariance function vs distance
-\item 8: Fitted anisotropic level curve of equal correlation
+\item 8: Fitted anisotropic (or isotropic) level curve of equal correlation
 }
 }
 \examples{

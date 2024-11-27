@@ -3,6 +3,8 @@
 ## Minor updates
 
 * Added `"none"` and `"ie"` spatial covariance types (via `spcov_type` or `spcov_initial`) to `spautor()`, `spgautor()`, and `spautorRF()` ([#27](https://github.com/USEPA/spmodel/issues/27)).
+* Fixed the aspect ratio at one for level curve plots of fitted model objects (anisotropic and isotropic).
+* Changed the title for level curve plots of fitted model objects from "Anisotropic level curve" to "Isotropic level curve" when the model is isotropic.
 
 # spmodel 0.9.0
 

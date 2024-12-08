@@ -11,6 +11,7 @@ esv(
   xcoord,
   ycoord,
   cloud = FALSE,
+  robust = FALSE,
   bins = 15,
   cutoff,
   dist_matrix,
@@ -36,6 +37,9 @@ be summarized by distance class or not. When \code{cloud = FALSE} (the default),
 are binned and averaged within distance classes. When \code{cloud} = TRUE,
 all pairwise semivariances and distances are returned (this is known as
 the "cloud" semivariogram).}
+
+\item{robust}{A logical indicating whether the robust semivariogram
+(Cressie and Hawkins, 1980) is used. The default is \code{FALSE}.}
 
 \item{bins}{The number of equally spaced bins. The default is 15. Ignored if
 \code{cloud = TRUE}.}
@@ -77,7 +81,8 @@ At a distance \code{h}, the empirical semivariance is
 \eqn{1/N(h) \sum (r1 - r2)^2}, where \eqn{N(h)} is the number of (unique)
 pairs in the set of observations whose distance separation is \code{h} and
 \code{r1} and \code{r2} are residuals corresponding to observations whose
-distance separation is \code{h}. In spmodel, these distance bins actually
+distance separation is \code{h}. The robust version is described by
+Cressie and Hawkins (1980). In spmodel, these distance bins actually
 contain observations whose distance separation is \code{h +- c},
 where \code{c} is a constant determined implicitly by \code{bins}. Typically,
 only observations whose distance separation is below some cutoff are used
@@ -90,4 +95,9 @@ covariance parameters.
 \examples{
 esv(sulfate ~ 1, sulfate)
 plot(esv(sulfate ~ 1, sulfate))
+}
+\references{
+Cressie, N & Hawkins, D.M. 1980. Robust estimation of the variogram.
+\emph{Journal of the International Association for Mathematical Geology},
+\strong{12}, 115-125.
 }

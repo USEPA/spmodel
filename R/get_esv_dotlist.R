@@ -17,8 +17,13 @@ get_esv_dotlist <- function(..., max_halfdist) {
   if (!("cutoff" %in% names(dotlist))) {
     dotlist$cutoff <- max_halfdist
   }
+
+  if (!("robust" %in% names(dotlist))) {
+    dotlist$robust <- FALSE
+  }
+
   # make dotlist esv
-  dotlist_esv <- list(bins = dotlist$bins, cutoff = dotlist$cutoff)
+  dotlist_esv <- list(robust = dotlist$robust, bins = dotlist$bins, cutoff = dotlist$cutoff)
 }
 
 

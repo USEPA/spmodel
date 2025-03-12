@@ -20,7 +20,7 @@ partition factors, and row standardization."><meta property="og:image" content="
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.10.0</span>
       </span>
     </div>
 
@@ -127,14 +127,15 @@ as well as potentially geographical information.</p></dd>
 
 <dt>spcov_type</dt>
 <dd><p>The spatial covariance type. Available options include
-<code>"car"</code> and <code>"sar"</code>. Parameterizations of each spatial covariance type are
+<code>"car"</code>, <code>"sar"</code>, <code>"none"</code>, and <code>"ie"</code>. Parameterizations of each spatial covariance type are
 available in Details. When <code>spcov_type</code> is specified, relevant spatial
 covariance parameters are assumed unknown, requiring estimation.
 <code>spcov_type</code> is not required (and is
 ignored) if <code>spcov_initial</code> is provided.  Multiple values can be
 provided in a character vector. Then <code>spgautor()</code> is called iteratively
 for each element and a list is returned for each model fit.
-The default for <code>spcov_type</code> is <code>"car"</code>.</p></dd>
+The default for <code>spcov_type</code> is <code>"car"</code>. When <code>spcov_type</code>
+is <code>"none"</code> or <code>"ie"</code>, <code><a href="splm.html">splm()</a></code> is called.</p></dd>
 
 
 <dt>spcov_initial</dt>
@@ -317,6 +318,8 @@ not the inverse link (response) scale. Random effects are also modeled on the li
 symmetry condition matrix \(M\)</p></li>
 <li><p>sar: \([(I - range * W)(I - range * W)^T]^{-1}\),
 weights matrix \(W\), \(^T\) indicates matrix transpose</p></li>
+<li><p>none: \(0\)</p></li>
+<li><p>ie: \(0\) (see <code><a href="spglm.html">spglm()</a></code> for differences compared to none)</p></li>
 </ul><p>If there are observations with no neighbors, they are given a unique variance
 parameter called <code>extra</code>, which must be non-negative.</p>
 <p><code>estmethod</code> Details: The various estimation methods are</p><ul><li><p><code>reml</code>: Maximize the restricted log-likelihood.</p></li>

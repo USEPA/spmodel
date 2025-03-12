@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.10.0</span>
       </span>
     </div>
 
@@ -69,6 +69,16 @@
       <small>Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="0.10.0" id="spmodel-0100">spmodel 0.10.0<a class="anchor" aria-label="anchor" href="#spmodel-0100"></a></h2>
+<div class="section level3">
+<h3 id="minor-updates-0-10-0">Minor updates<a class="anchor" aria-label="anchor" href="#minor-updates-0-10-0"></a></h3>
+<ul><li>Added a robust semivariogram option to <code><a href="../reference/esv.html">esv()</a></code>; see the <code>robust</code>argument to <code><a href="../reference/esv.html">esv()</a></code> (<a href="https://github.com/USEPA/spmodel/issues/28" class="external-link">#28</a>).</li>
+<li>Added <code>"none"</code> and <code>"ie"</code> spatial covariance types (via <code>spcov_type</code> or <code>spcov_initial</code>) to <code><a href="../reference/spautor.html">spautor()</a></code>, <code><a href="../reference/spgautor.html">spgautor()</a></code>, and <code><a href="../reference/spautorRF.html">spautorRF()</a></code> (<a href="https://github.com/USEPA/spmodel/issues/27" class="external-link">#27</a>).</li>
+<li>Fixed the aspect ratio at one for level curve plots of fitted model objects (anisotropic and isotropic).</li>
+<li>Changed the title for level curve plots of fitted model objects from “Anisotropic level curve” to “Isotropic level curve” when the model is isotropic.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.9.0" id="spmodel-090">spmodel 0.9.0<small>2024-11-06</small><a class="anchor" aria-label="anchor" href="#spmodel-090"></a></h2>
 <div class="section level3">

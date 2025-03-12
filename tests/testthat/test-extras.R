@@ -468,6 +468,20 @@ if (test_local) {
     expect_equal(NROW(esv1_q), 15)
     expect_equal(NCOL(esv1_q), 4)
 
+    # robust version implementation
+    esv1r <- esv(y ~ x, exdata, xcoord, ycoord, robust = TRUE)
+    expect_s3_class(esv1r, "esv")
+    expect_s3_class(esv1r, "tbl_df")
+    expect_s3_class(esv1r, "tbl")
+    expect_s3_class(esv1r, "data.frame")
+    expect_equal(NROW(esv1r), 15)
+    expect_equal(NCOL(esv1r), 4)
+    expect_true(!identical(esv1, esv1r))
+    expect_true(identical(esv1$bins, esv1r$bins))
+    expect_true(identical(esv1$dist, esv1r$dist))
+    expect_true(!identical(esv1$gamma, esv1r$gamma))
+    expect_true(identical(esv1$np, esv1r$np))
+
     # quoting works (need to NULL out call attribute as that is different)
     esv1_cn <- esv1
     attr(esv1_cn, "call") <- NULL

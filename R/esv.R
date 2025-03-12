@@ -15,11 +15,13 @@
 #'   are binned and averaged within distance classes. When \code{cloud} = TRUE,
 #'   all pairwise semivariances and distances are returned (this is known as
 #'   the "cloud" semivariogram).
-#' @param dist_matrix A distance matrix to be used instead of providing coordinate names.
+#' @param robust A logical indicating whether the robust semivariogram
+#' (Cressie and Hawkins, 1980) is used. The default is \code{FALSE}.
 #' @param bins The number of equally spaced bins. The default is 15. Ignored if
 #'   \code{cloud = TRUE}.
 #' @param cutoff The maximum distance considered.
 #'   The default is half the diagonal of the bounding box from the coordinates.
+#' @param dist_matrix A distance matrix to be used instead of providing coordinate names.
 #' @param partition_factor An optional formula specifying the partition factor.
 #'   If specified, semivariances are only computed for observations sharing the
 #'   same level of the partition factor.
@@ -36,7 +38,8 @@
 #'   \eqn{1/N(h) \sum (r1 - r2)^2}, where \eqn{N(h)} is the number of (unique)
 #'   pairs in the set of observations whose distance separation is \code{h} and
 #'   \code{r1} and \code{r2} are residuals corresponding to observations whose
-#'   distance separation is \code{h}. In spmodel, these distance bins actually
+#'   distance separation is \code{h}. The robust version is described by
+#'   Cressie and Hawkins (1980). In spmodel, these distance bins actually
 #'   contain observations whose distance separation is \code{h +- c},
 #'   where \code{c} is a constant determined implicitly by \code{bins}. Typically,
 #'   only observations whose distance separation is below some cutoff are used
@@ -59,7 +62,10 @@
 #' @examples
 #' esv(sulfate ~ 1, sulfate)
 #' plot(esv(sulfate ~ 1, sulfate))
-esv <- function(formula, data, xcoord, ycoord, cloud = FALSE, bins = 15, cutoff, dist_matrix, partition_factor) {
+#' @references Cressie, N & Hawkins, D.M. 1980. Robust estimation of the variogram.
+#' \emph{Journal of the International Association for Mathematical Geology},
+#' \strong{12}, 115-125.
+esv <- function(formula, data, xcoord, ycoord, cloud = FALSE, robust = FALSE, bins = 15, cutoff, dist_matrix, partition_factor) {
 
   # filter out missing response values
   na_index <- is.na(data[[all.vars(formula)[1]]])
@@ -166,8 +172,15 @@ esv <- function(formula, data, xcoord, ycoord, cloud = FALSE, bins = 15, cutoff,
   if (cloud) {
     esv_out <- get_esv_cloud(residual_vector2, dist_vector, formula)
   } else {
-    esv_out <- get_esv(residual_vector2, dist_vector, bins, cutoff)
+    if (robust) {
+      residual_vector12 <- sqrt(residual_vector)
+      esv_out <- get_esv_robust(residual_vector12, dist_vector, bins, cutoff)
+    } else {
+      esv_out <- get_esv(residual_vector2, dist_vector, bins, cutoff)
+    }
   }
+
+
 
   # remove NA
   # esv_out <- na.omit(esv_out)

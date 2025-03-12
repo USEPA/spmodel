@@ -17,8 +17,8 @@ if (test_local) {
 
     test_that("the model runs", {
       spcov_type <- "car"
-      expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type), NA)
-      expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type, estmethod = "ml"), NA)
+      expect_true(inherits(spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type), "spautorRF"))
+      expect_true(inherits(spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type, estmethod = "ml"), "spautorRF"))
     })
 
     if (test_local) {
@@ -43,6 +43,16 @@ if (test_local) {
         expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_initial = spcov_initial_val), NA)
         expect_error(spautorRF(y ~ x, exdata_Mpoly, spcov_initial = spcov_initial_val, estmethod = "ml"), NA)
       })
+
+      test_that("the model runs none ie", {
+        spcov_type <- "none"
+        expect_true(inherits(spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type), "splmRF"))
+        expect_true(inherits(spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type, estmethod = "ml"), "splmRF"))
+        spcov_type <- "ie"
+        expect_true(inherits(spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type), "splmRF"))
+        expect_true(inherits(spautorRF(y ~ x, exdata_Mpoly, spcov_type = spcov_type, estmethod = "ml"), "splmRF"))
+      })
+
     }
   }
 }

@@ -1088,4 +1088,13 @@ if (test_local) {
     expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", range_constrain = TRUE), NA)
     expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", range_constrain = TRUE), NA)
   })
+
+  test_that("robust semivariogram works", {
+    spcov_type <- "exponential"
+    spmod1 <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-wls")
+    spmod2 <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-wls", robust = FALSE)
+    spmod3 <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "sv-wls", robust = TRUE)
+    expect_true(identical(spmod1$esv, spmod2$esv))
+    expect_true(!identical(spmod1$esv, spmod3$esv))
+  })
 }

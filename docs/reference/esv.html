@@ -18,7 +18,7 @@ cutoff values."><meta property="og:image" content="https://usepa.github.io/spmod
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.10.0</span>
       </span>
     </div>
 
@@ -83,6 +83,7 @@ cutoff values.</p>
 <span>  <span class="va">xcoord</span>,</span>
 <span>  <span class="va">ycoord</span>,</span>
 <span>  cloud <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  robust <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  bins <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>  <span class="va">cutoff</span>,</span>
 <span>  <span class="va">dist_matrix</span>,</span>
@@ -120,6 +121,11 @@ be summarized by distance class or not. When <code>cloud = FALSE</code> (the def
 are binned and averaged within distance classes. When <code>cloud</code> = TRUE,
 all pairwise semivariances and distances are returned (this is known as
 the "cloud" semivariogram).</p></dd>
+
+
+<dt>robust</dt>
+<dd><p>A logical indicating whether the robust semivariogram
+(Cressie and Hawkins, 1980) is used. The default is <code>FALSE</code>.</p></dd>
 
 
 <dt>bins</dt>
@@ -174,7 +180,8 @@ At a distance <code>h</code>, the empirical semivariance is
 \(1/N(h) \sum (r1 - r2)^2\), where \(N(h)\) is the number of (unique)
 pairs in the set of observations whose distance separation is <code>h</code> and
 <code>r1</code> and <code>r2</code> are residuals corresponding to observations whose
-distance separation is <code>h</code>. In spmodel, these distance bins actually
+distance separation is <code>h</code>. The robust version is described by
+Cressie and Hawkins (1980). In spmodel, these distance bins actually
 contain observations whose distance separation is <code>h +- c</code>,
 where <code>c</code> is a constant determined implicitly by <code>bins</code>. Typically,
 only observations whose distance separation is below some cutoff are used
@@ -182,6 +189,12 @@ to compute the empirical semivariogram (this cutoff is determined by <code>cutof
 <p>When using <code><a href="splm.html">splm()</a></code> with <code>estmethod</code> as <code>"sv-wls"</code>, the empirical
 semivariogram is calculated internally and used to estimate spatial
 covariance parameters.</p>
+    </div>
+    <div id="references">
+    <h2>References</h2>
+    <p>Cressie, N &amp; Hawkins, D.M. 1980. Robust estimation of the variogram.
+<em>Journal of the International Association for Mathematical Geology</em>,
+<strong>12</strong>, 115-125.</p>
     </div>
 
     <div id="ref-examples">

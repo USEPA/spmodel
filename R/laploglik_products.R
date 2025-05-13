@@ -229,6 +229,7 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
       # Next, compute H
       D <- get_D(family, w, y, size, dispersion)
       H <- D - Ptheta # not PD but -H is
+      # can consider changing tol here for numeric stability
       solveHg <- solve(H, g)
       wnew <- w - solveHg
       # mH_upchol <- chol(Matrix::forceSymmetric(-H))
@@ -342,6 +343,7 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
     # Next, compute H
     D <- get_D(family, w, y, size, dispersion)
     H <- D - Ptheta # not PD but -H is
+    # can consider changing tol here for numeric stability
     solveHg <- solve(H, g)
     wnew <- w - solveHg
     # mH_upchol <- chol(Matrix::forceSymmetric(-H))

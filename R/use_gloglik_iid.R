@@ -22,12 +22,12 @@ use_gloglik_iid <- function(spcov_initial, estmethod, data_object, dist_matrix_l
 
   lmod <- lm(data_object$formula, data = data_object$obdata)
   sse <- sum(residuals(lmod)^2)
-  RX <- crossprod(X, X)
+  Xt_X <- crossprod(X, X)
 
   l1 <- 0 # sum of the logs of the identity (all ones)
   l2 <- sse
   # l3 <- 2 * sum(log(diag(abs(R))))
-  l3 <- sum(log(diag(abs(RX))))
+  l3 <- 2 * sum(log(diag(chol(Xt_X))))
 
   if (estmethod == "reml") {
     minustwologlik <- as.numeric(l1 + (data_object$n - data_object$p) * log(l2) + l3 + (data_object$n - data_object$p) * (1 + log(2 * pi / (data_object$n - data_object$p))))

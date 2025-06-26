@@ -122,7 +122,8 @@
 #' predict(spmod, sulfate_preds, interval = "prediction")
 #' augment(spmod, newdata = sulfate_preds, interval = "prediction")
 predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf, interval = c("none", "confidence", "prediction"),
-                         level = 0.95, type = c("response", "terms"), local, terms = NULL, na.action = na.fail, ...) {
+                         level = 0.95, type = c("response", "terms"), local, terms = NULL, na.action = na.fail, block = FALSE, ...) {
+
 
   # match interval argument so the three display
   interval <- match.arg(interval)
@@ -131,6 +132,11 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
   # deal with local
   if (missing(local)) {
     local <- NULL
+  }
+
+  if (block) {
+    object <- predict_block_splm(object, newdata, se.fit, scale, df, interval, level, type, local, terms, na.action, ...)
+    return(object)
   }
 
   # check scale is numeric (if specified)

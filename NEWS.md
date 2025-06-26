@@ -1,3 +1,9 @@
+# spmodel 0.11.0
+
+## Bug Fixes
+
+* Fixed a bug that incorrectly calculated the log determinant of the fixed effects in the restricted log likelihood.
+
 # spmodel 0.10.0
 
 ## Minor updates

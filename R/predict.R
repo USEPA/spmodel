@@ -69,6 +69,16 @@
 #'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 #'   that \code{local} is transformed into
 #'   \code{list(size = 100, method = "covariance", parallel = FALSE)}.
+#'
+#'   If \code{block} is \code{TRUE}, \code{local} accepts \code{method} and \code{size},
+#'   and \code{method} takes values of \code{"all"}, \code{"covariance"},
+#'   and \code{"distance"}, similar as when \code{block} is \code{FALSE}.
+#'   The default \code{method} is \code{"distance"} with size \code{1000}. This default \code{size} is
+#'   much larger than when \code{block} is \code{FALSE}. This is because when \code{block} is \code{TRUE},
+#'   covariances and explanatory variables are averaged before prediction, which greatly
+#'   reduces computational burden, only requiring the Cholesky decomposition
+#'   of one observed covariance matrix. Because the computational burden is reduced dramatically when \code{block} is \code{TRUE},
+#'   parallel processing is not needed and hence, \code{parallel} and \code{ncores} are ignored if specified in \code{local}.
 #' @param terms If \code{type} is \code{"terms"}, the type of terms to be returned,
 #'   specified via either numeric position or name. The default is all terms are included.
 #' @param na.action Missing (\code{NA}) values in \code{newdata} will return an error and should

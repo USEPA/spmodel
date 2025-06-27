@@ -151,8 +151,10 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
     } else {
       n <- length(c0)
       if (local$method == "distance") {
-        # index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
-        index <- order(as.numeric(c0))[seq(from = n, to = max(1, n - local$size + 1))] # covariance method for now
+        dist_vector <- spdist_vectors(newdata, obdata, xcoord, ycoord, object$dim_coords)
+        dist_vector <- colMeans(dist_vector)
+        index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
+        # index <- order(as.numeric(c0))[seq(from = n, to = max(1, n - local$size + 1))] # covariance method for now
       } else if (local$method == "covariance") {
         index <- order(as.numeric(c0))[seq(from = n, to = max(1, n - local$size + 1))]
       }

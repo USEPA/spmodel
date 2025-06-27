@@ -83,7 +83,7 @@ The sulfate concentrations in the western part of the Four Corners region (UT, A
 
 Recall that our goal is to predict the mean sulfate concentration in the entire region. Block Prediction works (in practice) by first generating a dense grid of prediction locations that cover the entire geographic region of interest (here, the Four Corners). We create this grid and turn the dense grid (of 4,000 points) into an `sf` object by running:
 ```{r}
-grid_size <- 4000
+grid_size <- 5000
 fc_grid <- st_sample(fc_borders, grid_size, type = "hexagonal")
 fc_grid <- st_as_sf(fc_grid)
 ```
@@ -160,9 +160,15 @@ ggplot() +
   theme_bw()
 ```
 
-There is a nuanced difference between Block Prediction and the fixed effect coefficients estimated by the model. Block Prediction predicts the realized mean, while the fixed effect coefficients are estimates of the underlying process mean. For more, see @dumelle2022comparison. 
+# Some Details
 
-Block Prediction is only available for point-referenced spatial linear models (i.e., models fit via `splm()`). Block Prediction is not available for areal data sets (e.g., `spgautor()`) or spatial generalized linear models (e.g., `spglm()`, `spgautor()`). Like `predict.splm()`, `predict.splm(block = TRUE)` has a `local` argument for large data sets. See `?predict.splm()` for more.
+A few details:
+
+* If the spatial model has explanatory variables, each element in the dense Block Prediction grid must have values of those explanatory variables. One way to accomplish this, for example, is to leverage a raster whose layers contain relevant explanatory variables.
+
+* There is a nuanced difference between Block Prediction and the fixed effect coefficients estimated by the model. Block Prediction predicts the realized mean, while the fixed effect coefficients are estimates of the underlying process mean. For more, see @dumelle2022comparison. 
+
+* Block Prediction is only available for point-referenced spatial linear models (i.e., models fit via `splm()`). Block Prediction is not available for areal data sets (e.g., `spgautor()`) or spatial generalized linear models (e.g., `spglm()`, `spgautor()`). Like `predict.splm()`, `predict.splm(block = TRUE)` has a `local` argument for large data sets. See `?predict.splm()` for more.
 
 # References {.unnumbered}
 

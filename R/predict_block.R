@@ -204,12 +204,13 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
     }
   } else if (interval == "confidence") {
     # finding fitted values of the mean parameters
-    fit <- as.numeric(newdata_model %*% coef(object))
+    fit <- as.numeric(x0 %*% coef(object))
     # apply offset
     if (!is.null(offset)) {
       fit <- fit + offset
     }
-    vars <- as.numeric(crossprod(x0, cov_betahat %*% x0))
+    vars <- as.numeric(tcrossprod(x0 %*% cov_betahat, x0)) # different from
+    # predict because x0 is a matrix here, not a vector
     se <- sqrt(vars)
     if (!is.null(scale)) {
       se <- se * scale

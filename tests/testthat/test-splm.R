@@ -115,6 +115,17 @@ test_that("generics work splm point data", {
   expect_true(inherits(predict(spmod1, newdata = newexdata, type = "terms"), "matrix"))
   expect_type(predict(spmod1, newdata = newexdata, type = "terms", interval = "confidence"), "list")
 
+  # block predict
+  expect_vector(predict(spmod1, newdata = newexdata, block = TRUE))
+  expect_type(predict(spmod1, newdata = newexdata, interval = "prediction", se.fit = TRUE, local = TRUE, block = TRUE), "list")
+  expect_true(inherits(predict(spmod1, newdata = newexdata, interval = "confidence", level = 0.9, block = TRUE), "matrix"))
+  expect_true(inherits(predict(spmod1, newdata = newexdata, type = "terms", block = TRUE), "matrix"))
+  expect_type(predict(spmod1, newdata = newexdata, type = "terms", interval = "confidence", block = TRUE), "list")
+  expect_length(predict(spmod1, newdata = newexdata, block = TRUE), 1)
+  expect_length(predict(spmod1, newdata = newexdata, se.fit = TRUE, block = TRUE)$se.fit, 1)
+  expect_true(predict(spmod1, newdata = newexdata, se.fit = TRUE, block = TRUE)$se.fit >= 0)
+  expect_equal(dim(predict(spmod1, newdata = newexdata, interval = "prediction", block = TRUE)), c(1, 3))
+
   # print
   expect_output(print(spmod1))
   expect_output(print(summary(spmod1)))
@@ -266,6 +277,17 @@ test_that("generics work splm point data with missing", {
   expect_true(inherits(predict(spmod1, newdata = newexdata, type = "terms"), "matrix"))
   expect_type(predict(spmod1, newdata = newexdata, type = "terms", interval = "confidence"), "list")
 
+  # block predict
+  expect_vector(predict(spmod1, newdata = newexdata, block = TRUE))
+  expect_type(predict(spmod1, newdata = newexdata, interval = "prediction", se.fit = TRUE, local = TRUE, block = TRUE), "list")
+  expect_true(inherits(predict(spmod1, newdata = newexdata, interval = "confidence", level = 0.9, block = TRUE), "matrix"))
+  expect_true(inherits(predict(spmod1, newdata = newexdata, type = "terms", block = TRUE), "matrix"))
+  expect_type(predict(spmod1, newdata = newexdata, type = "terms", interval = "confidence", block = TRUE), "list")
+  expect_length(predict(spmod1, newdata = newexdata, block = TRUE), 1)
+  expect_length(predict(spmod1, newdata = newexdata, se.fit = TRUE, block = TRUE)$se.fit, 1)
+  expect_true(predict(spmod1, newdata = newexdata, se.fit = TRUE, block = TRUE)$se.fit >= 0)
+  expect_equal(dim(predict(spmod1, newdata = newexdata, interval = "prediction", block = TRUE)), c(1, 3))
+
   # print
   expect_output(print(spmod1))
   expect_output(print(summary(spmod1)))
@@ -406,11 +428,15 @@ test_that("generics work splm polygon data with missing", {
   expect_invisible(plot(spmod1, which = 7))
 
   # predict
-  expect_vector(predict(spmod1))
-  expect_type(predict(spmod1, interval = "prediction", se.fit = TRUE, local = TRUE), "list")
-  expect_true(inherits(predict(spmod1, interval = "confidence", level = 0.9), "matrix"))
-  expect_true(inherits(predict(spmod1, type = "terms"), "matrix"))
-  expect_type(predict(spmod1, type = "terms", interval = "confidence"), "list")
+  expect_vector(predict(spmod1, block = TRUE))
+  expect_type(predict(spmod1, interval = "prediction", se.fit = TRUE, local = TRUE, block = TRUE), "list")
+  expect_true(inherits(predict(spmod1, interval = "confidence", level = 0.9, block = TRUE), "matrix"))
+  expect_true(inherits(predict(spmod1, type = "terms", block = TRUE), "matrix"))
+  expect_type(predict(spmod1, type = "terms", interval = "confidence", block = TRUE), "list")
+  expect_length(predict(spmod1, block = TRUE), 1)
+  expect_length(predict(spmod1, se.fit = TRUE, block = TRUE)$se.fit, 1)
+  expect_true(predict(spmod1, se.fit = TRUE, block = TRUE)$se.fit >= 0)
+  expect_equal(dim(predict(spmod1, interval = "prediction", block = TRUE)), c(1, 3))
 
   # print
   expect_output(print(spmod1))

@@ -211,3 +211,23 @@
 #' @source
 #' The data source is the \code{elect80} data set in the \code{spData} R package.
 "texas"
+
+
+#' Four Corners State Borders
+#'
+#' @description State borders for the four corners states in the United States:
+#'   Arizona, Colorado, New Mexico, Utah.
+#'
+#' @format An \code{sf} object with 4 rows and 4 columns:
+#'
+#' \itemize{
+#'   \item NAME: State name.
+#'   \item STUSPS: State postal code.
+#'   \item GEO.ID: State GEO.ID from the United States Census Bureau.
+#'   \item geometry: \code{POINT} geometry representing coordinates in a NAD83
+#'     projection (EPSG: 5070). Distances between points are in meters.
+#' }
+#' @source
+#' The data source is the United States Census Bureau TIGER/Line Shapefiles.
+"fc_borders"
+# start with us_borders <- tigris::states(cb = TRUE, year = 2024)

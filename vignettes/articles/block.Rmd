@@ -1,0 +1,169 @@
+---
+title: "Block Prediction (i.e., Block Kriging) in spmodel"
+author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
+bibliography: '`r system.file("references.bib", package="spmodel")`'
+output:
+  html_document:
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+# # jss style
+# knitr::opts_chunk$set(prompt=TRUE, echo = TRUE, highlight = FALSE, continue = " + ", comment = "")
+# options(replace.assign=TRUE, width=90, prompt="R> ")
+
+# rmd style
+knitr::opts_chunk$set(collapse = FALSE, comment = "#>", warning = FALSE, message = FALSE)
+
+# loading
+library(spmodel)
+library(sf)
+library(ggplot2)
+set.seed(0)
+```
+
+# Introduction {#sec:introduction}
+
+`spmodel` is an \textbf{\textsf{R}} package used to fit, summarize, and
+predict for a variety of spatial statistical models. This vignette
+explores tools for predicting the average value of a response variable in a particular geographic region, an approach known as Block Prediction (i.e., Block Kriging) [@cressie1993statistics; @ver2008spatial]. Before proceeding, we
+load  `spmodel`, `sf`, and `ggplot2` by running
+```{r, eval = FALSE}
+library(spmodel)
+library(sf)
+library(ggplot2)
+```
+
+If using `spmodel` in a formal publication or report, please cite it.
+Citing `spmodel` lets us devote more resources to the package in the
+future. We view the `spmodel` citation by running
+
+```{r}
+citation(package = "spmodel")
+```
+
+# Block Prediction (i.e., Block Kriging) in `spmodel`
+
+The `sulfate` data is an `sf` object that contains sulfate measurements in the conterminous United States (CONUS). We first visualize the distribution of the sulfate data by running
+```{r}
+ggplot(sulfate, aes(color = sulfate)) +
+  geom_sf(size = 2.5) +
+  scale_color_viridis_c() +
+  theme_gray(base_size = 18)
+```
+
+In the "Detailed Guide" vignette, we describe how to fit a spatial linear model to the sulfate data and use it to predict sulfate concentrations at the geographic locations in `sulfate_preds`. But what if we want to predict the average sulfate concentration in the entire CONUS? Or what if we wanted to predict the average sulfate concentration in a single state like Colorado? Or a region like the Four Corners region of CONUS? We can answer these questions using Block Prediction (i.e., Block Kriging).
+
+First, we fit a spatial linear model for sulfate using an intercept-only model with an exponential spatial covariance function by running
+```{r}
+sulfmod <- splm(sulfate ~ 1, sulfate, spcov_type = "exponential")
+```
+
+We can use this model to perform Block Prediction in any subregion of CONUS. Consider the four corners region of CONUS, which is composed of four states: Arizona (AZ), Colorado (CO), New Mexico (NM), and Utah (UT). We can visualize the states in this region by running
+
+```{r}
+ggplot(data = fc_borders, aes(fill = STUSPS, label = STUSPS)) + 
+  geom_sf() +
+  geom_sf_text()
+```
+
+We subset the sulfate data to the observations from the Four Corners region so that we can zoom in on their values. We implement a slight jitter (random perturbation) of the coordinates to avoid overplotting points that are very close to one another. Moreover, we use a different color scale than for the full `sulfate` data so we can better distinguish among the sulfate concentrations in the region: 
+```{r}
+sulfate_fc <- sulfate[fc_borders, ]
+sulfate_fc <- st_jitter(sulfate_fc, factor = 0.04)
+ggplot() + 
+  geom_sf(data = fc_borders, fill = "transparent") +
+  geom_sf(data = sulfate_fc, aes(color = sulfate), size = 2) +
+  scale_color_viridis_c(option = "B", limits = c(0, 8)) +
+  theme_bw()
+```
+
+The sulfate concentrations in the western part of the Four Corners region (UT, AZ) appear lower than in the eastern part (CO, NM).
+
+Recall that our goal is to predict the mean sulfate concentration in the entire region. Block Prediction works (in practice) by first generating a dense grid of prediction locations that cover the entire geographic region of interest (here, the Four Corners). We create this grid and turn the dense grid (of 4,000 points) into an `sf` object by running:
+```{r}
+grid_size <- 4000
+fc_grid <- st_sample(fc_borders, grid_size, type = "hexagonal")
+fc_grid <- st_as_sf(fc_grid)
+```
+
+Depending on the size of the spatial domain, consider increasing or decreasing the grid size. The larger the grid size, the more accurate the Block Prediction, though the returns diminish rapidly and add additional computational burden.
+
+We visualize the spatial locations (small, black circles) on the grid with the observed sulfate concentrations overlain:
+```{r}
+ggplot() + 
+  geom_sf(data = fc_borders, fill = "transparent") +
+  geom_sf(data = fc_grid, size = 0.2) +
+  geom_sf(data = sulfate_fc, aes(color = sulfate), size = 4) +
+  scale_color_viridis_c(option = "B", limits = c(0, 8)) +
+  theme_bw()
+```
+
+Intuitively, Block Prediction works by making point predictions at each point in the dense grid and then combining each prediction in a way that respects the uncertainties associated with the fitted spatial model. We obtain predictions at each point in the dense grid by running
+```{r}
+fc_grid$preds <- predict(sulfmod, newdata = fc_grid)
+```
+
+We visualize these point predictions by running
+```{r}
+ggplot() + 
+  geom_sf(data = fc_borders, fill = "transparent") +
+  geom_sf(data = fc_grid, aes(color = preds), size = 0.2) +
+  geom_sf(data = sulfate_fc, aes(color = sulfate), size = 4) +
+  scale_color_viridis_c(option = "B", limits = c(0, 8)) +
+  theme_bw()
+```
+
+We can combine the point predictions via Block Prediction by running:
+```{r}
+predict(sulfmod, newdata = fc_grid, block = TRUE)
+```
+
+Just like with `predict.splm()`, we can obtain appropriate prediction uncertainty using the `interval` argument:
+```{r}
+predict(sulfmod, newdata = fc_grid, block = TRUE, interval = "prediction")
+```
+
+Now suppose that we wanted to predict average sulfate concentrations in Colorado. First, we subset the Four Corners region to Colorado:
+```{r}
+co_borders <- fc_borders[fc_borders$STUSPS == "CO", ]
+```
+
+Then, we subset the dense grid to Colordao:
+```{r}
+co_grid <- fc_grid[co_borders, ]
+```
+
+Finally, we use Block Prediction:
+```{r}
+predict(sulfmod, co_grid, block = TRUE, interval = "prediction")
+```
+
+Alternatively, one could create a new grid for Colordao rather than subsetting the Four Corners grid.
+
+We write a helper function that returns the Block Prediction mean sulfate concentration for each of the four states (by subsetting the original grid):
+```{r}
+return_state_mean <- function(state) {
+  state_borders <- fc_borders[fc_borders$STUSPS == state, ]
+  state_grid <- fc_grid[state_borders, ]
+  predict(sulfmod, state_grid, block = TRUE)
+}
+fc_borders$mean <- vapply(fc_borders$STUSPS, return_state_mean, numeric(1))
+```
+
+We visualize each Block Prediction of mean sulfate concentration:
+```{r}
+ggplot() + 
+  geom_sf(data = fc_borders, aes(fill = mean)) +
+  scale_fill_viridis_c(option = "B", limits = c(0, 8)) +
+  theme_bw()
+```
+
+There is a nuanced difference between Block Prediction and the fixed effect coefficients estimated by the model. Block Prediction predicts the realized mean, while the fixed effect coefficients are estimates of the underlying process mean. For more, see @dumelle2022comparison. 
+
+Block Prediction is only available for point-referenced spatial linear models (i.e., models fit via `splm()`). Block Prediction is not available for areal data sets (e.g., `spgautor()`) or spatial generalized linear models (e.g., `spglm()`, `spgautor()`). Like `predict.splm()`, `predict.splm(block = TRUE)` has a `local` argument for large data sets. See `?predict.splm()` for more.
+
+# References {.unnumbered}
+
+<div id="refs"></div>

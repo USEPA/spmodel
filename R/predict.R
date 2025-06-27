@@ -73,6 +73,11 @@
 #'   specified via either numeric position or name. The default is all terms are included.
 #' @param na.action Missing (\code{NA}) values in \code{newdata} will return an error and should
 #'   be removed before proceeding.
+#' @param block A logical indicating whether a block prediction over the entire region
+#'   in \code{newdata} should be returned. When \code{block} is \code{TRUE},
+#'   \code{newdata} should be a dense grid of prediction locations that span
+#'   the entire region. The default is \code{FALSE}, which
+#'   returns point predictions for each location on \code{newdata}.
 #' @param ... Other arguments. Only used for models fit using \code{splmRF()}
 #'   or \code{spautorRF()} where \code{...} indicates other
 #'   arguments to \code{ranger::predict.ranger()}.

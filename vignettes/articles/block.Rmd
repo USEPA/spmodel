@@ -25,7 +25,7 @@ set.seed(0)
 
 # Introduction {#sec:introduction}
 
-`spmodel` is an \textbf{\textsf{R}} package used to fit, summarize, and
+`spmodel` is a \textbf{\textsf{R}} package used to fit, summarize, and
 predict for a variety of spatial statistical models. This vignette
 explores tools for predicting the average value of a response variable in a particular geographic region, an approach known as Block Prediction (i.e., Block Kriging) [@cressie1993statistics; @ver2008spatial]. Before proceeding, we
 load  `spmodel`, `sf`, and `ggplot2` by running
@@ -53,14 +53,14 @@ ggplot(sulfate, aes(color = sulfate)) +
   theme_gray(base_size = 18)
 ```
 
-In the "Detailed Guide" vignette, we describe how to fit a spatial linear model to the sulfate data and use it to predict sulfate concentrations at the geographic locations in `sulfate_preds`. But what if we want to predict the average sulfate concentration in the entire CONUS? Or what if we wanted to predict the average sulfate concentration in a single state like Colorado? Or a region like the Four Corners region of CONUS? We can answer these questions using Block Prediction (i.e., Block Kriging).
+In the "Detailed Guide" vignette, we describe how to fit a spatial linear model to the sulfate data and use it to predict sulfate concentrations at the geographic locations in `sulfate_preds`. But what if we want to predict the average sulfate concentration in the entire CONUS? Or what if we want to predict the average sulfate concentration in a single state like Colorado? Or a region like the Four Corners region of CONUS? We can answer these questions using Block Prediction (i.e., Block Kriging).
 
 First, we fit a spatial linear model for sulfate using an intercept-only model with an exponential spatial covariance function by running
 ```{r}
 sulfmod <- splm(sulfate ~ 1, sulfate, spcov_type = "exponential")
 ```
 
-We can use this model to perform Block Prediction in any subregion of CONUS. Consider the four corners region of CONUS, which is composed of four states: Arizona (AZ), Colorado (CO), New Mexico (NM), and Utah (UT). We can visualize the states in this region by running
+We can use this model to perform Block Prediction in any subregion of CONUS. Consider the four corners region of CONUS, which is composed of four states: Arizona (AZ), Colorado (CO), New Mexico (NM), and Utah (UT). `fc_borders` is a simple features object with polygonal geometry that contains the boundaries of these four states. We can visualize the states in this region by running
 
 ```{r}
 ggplot(data = fc_borders, aes(fill = STUSPS, label = STUSPS)) + 
@@ -81,7 +81,7 @@ ggplot() +
 
 The sulfate concentrations in the western part of the Four Corners region (UT, AZ) appear lower than in the eastern part (CO, NM).
 
-Recall that our goal is to predict the mean sulfate concentration in the entire region. Block Prediction works (in practice) by first generating a dense grid of prediction locations that cover the entire geographic region of interest (here, the Four Corners). We create this grid and turn the dense grid (of 4,000 points) into an `sf` object by running:
+Recall that our goal is to predict the mean sulfate concentration in the entire region. Block Prediction works (in practice) by first generating a dense grid of prediction locations that cover the entire geographic region of interest (here, the Four Corners with boundaries given in `fc_borders`). We create this grid and turn the dense grid (of 5,000 points) into an `sf` object by running:
 ```{r}
 grid_size <- 5000
 fc_grid <- st_sample(fc_borders, grid_size, type = "hexagonal")
@@ -100,7 +100,7 @@ ggplot() +
   theme_bw()
 ```
 
-Intuitively, Block Prediction works by making point predictions at each point in the dense grid and then combining each prediction in a way that respects the uncertainties associated with the fitted spatial model. We obtain predictions at each point in the dense grid by running
+Intuitively, Block Prediction works by making point predictions at each point in the dense grid and then combining each prediction in a way that respects the uncertainties associated with the fitted spatial model. We obtain predictions at each point in the dense grid using the `sulfmod` model that was fit to all of the sulfate data in the conterminous United States by running
 ```{r}
 fc_grid$preds <- predict(sulfmod, newdata = fc_grid)
 ```
@@ -115,7 +115,7 @@ ggplot() +
   theme_bw()
 ```
 
-We can combine the point predictions via Block Prediction by running:
+We can combine the point predictions via Block Prediction by adding a `block = TRUE` argument to `predict()`:
 ```{r}
 predict(sulfmod, newdata = fc_grid, block = TRUE)
 ```
@@ -152,7 +152,7 @@ return_state_mean <- function(state) {
 fc_borders$mean <- vapply(fc_borders$STUSPS, return_state_mean, numeric(1))
 ```
 
-We visualize each Block Prediction of mean sulfate concentration:
+We can visualize each Block Prediction of mean sulfate concentration:
 ```{r}
 ggplot() + 
   geom_sf(data = fc_borders, aes(fill = mean)) +

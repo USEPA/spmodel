@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.10.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.0</span>
       </span>
     </div>
 
@@ -67,6 +67,9 @@
     </li>
     <li>
       <a href="../articles/emmeans.html">Using emmeans to Estimate Marginal Means of spmodel Objects</a>
+    </li>
+    <li>
+      <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
       <a href="../articles/technical.html">Technical Details</a>
@@ -436,7 +439,7 @@ this using <code><a href="../reference/glances.html">glances()</a></code> by run
 <span><span class="co">#&gt;   model     n     p  npar value   AIC  AICc   BIC logLik deviance</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> spmod   365     2     3  367.  373.  373.  385.  -<span style="color: #BB0000;">184.</span>     363.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> lmod    365     2     1  634.  636.  636.  640.  -<span style="color: #BB0000;">317.</span>     363.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> lmod    365     2     1  632.  634.  634.  638.  -<span style="color: #BB0000;">316.</span>     363.</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: pseudo.r.squared &lt;dbl&gt;</span></span></span></code></pre>
 <p>The much lower AIC and AICc for the spatial linear model indicates it
 is a much better fit to the data. Outside of <code><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance()</a></code> and

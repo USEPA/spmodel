@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.10.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.0</span>
       </span>
     </div>
 
@@ -67,6 +67,9 @@
     </li>
     <li>
       <a href="../articles/emmeans.html">Using emmeans to Estimate Marginal Means of spmodel Objects</a>
+    </li>
+    <li>
+      <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
       <a href="../articles/technical.html">Technical Details</a>
@@ -513,12 +516,12 @@ model by running</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">spmod</span>, <span class="va">lmod</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;       df      AIC</span></span>
 <span><span class="co">#&gt; spmod  3 373.2089</span></span>
-<span><span class="co">#&gt; lmod   1 636.0635</span></span></code></pre>
+<span><span class="co">#&gt; lmod   1 633.6418</span></span></code></pre>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/AICc.html">AICc</a></span><span class="op">(</span><span class="va">spmod</span>, <span class="va">lmod</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;       df     AICc</span></span>
 <span><span class="co">#&gt; spmod  3 373.2754</span></span>
-<span><span class="co">#&gt; lmod   1 636.0745</span></span></code></pre>
+<span><span class="co">#&gt; lmod   1 633.6528</span></span></code></pre>
 <p>The noticeably lower AIC and AICc of the spatial model indicate that
 it is a better fit to the data than the non-spatial model. Recall that
 these AIC and AICc comparisons are valid because both models are fit
@@ -704,7 +707,7 @@ simultaneously:</p>
 <span><span class="co">#&gt;   model     n     p  npar value   AIC  AICc   BIC logLik deviance</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> spmod   365     2     3  367.  373.  373.  385.  -<span style="color: #BB0000;">184.</span>     363.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> lmod    365     2     1  634.  636.  636.  640.  -<span style="color: #BB0000;">317.</span>     363.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> lmod    365     2     1  632.  634.  634.  638.  -<span style="color: #BB0000;">316.</span>     363.</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: pseudo.r.squared &lt;dbl&gt;</span></span></span></code></pre>
 <p>Finally, the <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> function augments the original
 data with model diagnostics:</p>
@@ -2059,7 +2062,8 @@ Squares.”</span> <em>Journal of the International Association for
 Mathematical Geology</em> 17 (5): 563–86.
 </div>
 <div id="ref-cressie1993statistics" class="csl-entry">
-———. 1993. <em>Statistics for Spatial Data</em>. John Wiley &amp; Sons.
+———. 1993. <em>Statistics for Spatial Data (Revised Edition)</em>.
+Wiley: Hoboken, NJ. <a href="https://doi.org/10.1002/9781119115151" class="external-link">https://doi.org/10.1002/9781119115151</a>.
 </div>
 <div id="ref-curriero1999composite" class="csl-entry">
 Curriero, Frank C, and Subhash Lele. 1999. <span>“A Composite Likelihood

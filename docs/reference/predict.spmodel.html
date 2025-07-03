@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.10.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.0</span>
       </span>
     </div>
 
@@ -42,6 +42,9 @@
     </li>
     <li>
       <a href="../articles/emmeans.html">Using emmeans to Estimate Marginal Means of spmodel Objects</a>
+    </li>
+    <li>
+      <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
       <a href="../articles/technical.html">Technical Details</a>
@@ -85,6 +88,7 @@
 <span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"prediction"</span><span class="op">)</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"response"</span>, <span class="st">"terms"</span><span class="op">)</span>,</span>
+<span>  block <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">local</span>,</span>
 <span>  terms <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  na.action <span class="op">=</span> <span class="va">na.fail</span>,</span>
@@ -275,6 +279,14 @@ uncertainties (in <code>.$se.fit</code>).</p></dd>
 <code><a href="spglm.html">spglm()</a></code> or <code><a href="spgautor.html">spgautor()</a></code> model objects), or terms scale.</p></dd>
 
 
+<dt>block</dt>
+<dd><p>A logical indicating whether a block prediction over the entire region
+in <code>newdata</code> should be returned. When <code>block</code> is <code>TRUE</code>,
+<code>newdata</code> should be a dense grid of prediction locations that span
+the entire region. The default is <code>FALSE</code>, which
+returns point predictions for each location on <code>newdata</code>.</p></dd>
+
+
 <dt>local</dt>
 <dd><p>A optional logical or list controlling the big data approximation. If omitted, <code>local</code>
 is set to <code>TRUE</code> or <code>FALSE</code> based on the observed data sample size (i.e., sample size of the fitted
@@ -310,7 +322,16 @@ parallelize over. The default is the number of available cores on your machine.<
 initialize default arguments for the other list elements.
 If <code>local</code> is <code>TRUE</code>, defaults for <code>local</code> are chosen such
 that <code>local</code> is transformed into
-<code>list(size = 100, method = "covariance", parallel = FALSE)</code>.</p></dd>
+<code>list(size = 100, method = "covariance", parallel = FALSE)</code>.</p>
+<p>If <code>block</code> is <code>TRUE</code>, <code>local</code> accepts <code>method</code> and <code>size</code>,
+and <code>method</code> takes values of <code>"all"</code>, <code>"covariance"</code>,
+and <code>"distance"</code>, similar as when <code>block</code> is <code>FALSE</code>.
+The default <code>method</code> is <code>"distance"</code> with size <code>1000</code>. This default <code>size</code> is
+much larger than when <code>block</code> is <code>FALSE</code>. This is because when <code>block</code> is <code>TRUE</code>,
+covariances and explanatory variables are averaged before prediction, which greatly
+reduces computational burden, only requiring the Cholesky decomposition
+of one observed covariance matrix. Because the computational burden is reduced dramatically when <code>block</code> is <code>TRUE</code>,
+parallel processing is not needed and hence, <code>parallel</code> and <code>ncores</code> are ignored if specified in <code>local</code>.</p></dd>
 
 
 <dt>terms</dt>

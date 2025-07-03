@@ -4,6 +4,9 @@
     <loc>https://usepa.github.io/spmodel/404.html</loc>
   </url>
   <url>
+    <loc>https://usepa.github.io/spmodel/articles/articles/block.html</loc>
+  </url>
+  <url>
     <loc>https://usepa.github.io/spmodel/articles/articles/emmeans.html</loc>
   </url>
   <url>
@@ -17,6 +20,9 @@
   </url>
   <url>
     <loc>https://usepa.github.io/spmodel/articles/basics.html</loc>
+  </url>
+  <url>
+    <loc>https://usepa.github.io/spmodel/articles/block.html</loc>
   </url>
   <url>
     <loc>https://usepa.github.io/spmodel/articles/emmeans.html</loc>
@@ -113,6 +119,9 @@
   </url>
   <url>
     <loc>https://usepa.github.io/spmodel/reference/esv.html</loc>
+  </url>
+  <url>
+    <loc>https://usepa.github.io/spmodel/reference/fc_borders.html</loc>
   </url>
   <url>
     <loc>https://usepa.github.io/spmodel/reference/fitted.spmod.html</loc>

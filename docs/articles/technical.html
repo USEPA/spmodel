@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.10.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.0</span>
       </span>
     </div>
 
@@ -67,6 +67,9 @@
     </li>
     <li>
       <a href="../articles/emmeans.html">Using emmeans to Estimate Marginal Means of spmodel Objects</a>
+    </li>
+    <li>
+      <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
       <a href="../articles/technical.html">Technical Details</a>
@@ -994,6 +997,87 @@ neighborhood approach. As long as <code>size</code> is relatively small
 computationally efficient, mainly because <span class="math inline">\(\check{\boldsymbol{\Sigma}}_{o}^{-1}\)</span> is
 easy to compute. Additional computational efficiency is gained by
 parallelizing each prediction.</p>
+</div>
+<div class="section level4">
+<h4 id="sec:predict-block-lm">Block Prediction<a class="anchor" aria-label="anchor" href="#sec:predict-block-lm"></a>
+</h4>
+<p>Rather than making predictions at point-referenced locations, Block
+Prediction (i.e., Block Kriging) is a technique used to predict an
+average (or total) in some region (i.e., spatial domain). When
+<code>interval = "none"</code> or <code>interval = "prediction"</code>,
+the (empirical) Block Prediction (BP) is given by <span class="math display">\[\begin{equation}\label{eq:bp_pred}
+  \mathbf{\dot{y}}_B =  \mathbf{X}_{B} \hat{\boldsymbol{\beta}} +
+\hat{\boldsymbol{\Sigma}}_{B} \hat{\boldsymbol{\Sigma}}^{-1}_{o}
+(\mathbf{y}_o - \mathbf{X}_o \hat{\boldsymbol{\beta}}).
+\end{equation}\]</span> The quantity <span class="math inline">\(\mathbf{X}_{B} = [\mathbf{x}_{1, B},
+\mathbf{x}_{2, B}, ... , \mathbf{x}_{k, B}]^\top\)</span> where <span class="math inline">\(j = 1, 2, ..., k\)</span> indexes the columns of
+<span class="math inline">\(\mathbf{X}_{B}\)</span> and <span class="math inline">\(\mathbf{x}_{j, B} = \frac{1}{|B|}\int_B
+\mathbf{x}_j d\mathbf{s}\)</span> for the <span class="math inline">\(\mathbf{s}\)</span> points in the region. The
+total area (volume) of the region is <span class="math inline">\(|B|\)</span> . The quantity <span class="math inline">\(\hat{\boldsymbol{\Sigma}}_{B} =
+[\hat{\boldsymbol{\Sigma}}_1, \hat{\boldsymbol{\Sigma}}_2, ... ,
+\hat{\boldsymbol{\Sigma}}_n]^\top\)</span> where <span class="math inline">\(i = 1, 2, ... , n\)</span> indexes each element in
+<span class="math inline">\(\mathbf{y}_o\)</span> and <span class="math inline">\(\hat{\boldsymbol{\Sigma}}_i = \frac{1}{|B|}\int_B
+\text{Cov}(\mathbf{y}_B, \text{y}_i) d\mathbf{s}\)</span>. The quantity
+<span class="math inline">\(\text{Cov}(\mathbf{y}_B,
+\text{y}_i)\)</span> represents the covariance between <span class="math inline">\(\text{y}_i\)</span> and all other points in the
+region. In practice, the Block Prediction integrals are approximated
+using summation on a fine grid of <span class="math inline">\(G\)</span>
+points, similar to other numerical integration techniques. That is,
+<span class="math inline">\(\mathbf{x}_{j, B} \approx
+\frac{1}{|B|}\sum_{g = 1}^G \mathbf{x}_g\)</span> and similarly for
+<span class="math inline">\(\hat{\boldsymbol{\Sigma}}_i\)</span>, where
+<span class="math inline">\(g\)</span> indexes the points on the fine
+grid. Intuitively, these summations approximate average values in the
+entire region.</p>
+<p>When <code>interval = "prediction"</code>, the (100 <span class="math inline">\(\times\)</span> <code>level</code>)% prediction
+interval for <span class="math inline">\(\mathbf{\dot{y}}_B\)</span> is
+<span class="math inline">\(\mathbf{\dot{y}}_B \pm z^*
+\sqrt{\sigma^2_B}\)</span>, where <span class="math inline">\(\sigma^2_B
+= \sigma^{2*}_B - \hat{\boldsymbol{\Sigma}}_{B}
+\hat{\boldsymbol{\Sigma}}^{-1}_{o}\hat{\boldsymbol{\Sigma}}_{B}^\top +
+\mathbf{Q}_B (\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_o^{-1}
+\mathbf{X}_o)^{-1} \mathbf{Q}_B^\top\)</span>. The quantity <span class="math inline">\(\sigma^{2*}_B = \frac{1}{|B|^2}\int_B \int_B
+\text{Cov}(\text{y}_\mathbf{s}, \text{y}_\mathbf{u})
+d\mathbf{s}d\mathbf{u}\)</span>, where <span class="math inline">\(\mathbf{s}\)</span> and <span class="math inline">\(\mathbf{u}\)</span> represent points in the region
+(the product of <span class="math inline">\(\mathbf{s}\)</span> and
+<span class="math inline">\(\mathbf{u}\)</span> contains all possible
+pairs of points in the region). Intuitively, <span class="math inline">\(\sigma^{2*}_B\)</span> approximates the average
+covariance between any two points in the region though summation over
+the fine grid. That is, <span class="math inline">\(\sigma^{2*}_B
+\approx \frac{1}{|B|^2}\sum_{g_i = 1}^G \sum_{g_j = 1}^G
+\text{Cov}(\text{y}_{g_i}, \text{y}_{g_j})\)</span>. The quantity <span class="math inline">\(\mathbf{Q}_B = \mathbf{X}_B -
+\hat{\boldsymbol{\Sigma}}_B \hat{\boldsymbol{\Sigma}}^{-1}_o
+\mathbf{X}_o\)</span>.</p>
+<p>When <code>interval = "confidence"</code>, the average process mean
+(i.e., not the realized mean) and uncertainties are returned from the
+underlying model. The (process) mean estimate is <span class="math inline">\(\mathbf{X}_{B} \hat{\boldsymbol{\beta}}\)</span>
+and a (100 <span class="math inline">\(\times\)</span>
+<code>level</code>)% confidence interval is <span class="math inline">\(\mathbf{X}_{B} \hat{\boldsymbol{\beta}} \pm z^*
+\sqrt{\mathbf{X}_{B} (\mathbf{X}^\top_o \hat{\boldsymbol{\Sigma}}_o^{-1}
+\mathbf{X}_o)^{-1} \mathbf{X}_{B}^\top}\)</span>.</p>
+<p>For Big Data, when <code>local = TRUE</code>, the same approach is
+applied as for point prediction but adjusted slightly to accommodate the
+averaging necessary for Block Prediction. Thus, when
+<code>method = "covariance"</code> (the default), the <code>size</code>
+observations having the highest average covariance with elements of
+<span class="math inline">\(\mathbf{y}_o\)</span> are used to find the
+subsets <span class="math inline">\(\check{\mathbf{X}}_o\)</span>, <span class="math inline">\(\check{\boldsymbol{\Sigma}}_o\)</span>, and <span class="math inline">\(\check{\mathbf{y}}_o\)</span>. When
+<code>method = "distance"</code>, the <code>size</code> observations
+having the smallest average distance from elements of <span class="math inline">\(\mathbf{y}_o\)</span> are used to find the subsets
+<span class="math inline">\(\check{\mathbf{X}}_o\)</span>, <span class="math inline">\(\check{\boldsymbol{\Sigma}}_o\)</span>, and <span class="math inline">\(\check{\mathbf{y}}_o\)</span>. Recall that these
+two methods are equivalent for processes without anisotropy, random
+effects, or partition factors, but can differ otherwise. The default is
+<code>size = 1000</code>, which is much larger than for point
+prediction. This is because for Block Prediction, the Cholesky
+decomposition of <span class="math inline">\(\check{\boldsymbol{\Sigma}}_o\)</span> needs to
+only be computed once (rather than separately for each <span class="math inline">\(\check{\boldsymbol{\Sigma}}_o\)</span> associated
+with each prediction location, as for point prediction).</p>
+<p>Currently, the fine grid used to obtain Block Predictions is supplied
+by the user via <code>newdata</code>. For an overview of Block
+Prediction, see <span class="citation">Cressie (1993)</span>. For
+applications to a finite population (i.e., a region with a finite number
+of point locations), see <span class="citation">Ver Hoef (2008)</span>
+and <span class="citation">Dumelle et al. (2022)</span>.</p>
 </div>
 <div class="section level4">
 <h4 id="sec:rf_pred-lm">
@@ -3545,7 +3629,8 @@ Squares.”</span> <em>Journal of the International Association for
 Mathematical Geology</em> 17 (5): 563–86.
 </div>
 <div id="ref-cressie1993statistics" class="csl-entry">
-———. 1993. <em>Statistics for Spatial Data</em>. John Wiley &amp; Sons.
+———. 1993. <em>Statistics for Spatial Data (Revised Edition)</em>.
+Wiley: Hoboken, NJ. <a href="https://doi.org/10.1002/9781119115151" class="external-link">https://doi.org/10.1002/9781119115151</a>.
 </div>
 <div id="ref-cribari2010beta" class="csl-entry">
 Cribari-Neto, Francisco, and Achim Zeileis. 2010. <span>“Beta Regression
@@ -3561,6 +3646,12 @@ Agricultural, Biological, and Environmental Statistics</em>, 9–28.
 Diamond, Phil, and Margaret Armstrong. 1984. <span>“Robustness of
 Variograms and Conditioning of Kriging Matrices.”</span> <em>Journal of
 the International Association for Mathematical Geology</em> 16: 809–22.
+</div>
+<div id="ref-dumelle2022comparison" class="csl-entry">
+Dumelle, Michael, Matt Higham, Jay M Ver Hoef, Anthony R Olsen, and Lisa
+Madsen. 2022. <span>“A Comparison of Design-Based and Model-Based
+Approaches for Finite Population Spatial Sampling and Inference.”</span>
+<em>Methods in Ecology and Evolution</em> 13 (9): 2018–29.
 </div>
 <div id="ref-espinheira2008beta" class="csl-entry">
 Espinheira, Patrícia L, Silvia LP Ferrari, and Francisco Cribari-Neto.
@@ -3760,9 +3851,14 @@ in the Detroit Region.”</span> <em>Economic Geography</em> 46 (sup1):
 Venables, W. N., and B. D. Ripley. 2002. <em>Modern Applied Statistics
 with s</em>. Fourth. New York: Springer. <a href="http://www.stats.ox.ac.uk/pub/MASS4/" class="external-link">http://www.stats.ox.ac.uk/pub/MASS4/</a>.
 </div>
+<div id="ref-ver2008spatial" class="csl-entry">
+Ver Hoef, Jay M. 2008. <span>“Spatial Methods for Plot-Based Sampling of
+Wildlife Populations.”</span> <em>Environmental and Ecological
+Statistics</em> 15: 3–13.
+</div>
 <div id="ref-ver2012invented" class="csl-entry">
-Ver Hoef, Jay M. 2012. <span>“Who Invented the Delta Method?”</span>
-<em>The American Statistician</em> 66 (2): 124–27.
+———. 2012. <span>“Who Invented the Delta Method?”</span> <em>The
+American Statistician</em> 66 (2): 124–27.
 </div>
 <div id="ref-ver2018kriging" class="csl-entry">
 ———. 2018. <span>“Kriging Models for Linear Networks and Non-Euclidean

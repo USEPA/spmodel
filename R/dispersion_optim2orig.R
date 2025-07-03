@@ -10,6 +10,9 @@ dispersion_optim2orig <- function(dispersion_orig2optim, par) {
   } else {
     fill_optim_par_val <- par[length(par)] # dispersion is the last element
     fill_orig_val <- exp(fill_optim_par_val)
+    # cap lower and upper dispersion values for numeric stability
+    fill_orig_val <- pmax(1e-8, fill_orig_val)
+    fill_orig_val <- pmin(1e8, fill_orig_val)
     names(fill_orig_val) <- "dispersion"
     new_par <- par[-length(par)] # remove dispersion parameter
   }

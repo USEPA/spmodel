@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.10.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.0</span>
       </span>
     </div>
 
@@ -42,6 +42,9 @@
     </li>
     <li>
       <a href="../articles/emmeans.html">Using emmeans to Estimate Marginal Means of spmodel Objects</a>
+    </li>
+    <li>
+      <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
       <a href="../articles/technical.html">Technical Details</a>
@@ -70,9 +73,23 @@
     </div>
 
     <div class="section level2">
-<h2 class="page-header" data-toc-text="0.10.0" id="spmodel-0100">spmodel 0.10.0<a class="anchor" aria-label="anchor" href="#spmodel-0100"></a></h2>
+<h2 class="page-header" data-toc-text="0.11.0" id="spmodel-0110">spmodel 0.11.0<small>2025-07-03</small><a class="anchor" aria-label="anchor" href="#spmodel-0110"></a></h2>
 <div class="section level3">
-<h3 id="minor-updates-0-10-0">Minor updates<a class="anchor" aria-label="anchor" href="#minor-updates-0-10-0"></a></h3>
+<h3 id="major-updates-0-11-0">Major Updates<a class="anchor" aria-label="anchor" href="#major-updates-0-11-0"></a></h3>
+<ul><li>Added support for Block Prediction (i.e., Block Kriging) to estimate averages (and their uncertainties) over a geographic region.</li>
+<li>Added a vignette to the <a href="https://usepa.github.io/spmodel/"><code>spmodel</code> website</a> titled “Block Prediction (i.e., Block Kriging) in spmodel”.</li>
+<li>Added a <code>fc_borders</code> data set which contains borders for the Four Corners states in the United States.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-11-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-11-0"></a></h3>
+<ul><li>Fixed a bug that incorrectly calculated the log determinant of the fixed effects in the restricted log likelihood.</li>
+<li>Fixed a bug that caused an error when <code>covmatrix(..., cov_type = "pred.pred")</code> was called on <code>object</code> with a non-<code>NULL</code> <code>newdata</code> element.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="0.10.0" id="spmodel-0100">spmodel 0.10.0<small>2025-03-12</small><a class="anchor" aria-label="anchor" href="#spmodel-0100"></a></h2>
+<div class="section level3">
+<h3 id="minor-updates-0-10-0">Minor Updates<a class="anchor" aria-label="anchor" href="#minor-updates-0-10-0"></a></h3>
 <ul><li>Added a robust semivariogram option to <code><a href="../reference/esv.html">esv()</a></code>; see the <code>robust</code>argument to <code><a href="../reference/esv.html">esv()</a></code> (<a href="https://github.com/USEPA/spmodel/issues/28" class="external-link">#28</a>).</li>
 <li>Added <code>"none"</code> and <code>"ie"</code> spatial covariance types (via <code>spcov_type</code> or <code>spcov_initial</code>) to <code><a href="../reference/spautor.html">spautor()</a></code>, <code><a href="../reference/spgautor.html">spgautor()</a></code>, and <code><a href="../reference/spautorRF.html">spautorRF()</a></code> (<a href="https://github.com/USEPA/spmodel/issues/27" class="external-link">#27</a>).</li>
 <li>Fixed the aspect ratio at one for level curve plots of fitted model objects (anisotropic and isotropic).</li>

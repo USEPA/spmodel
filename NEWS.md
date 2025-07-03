@@ -1,6 +1,19 @@
+# spmodel 0.11.0
+
+## Major Updates
+
+* Added support for Block Prediction (i.e., Block Kriging) to estimate averages (and their uncertainties) over a geographic region.
+* Added a vignette to the [`spmodel` website](https://usepa.github.io/spmodel/) titled "Block Prediction (i.e., Block Kriging) in spmodel".
+* Added a `fc_borders` data set which contains borders for the Four Corners states in the United States.
+
+## Bug Fixes
+
+* Fixed a bug that incorrectly calculated the log determinant of the fixed effects in the restricted log likelihood.
+* Fixed a bug that caused an error when `covmatrix(..., cov_type = "pred.pred")` was called on `object` with a non-`NULL` `newdata` element.
+
 # spmodel 0.10.0
 
-## Minor updates
+## Minor Updates
 
 * Added a robust semivariogram option to `esv()`; see the `robust`argument to `esv()` ([#28](https://github.com/USEPA/spmodel/issues/28)).
 * Added `"none"` and `"ie"` spatial covariance types (via `spcov_type` or `spcov_initial`) to `spautor()`, `spgautor()`, and `spautorRF()` ([#27](https://github.com/USEPA/spmodel/issues/27)).

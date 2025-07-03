@@ -25,6 +25,7 @@
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
   type = c("response", "terms"),
+  block = FALSE,
   local,
   terms = NULL,
   na.action = na.fail,
@@ -186,6 +187,12 @@ uncertainties (in \code{.$se.fit}).}
 \item{type}{The prediction type, either on the response scale, link scale (only for
 \code{spglm()} or \code{spgautor()} model objects), or terms scale.}
 
+\item{block}{A logical indicating whether a block prediction over the entire region
+in \code{newdata} should be returned. When \code{block} is \code{TRUE},
+\code{newdata} should be a dense grid of prediction locations that span
+the entire region. The default is \code{FALSE}, which
+returns point predictions for each location on \code{newdata}.}
+
 \item{local}{A optional logical or list controlling the big data approximation. If omitted, \code{local}
 is set to \code{TRUE} or \code{FALSE} based on the observed data sample size (i.e., sample size of the fitted
 model object) -- if the sample size exceeds 10,000, \code{local} is
@@ -223,7 +230,17 @@ When \code{local} is a list, at least one list element must be provided to
 initialize default arguments for the other list elements.
 If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 that \code{local} is transformed into
-\code{list(size = 100, method = "covariance", parallel = FALSE)}.}
+\code{list(size = 100, method = "covariance", parallel = FALSE)}.
+
+If \code{block} is \code{TRUE}, \code{local} accepts \code{method} and \code{size},
+and \code{method} takes values of \code{"all"}, \code{"covariance"},
+and \code{"distance"}, similar as when \code{block} is \code{FALSE}.
+The default \code{method} is \code{"distance"} with size \code{1000}. This default \code{size} is
+much larger than when \code{block} is \code{FALSE}. This is because when \code{block} is \code{TRUE},
+covariances and explanatory variables are averaged before prediction, which greatly
+reduces computational burden, only requiring the Cholesky decomposition
+of one observed covariance matrix. Because the computational burden is reduced dramatically when \code{block} is \code{TRUE},
+parallel processing is not needed and hence, \code{parallel} and \code{ncores} are ignored if specified in \code{local}.}
 
 \item{terms}{If \code{type} is \code{"terms"}, the type of terms to be returned,
 specified via either numeric position or name. The default is all terms are included.}

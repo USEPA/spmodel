@@ -10,6 +10,7 @@ articles:
   - articles/guide
   - articles/SPGLMs
   - articles/emmeans
+  - articles/block
   - articles/technical
 
 # toc broken in bootstrap 5, pkgdown 2.1.0

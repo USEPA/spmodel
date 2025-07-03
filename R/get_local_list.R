@@ -156,3 +156,44 @@ get_local_list_prediction <- function(local) {
 
   local
 }
+
+
+
+
+get_local_list_prediction_block <- function(local) {
+
+  # set local neighborhood size
+  # method can be "all" (for all data), "distance" (for local distance neighborhoods)
+  # or "covariance" (for local covariance neighborhoods)
+
+  if (is.logical(local)) {
+    if (local) {
+      local <- list(method = "covariance", size = 1000)
+    } else {
+      local <- list(method = "all")
+    }
+  }
+
+  names_local <- names(local)
+
+  # errors
+  if ("method" %in% names_local) {
+    if (!local$method %in% c("all", "covariance", "distance")) {
+      stop("Invalid local method. Local method must be \"all\", \"covariance\", or \"distance\".", call. = FALSE)
+    }
+  }
+
+
+  if (!"method" %in% names_local) {
+    # local$method <- "all"
+    local$method <- "covariance"
+  }
+
+  if (local$method %in% c("distance", "covariance") && !"size" %in% names_local) {
+    local$size <- 1000
+  }
+
+  # no parallel required
+
+  local
+}

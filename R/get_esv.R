@@ -64,7 +64,7 @@ get_esv_robust <- function(residual_vector12, dist_vector, bins, cutoff, formula
 
 get_esv_cloud <- function(residual_vector2, dist_vector, formula) {
 
-  esv_out <- tibble::tibble(dist = dist_vector, gamma = residual_vector2)
+  esv_out <- tibble::tibble(dist = dist_vector, gamma = residual_vector2 / 2)
 
   # set row names to NULL
   # row.names(esv_out) <- NULL

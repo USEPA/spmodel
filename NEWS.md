@@ -1,3 +1,9 @@
+# spmodel 0.12.0
+
+## Bug Fixes
+
+* Fixed a bug in the cloud semivariogram (i.e., `esv(..., cloud = TRUE)`) that incorrectly doubled the semivariance.
+
 # spmodel 0.11.0
 
 ## Major Updates

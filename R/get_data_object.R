@@ -17,6 +17,9 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     is_sf <- TRUE
     sf_column_name <- attributes(data)$sf_column
     crs <- attributes(data[[sf_column_name]])$crs
+    if (!inherits(spcov_initial, c("none", "ie")) && any(sf::st_geometry_type(data) != "POINT")) {
+      warning("At least one geometry type in data is not equal to \"POINT\". Attempting to coerce all non-\"POINT\" geometries to \"POINT\" geometries via their centroids using sf::st_centroid().", call. = FALSE)
+    }
     data_sf <- suppressWarnings(sf::st_centroid(data))
     # store as data frame
     data <- sf_to_df(data_sf)
@@ -93,13 +96,12 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   # check if coordinates are projected
   if (is_sf) {
     if (!is.na(st_is_longlat(crs)) && st_is_longlat(crs)) {
-      warning("Coordinates are in a geographic coordinate system. For the most accurate results, please ensure
-            coordinates are in a projected coordinate system (e.g., via sf::st_transform()).", call. = FALSE)
+      warning("Coordinates are in a geographic coordinate system and will be used as is. For the most accurate results, please ensure coordinates are in a projected coordinate system (e.g., via sf::st_transform()).", call. = FALSE)
     }
   } else {
     # possible revisit this later and add explicit warning
     # if (any(abs(c(data[[xcoord]], data[[ycoord]])) <= 360)) {
-    #   warning("Coordinates may be in a geographic coordinate system. For the most accurate results, please ensure
+    #   warning("Coordinates may be in a geographic coordinate system and will be used as is. For the most accurate results, please ensure
     #         coordinates are in a projected coordinate system (e.g., via sf::st_transform()).", call. = FALSE)
     # }
   }

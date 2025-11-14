@@ -1,4 +1,4 @@
-# spmodel 0.12.0
+# spmodel 0.11.1
 
 ## Minor Updates
 
@@ -8,6 +8,7 @@
 ## Bug Fixes
 
 * Fixed a bug in the cloud semivariogram (i.e., `esv(..., cloud = TRUE)`) that incorrectly doubled the semivariance.
+* Fix `\textbf`, `\textsf`, and `\textttt` LaTeX rendering issues in vignettes ([#36](https://github.com/USEPA/spmodel/issues/36)).
 
 # spmodel 0.11.0
 

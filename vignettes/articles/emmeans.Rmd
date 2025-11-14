@@ -22,7 +22,7 @@ library(emmeans)
 
 # Introduction {#sec:introduction}
 
-`spmodel` is an \textbf{\textsf{R}} package used to fit, summarize, and
+`spmodel` is an **R** package used to fit, summarize, and
 predict for a variety of spatial statistical models. The vignette
 provides an estimating marginal means (i.e., least-squares means) of `spmodel` objects using the `emmeans`.
 **R** package [@lenth2024emmeans]. Before proceeding, we

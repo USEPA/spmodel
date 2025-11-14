@@ -33,7 +33,7 @@ library(spmodel)
 
 # Introduction
 
-The `spmodel` package is used to fit and summarize spatial models and make predictions at unobserved locations (Kriging). This vignette provides an overview of basic features in `spmodel`. We load `spmodel` by running
+The `spmodel` **R** package is used to fit and summarize spatial models and make predictions at unobserved locations (Kriging). This vignette provides an overview of basic features in `spmodel`. We load `spmodel` by running
 ```{r, eval = FALSE}
 library(spmodel)
 ```

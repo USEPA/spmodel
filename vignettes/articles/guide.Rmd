@@ -22,7 +22,7 @@ library(spmodel)
 
 # Introduction {#sec:introduction}
 
-`spmodel` is an \textbf{\textsf{R}} package used to fit, summarize, and predict for a variety of spatial statistical models. The vignette provides an introduction to both the basic and advanced features of the `spmodel` package coupled with a brief theoretical explanation of the methods. First we give a brief theoretical introduction to spatial linear models. Then we outline the variety of methods used to estimate the parameters of spatial linear models. Then we explain how to obtain predictions at unobserved locations. Then we detail some advanced modeling features, including random effects, partition factors, anisotropy, big data approaches, and spatial generalized linear models. Finally we end with a short discussion. Before proceeding, we load `spmodel` by running
+`spmodel` is an **R** package used to fit, summarize, and predict for a variety of spatial statistical models. The vignette provides an introduction to both the basic and advanced features of the `spmodel` package coupled with a brief theoretical explanation of the methods. First we give a brief theoretical introduction to spatial linear models. Then we outline the variety of methods used to estimate the parameters of spatial linear models. Then we explain how to obtain predictions at unobserved locations. Then we detail some advanced modeling features, including random effects, partition factors, anisotropy, big data approaches, and spatial generalized linear models. Finally we end with a short discussion. Before proceeding, we load `spmodel` by running
 ```{r, eval = FALSE}
 library(spmodel)
 ```
@@ -277,7 +277,7 @@ Though we described the model diagnostics in this subsection using $\boldsymbol{
 
 ## The broom functions: `tidy()`, `glance()`, and `augment()`
 
-The `tidy()`, `glance()`, and `augment()` functions from the broom \textbf{\textsf{R}} package [@robinson2021broom] provide convenient output for many of the model fit and diagnostic metrics discussed in the previous two sections. The `tidy()` function returns a tidy tibble of the coefficient table from `summary()`:
+The `tidy()`, `glance()`, and `augment()` functions from the broom **R** package [@robinson2021broom] provide convenient output for many of the model fit and diagnostic metrics discussed in the previous two sections. The `tidy()` function returns a tidy tibble of the coefficient table from `summary()`:
 ```{r}
 tidy(spmod)
 ```
@@ -500,7 +500,7 @@ predict(spmods, newdata = sulfate_preds)
 
 ## Random Effects
 
-Non-spatial random effects incorporate additional sources of variability into model fitting. They are accommodated in `spmodel` using similar syntax as for random effects in the `nlme` [@pinheiro2006mixed] and `lme4` [@bates2015lme4] \textbf{\textsf{R}} packages. Random effects are specified via a formula passed to the `random` argument. Next we show two examples that incorporate random effects into the spatial linear model using the `moss` data.
+Non-spatial random effects incorporate additional sources of variability into model fitting. They are accommodated in `spmodel` using similar syntax as for random effects in the `nlme` [@pinheiro2006mixed] and `lme4` [@bates2015lme4] **R** packages. Random effects are specified via a formula passed to the `random` argument. Next we show two examples that incorporate random effects into the spatial linear model using the `moss` data.
 
 The first example explores random intercepts for the `sample` variable. The `sample` variable indexes each unique location, which can have replicate observations due to field duplicates (`field_dup`) and lab replicates (`lab_rep`). There are 365 observations in `moss` at 318 unique locations, which means that 47 observations in `moss` are either field duplicates or lab replicates. It is likely that the repeated observations at a location are correlated with one another. We can incorporate this repeated-observation correlation by creating a random intercept for each level of `sample`. We model the random intercepts for `sample` by running
 ```{r}
@@ -597,7 +597,7 @@ summary(spmod_anis)
 
 The `rotate` parameter is between zero and $\pi$ radians and represents the angle of a clockwise rotation of the ellipse such that the major axis of the ellipse is the new x-axis and the minor axis of the ellipse is the new y-axis. The `scale` parameter is between zero and one and represents the ratio of the distance between the origin and the edge of the ellipse along the minor axis to the distance between the origin and the edge of the ellipse along the major axis. Below shows a transformation that turns an anisotropic ellipse into an isotropic one (i.e., a circle). This transformation requires rotating the coordinates clockwise by `rotate` and then scaling them the reciprocal of `scale`.  The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances.
 
-```{r, anisotropy_fit, echo = FALSE, out.width = "33%", fig.show = "hold", fig.cap = "A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the \\texttt{rotate} parameter (here \\texttt{rotate} is 0.75$\\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the \\texttt{scale} parameter (here \\texttt{scale} is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances."}
+```{r, anisotropy_fit, echo = FALSE, out.width = "33%", fig.show = "hold", fig.cap = "A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the `rotate` parameter (here `rotate` is 0.75$\\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the `scale` parameter (here `scale` is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances."}
 spcov_params_val <- coef(spmod_anis, type = "spcov")
 # FIRST FIGURE
 theta <- 3 * pi / 4

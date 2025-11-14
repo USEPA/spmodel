@@ -112,9 +112,9 @@ AIC comparisons between a model fit using restricted maximum likelihood and a mo
 
 ## `anova()` {#sec:anova-lm}
 
-Test statistics from \texttt{anova()} are formed using the general linear hypothesis test. Let $\mathbf{L}$ be an $l \times p$ contrast matrix and $l_0$ be an $l \times 1$ vector. The null hypothesis is that $\mathbf{L} \boldsymbol{\hat{\beta}} = l_0$ and the alternative hypothesis is that $\mathbf{L} \boldsymbol{\hat{\beta}} \neq l_0$. Usually, $l_0$ is the zero vector (in `spmodel`, this is assumed). The test statistic is denoted $Chi2$ and is given by \begin{equation*}\label{eq:glht}
+Test statistics from `anova()` are formed using the general linear hypothesis test. Let $\mathbf{L}$ be an $l \times p$ contrast matrix and $l_0$ be an $l \times 1$ vector. The null hypothesis is that $\mathbf{L} \boldsymbol{\hat{\beta}} = l_0$ and the alternative hypothesis is that $\mathbf{L} \boldsymbol{\hat{\beta}} \neq l_0$. Usually, $l_0$ is the zero vector (in `spmodel`, this is assumed). The test statistic is denoted $Chi2$ and is given by \begin{equation*}\label{eq:glht}
   Chi2 = [(\mathbf{L} \boldsymbol{\hat{\beta}} - l_0)^\top(\mathbf{L} (\mathbf{X}^\top \mathbf{\hat{\Sigma}} \mathbf{X})^{-1} \mathbf{L}^\top)^{-1}(\mathbf{L} \boldsymbol{\hat{\beta}} - l_0)]
-\end{equation*} By default, $\mathbf{L}$ is chosen such that each variable in the data used to fit the model is tested marginally (i.e., controlling for the other variables) against $l_0 = \mathbf{0}$. If this default is not desired, the \texttt{Terms} and \texttt{L} arguments can be used to pass user-defined $\mathbf{L}$ matrices to \texttt{anova()}. They must be constructed in such a way that $l_0 = \mathbf{0}$.
+\end{equation*} By default, $\mathbf{L}$ is chosen such that each variable in the data used to fit the model is tested marginally (i.e., controlling for the other variables) against $l_0 = \mathbf{0}$. If this default is not desired, the `Terms` and `L` arguments can be used to pass user-defined $\mathbf{L}$ matrices to `anova()`. They must be constructed in such a way that $l_0 = \mathbf{0}$.
 
 It is notoriously difficult to determine appropriate p-values for linear mixed models based on the general linear hypothesis test. lme4, for example, does not report p-values by default. A few reasons why obtaining p-values is so challenging:
 
@@ -453,8 +453,8 @@ where $\sigma^2_{de}$ $(\geq 0)$ is the spatially dependent (correlated) varianc
 
 | Spatial covariance type | $\mathbf{R}$ functional form                                             |
 |---------------------------------|---------------------------------------|
-| $\texttt{"car"}$          | $(\mathbf{I} - \phi\mathbf{W})^{-1}\mathbf{M}$                           |
-| $\texttt{"sar"}$          | $[(\mathbf{I} - \phi\mathbf{W})(\mathbf{I} - \phi\mathbf{W})^\top]^{-1}$ |
+| `"car"`          | $(\mathbf{I} - \phi\mathbf{W})^{-1}\mathbf{M}$                           |
+| `"sar"`          | $[(\mathbf{I} - \phi\mathbf{W})(\mathbf{I} - \phi\mathbf{W})^\top]^{-1}$ |
 
 : The forms of R for each spatial covariance type available in spautor()
 
@@ -472,24 +472,24 @@ For point-referenced data, the spatial covariance is given by \begin{equation*}
 
 | Spatial Covariance Type   | R Functional Form                                                                                                                                |
 |-----------------------------------------|-------------------------------|
-| $\texttt{"exponential"}$  | $e^{-\eta}$                                                                                                                                      |
-| $\texttt{"spherical"}$      | $(1 - 1.5\eta + 0.5\eta^3)\mathcal{I}\{h \leq \phi \}$                                                                                           |
-| $\texttt{"gaussian"}$       | $e^{-\eta^2}$                                                                                                                                    |
-| $\texttt{"triangular"}$    | $(1 - \eta)\mathcal{I}\{h \leq \phi \}$                                                                                                          |
-| $\texttt{"circular"}$       | $(1 - \frac{2}{\pi}[m\sqrt{1 - m^2} + sin^{-1}\{m\}])\mathcal{I}\{h \leq \phi \}, m = min(\eta, 1)$                                              |
-| $\texttt{"cubic"}$       | $(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75 \eta^7)\mathcal{I}\{h \leq \phi \}$ \\                                                             |
-| $\texttt{"pentaspherical"}$ | $(1 - 1.875\eta + 1.250\eta^3 - 0.375\eta^5)\mathcal{I}\{h \leq \phi \}$ \\                                                                      |
-| $\texttt{"cosine"}$         | $ cos(\eta) $                                                                                                                                  |
-| $\texttt{"wave"}$          | $\frac{sin(\eta)}{\eta}\mathcal{I}\{h > 0 \} + \mathcal{I}\{h = 0 \}$                                                                            |
-| $\texttt{"jbessel"}$        | $B_j(h\phi), B_j$ is Bessel-J                                                                                                                    |
-| $\texttt{"gravity"}$       | $(1 + \eta^2)^{-1/2}$                                                                                                                            |
-| $\texttt{"rquad"}$        | $(1 + \eta^2)^{-1}$                                                                                                                              |
-| $\texttt{"magnetic"}$       | $(1 + \eta^2)^{-3/2}$                                                                                                                            |
-| $\texttt{"matern"}$         | $\frac{2^{(1 - \xi)}}{\Gamma(\xi)} \alpha^\xi B_k(\alpha, \xi), \alpha = \sqrt{2\xi \eta}, B_k$ is Bessel-K with order $\xi$, $\xi \in [1/5, 5]$ |
-| $\texttt{"cauchy"}$       | $(1 + \eta^2)^{-\xi}$, $\xi > 0$                                                                                                                 |
-| $\texttt{"pexponential"}$  | $exp(-h^\xi / \phi)$, $\xi \in (0, 2]$                                                                                                           |
-| $\texttt{"none"}$      | $0$                                                                                                                                              |
-| $\texttt{"ie"}$      | $0$                                                                                                                                              |
+| `"exponential"`  | $e^{-\eta}$                                                                                                                                      |
+| `"spherical"`      | $(1 - 1.5\eta + 0.5\eta^3)\mathcal{I}\{h \leq \phi \}$                                                                                           |
+| `"gaussian"`       | $e^{-\eta^2}$                                                                                                                                    |
+| `"triangular"`    | $(1 - \eta)\mathcal{I}\{h \leq \phi \}$                                                                                                          |
+| `"circular"`       | $(1 - \frac{2}{\pi}[m\sqrt{1 - m^2} + sin^{-1}\{m\}])\mathcal{I}\{h \leq \phi \}, m = min(\eta, 1)$                                              |
+| `"cubic"`       | $(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75 \eta^7)\mathcal{I}\{h \leq \phi \}$ \\                                                             |
+| `"pentaspherical"` | $(1 - 1.875\eta + 1.250\eta^3 - 0.375\eta^5)\mathcal{I}\{h \leq \phi \}$ \\                                                                      |
+| `"cosine"`         | $ cos(\eta) $                                                                                                                                  |
+| `"wave"`          | $\frac{sin(\eta)}{\eta}\mathcal{I}\{h > 0 \} + \mathcal{I}\{h = 0 \}$                                                                            |
+| `"jbessel"`        | $B_j(h\phi), B_j$ is Bessel-J                                                                                                                    |
+| `"gravity"`       | $(1 + \eta^2)^{-1/2}$                                                                                                                            |
+| `"rquad"`        | $(1 + \eta^2)^{-1}$                                                                                                                              |
+| `"magnetic"`       | $(1 + \eta^2)^{-3/2}$                                                                                                                            |
+| `"matern"`         | $\frac{2^{(1 - \xi)}}{\Gamma(\xi)} \alpha^\xi B_k(\alpha, \xi), \alpha = \sqrt{2\xi \eta}, B_k$ is Bessel-K with order $\xi$, $\xi \in [1/5, 5]$ |
+| `"cauchy"`       | $(1 + \eta^2)^{-\xi}$, $\xi > 0$                                                                                                                 |
+| `"pexponential"`  | $exp(-h^\xi / \phi)$, $\xi \in (0, 2]$                                                                                                           |
+| `"none"`      | $0$                                                                                                                                              |
+| `"ie"`      | $0$                                                                                                                                              |
 
 : The forms of R for each spatial covariance type available in splm(). All spatial covariance functions are valid in two dimensions except the triangular and cosine functions, which are only valid in one dimension. An alias for none is ie.
 
@@ -533,16 +533,16 @@ The empirical semivariogram is a moment-based estimate of the semivariogram deno
 
 @cressie1985fitting recommends setting $w_i = |N(h)| / \gamma(h)_i^2$, which gives more weight to distance classes with more observations ($|N(h)|$) and shorter distances ($1 / \gamma(h)_i^2$). The default in `spmodel` is to use these $w_i$, known as Cressie weights, though several other options for $w_i$ exist and are available via the `weights` argument. The following table contains all $w_i$ available via the `weights` argument.
 
-| $w_i$ Name                          | $w_i$ Form                      | $\texttt{weight =}$              |
+| $w_i$ Name                          | $w_i$ Form                      | `weight =`              |
 |--------------------------|-----------------------|-----------------------|
-| Cressie                             | $|N(h)| / \gamma(h)_i^2$ | $\texttt{"cressie"}$            |
-| Cressie (Denominator) Root          | $|N(h)| / \gamma(h)_i$    | $\texttt{"cressie-dr"}$         |
-| Cressie No Pairs                    | $1 / \gamma(h)_i^2$        | $\texttt{"cressie-nopairs"}$    |
-| Cressie (Denominator) Root No Pairs | $1 / \gamma(h)_i$           | $\texttt{"cressie-dr-nopairs"}$ |
-| Pairs                               | $|N(h)|$                    | $\texttt{pairs"}$               |
-| Pairs Inverse Distance              | $|N(h)| / h^2$             | $\texttt{"pairs-invd"}$         |
-| Pairs Inverse (Root) Distance       | $|N(h)| / h$                | $\texttt{"pairs-invrd"}$       |
-| Ordinary Least Squares              | 1                               | $\texttt{"ols"}$               |
+| Cressie                             | $|N(h)| / \gamma(h)_i^2$ | `"cressie"`            |
+| Cressie (Denominator) Root          | $|N(h)| / \gamma(h)_i$    | `"cressie-dr"`         |
+| Cressie No Pairs                    | $1 / \gamma(h)_i^2$        | `"cressie-nopairs"`    |
+| Cressie (Denominator) Root No Pairs | $1 / \gamma(h)_i$           | `"cressie-dr-nopairs"` |
+| Pairs                               | $|N(h)|$                    | `"pairs"`               |
+| Pairs Inverse Distance              | $|N(h)| / h^2$             | `"pairs-invd"`         |
+| Pairs Inverse (Root) Distance       | $|N(h)| / h$                | `"pairs-invrd"`       |
+| Ordinary Least Squares              | 1                               | `"ols"`               |
 
 : Table of values for the weights argument in splm() when estmethod = "sv-wls".
 

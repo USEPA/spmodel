@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.1</span>
       </span>
     </div>
 
@@ -115,18 +115,19 @@ Dumelle, Matt Higham, and Jay M. Ver Hoef</h4>
 <div class="section level2">
 <h2 id="sec:introduction">Introduction<a class="anchor" aria-label="anchor" href="#sec:introduction"></a>
 </h2>
-<p><code>spmodel</code> is an package used to fit, summarize, and
-predict for a variety of spatial statistical models. The vignette
-provides an introduction to both the basic and advanced features of the
-<code>spmodel</code> package coupled with a brief theoretical
-explanation of the methods. First we give a brief theoretical
-introduction to spatial linear models. Then we outline the variety of
-methods used to estimate the parameters of spatial linear models. Then
-we explain how to obtain predictions at unobserved locations. Then we
-detail some advanced modeling features, including random effects,
-partition factors, anisotropy, big data approaches, and spatial
-generalized linear models. Finally we end with a short discussion.
-Before proceeding, we load <code>spmodel</code> by running</p>
+<p><code>spmodel</code> is an <strong>R</strong> package used to fit,
+summarize, and predict for a variety of spatial statistical models. The
+vignette provides an introduction to both the basic and advanced
+features of the <code>spmodel</code> package coupled with a brief
+theoretical explanation of the methods. First we give a brief
+theoretical introduction to spatial linear models. Then we outline the
+variety of methods used to estimate the parameters of spatial linear
+models. Then we explain how to obtain predictions at unobserved
+locations. Then we detail some advanced modeling features, including
+random effects, partition factors, anisotropy, big data approaches, and
+spatial generalized linear models. Finally we end with a short
+discussion. Before proceeding, we load <code>spmodel</code> by
+running</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://usepa.github.io/spmodel/">spmodel</a></span><span class="op">)</span></span></code></pre></div>
 <p>If using <code>spmodel</code> in a formal publication or report,
@@ -675,10 +676,11 @@ covariance parameters are estimated and <span class="math inline">\(\boldsymbol{
 <code>augment()</code><a class="anchor" aria-label="anchor" href="#the-broom-functions-tidy-glance-and-augment"></a>
 </h3>
 <p>The <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code>, <code><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance()</a></code>, and
-<code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> functions from the broom package <span class="citation">(Robinson, Hayes, and Couch 2021)</span> provide
-convenient output for many of the model fit and diagnostic metrics
-discussed in the previous two sections. The <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code> function
-returns a tidy tibble of the coefficient table from
+<code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> functions from the broom <strong>R</strong>
+package <span class="citation">(Robinson, Hayes, and Couch 2021)</span>
+provide convenient output for many of the model fit and diagnostic
+metrics discussed in the previous two sections. The <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code>
+function returns a tidy tibble of the coefficient table from
 <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>:</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span></span></code></pre></div>
@@ -1239,10 +1241,10 @@ variability into model fitting. They are accommodated in
 <code>spmodel</code> using similar syntax as for random effects in the
 <code>nlme</code> <span class="citation">(Pinheiro and Bates
 2006)</span> and <code>lme4</code> <span class="citation">(Bates et al.
-2015)</span> packages. Random effects are specified via a formula passed
-to the <code>random</code> argument. Next we show two examples that
-incorporate random effects into the spatial linear model using the
-<code>moss</code> data.</p>
+2015)</span> <strong>R</strong> packages. Random effects are specified
+via a formula passed to the <code>random</code> argument. Next we show
+two examples that incorporate random effects into the spatial linear
+model using the <code>moss</code> data.</p>
 <p>The first example explores random intercepts for the
 <code>sample</code> variable. The <code>sample</code> variable indexes
 each unique location, which can have replicate observations due to field
@@ -1394,12 +1396,12 @@ clockwise by <code>rotate</code> and then scaling them the reciprocal of
 the original coordinates to compute distances and spatial
 covariances.</p>
 <div class="figure">
-<img src="guide_files/figure-html/anisotropy_fit-1.png" alt="A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the \texttt{rotate} parameter (here \texttt{rotate} is 0.75$\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the \texttt{scale} parameter (here \texttt{scale} is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances." width="33%"><img src="guide_files/figure-html/anisotropy_fit-2.png" alt="A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the \texttt{rotate} parameter (here \texttt{rotate} is 0.75$\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the \texttt{scale} parameter (here \texttt{scale} is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances." width="33%"><img src="guide_files/figure-html/anisotropy_fit-3.png" alt="A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the \texttt{rotate} parameter (here \texttt{rotate} is 0.75$\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the \texttt{scale} parameter (here \texttt{scale} is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances." width="33%"><p class="caption">
+<img src="guide_files/figure-html/anisotropy_fit-1.png" alt="A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the `rotate` parameter (here `rotate` is 0.75$\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the `scale` parameter (here `scale` is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances." width="33%"><img src="guide_files/figure-html/anisotropy_fit-2.png" alt="A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the `rotate` parameter (here `rotate` is 0.75$\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the `scale` parameter (here `scale` is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances." width="33%"><img src="guide_files/figure-html/anisotropy_fit-3.png" alt="A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the `rotate` parameter (here `rotate` is 0.75$\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the `scale` parameter (here `scale` is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances." width="33%"><p class="caption">
 A visual representation of the anisotropy transformation. In the left
 figure, the first step is to rotate the anisotropic ellipse clockwise by
-the parameter (here is 0.75<span class="math inline">\(\pi\)</span>
-radians or 135 degrees). In the middle figure, the second step is to
-scale the y axis by the reciprocal of the parameter (here is 0.5). In
+the <code>rotate</code> parameter (here <code>rotate</code> is 0.75<span class="math inline">\(\pi\)</span> radians or 135 degrees). In the
+middle figure, the second step is to scale the y axis by the reciprocal
+of the <code>scale</code> parameter (here <code>scale</code> is 0.5). In
 the right figure, the anisotropic ellipse has been transformed into an
 isotropic one (i.e., a circle). The transformed coordinates are then
 used instead of the original coordinates to compute distances and

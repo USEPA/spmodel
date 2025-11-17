@@ -259,8 +259,8 @@ observations can utilize `spmodel`'s large data set options.
 
 | Argument | Purposes | Applies To |
 |------|------|------|
-| `formula}` | Fixed effects formula | Both  | 
-| `family}` | Response distribution | Both  |
+| `formula` | Fixed effects formula | Both  | 
+| `family` | Response distribution | Both  |
 | `data` | Data Frame or `sf` object | Both  |
 | `spcov_type` | Spatial covariance type | Both  |
 | `spcov_initial` | Initial or known spatial covariance parameters | Both  | 

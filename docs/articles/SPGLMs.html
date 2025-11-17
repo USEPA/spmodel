@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.1</span>
       </span>
     </div>
 
@@ -116,9 +116,9 @@ Dumelle, Matt Higham, and Jay M. Ver Hoef</h4>
 <div class="section level2">
 <h2 id="sec:introduction">Introduction<a class="anchor" aria-label="anchor" href="#sec:introduction"></a>
 </h2>
-<p><code>spmodel</code> is an package used to fit, summarize, and
-predict for a variety of spatial statistical models. The vignette
-provides an introduction spatial generalized linear models for
+<p><code>spmodel</code> is an <strong>R</strong> package used to fit,
+summarize, and predict for a variety of spatial statistical models. The
+vignette provides an introduction spatial generalized linear models for
 non-Gaussian response distributions in <code>spmodel</code>. Before
 proceeding, we load <code>spmodel</code> by running</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -309,9 +309,10 @@ re-weighted least squares). <span class="citation">Ver Hoef et al.
 (2024)</span> provide the methodology’s full details.</p>
 <p><code>spmodel</code> accommodates the binomial, beta, Poisson,
 negative binomial, gamma, and inverse Gaussian distributions. The
-binomial and beta response distributions (specified by ) use the logit
-link, while the Poisson, negative binomial, gamma, and inverse Gaussian
-distributions use the log link – see the following table.</p>
+binomial and beta response distributions (specified by
+<code>family</code>) use the logit link, while the Poisson, negative
+binomial, gamma, and inverse Gaussian distributions use the log link –
+see the following table.</p>
 <table class="table">
 <caption>Spatial generalized linear model response distributions
 available in spmodel alongside their corresponding link functions and
@@ -377,29 +378,37 @@ data types.</caption>
 <h3 id="sec:model-fit">Model fitting<a class="anchor" aria-label="anchor" href="#sec:model-fit"></a>
 </h3>
 <p>Spatial generalized linear models in <code>spmodel</code> are fit
-using (for point-referenced data) or (for areal data). These functions
-are similar in structure both to one another and to the function in base
-<strong>R</strong>. They generally require the following four arguments:
-, a formula that describes the relationship between the response and
-explanatory variables; , the response distribution, which can be , , , ,
-, or ; , a or object <span class="citation">(Pebesma 2018)</span> whose
-rows index observations and whose columns contain the response variable,
-explanatory variables, and spatial information; and , one of 19 spatial
+using <code><a href="../reference/spglm.html">spglm()</a></code> (for point-referenced data) or
+<code><a href="../reference/spgautor.html">spgautor()</a></code> (for areal data). These functions are similar in
+structure both to one another and to the <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> function in
+base <strong>R</strong>. They generally require the following four
+arguments: <code>formula</code>, a formula that describes the
+relationship between the response and explanatory variables;
+<code>family</code>, the response distribution, which can be
+<code>binomial</code>, <code>beta</code>, <code>poisson</code>,
+<code>nbinomial</code>, <code>Gamma</code>, or
+<code>inverse.gaussian</code>; <code>data</code>, a
+<code>data.frame</code> or <code>sf</code> object <span class="citation">(Pebesma 2018)</span> whose rows index observations and
+whose columns contain the response variable, explanatory variables, and
+spatial information; and <code>spcov_type</code>, one of 19 spatial
 covariance types (e.g., spherical spatial covariance, Matérn spatial
 covariance, simultaneous-autoregressive spatial covariance etc.). The
-binomial and beta response distributions (specified by ) use the logit
-link, while the Poisson, negative binomial, gamma, and inverse Gaussian
-distributions use the log link. Other arguments to and are either
-required only in specific situations or have default values specified.
-All arguments to the and functions are summarized in the following
-table. Models for several hundred observations can take anywhere from a
-few seconds to a few minutes to fit, depending on the shape of the
+binomial and beta response distributions (specified by
+<code>family</code>) use the logit link, while the Poisson, negative
+binomial, gamma, and inverse Gaussian distributions use the log link.
+Other arguments to <code><a href="../reference/spglm.html">spglm()</a></code> and <code><a href="../reference/spgautor.html">spgautor()</a></code> are
+either required only in specific situations or have default values
+specified. All arguments to the <code><a href="../reference/spglm.html">spglm()</a></code> and
+<code><a href="../reference/spgautor.html">spgautor()</a></code> functions are summarized in the following table.
+Models for several hundred observations can take anywhere from a few
+seconds to a few minutes to fit, depending on the shape of the
 likelihood surface and how quickly the covariance parameters converge.
 Models for several thousand observations can utilize
 <code>spmodel</code>’s large data set options.</p>
 <table class="table">
-<caption>Arguments to spglm() and spgautor(), their purpose, and whether
-the argument applies to both spglm() and spgautor() or just one of
+<caption>Arguments to <code><a href="../reference/spglm.html">spglm()</a></code> and <code><a href="../reference/spgautor.html">spgautor()</a></code>,
+their purpose, and whether the argument applies to both
+<code><a href="../reference/spglm.html">spglm()</a></code> and <code><a href="../reference/spgautor.html">spgautor()</a></code> or just one of
 them.</caption>
 <colgroup>
 <col width="33%">
@@ -413,103 +422,103 @@ them.</caption>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{formula}\)</span></td>
+<td><code>formula</code></td>
 <td>Fixed effects formula</td>
 <td>Both</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{family}\)</span></td>
+<td><code>family</code></td>
 <td>Response distribution</td>
 <td>Both</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{data}\)</span></td>
-<td>Data Frame or object</td>
+<td><code>data</code></td>
+<td>Data Frame or <code>sf</code> object</td>
 <td>Both</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{spcov_type}\)</span></td>
+<td><code>spcov_type</code></td>
 <td>Spatial covariance type</td>
 <td>Both</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{spcov_initial}\)</span></td>
+<td><code>spcov_initial</code></td>
 <td>Initial or known spatial covariance parameters</td>
 <td>Both</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{dispersion_initial}\)</span></td>
+<td><code>dispersion_initial</code></td>
 <td>Initial or known dispersion parameter</td>
 <td>Both</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{estmethod}\)</span></td>
+<td><code>estmethod</code></td>
 <td>Estimation method</td>
 <td>Both</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{random}\)</span></td>
+<td><code>random</code></td>
 <td>Random effects formula</td>
 <td>Both</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{randcov_initial}\)</span></td>
+<td><code>randcov_initial</code></td>
 <td>Initial or known random effect variances</td>
 <td>Both</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{partition_factor}\)</span></td>
+<td><code>partition_factor</code></td>
 <td>A partition factor formula</td>
 <td>Both</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{...}\)</span></td>
+<td><code>...</code></td>
 <td>Additional arguments</td>
 <td>Both</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{anisotropy}\)</span></td>
+<td><code>anisotropy</code></td>
 <td>Whether to model anisotropy</td>
-<td><span class="math inline">\(\texttt{spglm()}\)</span></td>
+<td><code><a href="../reference/spglm.html">spglm()</a></code></td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{xcoord}\)</span></td>
+<td><code>xcoord</code></td>
 <td>An x-coordinate name</td>
-<td><span class="math inline">\(\texttt{spglm()}\)</span></td>
+<td><code>spglm()}</code></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{ycoord}\)</span></td>
+<td><code>ycoord</code></td>
 <td>A y-coordinate name</td>
-<td><span class="math inline">\(\texttt{spglm()}\)</span></td>
+<td><code><a href="../reference/spglm.html">spglm()</a></code></td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{local}\)</span></td>
+<td><code>local</code></td>
 <td>Options for large data sets</td>
-<td><span class="math inline">\(\texttt{spglm()}\)</span></td>
+<td><code><a href="../reference/spglm.html">spglm()</a></code></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{W}\)</span></td>
+<td><code>W</code></td>
 <td>A neighborhood weight matrix</td>
-<td><span class="math inline">\(\texttt{spgautor()}\)</span></td>
+<td><code><a href="../reference/spgautor.html">spgautor()</a></code></td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{row_st}\)</span></td>
-<td>Whether to row-standardize <span class="math inline">\(\texttt{W}\)</span>
+<td><code>row_st</code></td>
+<td>Whether to row-standardize <code>W</code>
 </td>
-<td><span class="math inline">\(\texttt{spgautor()}\)</span></td>
+<td><code><a href="../reference/spgautor.html">spgautor()</a></code></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{M}\)</span></td>
+<td><code>M</code></td>
 <td>A symmetry matrix</td>
-<td><span class="math inline">\(\texttt{spgautor()}\)</span></td>
+<td><code><a href="../reference/spgautor.html">spgautor()</a></code></td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{range_positive}\)</span></td>
+<td><code>range_positive</code></td>
 <td>Whether the range parameter is restricted to be positive</td>
 <td></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{cutoff}\)</span></td>
+<td><code>cutoff</code></td>
 <td>Distance cutoff if using distance-based neighbor definition</td>
 <td></td>
 </tr>
@@ -523,12 +532,13 @@ them.</caption>
 aspects of model fit or inspect and visualize model diagnostics like
 residuals. There are many functions in <code>spmodel</code> that are
 used for these purposes, and their main argument is the fitted model
-object returned by or . The names of these functions are meant to be
-illustrative, describing the purpose of the function itself. The
-functions for evaluating model fit (see below) return likelihood-based
-statistics like AIC, AICc, BIC, and deviance <span class="citation">(McCullagh and Nelder 1989)</span>, return coefficient
-estimates and confidence intervals, perform cross validation, and
-more.</p>
+object returned by <code><a href="../reference/spglm.html">spglm()</a></code> or <code><a href="../reference/spgautor.html">spgautor()</a></code>. The
+names of these functions are meant to be illustrative, describing the
+purpose of the function itself. The functions for evaluating model fit
+(see below) return likelihood-based statistics like AIC, AICc, BIC, and
+deviance <span class="citation">(McCullagh and Nelder 1989)</span>,
+return coefficient estimates and confidence intervals, perform cross
+validation, and more.</p>
 <table class="table">
 <caption>Model evaluation functions available for models fit using
 spglm() or spgautor() and their purpose.</caption>
@@ -543,73 +553,73 @@ spglm() or spgautor() and their purpose.</caption>
 <tbody>
 <tr class="odd">
 <td>
-<span class="math inline">\(\texttt{AIC()}\)</span>; <span class="math inline">\(\texttt{AICc()}\)</span>
+<code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC()</a></code>; <code><a href="../reference/AICc.html">AICc()</a></code>
 </td>
 <td>Return AIC and AICc</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{anova()}\)</span></td>
+<td><code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code></td>
 <td>Perform an analysis of variance</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{AUROC()}\)</span></td>
+<td><code><a href="../reference/AUROC.html">AUROC()</a></code></td>
 <td>Compute the area under the receiver operating characteristic
 curve</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{BIC()}\)</span></td>
+<td><code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC()</a></code></td>
 <td>Return BIC</td>
 </tr>
 <tr class="odd">
 <td>
-<span class="math inline">\(\texttt{coef()}\)</span>; <span class="math inline">\(\texttt{coefficients()}\)</span>
+<code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>; <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coefficients()</a></code>
 </td>
 <td>Return parameter estimates</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{confint()}\)</span></td>
+<td><code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code></td>
 <td>Return confidence intervals</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{covmatrix()}\)</span></td>
+<td><code><a href="../reference/covmatrix.html">covmatrix()</a></code></td>
 <td>Return the fitted covariance matrix</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{deviance()}\)</span></td>
+<td><code><a href="https://rdrr.io/r/stats/deviance.html" class="external-link">deviance()</a></code></td>
 <td>Return the deviance</td>
 </tr>
 <tr class="odd">
 <td>
-<span class="math inline">\(\texttt{glance()}\)</span>; <span class="math inline">\(\texttt{glances()}\)</span>
+<code><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance()</a></code>; <code><a href="../reference/glances.html">glances()</a></code>
 </td>
 <td>Glance at model fits</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{logLik()}\)</span></td>
+<td><code><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik()</a></code></td>
 <td>Return the log-likelihood</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{loocv()}\)</span></td>
+<td><code><a href="../reference/loocv.html">loocv()</a></code></td>
 <td>Perform leave-one-out cross validation</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{pseudoR2()}\)</span></td>
+<td><code><a href="../reference/pseudoR2.html">pseudoR2()</a></code></td>
 <td>Return the pseudo R-squared</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{summary()}\)</span></td>
+<td><code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code></td>
 <td>Summarize the fitted model</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{tidy()}\)</span></td>
+<td><code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code></td>
 <td>Tidy the fitted model</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{varcomp()}\)</span></td>
+<td><code><a href="../reference/varcomp.html">varcomp()</a></code></td>
 <td>Compare sources of variability</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{vcov()}\)</span></td>
+<td><code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code></td>
 <td>Return variance-covariance matrices</td>
 </tr>
 </tbody>
@@ -621,119 +631,122 @@ visualizations.</p>
 <table class="table">
 <caption>Mode diagnostic functions available for models fit using
 spglm() or spgautor() and their purpose.</caption>
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
 <thead><tr class="header">
 <th>Function</th>
 <th>Purpose</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{augment()}\)</span></td>
+<td><code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code></td>
 <td>Augment model data with diagnostics</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{cooks.distance()}\)</span></td>
+<td><code><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">cooks.distance()</a></code></td>
 <td>Return Cook’s distances</td>
 </tr>
 <tr class="odd">
 <td>
-<span class="math inline">\(\texttt{fitted()}\)</span>; <span class="math inline">\(\texttt{fitted.values()}\)</span>
+<code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code>; <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted.values()</a></code>
 </td>
 <td>Return fitted values</td>
 </tr>
 <tr class="even">
 <td>
-<span class="math inline">\(\texttt{hatvalues()}\)</span>;</td>
+<code><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">hatvalues()</a></code>;</td>
 <td>Return hat (leverage) values</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{plot()}\)</span></td>
+<td><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code></td>
 <td>Plot model diagnostics</td>
 </tr>
 <tr class="even">
 <td>
-<span class="math inline">\(\texttt{residuals()}\)</span>; <span class="math inline">\(\texttt{resid()}\)</span>; <span class="math inline">\(\texttt{rstandard()}\)</span>
+<code><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals()</a></code>; <code><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">resid()</a></code>;
+<code><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">rstandard()</a></code>
 </td>
 <td>Return residuals</td>
 </tr>
 </tbody>
 </table>
-<p>The functions , , and , popularized by the <code>broom</code>
+<p>The functions <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code>, <code><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance()</a></code>, and
+<code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>, popularized by the <code>broom</code>
 <strong>R</strong> package <span class="citation">(Robinson, Hayes, and
-Couch 2021)</span>, are particularly useful. The function tidies
-parameter estimate output, returning a special called a <span class="citation">(Müller and Wickham 2021)</span> that is much easier to
+Couch 2021)</span>, are particularly useful. The <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code>
+function tidies parameter estimate output, returning a special
+<code>data.frame</code> called a <code>tibble</code> <span class="citation">(Müller and Wickham 2021)</span> that is much easier to
 manipulate and work with than the parameter estimate output printed by
-to the <strong>R</strong> console. The function glances at the model
-fit, returning a with the sample size, number of estimated parameters,
-and several model-fit statistics. is an extension of that glances at
-multiple models simultaneously. The function augments the model fit,
-returning a with the data used to fit the model as well as model
-diagnostics. The function can also be used to augment prediction data,
-as we discuss next.</p>
+<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> to the <strong>R</strong> console. The
+<code><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance()</a></code> function glances at the model fit, returning a
+<code>tibble</code> with the sample size, number of estimated
+parameters, and several model-fit statistics. <code><a href="../reference/glances.html">glances()</a></code> is
+an extension of <code><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance()</a></code> that glances at multiple models
+simultaneously. The <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> function augments the model
+fit, returning a <code>tibble</code> with the data used to fit the model
+as well as model diagnostics. The <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> function can
+also be used to augment prediction data, as we discuss next.</p>
 </div>
 <div class="section level3">
 <h3 id="sec:prediction">Prediction<a class="anchor" aria-label="anchor" href="#sec:prediction"></a>
 </h3>
 <p>Often a priority of a spatial data analysis is using the fitted model
 to make predictions at unobserved locations and quantify uncertainties
-in those predictions. The function in <code>spmodel</code> is used to
-predict the mean process at unobserved locations. It is similar in
-structure to for objects fit using in base <strong>R</strong> and takes
-two main arguments: , the fitted model object returned by or ; and , a
-or object whose rows index locations requiring prediction and whose
-columns contain the explanatory variables and spatial information at
-these locations. Other arguments to are either required only in specific
-situations or have default values specified. All arguments to the
-function are summarized in the following table. The function can also be
-used to augment with predictions, taking the same arguments as .</p>
+in those predictions. The <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> function in
+<code>spmodel</code> is used to predict the mean process at unobserved
+locations. It is similar in structure to <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> for
+objects fit using <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> in base <strong>R</strong> and
+takes two main arguments: <code>object</code>, the fitted model object
+returned by <code><a href="../reference/spglm.html">spglm()</a></code> or <code><a href="../reference/spgautor.html">spgautor()</a></code>; and
+<code>newdata</code>, a <code>data.frame</code> or <code>sf</code>
+object whose rows index locations requiring prediction and whose columns
+contain the explanatory variables and spatial information at these
+locations. Other arguments to <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> are either required
+only in specific situations or have default values specified. All
+arguments to the <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> function are summarized in the
+following table. The <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> function can also be used to
+augment <code>newdata</code> with predictions, taking the same arguments
+as <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>.</p>
 <table class="table">
-<caption>Arguments to predict() and their purpose.</caption>
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
+<caption>Arguments to <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> and their
+purpose.</caption>
 <thead><tr class="header">
 <th>Argument</th>
 <th>Purpose</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{object}\)</span></td>
+<td><code>object</code></td>
 <td>Fitted model object</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{newdata}\)</span></td>
-<td>New data frame or object</td>
+<td><code>newdata</code></td>
+<td>New data frame or <code>sf</code> object</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{type}\)</span></td>
+<td><code>type</code></td>
 <td>Whether predictions are on the link or response scale</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{se.fit}\)</span></td>
+<td><code>se.fit</code></td>
 <td>Whether standard errors should be returned</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{interval}\)</span></td>
+<td><code>interval</code></td>
 <td>Interval type (prediction or confidence)</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{level}\)</span></td>
+<td><code>level</code></td>
 <td>Prediction or confidence level</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{local}\)</span></td>
+<td><code>local</code></td>
 <td>Options for large data sets</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{var_correct}\)</span></td>
+<td><code>var_correct</code></td>
 <td>Whether prediction variances should be adjusted</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{...}\)</span></td>
+<td><code>...</code></td>
 <td>Additional arguments</td>
 </tr>
 </tbody>
@@ -747,9 +760,10 @@ data from Gaussian, binomial, beta, Poisson, negative binomial, gamma,
 and inverse Gaussian response distributions. These simulation functions
 are similar in structure to commonly used base <strong>R</strong>
 functions for simulating data. They are also similar in name, simply
-adding an prefix to the conventional name in base <strong>R</strong>.
-For example, is used to simulate Poisson data in base
-<strong>R</strong>, while is used to simulate spatial Poisson data in
+adding an <code>sp</code> prefix to the conventional name in base
+<strong>R</strong>. For example, <code><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois()</a></code> is used to
+simulate Poisson data in base <strong>R</strong>, while
+<code><a href="../reference/sprpois.html">sprpois()</a></code> is used to simulate spatial Poisson data in
 <code>spmodel</code>. These functions are summarized in the following
 table.</p>
 <table class="table">
@@ -760,31 +774,31 @@ table.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{sprnorm()}\)</span></td>
+<td><code><a href="../reference/sprnorm.html">sprnorm()</a></code></td>
 <td>Simulate spatial Gaussian data</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{sprbinom()}\)</span></td>
+<td><code><a href="../reference/sprbinom.html">sprbinom()</a></code></td>
 <td>Simulate spatial binomial data</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{sprbeta()}\)</span></td>
+<td><code><a href="../reference/sprbeta.html">sprbeta()</a></code></td>
 <td>Simulate spatial beta data</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{sprpois()}\)</span></td>
+<td><code><a href="../reference/sprpois.html">sprpois()</a></code></td>
 <td>Simulate spatial Poisson data</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{sprnbinom()}\)</span></td>
+<td><code><a href="../reference/sprnbinom.html">sprnbinom()</a></code></td>
 <td>Simulate spatial negative binomial data</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{sprgamma()}\)</span></td>
+<td><code><a href="../reference/sprgamma.html">sprgamma()</a></code></td>
 <td>Simulate spatial gamma data</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{sprinvgauss()}\)</span></td>
+<td><code><a href="../reference/sprinvgauss.html">sprinvgauss()</a></code></td>
 <td>Simulate spatial inverse Gaussian data</td>
 </tr>
 </tbody>
@@ -796,21 +810,24 @@ table.</p>
 </h2>
 <p>In the next two sections we to show how to use <code>spmodel</code>
 to analyze data collected on moose in the Togiak region of Alaska, USA.
-The data in <code>spmodel</code> contain information on moose counts
-from a survey of sites in the Togiak region. The data are stored as an
-<code>sf</code> object, a special built to store spatial data. has
-several variables: ; a stratification variable with two levels ( for low
-and for medium) based on surrounding landscape metrics; , the site
-elevation; , whether or not at least one moose was observed at the site;
-, the number of moose observed at a the site; and , the spatial
-coordinates in an Alaska Albers projection (EPSG: 3338). We load
-<code>spmodel</code> and the data by running</p>
+The <code>moose</code> data in <code>spmodel</code> contain information
+on moose counts from a survey of sites in the Togiak region. The data
+are stored as an <code>sf</code> object, a special
+<code>data.frame</code> built to store spatial data. <code>moose</code>
+has several variables: <code>strat</code>; a stratification variable
+with two levels (<code>L</code> for low and <code>M</code> for medium)
+based on surrounding landscape metrics; <code>elev</code>, the site
+elevation; <code>presence</code>, whether or not at least one moose was
+observed at the site; <code>count</code>, the number of moose observed
+at a the site; and <code>geometry</code>, the spatial coordinates in an
+Alaska Albers projection (EPSG: 3338). We load <code>spmodel</code> and
+the <code>moose</code> data by running</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://usepa.github.io/spmodel/">"spmodel"</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"moose"</span><span class="op">)</span></span></code></pre></div>
-<p>We are interested in quantifying the effects of and on moose and
-begin with some visualizations. First, we visualize the presence for
-observed sites:</p>
+<p>We are interested in quantifying the effects of <code>elev</code> and
+<code>strat</code> on moose <code>presence</code> and begin with some
+visualizations. First, we visualize the presence for observed sites:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">moose</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">presence</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> </span>
@@ -846,9 +863,9 @@ distribution of moose presence, as moose tend to be present in the
 eastern and southwestern parts of the domain. This spatial pattern seems
 to have a directional orientation, seemingly strongest in the
 northwest-to-southeast direction.</p>
-<p>To quantify the effects of , , and spatial dependence on moose
-presence, we fit three binomial (i.e., ) logistic regression models
-using :</p>
+<p>To quantify the effects of <code>elev</code>, <code>strat</code>, and
+spatial dependence on moose presence, we fit three binomial (i.e., )
+logistic regression models using <code><a href="../reference/spglm.html">spglm()</a></code>:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># model one</span></span>
 <span><span class="va">bin_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spglm.html">spglm</a></span><span class="op">(</span></span>
@@ -874,13 +891,15 @@ using :</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>All three models have the same fixed effect structure, using
 elevation, strata, and their interaction to explain moose presence. The
-three models vary in their covariance structure. The first model, , has
-no spatial covariance (<span class="math inline">\(\sigma^2_{de} =
-0\)</span>). The second model, has a spherical spatial covariance. The
-third model, , has a spherical spatial covariance that incorporates
-geometric anisotropy. Geometric anisotropy allows the spatial covariance
-to vary with direction by evaluating the spatial covariance with <span class="math inline">\(\mathbf{H}^*\)</span> (instead of <span class="math inline">\(\mathbf{H}\)</span>), a matrix of distances
-between transformed coordinates that are rotated and scaled
+three models vary in their covariance structure. The first model,
+<code>bin_mod</code>, has no spatial covariance (<span class="math inline">\(\sigma^2_{de} = 0\)</span>). The second model,
+<code>bin_spmod</code> has a spherical spatial covariance. The third
+model, <code>bin_spmod_anis</code>, has a spherical spatial covariance
+that incorporates geometric anisotropy. Geometric anisotropy allows the
+spatial covariance to vary with direction by evaluating the spatial
+covariance with <span class="math inline">\(\mathbf{H}^*\)</span>
+(instead of <span class="math inline">\(\mathbf{H}\)</span>), a matrix
+of distances between transformed coordinates that are rotated and scaled
 appropriately <span class="citation">(Schabenberger and Gotway
 2017)</span>. We evaluate the three models using AIC by running</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -889,13 +908,16 @@ appropriately <span class="citation">(Schabenberger and Gotway
 <span><span class="co">#&gt; bin_mod         0 717.1627</span></span>
 <span><span class="co">#&gt; bin_spmod       3 686.9031</span></span>
 <span><span class="co">#&gt; bin_spmod_anis  5 677.9403</span></span></code></pre>
-<p>The spatial models (, ) have a much lower AIC than the non-spatial
-model (), which suggests that the models benefit from incorporating
-spatial dependence. has a lower AIC than , which suggests that the model
+<p>The spatial models (<code>bin_spmod</code>,
+<code>bin_spmod_anis</code>) have a much lower AIC than the non-spatial
+model (<code>bin_mod</code>), which suggests that the models benefit
+from incorporating spatial dependence. <code>bin_spmod_anis</code> has a
+lower AIC than <code>bin_spmod</code>, which suggests that the model
 benefits from incorporating directionality in the spatial dependence.
-Next we inspect and later use it to predict moose presence probability
-at unobserved sites.</p>
-<p>We summarize using :</p>
+Next we inspect <code>bin_spmod_anis</code> and later use it to predict
+moose presence probability at unobserved sites.</p>
+<p>We summarize <code>bin_spmod_anis</code> using
+<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; </span></span>
@@ -927,22 +949,24 @@ at unobserved sites.</p>
 <span><span class="co">#&gt; Coefficients (Dispersion for binomial family):</span></span>
 <span><span class="co">#&gt; dispersion </span></span>
 <span><span class="co">#&gt;          1</span></span></code></pre>
-<p>The output from an model is very similar to the output from a
-base-<strong>R</strong> model, returning the original function call,
-deviance residuals, a fixed effects coefficients table, a pseudo
-R-squared (which quantifies the amount of variability explained by the
-fixed effects), and covariance parameter coefficients. The fixed effects
-coefficients table provides some evidence that elevation and strata are
-associated with with moose presence and that the effect of elevation
-varies across the two strata (all <span class="math inline">\(p~\)</span>values <span class="math inline">\(&lt;\)</span> 0.05).</p>
+<p>The <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> output from an <code><a href="../reference/spglm.html">spglm()</a></code> model
+is very similar to the <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> output from a
+base-<strong>R</strong> <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> model, returning the original
+function call, deviance residuals, a fixed effects coefficients table, a
+pseudo R-squared (which quantifies the amount of variability explained
+by the fixed effects), and covariance parameter coefficients. The fixed
+effects coefficients table provides some evidence that elevation and
+strata are associated with with moose presence and that the effect of
+elevation varies across the two strata (all <span class="math inline">\(p~\)</span>values <span class="math inline">\(&lt;\)</span> 0.05).</p>
 <p>The area under the receiver receiver operating characteristic (AUROC)
 curve quantifies the effectiveness of a classifier <span class="citation">(Robin et al. 2011)</span>. It ranges from zero to one,
-and higher values indicate better model performance. The AUROC of is</p>
+and higher values indicate better model performance. The AUROC of
+<code>bin_spmod_anis</code> is</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/AUROC.html">AUROC</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; [1] 0.9403199</span></span></code></pre>
-<p>The function returns graphics of several model diagnostics.
-Running</p>
+<p>The <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> function returns graphics of several model
+diagnostics. Running</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span>, which <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
@@ -954,10 +978,9 @@ anisotropic level curve of equal correlation (right).
 <p>shows that the spatial dependence is evident and appears strongest in
 the northwest-to-southeast direction. These findings are supported by
 the clear spatial patterns in the data.</p>
-<p>Recall that the , , and functions are particularly useful tools for
-manipulating and understanding fitted model objects. The function tidies
-model output, returning a of parameter estimates (and confidence
-intervals):</p>
+<p>Recall that the <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code>, <code><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance()</a></code>, and
+<code>augment() functions are particularly useful tools for manipulating and understanding fitted model objects. The</code>tidy()<code>function tidies model output, returning a</code>tibble`
+of parameter estimates (and confidence intervals):</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span>, conf.int <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 7</span></span></span>
@@ -968,7 +991,8 @@ intervals):</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> elev:stratM  -<span style="color: #BB0000;">0.014</span><span style="color: #BB0000; text-decoration: underline;">0</span>   0.006<span style="text-decoration: underline;">93</span>     -<span style="color: #BB0000;">2.02</span> 0.043<span style="text-decoration: underline;">2</span>  -<span style="color: #BB0000;">0.027</span><span style="color: #BB0000; text-decoration: underline;">6</span>  -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">431</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> stratM        3.82     1.18         3.25 0.001<span style="text-decoration: underline;">16</span>  1.52     6.13</span></span></code></pre>
 <p>By default, the fixed effects estimates are returned, but covariance
-parameter estimates are returned via the argument:</p>
+parameter estimates are returned via the <code>effects</code>
+argument:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span>, effects <span class="op">=</span> <span class="st">"spcov"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 3</span></span></span>
@@ -979,19 +1003,20 @@ parameter estimates are returned via the argument:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> range  <span style="text-decoration: underline;">179</span>082.      FALSE   </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> rotate      2.72    FALSE   </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> scale       0.215   FALSE</span></span></code></pre>
-<p>The column indicates whether covariance parameters were assumed
-known, which is possible to specify using the argument to . Here, all
+<p>The <code>is_known</code> column indicates whether covariance
+parameters were assumed known, which is possible to specify using the
+<code>spcov_initial</code> argument to <code><a href="../reference/spglm.html">spglm()</a></code>. Here, all
 parameters were assumed unknown and then estimated.</p>
-<p>The function glances at model fit, returning a of model fit
-statistics:</p>
+<p>The <code><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance()</a></code> function glances at model fit, returning a
+<code>tibble</code> of model fit statistics:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 10</span></span></span>
 <span><span class="co">#&gt;       n     p  npar value   AIC  AICc   BIC logLik deviance pseudo.r.squared</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>   218     4     5  668.  678.  678.  695.  -<span style="color: #BB0000;">334.</span>     161.            0.112</span></span></code></pre>
-<p> can be used to glance at multiple models simultaneously and sorts
-models by ascending AICc:</p>
+<p><code><a href="../reference/glances.html">glances()</a></code> can be used to glance at multiple models
+simultaneously and sorts models by ascending AICc:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/glances.html">glances</a></span><span class="op">(</span><span class="va">bin_mod</span>, <span class="va">bin_spmod</span>, <span class="va">bin_spmod_anis</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 11</span></span></span>
@@ -1001,7 +1026,8 @@ models by ascending AICc:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> bin_spmod        218     4     3  681.  687.  687.  697.  -<span style="color: #BB0000;">340.</span>     161.</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> bin_mod          218     4     0  717.  717.  717.  717.  -<span style="color: #BB0000;">359.</span>     294.</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: pseudo.r.squared &lt;dbl&gt;</span></span></span></code></pre>
-<p>The function augments the data with model diagnostics:</p>
+<p>The <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> function augments the data with model
+diagnostics:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span><span class="op">)</span></span>
 <span><span class="va">aug_mod</span></span></code></pre></div>
@@ -1025,14 +1051,18 @@ models by ascending AICc:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 0         430. L      -<span style="color: #BB0000;">1.62</span>  -<span style="color: #BB0000;">0.600</span> 0.087<span style="text-decoration: underline;">1</span>  0.009<span style="text-decoration: underline;">41</span>       -<span style="color: #BB0000;">0.628</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 208 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: geometry &lt;POINT [m]&gt;</span></span></span></code></pre>
-<p>where are fitted values (the estimated <span class="math inline">\(f^{-1}(\mathbf{w})\)</span>, or moose presence
-probability), are response residuals, values indicate leverage, values
-indicate Cook’s distance (i.e., influence), and are standardized
-residuals.</p>
-<p>The data contains survey sites that were not sampled. We can use to
-make predictions of the underlying probabilities of moose presence at
-these sites using or . and return the same predictions but augments the
-prediction data with the predictions:</p>
+<p>where <code>.fitted</code> are fitted values (the estimated <span class="math inline">\(f^{-1}(\mathbf{w})\)</span>, or moose presence
+probability), <code>.resid</code> are response residuals,
+<code>.hat</code> values indicate leverage, <code>.cooksd</code> values
+indicate Cook’s distance (i.e., influence), and <code>.std.resid</code>
+are standardized residuals.</p>
+<p>The <code>moose_preds</code> data contains survey sites that were not
+sampled. We can use <code>bin_spmod_anis</code> to make predictions of
+the underlying probabilities of moose presence at these sites using
+<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> or <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>. <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>
+and <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> return the same predictions but
+<code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> augments the prediction data with the
+predictions:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"moose_preds"</span><span class="op">)</span></span>
 <span></span>
@@ -1077,9 +1107,11 @@ prediction data with the predictions:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  191  L      0.375  0.041<span style="text-decoration: underline;">0</span>   0.893 (284453.8 1502837)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  105. L      0.142  0.019<span style="text-decoration: underline;">7</span>   0.577 (391343.9 1483791)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 90 more rows</span></span></span></code></pre>
-<p>Estimated moose presence probability for the data (obtained via ) and
-predicted moose presence probability for the data (obtained via or ) are
-overlain below and share similar patterns:</p>
+<p>Estimated moose presence probability for the <code>moose</code> data
+(obtained via <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code>) and predicted moose presence
+probability for the <code>moose_preds</code> data (obtained via
+<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> or <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>) are overlain below and
+share similar patterns:</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_mod</span><span class="op">$</span><span class="va">type</span> <span class="op">&lt;-</span> <span class="st">"mod"</span></span>
 <span><span class="va">aug_pred</span><span class="op">$</span><span class="va">type</span> <span class="op">&lt;-</span> <span class="st">"pred"</span></span>
@@ -1098,7 +1130,8 @@ Fitted values and predictions for moose presence probability.
 <div class="section level2">
 <h2 id="sec:application-count">An application to count data<a class="anchor" aria-label="anchor" href="#sec:application-count"></a>
 </h2>
-<p>The data also contain the number of moose observed at each site:</p>
+<p>The <code>moose</code> data also contain the number of moose observed
+at each site:</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">moose</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">count</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1115,13 +1148,14 @@ count models, Poisson and negative binomial. The Poisson model assumes
 the underlying process generating the counts has the same mean and
 variance while the negative binomial model allows for overdispersion
 (i.e., the variance is greater than the mean). We are interested in
-quantifying the effects of and on moose <code>count</code>, albeit using
-a slightly different approach than we did for moose
-<code>presence</code>. Here, we will model elevation as a fixed effect
-and allow this effect to change between strata, but we will model strata
-as a random effect to highlight additional flexibility of the
-<code>spmodel</code> package. We fit relevant Poisson and negative
-binomial models with a Matérn spatial covariance using :</p>
+quantifying the effects of <code>elev</code> and <code>strat</code> on
+moose <code>count</code>, albeit using a slightly different approach
+than we did for moose <code>presence</code>. Here, we will model
+elevation as a fixed effect and allow this effect to change between
+strata, but we will model strata as a random effect to highlight
+additional flexibility of the <code>spmodel</code> package. We fit
+relevant Poisson and negative binomial models with a Matérn spatial
+covariance using <code><a href="../reference/spglm.html">spglm()</a></code>:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">count_mod_pois</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spglm.html">spglm</a></span><span class="op">(</span></span>
 <span>  <span class="va">count</span> <span class="op">~</span> <span class="va">elev</span> <span class="op">+</span> <span class="va">elev</span><span class="op">:</span><span class="va">strat</span>,</span>
@@ -1138,22 +1172,25 @@ binomial models with a Matérn spatial covariance using :</p>
 <span>  spcov_type <span class="op">=</span> <span class="st">"matern"</span>,</span>
 <span>  random <span class="op">=</span> <span class="op">~</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">strat</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>Random effects are specified in <code>spmodel</code> via the argument
-using similar syntax as the commonly used <code>lme4</code> <span class="citation">(Bates et al. 2015)</span> and <code>nlme</code> <span class="citation">(Pinheiro and Bates 2006)</span> <strong>R</strong>
-packages for non-spatial mixed models. In <code>spmodel</code>, is
-short-hand for . Random effects alter the covariance structure of the
-model, building additional correlation into the model for sites sharing
-a level of the random effect (here, sites within the same strata). More
-formally, when incorporating a random effect, the spatial generalized
-linear model becomes <span class="math display">\[\begin{equation}\label{eq:spglm-rand}
+<p>Random effects are specified in <code>spmodel</code> via the
+<code>random</code> argument using similar syntax as the commonly used
+<code>lme4</code> <span class="citation">(Bates et al. 2015)</span> and
+<code>nlme</code> <span class="citation">(Pinheiro and Bates
+2006)</span> <strong>R</strong> packages for non-spatial mixed models.
+In <code>spmodel</code>, <code>~ strat</code> is short-hand for
+<code>~ (1 | strat)</code>. Random effects alter the covariance
+structure of the model, building additional correlation into the model
+for sites sharing a level of the random effect (here, sites within the
+same strata). More formally, when incorporating a random effect, the
+spatial generalized linear model becomes <span class="math display">\[\begin{equation}\label{eq:spglm-rand}
 f(\boldsymbol{\mu}) \equiv \mathbf{w} = \mathbf{X} \boldsymbol{\beta} +
 \mathbf{Z}\mathbf{v} + \boldsymbol{\tau} + \boldsymbol{\epsilon},
 \end{equation}\]</span> where <span class="math inline">\(\mathbf{Z}\)</span> is a design matrix that
 indexes the random effects, <span class="math inline">\(\mathbf{v}\)</span>, and <span class="math inline">\(\text{Cov}(\mathbf{v}) =
 \sigma^2_{v}\mathbf{I}\)</span>. Then the covariance matrix, <span class="math inline">\(\boldsymbol{\Sigma}\)</span>, becomes <span class="math inline">\(\sigma^2_v \mathbf{Z} \mathbf{Z}^\top +
 \sigma^2_{de}\mathbf{R} + \sigma^2_{ie}\mathbf{I}\)</span>.</p>
-<p>Previously we compared models using , but another way to compare
-models is by leave-one-out cross validation <span class="citation">(Hastie et al. 2009)</span>. In leave-one-out cross
+<p>Previously we compared models using <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC()</a></code>, but another
+way to compare models is by leave-one-out cross validation <span class="citation">(Hastie et al. 2009)</span>. In leave-one-out cross
 validation, each observation is held-out and the model is re-fit and
 used to predict the held-out observation. Then a loss statistic is
 computed that compares each prediction to its true value. We calculate
@@ -1185,8 +1222,8 @@ moose counts and that this effect changes across strata (all <span class="math i
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept) -<span style="color: #BB0000;">0.301</span>     1.50       -<span style="color: #BB0000;">0.200</span>  0.841 </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> elev         0.005<span style="text-decoration: underline;">90</span>   0.003<span style="text-decoration: underline;">00</span>     1.96   0.049<span style="text-decoration: underline;">4</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> elev:stratM -<span style="color: #BB0000;">0.007</span><span style="color: #BB0000; text-decoration: underline;">17</span>   0.004<span style="text-decoration: underline;">08</span>    -<span style="color: #BB0000;">1.76</span>   0.078<span style="text-decoration: underline;">9</span></span></span></code></pre>
-<p>The function in <code>spmodel</code> apportions model variability
-into fixed and random components:</p>
+<p>The <code><a href="../reference/varcomp.html">varcomp()</a></code> function in <code>spmodel</code>
+apportions model variability into fixed and random components:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/varcomp.html">varcomp</a></span><span class="op">(</span><span class="va">count_mod_nb</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 2</span></span></span>
@@ -1197,7 +1234,8 @@ into fixed and random components:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> ie                    0.001<span style="text-decoration: underline;">74</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 1 | strat             0.467</span></span></code></pre>
 <p>Most model variability is explained by the spatially dependent random
-error () and the random effect for strata (). Running</p>
+error (<code>de</code>) and the random effect for strata
+(<code>1 | strat</code>). Running</p>
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">count_mod_nb</span>, which <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
@@ -1207,9 +1245,11 @@ Model diagnostics.
 </div>
 <p>shows observations of high influence or leverage and that the
 standardized residuals tend to be spread out around zero.</p>
-<p>Estimated mean moose counts for the data (obtained via ) and
-predicted mean moose counts for the data (obtained via or ) share
-similar patterns and are overlain by running</p>
+<p>Estimated mean moose counts for the <code>moose</code> data (obtained
+via <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code>) and predicted mean moose counts for the
+<code>moose_preds</code> data (obtained via <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> or
+<code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>) share similar patterns and are overlain by
+running</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">count_mod_nb</span><span class="op">)</span></span>
 <span><span class="va">aug_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">count_mod_nb</span>, newdata <span class="op">=</span> <span class="va">moose_preds</span>, type.predict <span class="op">=</span> <span class="st">"response"</span><span class="op">)</span></span>
@@ -1232,17 +1272,20 @@ Fitted values and predictions for moose counts.
 </h2>
 <p>Throughout this vignette, we have shown several features
 <code>spmodel</code> offers, including a novel application of the
-Laplace approximation, similarity to base <strong>R</strong>’s function,
-over a dozen spatial covariance functions, a variety of tools available
-to evaluate models, inspect model diagnostics, and make predictions
-using ubiquitous base <strong>R</strong> functions (e.g., , , and ) and
-more. Spatial generalized linear models for point-referenced data (i.e.,
-generalized geostatistical models) are fit using the function. Spatial
-generalized linear models for areal data (i.e., generalized spatial
-autoregressive models) are fit using the function. Both functions share
-common structure and syntax. Spatial data are simulated in
-<code>spmodel</code> by adding an prefix to commonly used base
-<strong>R</strong> simulation functions (e.g., ).</p>
+Laplace approximation, similarity to base <strong>R</strong>’s
+<code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> function, over a dozen spatial covariance functions,
+a variety of tools available to evaluate models, inspect model
+diagnostics, and make predictions using ubiquitous base
+<strong>R</strong> functions (e.g., <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>,
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>, and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>) and more. Spatial
+generalized linear models for point-referenced data (i.e., generalized
+geostatistical models) are fit using the <code><a href="../reference/spglm.html">spglm()</a></code> function.
+Spatial generalized linear models for areal data (i.e., generalized
+spatial autoregressive models) are fit using the <code><a href="../reference/spgautor.html">spgautor()</a></code>
+function. Both functions share common structure and syntax. Spatial data
+are simulated in <code>spmodel</code> by adding an <code>sp</code>
+prefix to commonly used base <strong>R</strong> simulation functions
+(e.g., <code><a href="../reference/sprbinom.html">sprbinom()</a></code>).</p>
 <p>We appreciate feedback from users regarding <code>spmodel</code>. To
 learn more about how to provide feedback or contribute to
 <code>spmodel</code>, please visit our GitHub repository at <a href="https://github.com/USEPA/spmodel" class="external-link uri">https://github.com/USEPA/spmodel</a>.</p>

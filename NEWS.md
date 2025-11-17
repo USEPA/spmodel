@@ -1,3 +1,15 @@
+# spmodel 0.11.1
+
+## Minor Updates
+
+* Added a warning message when `splm()` or `spglm()` converts a non-`POINT` geometry to a `POINT` geometry using `sf::st_centroid()`.
+* Updated a warning message when `splm()` or `spglm()` compute distances using a geographic coordinate system (and not a projected coordinate system).
+
+## Bug Fixes
+
+* Fixed a bug in the cloud semivariogram (i.e., `esv(..., cloud = TRUE)`) that incorrectly doubled the semivariance.
+* Fix `\textbf`, `\textsf`, and `\textttt` LaTeX rendering issues in vignettes ([#36](https://github.com/USEPA/spmodel/issues/36)).
+
 # spmodel 0.11.0
 
 ## Major Updates

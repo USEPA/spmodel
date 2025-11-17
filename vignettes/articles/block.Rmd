@@ -25,7 +25,7 @@ set.seed(0)
 
 # Introduction {#sec:introduction}
 
-`spmodel` is a \textbf{\textsf{R}} package used to fit, summarize, and
+`spmodel` is a **R** package used to fit, summarize, and
 predict for a variety of spatial statistical models. This vignette
 explores tools for predicting the average value of a response variable in a particular geographic region, an approach known as Block Prediction (i.e., Block Kriging) [@cressie1993statistics; @ver2008spatial]. Before proceeding, we
 load  `spmodel`, `sf`, and `ggplot2` by running

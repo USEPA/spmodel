@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.1</span>
       </span>
     </div>
 
@@ -72,6 +72,19 @@
       <small>Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="0.11.1" id="spmodel-0111">spmodel 0.11.1<small>2025-11-14</small><a class="anchor" aria-label="anchor" href="#spmodel-0111"></a></h2>
+<div class="section level3">
+<h3 id="minor-updates-0-11-1">Minor Updates<a class="anchor" aria-label="anchor" href="#minor-updates-0-11-1"></a></h3>
+<ul><li>Added a warning message when <code><a href="../reference/splm.html">splm()</a></code> or <code><a href="../reference/spglm.html">spglm()</a></code> converts a non-<code>POINT</code> geometry to a <code>POINT</code> geometry using <code><a href="https://r-spatial.github.io/sf/reference/geos_unary.html" class="external-link">sf::st_centroid()</a></code>.</li>
+<li>Updated a warning message when <code><a href="../reference/splm.html">splm()</a></code> or <code><a href="../reference/spglm.html">spglm()</a></code> compute distances using a geographic coordinate system (and not a projected coordinate system).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-11-1">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-11-1"></a></h3>
+<ul><li>Fixed a bug in the cloud semivariogram (i.e., <code>esv(..., cloud = TRUE)</code>) that incorrectly doubled the semivariance.</li>
+<li>Fix <code>\textbf</code>, <code>\textsf</code>, and <code>\textttt</code> LaTeX rendering issues in vignettes (<a href="https://github.com/USEPA/spmodel/issues/36" class="external-link">#36</a>).</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.11.0" id="spmodel-0110">spmodel 0.11.0<small>2025-07-03</small><a class="anchor" aria-label="anchor" href="#spmodel-0110"></a></h2>
 <div class="section level3">

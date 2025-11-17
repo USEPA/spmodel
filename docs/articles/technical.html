@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.1</span>
       </span>
     </div>
 
@@ -354,8 +354,8 @@ the models have different fixed effect structures.</p>
 <h3 id="sec:anova-lm">
 <code>anova()</code><a class="anchor" aria-label="anchor" href="#sec:anova-lm"></a>
 </h3>
-<p>Test statistics from are formed using the general linear hypothesis
-test. Let <span class="math inline">\(\mathbf{L}\)</span> be an <span class="math inline">\(l \times p\)</span> contrast matrix and <span class="math inline">\(l_0\)</span> be an <span class="math inline">\(l
+<p>Test statistics from <code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code> are formed using the
+general linear hypothesis test. Let <span class="math inline">\(\mathbf{L}\)</span> be an <span class="math inline">\(l \times p\)</span> contrast matrix and <span class="math inline">\(l_0\)</span> be an <span class="math inline">\(l
 \times 1\)</span> vector. The null hypothesis is that <span class="math inline">\(\mathbf{L} \boldsymbol{\hat{\beta}} = l_0\)</span>
 and the alternative hypothesis is that <span class="math inline">\(\mathbf{L} \boldsymbol{\hat{\beta}} \neq
 l_0\)</span>. Usually, <span class="math inline">\(l_0\)</span> is the
@@ -368,9 +368,10 @@ given by <span class="math display">\[\begin{equation*}\label{eq:glht}
 \end{equation*}\]</span> By default, <span class="math inline">\(\mathbf{L}\)</span> is chosen such that each
 variable in the data used to fit the model is tested marginally (i.e.,
 controlling for the other variables) against <span class="math inline">\(l_0 = \mathbf{0}\)</span>. If this default is not
-desired, the and arguments can be used to pass user-defined <span class="math inline">\(\mathbf{L}\)</span> matrices to . They must be
-constructed in such a way that <span class="math inline">\(l_0 =
-\mathbf{0}\)</span>.</p>
+desired, the <code>Terms</code> and <code>L</code> arguments can be used
+to pass user-defined <span class="math inline">\(\mathbf{L}\)</span>
+matrices to <code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code>. They must be constructed in such a way
+that <span class="math inline">\(l_0 = \mathbf{0}\)</span>.</p>
 <p>It is notoriously difficult to determine appropriate p-values for
 linear mixed models based on the general linear hypothesis test. lme4,
 for example, does not report p-values by default. A few reasons why
@@ -1059,12 +1060,13 @@ and a (100 <span class="math inline">\(\times\)</span>
 applied as for point prediction but adjusted slightly to accommodate the
 averaging necessary for Block Prediction. Thus, when
 <code>method = "covariance"</code> (the default), the <code>size</code>
-observations having the highest average covariance with elements of
-<span class="math inline">\(\mathbf{y}_o\)</span> are used to find the
-subsets <span class="math inline">\(\check{\mathbf{X}}_o\)</span>, <span class="math inline">\(\check{\boldsymbol{\Sigma}}_o\)</span>, and <span class="math inline">\(\check{\mathbf{y}}_o\)</span>. When
-<code>method = "distance"</code>, the <code>size</code> observations
-having the smallest average distance from elements of <span class="math inline">\(\mathbf{y}_o\)</span> are used to find the subsets
-<span class="math inline">\(\check{\mathbf{X}}_o\)</span>, <span class="math inline">\(\check{\boldsymbol{\Sigma}}_o\)</span>, and <span class="math inline">\(\check{\mathbf{y}}_o\)</span>. Recall that these
+observations of <span class="math inline">\(\mathbf{y}_o\)</span> having
+the highest average covariance with elements of the fine grid are used
+to find the subsets <span class="math inline">\(\check{\mathbf{X}}_o\)</span>, <span class="math inline">\(\check{\boldsymbol{\Sigma}}_o\)</span>, and <span class="math inline">\(\check{\mathbf{y}}_o\)</span>. When
+<code>method = "distance"</code>, the <code>size</code> observations of
+of <span class="math inline">\(\mathbf{y}_o\)</span> having the smallest
+average distance to elements of the fine grid are used to find the
+subsets <span class="math inline">\(\check{\mathbf{X}}_o\)</span>, <span class="math inline">\(\check{\boldsymbol{\Sigma}}_o\)</span>, and <span class="math inline">\(\check{\mathbf{y}}_o\)</span>. Recall that these
 two methods are equivalent for processes without anisotropy, random
 effects, or partition factors, but can differ otherwise. The default is
 <code>size = 1000</code>, which is much larger than for point
@@ -1271,12 +1273,12 @@ spautor()</caption>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{"car"}\)</span></td>
+<td><code>"car"</code></td>
 <td><span class="math inline">\((\mathbf{I} -
 \phi\mathbf{W})^{-1}\mathbf{M}\)</span></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{"sar"}\)</span></td>
+<td><code>"sar"</code></td>
 <td><span class="math inline">\([(\mathbf{I} -
 \phi\mathbf{W})(\mathbf{I} - \phi\mathbf{W})^\top]^{-1}\)</span></td>
 </tr>
@@ -1343,70 +1345,70 @@ dimension. An alias for none is ie.</caption>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{"exponential"}\)</span></td>
+<td><code>"exponential"</code></td>
 <td><span class="math inline">\(e^{-\eta}\)</span></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{"spherical"}\)</span></td>
+<td><code>"spherical"</code></td>
 <td><span class="math inline">\((1 - 1.5\eta + 0.5\eta^3)\mathcal{I}\{h
 \leq \phi \}\)</span></td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{"gaussian"}\)</span></td>
+<td><code>"gaussian"</code></td>
 <td><span class="math inline">\(e^{-\eta^2}\)</span></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{"triangular"}\)</span></td>
+<td><code>"triangular"</code></td>
 <td><span class="math inline">\((1 - \eta)\mathcal{I}\{h \leq \phi
 \}\)</span></td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{"circular"}\)</span></td>
+<td><code>"circular"</code></td>
 <td><span class="math inline">\((1 - \frac{2}{\pi}[m\sqrt{1 - m^2} +
 sin^{-1}\{m\}])\mathcal{I}\{h \leq \phi \}, m = min(\eta,
 1)\)</span></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{"cubic"}\)</span></td>
+<td><code>"cubic"</code></td>
 <td>
 <span class="math inline">\((1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 +
 0.75 \eta^7)\mathcal{I}\{h \leq \phi \}\)</span> \</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{"pentaspherical"}\)</span></td>
+<td><code>"pentaspherical"</code></td>
 <td>
 <span class="math inline">\((1 - 1.875\eta + 1.250\eta^3 -
 0.375\eta^5)\mathcal{I}\{h \leq \phi \}\)</span> \</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{"cosine"}\)</span></td>
+<td><code>"cosine"</code></td>
 <td>$ cos() $</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{"wave"}\)</span></td>
+<td><code>"wave"</code></td>
 <td><span class="math inline">\(\frac{sin(\eta)}{\eta}\mathcal{I}\{h
 &gt; 0 \} + \mathcal{I}\{h = 0 \}\)</span></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{"jbessel"}\)</span></td>
+<td><code>"jbessel"</code></td>
 <td>
 <span class="math inline">\(B_j(h\phi), B_j\)</span> is
 Bessel-J</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{"gravity"}\)</span></td>
+<td><code>"gravity"</code></td>
 <td><span class="math inline">\((1 + \eta^2)^{-1/2}\)</span></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{"rquad"}\)</span></td>
+<td><code>"rquad"</code></td>
 <td><span class="math inline">\((1 + \eta^2)^{-1}\)</span></td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{"magnetic"}\)</span></td>
+<td><code>"magnetic"</code></td>
 <td><span class="math inline">\((1 + \eta^2)^{-3/2}\)</span></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{"matern"}\)</span></td>
+<td><code>"matern"</code></td>
 <td>
 <span class="math inline">\(\frac{2^{(1 - \xi)}}{\Gamma(\xi)}
 \alpha^\xi B_k(\alpha, \xi), \alpha = \sqrt{2\xi \eta}, B_k\)</span> is
@@ -1414,23 +1416,23 @@ Bessel-K with order <span class="math inline">\(\xi\)</span>, <span class="math 
 </td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{"cauchy"}\)</span></td>
+<td><code>"cauchy"</code></td>
 <td>
 <span class="math inline">\((1 + \eta^2)^{-\xi}\)</span>, <span class="math inline">\(\xi &gt; 0\)</span>
 </td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{"pexponential"}\)</span></td>
+<td><code>"pexponential"</code></td>
 <td>
 <span class="math inline">\(exp(-h^\xi / \phi)\)</span>, <span class="math inline">\(\xi \in (0, 2]\)</span>
 </td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(\texttt{"none"}\)</span></td>
+<td><code>"none"</code></td>
 <td><span class="math inline">\(0\)</span></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(\texttt{"ie"}\)</span></td>
+<td><code>"ie"</code></td>
 <td><span class="math inline">\(0\)</span></td>
 </tr>
 </tbody>
@@ -1596,48 +1598,48 @@ estmethod = “sv-wls”.</caption>
 <span class="math inline">\(w_i\)</span> Name</th>
 <th>
 <span class="math inline">\(w_i\)</span> Form</th>
-<th><span class="math inline">\(\texttt{weight =}\)</span></th>
+<th><code>weight =</code></th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td>Cressie</td>
 <td><span class="math inline">\(|N(h)| / \gamma(h)_i^2\)</span></td>
-<td><span class="math inline">\(\texttt{"cressie"}\)</span></td>
+<td><code>"cressie"</code></td>
 </tr>
 <tr class="even">
 <td>Cressie (Denominator) Root</td>
 <td><span class="math inline">\(|N(h)| / \gamma(h)_i\)</span></td>
-<td><span class="math inline">\(\texttt{"cressie-dr"}\)</span></td>
+<td><code>"cressie-dr"</code></td>
 </tr>
 <tr class="odd">
 <td>Cressie No Pairs</td>
 <td><span class="math inline">\(1 / \gamma(h)_i^2\)</span></td>
-<td><span class="math inline">\(\texttt{"cressie-nopairs"}\)</span></td>
+<td><code>"cressie-nopairs"</code></td>
 </tr>
 <tr class="even">
 <td>Cressie (Denominator) Root No Pairs</td>
 <td><span class="math inline">\(1 / \gamma(h)_i\)</span></td>
-<td><span class="math inline">\(\texttt{"cressie-dr-nopairs"}\)</span></td>
+<td><code>"cressie-dr-nopairs"</code></td>
 </tr>
 <tr class="odd">
 <td>Pairs</td>
 <td><span class="math inline">\(|N(h)|\)</span></td>
-<td><span class="math inline">\(\texttt{pairs"}\)</span></td>
+<td><code>"pairs"</code></td>
 </tr>
 <tr class="even">
 <td>Pairs Inverse Distance</td>
 <td><span class="math inline">\(|N(h)| / h^2\)</span></td>
-<td><span class="math inline">\(\texttt{"pairs-invd"}\)</span></td>
+<td><code>"pairs-invd"</code></td>
 </tr>
 <tr class="odd">
 <td>Pairs Inverse (Root) Distance</td>
 <td><span class="math inline">\(|N(h)| / h\)</span></td>
-<td><span class="math inline">\(\texttt{"pairs-invrd"}\)</span></td>
+<td><code>"pairs-invrd"</code></td>
 </tr>
 <tr class="even">
 <td>Ordinary Least Squares</td>
 <td>1</td>
-<td><span class="math inline">\(\texttt{"ols"}\)</span></td>
+<td><code>"ols"</code></td>
 </tr>
 </tbody>
 </table>

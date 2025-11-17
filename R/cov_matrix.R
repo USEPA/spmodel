@@ -58,3 +58,30 @@ cov_matrix_cross <- function(spcov_params, dist_matrix_cross, randcov_params = N
 
   cov_matrix_cross_val
 }
+
+cov_matrix2 <- function(spcov_params, dist_matrix, randcov_matrix = NULL, partition_matrix = NULL, M = NULL, diagtol = 0) {
+
+  # spatial
+  if (is.null(M)) {
+    cov_matrix_val <- spcov_matrix(spcov_params, dist_matrix, diagtol = diagtol)
+  } else {
+    cov_matrix_val <- spcov_matrix(spcov_params, dist_matrix, M)
+  }
+
+
+  # random effects
+  if (!is.null(randcov_matrix)) {
+    cov_matrix_val <- cov_matrix_val + randcov_matrix
+  }
+
+  # partitioning
+  if (!is.null(partition_matrix)) {
+    cov_matrix_val <- cov_matrix_val * partition_matrix
+  }
+
+  # diag_add <- min(1e-4, 1e-4 * sum(spcov_params[["de"]], randcov_params))
+  # diag(cov_matrix_val) <- diag(cov_matrix_val) + diag_add #
+  # possibly needed for random effects stability with no ie
+  cov_matrix_val
+}
+

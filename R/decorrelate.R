@@ -1,11 +1,4 @@
-decorrelate <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering, local, X, y, xc, yc, ...) {
-
-  if (missing(formula)) {
-    formula <- NULL
-    data <- NULL
-    xcoord <- NULL
-    ycoord <- NULL
-  }
+decorrelate <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering, local, ...) {
 
   if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
     anisotropy <- TRUE
@@ -51,9 +44,9 @@ decorrelate <- function(formula, data, spcov_params, xcoord, ycoord, randcov_par
     local <- NULL
   }
   if (is.null(local)) {
-    if (data_object$n > 3000) {
+    if (data_object$n > 1000) {
       local <- TRUE
-      message("Because the sample size exceeds 3,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+      message("Because the sample size exceeds 1,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
     } else {
       local <- FALSE
     }
@@ -77,23 +70,21 @@ decorrelate <- function(formula, data, spcov_params, xcoord, ycoord, randcov_par
 
   # return original information here if spcov_type "none"
 
-  if (is.null(formula)) {
-    xcoord_val <- xc
-    ycoord_val <- yc
-  } else {
-    X <- data_object$X_list[[1]]
-    y <- data_object$y_list[[1]]
-    xcoord_val <- data_object$obdata[[data_object$xcoord]]
-    ycoord_val <- data_object$obdata[[data_object$ycoord]]
-    if (anisotropy) {
-      trans_coords <- transform_anis2(xcoord_val, ycoord_val, spcov_params[["rotate"]], spcov_params[["scale"]])
-      xcoord_val <- trans_coords$xcoord_val
-      ycoord_val <- trans_coords$ycoord_val
-    }
+
+  obdata <- data_object$obdata
+  X <- data_object$X_list[[1]]
+  y <- data_object$y_list[[1]]
+  xcoord_val <- obdata[[data_object$xcoord]]
+  ycoord_val <- obdata[[data_object$ycoord]]
+  if (anisotropy) {
+    obdata_aniscoords <- transform_anis2(xcoord_val, ycoord_val, spcov_params[["rotate"]], spcov_params[["scale"]])
+    xcoord_val <- obdata_aniscoords$xcoord
+    ycoord_val <- obdata_aniscoords$ycoord
   }
 
+
   index <- seq(1, data_object$n)
-  # total_var <- sum(spcov_params_val[["de"]], spcov_params_val[["ie"]], randcov_params)
+  total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
 
   # do vecchia ordering here
   if (missing(ordering)) {
@@ -102,6 +93,7 @@ decorrelate <- function(formula, data, spcov_params, xcoord, ycoord, randcov_par
   if (!ordering %in% c("none", "maxmin", "random")) {
     stop("Invalid ordering argument. Argument must be \"none\", \"maxmin\", or \"random\".", call. = FALSE)
   }
+
   ord <- get_decorrelate_order(ordering, xcoord_val, ycoord_val)
 
   # order all values
@@ -119,10 +111,10 @@ decorrelate <- function(formula, data, spcov_params, xcoord, ycoord, randcov_par
 
   if (local$parallel) {
     cl <- parallel::makeCluster(local$ncores)
-    vals <- parallel::parLapply(cl, index, get_decorrelated_value, spcov_params, X, y, xcoord_val, ycoord_val, local, randcov_matrix_val, partition_matrix_val)
+    vals <- parallel::parLapply(cl, index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix_val, partition_matrix_val)
     cl <- parallel::stopCluster(cl)
   } else {
-    vals <- lapply(index, get_decorrelated_value, spcov_params, X, y, xcoord_val, ycoord_val, local, randcov_matrix_val, partition_matrix_val)
+    vals <- lapply(index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix_val, partition_matrix_val)
   }
   X <- do.call("rbind", lapply(vals, function(x) x$X))
   y <- do.call("rbind", lapply(vals, function(x) x$y))
@@ -135,11 +127,36 @@ decorrelate <- function(formula, data, spcov_params, xcoord, ycoord, randcov_par
   tX <- tX[ord$inv_order, , drop = FALSE]
   ty <- ty[ord$inv_order, , drop = FALSE]
 
-  val <- list(X = X, y = as.vector(y), tX = tX, ty = as.vector(ty))
-  val
+  coefs <- list(spcov = spcov_params, randcov = randcov_params)
+  output <- list(
+    obdata = data_object$obdata,
+    coefficients = coefs,
+    X = X,
+    y = as.vector(y),
+    tX = tX,
+    ty = as.vector(ty),
+    xcoord = data_object$xcoord,
+    ycoord = data_object$ycoord,
+    random = random,
+    partition_factor = partition_factor,
+    dim_coords = data_object$dim_coords,
+    terms = data_object$terms,
+    xlevels = data_object$xlevels,
+    contrasts = data_object$contrasts,
+    local = local,
+    newdata = data_object$newdata,
+    anisotropy = data_object$anisotropy,
+    diagtol = data_object$diagtol,
+    total_var = total_var
+  )
+  new_output <- structure(output, class = "decorrelate")
+  new_output
 }
 
-get_decorrelated_value <- function(index, spcov_params, X, y, xcoord_val, ycoord_val, local, randcov_matrix, partition_matrix) {
+
+
+
+get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix, partition_matrix) {
 
   if (index == 1) {
     X <- X[index, , drop = FALSE]
@@ -176,29 +193,6 @@ get_decorrelated_value <- function(index, spcov_params, X, y, xcoord_val, ycoord
   cov_vec_new <- cov_vector(spcov_params, dists_new, randcov_vector = randcov_vector, partition_vector = partition_vector)
   cov_vec_new <- as.numeric(cov_vec_new)
 
-  # subsetting data if method distance
-  if (local$method == "distance" && index > local$size) {
-    n <- length(cov_vec_new)
-    # want the smallest distance here and order goes from smallest first to largest last (keep last values with are smallest distance)
-    nn_index <- order(as.numeric(dists_new))[seq(from = 1, to = min(n, local$size))]
-    X_old <- X[nn_index, , drop = FALSE]
-    y_old <- y[nn_index, , drop = FALSE]
-    xcoord_val_old <- xcoord_val_old[nn_index]
-    ycoord_val_old <- ycoord_val_old[nn_index]
-    cov_vec_new <- cov_vec_new[nn_index]
-  }
-
-  if (local$method == "covariance" && index > local$size) {
-    n <- length(cov_vec_new)
-    # want the largest covariance here and order goes from smallest first to largest last (keep last values which are largest covariance)
-    cov_index <- order(as.numeric(cov_vec_new))[seq(from = n, to = max(1, n - local$size + 1))] # use abs() here?
-    X_old <- X[cov_index, , drop = FALSE]
-    y_old <- y[cov_index, , drop = FALSE]
-    xcoord_val_old <- xcoord_val_old[cov_index]
-    ycoord_val_old <- ycoord_val_old[cov_index]
-    cov_vec_new <- cov_vec_new[cov_index]
-  }
-
   dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
   # random effects if necessary
   if (is.null(randcov_matrix)) {
@@ -212,9 +206,42 @@ get_decorrelated_value <- function(index, spcov_params, X, y, xcoord_val, ycoord
   } else {
     partition_matrix <- partition_matrix[index_old, index_old, drop = FALSE]
   }
+
+  # subsetting data if method distance
+  if (local$method == "distance" && index > local$size) {
+    n <- length(cov_vec_new)
+    # want the smallest distance here and order goes from smallest first to largest last (keep last values with are smallest distance)
+    nn_index <- order(as.numeric(dists_new))[seq(from = 1, to = min(n, local$size))]
+    X_old <- X_old[nn_index, , drop = FALSE]
+    y_old <- y_old[nn_index, , drop = FALSE]
+    dists_old <- dists_old[nn_index, nn_index, drop = FALSE]
+    if (!is.null(randcov_matrix)) {
+      randcov_matrix <- randcov_matrix[nn_index, nn_index, drop = FALSE]
+    }
+    if (!is.null(partition_matrix)) {
+      partition_matrix <- partition_matrix[nn_index, nn_index, drop = FALSE]
+    }
+    cov_vec_new <- cov_vec_new[nn_index]
+  }
+
+  if (local$method == "covariance" && index > local$size) {
+    n <- length(cov_vec_new)
+    # want the largest covariance here and order goes from smallest first to largest last (keep last values which are largest covariance)
+    cov_index <- order(as.numeric(cov_vec_new))[seq(from = n, to = max(1, n - local$size + 1))] # use abs() here?
+    X_old <- X_old[cov_index, , drop = FALSE]
+    y_old <- y_old[cov_index, , drop = FALSE]
+    dists_old <- dists_old[cov_index, cov_index, drop = FALSE]
+    if (!is.null(randcov_matrix)) {
+      randcov_matrix <- randcov_matrix[cov_index, cov_index, drop = FALSE]
+    }
+    if (!is.null(partition_matrix)) {
+      partition_matrix <- partition_matrix[cov_index, cov_index, drop = FALSE]
+    }
+    cov_vec_new <- cov_vec_new[cov_index]
+  }
+
   cov_mat_old <- cov_matrix2(spcov_params, dist_matrix = dists_old, randcov_matrix = randcov_matrix, partition_matrix = partition_matrix)
 
-  total_var <- cov_mat_old[1, 1]
   cor_vec_new <- cov_vec_new / total_var
   cor_mat_old <- cov_mat_old / total_var
 

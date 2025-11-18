@@ -1,3 +1,18 @@
+#' Title
+#'
+#' @param formula filler
+#' @param data filler
+#' @param spcov_params filler
+#' @param xcoord filler
+#' @param ycoord filler
+#' @param randcov_params filler
+#' @param partition_factor filler
+#' @param ordering filler
+#' @param local filler
+#' @param ... filler
+#'
+#' @return filler
+#' @export
 decorrelate <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering, local, ...) {
 
   if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {

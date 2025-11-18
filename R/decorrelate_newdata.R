@@ -1,3 +1,12 @@
+#' Title
+#'
+#' @param object filler
+#' @param newdata filler
+#' @param local filler
+#' @param ... filler
+#'
+#' @return filler
+#' @export
 decorrelate_newdata <- function(object, newdata, local, ...) {
 
 

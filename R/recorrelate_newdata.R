@@ -1,3 +1,10 @@
+#' Title
+#'
+#' @param ty_newdata filler
+#' @param object filler
+#'
+#' @return filler
+#' @export
 recorrelate_newdata <- function(ty_newdata, object) {
 
   if (!inherits(object, "decorrelate_newdata")) {

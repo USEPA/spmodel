@@ -208,7 +208,6 @@ get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_
   cov_vec_new <- cov_vector(spcov_params, dists_new, randcov_vector = randcov_vector, partition_vector = partition_vector)
   cov_vec_new <- as.numeric(cov_vec_new)
 
-  dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
   # random effects if necessary
   if (is.null(randcov_matrix)) {
     randcov_matrix <- NULL
@@ -222,14 +221,20 @@ get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_
     partition_matrix <- partition_matrix[index_old, index_old, drop = FALSE]
   }
 
+  if (local$method == "all" ) { # || index <= local$size
+    dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
+  }
+
   # subsetting data if method distance
-  if (local$method == "distance" && index > local$size) {
+  if (local$method == "distance") { # && ndex > local$size
     n <- length(cov_vec_new)
     # want the smallest distance here and order goes from smallest first to largest last (keep last values with are smallest distance)
     nn_index <- order(as.numeric(dists_new))[seq(from = 1, to = min(n, local$size))]
     X_old <- X_old[nn_index, , drop = FALSE]
     y_old <- y_old[nn_index, , drop = FALSE]
-    dists_old <- dists_old[nn_index, nn_index, drop = FALSE]
+    xcoord_val_old <- xcoord_val[nn_index]
+    ycoord_val_old <- ycoord_val[nn_index]
+    dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
     if (!is.null(randcov_matrix)) {
       randcov_matrix <- randcov_matrix[nn_index, nn_index, drop = FALSE]
     }
@@ -239,13 +244,15 @@ get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_
     cov_vec_new <- cov_vec_new[nn_index]
   }
 
-  if (local$method == "covariance" && index > local$size) {
+  if (local$method == "covariance") { # && index > local$size
     n <- length(cov_vec_new)
     # want the largest covariance here and order goes from smallest first to largest last (keep last values which are largest covariance)
     cov_index <- order(as.numeric(cov_vec_new))[seq(from = n, to = max(1, n - local$size + 1))] # use abs() here?
     X_old <- X_old[cov_index, , drop = FALSE]
     y_old <- y_old[cov_index, , drop = FALSE]
-    dists_old <- dists_old[cov_index, cov_index, drop = FALSE]
+    xcoord_val_old <- xcoord_val[cov_index]
+    ycoord_val_old <- ycoord_val[cov_index]
+    dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
     if (!is.null(randcov_matrix)) {
       randcov_matrix <- randcov_matrix[cov_index, cov_index, drop = FALSE]
     }

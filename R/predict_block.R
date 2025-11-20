@@ -143,7 +143,11 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
 
     c0 <- colMeans(covmatrix(object, newdata = newdata, cov_type = "pred.obs"))
     Sig <- covmatrix(object)
-    s0 <- mean(covmatrix(object, newdata = newdata, cov_type = "pred.pred"))
+    if (NROW(newdata) > 1e4) {
+      s0 <- get_bk_var(object, newdata, local)
+    } else {
+      s0 <- mean(covmatrix(object, newdata = newdata, cov_type = "pred.pred"))
+    }
     Xmat <- model.matrix(object)
 
     if (local$method == "all") {
@@ -233,4 +237,24 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
   } else {
     stop("Interval must be none, confidence, or prediction")
   }
+}
+
+get_bk_var <- function(object, newdata, local) {
+  index <- seq(1, NROW(newdata))
+  object$obdata <- newdata
+  if (local$parallel) {
+    cl <- parallel::makeCluster(local$ncores)
+    val <- parallel::parLapply(cl, index, get_each_bk_meancov, object, newdata)
+    cl <- parallel::stopCluster(cl)
+  } else {
+    val <- lapply(index, get_each_bk_meancov, object, newdata)
+  }
+  mean(unlist(val))
+}
+
+get_each_bk_meancov <- function(index, object, newdata) {
+  newdata <- newdata[index, , drop = FALSE]
+  val <- as.vector(spmodel::covmatrix(object, newdata = newdata, cov_type = "obs.pred"))
+  val[index] <- val[index] + object$coefficients$spcov[["ie"]] # this is to add ie variance to diagonal (which is omitted with newdata)
+  mean(val)
 }

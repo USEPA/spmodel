@@ -1,3 +1,11 @@
+# spmodel 0.12.0
+
+## Minor Updates
+
+* Changed the default `size` argument to the local argument in `predict(..., block = TRUE)` and `augment(..., block = TRUE)` from 1000 to 4000. This enhances the block prediction (i.e., Kriging) approximation's accuracy but can slightly increase computational complexity.
+* Enhanced efficiency of block prediction (i.e., Kriging) for large `newdata` objects.
+* Minor documentation updates.
+
 # spmodel 0.11.1
 
 ## Minor Updates

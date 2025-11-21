@@ -1,5 +1,9 @@
 # spmodel 0.12.0
 
+## Major Updates
+
+* Added `eacf()` to compute the empirical autocovariance function.
+
 ## Minor Updates
 
 * Changed the default `size` argument to the local argument in `predict(..., block = TRUE)` and `augment(..., block = TRUE)` from 1000 to 4000. This enhances the block prediction (i.e., Kriging) approximation's accuracy but can slightly increase computational complexity.

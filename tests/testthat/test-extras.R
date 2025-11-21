@@ -446,6 +446,98 @@ if (test_local) {
   })
 
   ##############################################################################
+  ############################ eacf (test-acf.R)
+  ##############################################################################
+
+  test_that("eacf works", {
+
+    # regular implementation
+    eacf1 <- eacf(y ~ x, exdata, xcoord, ycoord)
+    expect_s3_class(eacf1, "eacf")
+    expect_s3_class(eacf1, "tbl_df")
+    expect_s3_class(eacf1, "tbl")
+    expect_s3_class(eacf1, "data.frame")
+    expect_equal(NROW(eacf1), 15)
+    expect_equal(NCOL(eacf1), 4)
+
+    eacf1_q <- eacf(y ~ x, exdata, "xcoord", "ycoord")
+    expect_s3_class(eacf1_q, "eacf")
+    expect_s3_class(eacf1_q, "tbl_df")
+    expect_s3_class(eacf1_q, "tbl")
+    expect_s3_class(eacf1_q, "data.frame")
+    expect_equal(NROW(eacf1_q), 15)
+    expect_equal(NCOL(eacf1_q), 4)
+
+
+    # quoting works (need to NULL out call attribute as that is different)
+    eacf1_cn <- eacf1
+    attr(eacf1_cn, "call") <- NULL
+    eacf1_q_cn <- eacf1_q
+    attr(eacf1_q_cn, "call") <- NULL
+    expect_equal(eacf1_cn, eacf1_q_cn)
+
+    # specifying bins and cutoff
+    eacf2 <- eacf(y ~ x, exdata, xcoord, ycoord, bins = 30, cutoff = 5)
+    expect_s3_class(eacf2, "eacf")
+    expect_s3_class(eacf2, "tbl_df")
+    expect_s3_class(eacf2, "tbl")
+    expect_s3_class(eacf2, "data.frame")
+    expect_equal(NROW(eacf2), 30)
+    expect_equal(NCOL(eacf2), 4)
+    dist_matrix <- spdist(exdata, "xcoord", "ycoord")
+
+    # specifying distance matrix
+    eacf3 <- eacf(y ~ x, exdata, dist_matrix = dist_matrix)
+    expect_s3_class(eacf3, "eacf")
+    expect_s3_class(eacf3, "tbl_df")
+    expect_s3_class(eacf3, "tbl")
+    expect_s3_class(eacf3, "data.frame")
+    expect_equal(NROW(eacf3), 15)
+    expect_equal(NCOL(eacf3), 4)
+
+    # specifying partition factor
+    eacf4 <- eacf(y ~ x, exdata, xcoord, ycoord, partition_factor = ~group)
+    expect_s3_class(eacf4, "eacf")
+    expect_s3_class(eacf4, "tbl_df")
+    expect_s3_class(eacf4, "tbl")
+    expect_s3_class(eacf4, "data.frame")
+    expect_equal(NROW(eacf4), 15)
+    expect_equal(NCOL(eacf4), 4)
+    expect_false(identical(eacf1, eacf4)) # make sure results are not identical to full eacf
+
+    # works with sf object
+    exdata_sf <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"))
+    expect_error(eacf(y ~ x, exdata_sf), NA)
+    eacf5 <- eacf(y ~ x, exdata_sf)
+    eacf5_cn <- eacf5
+    attr(eacf5_cn, "call") <- NULL
+    expect_true(identical(eacf1_cn, eacf5_cn))
+
+    # works with one dimension
+    expect_error(eacf(y ~ x, exdata, xcoord), NA)
+
+    # errors occur
+    expect_error(eacf(y ~ x, exdata))
+    expect_error(eacf(y ~ x, exdata, xcoord_xyz))
+    expect_error(eacf(y ~ x, exdata, xcoord, ycoord_xyz))
+
+    # works with cloud argument
+    eacf1c <- eacf(y ~ x, exdata, xcoord, ycoord, cloud = TRUE)
+    expect_s3_class(eacf1c, "eacf")
+    expect_s3_class(eacf1c, "tbl_df")
+    expect_s3_class(eacf1c, "tbl")
+    expect_s3_class(eacf1c, "data.frame")
+    expect_equal(NROW(eacf1c), 3965)
+    expect_equal(NCOL(eacf1c), 2)
+
+    # plot works
+    expect_error(plot(eacf1), NA)
+    expect_error(plot(eacf1, pch = 1), NA)
+    expect_error(plot(eacf1c), NA)
+    expect_error(plot(eacf1c, pch = 19), NA)
+  })
+
+  ##############################################################################
   ############################ esv (test-esv.R)
   ##############################################################################
 

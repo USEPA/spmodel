@@ -170,7 +170,7 @@ esv <- function(formula, data, xcoord, ycoord, cloud = FALSE, robust = FALSE, bi
   residual_vector2 <- residual_vector^2
 
   if (cloud) {
-    esv_out <- get_esv_cloud(residual_vector2, dist_vector, formula)
+    esv_out <- get_esv_cloud(residual_vector2, dist_vector)
   } else {
     if (robust) {
       residual_vector12 <- sqrt(residual_vector)

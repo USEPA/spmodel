@@ -1,0 +1,106 @@
+---
+title: "Decorrelate"
+author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
+bibliography: '`r system.file("references.bib", package="spmodel")`'
+output:
+  html_document:
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(spmodel)
+library(sf)
+library(ranger)
+```
+
+```{r}
+set.seed(0)
+n <- NROW(moss)
+index <- seq(from = 1, to = n)
+n_train <- floor(0.75 * n)
+train_index <- sample(index, size = n_train)
+moss_train <- moss[train_index, ]
+moss_test <- moss[-train_index, ]
+```
+
+
+```{r}
+form <- log_Zn ~ log_dist2road + sideroad
+lmod <- lm(form, data = moss_test)
+sigma2 <- summary(lmod)$sigma^2
+max_hdist <- as.numeric(max(st_distance(moss_test)))/2
+grid <- data.frame(
+  de = sigma2 * c(0.9, 0.1, 0.9, 0.1, 0.5, 0.5),
+  ie = sigma2 * c(0.1, 0.9, 0.1, 0.9, 0.5, 0.5),
+  range = max_hdist * c(0.75, 0.75, 0.25, 0.25, 0.75, 0.25)
+)
+```
+
+```{r}
+get_spcov_params_list <- function(index, grid, spcov_type) {
+  spcov_vec <- grid[index, ]
+  spcov_params(
+    spcov_type = spcov_type,
+    de = spcov_vec[["de"]],
+    ie = spcov_vec[["ie"]],
+    range = spcov_vec[["range"]]
+  )
+}
+
+spcov_params_list <- lapply(1:NROW(grid), get_spcov_params_list, grid, spcov_type = "exponential")
+```
+
+```{r}
+get_decorr_rmspe <- function(spcov_params, formula, data_train, data_test) {
+  out <- decorrelate(formula, data_train, spcov_params)
+  rf <- ranger(x = out$tX, y = out$ty)
+  out_newdata <- decorrelate_newdata(out, newdata = data_test)
+  rf_preds <- predict(rf, data = out_newdata$tX_newdata)$predictions
+  preds <- recorrelate_newdata(rf_preds, out_newdata)
+  yname <- as.character(attributes(terms(formula))$variables[[2]])
+  errors <- preds - data_test[[yname]]
+  sqrt(mean(errors^2))
+}
+```
+
+```{r}
+rmspe_list <- lapply(spcov_params_list, get_decorr_rmspe, form, moss_train, moss_test)
+rmspe_min <- which.min(unlist(rmspe_list))
+spcov_params_min <- spcov_params_list[[rmspe_min]]
+```
+
+```{r}
+get_indrf_rmspe <- function(formula, data_train, data_test) {
+  data_train <- st_drop_geometry(data_train)
+  data_test <- st_drop_geometry(data_test)
+  rf <- ranger(formula, data_train)
+  preds <- predict(rf, data = data_test)$predictions
+  yname <- as.character(attributes(terms(formula))$variables[[2]])
+  errors <- preds - data_test[[yname]]
+  sqrt(mean(errors^2))
+}
+```
+
+```{r}
+get_splmRF_rmspe <- function(formula, data_train, data_test, spcov_type = "exponential") {
+  out <- splmRF(formula, data_train, spcov_type = spcov_type)
+  preds <- predict(out, data_test)
+  yname <- as.character(attributes(terms(formula))$variables[[2]])
+  errors <- preds - data_test[[yname]]
+  sqrt(mean(errors^2))
+}
+```
+
+```{r}
+get_indrf_rmspe(form, moss_train_df, moss_test_df)
+get_splmRF_rmspe(form, moss_train, moss_test)
+get_decorr_rmspe(spcov_params_min, form, moss_train, moss_test)
+```

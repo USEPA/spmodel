@@ -1,5 +1,5 @@
 ---
-title: "Decorrelate"
+title: "The Spatial Decorrelation Transformation for Machine Learning Models"
 author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
 bibliography: '`r system.file("references.bib", package="spmodel")`'
 output:
@@ -13,34 +13,177 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-```
 
-```{r setup}
 library(spmodel)
 library(sf)
+library(ggplot2)
 library(ranger)
 ```
 
+# Introduction {#sec:introduction}
+
+`spmodel` is a **R** package used to fit, summarize, and
+predict for a variety of spatial statistical models. This vignette
+explores tools for a spatial decorrelation transformation that can be applied as a preprocessing step for machine learning models like random forests. The spatial decorrelation transformation can significantly improve a machine learning model's inferential and predictive capacity [@heaton2024adjusting].
+
+Before proceeding, we load  `spmodel`, `sf`, `ggplot2`, and `ranger` by running
+```{r, eval = FALSE}
+library(spmodel)
+library(sf)
+library(ggplot2)
+library(ranger)
+```
+
+If using `spmodel` in a formal publication or report, please cite it.
+Citing `spmodel` lets us devote more resources to the package in the
+future. We view the `spmodel` citation by running
+
+```{r}
+citation(package = "spmodel")
+```
+
+# The `moss` Data
+
+In this vignette, we use the point-referenced `moss` data, an `sf` object that contains data on heavy metals in mosses near a mining road in Alaska. We view the first few rows of `moss` by running
+```{r}
+moss
+```
+We can learn more about `moss` by running `help("moss", "spmodel")`.
+
+Our goal is to use a machine learning model (here, a random forest) to study the impact of the explanatory variables (log distance from the mining road and whether the datum is north or south of the mining road) on the response variable (log zinc concentration) while accounting for spatial covariance among nearby observations. Before fitting any models, we will visualize some relationships among these variables. First, we visualize the spatial distribution of log zinc concentration (`log_Zn`) in `moss` by running
+```{r log_zn, fig.cap="Distribution of log zinc concentration in the moss data.", out.width = "65%", fig.align="center"}
+ggplot(moss, aes(color = log_Zn)) +
+  geom_sf() +
+  scale_color_viridis_c() +
+  theme_gray(base_size = 14)
+```
+
+`log_Zn` values are highest near the mining road in the center of the spatial domain. Second, we visualize the relationship between log zinc concentration (`log_Zn`) and both the (logarithm of) distance from the road (`log_dist2road`) and the side of the road (`sideroad`) by running
+```{r}
+ggplot(moss, aes(x = log_dist2road, y = log_Zn, color = sideroad, shape = sideroad)) +
+  geom_point() +
+  theme_gray(base_size = 14)
+```
+
+There appears to be a linearly decreasing relationship between the `log_dist2road` and `log_Zn`.
+
+Finally, we set a seed so that vignette output can be reproduced locally:
 ```{r}
 set.seed(0)
-n <- NROW(moss)
-index <- seq(from = 1, to = n)
-n_train <- floor(0.75 * n)
-train_index <- sample(index, size = n_train)
-moss_train <- moss[train_index, ]
-moss_test <- moss[-train_index, ]
 ```
 
 
+# Creating Training and Test Data
+
+Evaluating the effectiveness of a machine learning model is a multi-step process. First, we split our data up into separate training and test sets. The training data are used to build a model and use it to predict the response variable for each datum in the test data. These predictions are compared to the true, realized value of the response variable using a metric like root-mean-squared-prediction error or predictive R-squared. 
+
+We use a random 75/25 split for our training/test data, meaning that 75% of the observations are randomly assigned to the training data and 25% to the test data:
+```{r}
+# number of observations in the moss data
+n <- NROW(moss)
+# creating an index that corresponds with the row position of each datum
+index <- seq(from = 1, to = n)
+# setting the size of the training data
+n_train <- floor(0.75 * n)
+# randomly generating the indices in moss that are assigned to the training data
+train_index <- sample(index, size = n_train)
+# creating the training data
+moss_train <- moss[train_index, ]
+# creating the test data
+moss_test <- moss[-train_index, ]
+```
+
+# The Spatial Decorrelation Transformation
+
+The spatial decorrelation transformation removes spatial covariance (i.e., correlation) induced by some spatial covariance function. Suppose that we knew the response variable's true spatial covariance was exponential with a spatially dependent variance of 1.2, a range of 50,000 meters, and an independent variance of 0.2. Let's store this as an `spcov_params` object:
+```{r}
+val <- spcov_params(
+  spcov_type = "exponential",
+  de = 1.2,
+  range = 5e4,
+  ie = 0.2
+)
+```
+
+
+The spatial decorrelation transformation is applied using `decorrelate()`, which relies on at least the following three arguments:
+
+* `formula`: a formula that describes the relationship between the response variable and the explanatory variables
+* `data`: a `data.frame` or `sf` object that contains the response variable, explanatory variables, and spatial information
+* `spcov_params`: the spatial covariance parameters as an `spcov_params()` object
+
+If `data` is an `sf` [@pebesma2018sf] object, spatial information is stored in the object's geometry. If `data` is a `data.frame`, then the x-coordinates and y-coordinates must be provided via the `xcoord` and `ycoord` arguments.
+
+We apply the spatial decorrelation transformation to the training data according to `formula` and `spcov_params` by running
 ```{r}
 form <- log_Zn ~ log_dist2road + sideroad
-lmod <- lm(form, data = moss_test)
+tmoss_train <- decorrelate(
+  formula = form,
+  data = moss_train,
+  spcov_params = val
+)
+```
+
+Now we can fit a machine learning model, here a random forest using the ranger **R** package [@wright2015ranger], to the transformed response variable (`tmoss_train$ty`) using the transformed explanatory variables (stored as a matrix in `tmoss_train$tX`):
+```{r}
+rfmod <- ranger(x = tmoss_train$tX, y = tmoss_train$ty)
+```
+
+Before using `rfmod` to make predictions for the test data, we must transform the explanatory variables in the test data using `decorrelate_newdata()` so they are on the same scale as the transformed training data:
+```{r}
+tmoss_test <- decorrelate_newdata(tmoss_train, newdata = moss_test)
+rf_tpreds <- predict(rfmod, data = tmoss_test$tX_newdata)$predictions
+```
+
+Then, we can take these test data predictions and recorrelate them with spatial covariance using `recorrelate()`:
+```{r}
+sp_decorr_preds <- recorrelate_newdata(rf_tpreds, tmoss_test)
+```
+
+Finally, we compute our model evaluation metric, root-mean-squared-prediction error and predictive R-squared of the test data observations and corresponding predictions:
+```{r}
+get_rmspe_cor2 <- function(y, preds) {
+  errors <- y - preds
+  c("rmspe" = sqrt(mean(errors^2)), "cor2" = cor(y, preds)^2)
+}
+
+decorr_metrics <- get_rmspe_cor2(moss_test$log_Zn, sp_decorr_preds)
+print(decorr_metrics)
+```
+
+# Comparing to a Independent (Standard) Random Forest
+
+```{r}
+moss_train_df <- st_drop_geometry(moss_train)
+moss_test_df <- st_drop_geometry(moss_test)
+indrfmod <- ranger(form, data = moss_train_df)
+indrf_preds <- predict(indrfmod, data = moss_test_df)$predictions
+indrf_metrics <- get_rmspe_cor2(moss_test$log_Zn, indrf_preds)
+print(indrf_metrics)
+```
+
+# Comparing to a Spatial Residual Random Forest
+
+```{r}
+splmRFmod <- splmRF(form, data = moss_train, spcov_type = "exponential")
+splmRF_preds <- predict(splmRFmod, newdata = moss_test)
+splmRF_metrics <- get_rmspe_cor2(moss_test$log_Zn, splmRF_preds)
+print(splmRF_metrics)
+```
+
+# Estimating the Spatial Decorrelation Transformation Covariance Parameters 
+
+
+One approach to estimating parameters of that function is to use a grid search.
+```{r}
+form <- log_Zn ~ log_dist2road + sideroad
+lmod <- lm(form, data = moss_train)
 sigma2 <- summary(lmod)$sigma^2
-max_hdist <- as.numeric(max(st_distance(moss_test)))/2
+max_hdist <- as.numeric(max(st_distance(moss_train)))/2
 grid <- data.frame(
   de = sigma2 * c(0.9, 0.1, 0.9, 0.1, 0.5, 0.5),
   ie = sigma2 * c(0.1, 0.9, 0.1, 0.9, 0.5, 0.5),
-  range = max_hdist * c(0.75, 0.75, 0.25, 0.25, 0.75, 0.25)
+  range = max_hdist * c(1.5, 1.5, 0.5, 0.5, 1.5, 0.5)
 )
 ```
 
@@ -60,47 +203,25 @@ spcov_params_list <- lapply(1:NROW(grid), get_spcov_params_list, grid, spcov_typ
 
 ```{r}
 get_decorr_rmspe <- function(spcov_params, formula, data_train, data_test) {
-  out <- decorrelate(formula, data_train, spcov_params)
-  rf <- ranger(x = out$tX, y = out$ty)
-  out_newdata <- decorrelate_newdata(out, newdata = data_test)
-  rf_preds <- predict(rf, data = out_newdata$tX_newdata)$predictions
-  preds <- recorrelate_newdata(rf_preds, out_newdata)
-  yname <- as.character(attributes(terms(formula))$variables[[2]])
-  errors <- preds - data_test[[yname]]
+  tdata_train <- decorrelate(formula, data_train, spcov_params)
+  rfmod <- ranger(x = tdata_train$tX, y = tdata_train$ty)
+  tdata_test <- decorrelate_newdata(tdata_train, newdata = data_test)
+  rf_tpreds <- predict(rfmod, data = tdata_test$tX_newdata)$predictions
+  sp_decorr_preds <- recorrelate_newdata(rf_tpreds, tdata_test)
+  errors <- data_test$log_Zn - sp_decorr_preds
   sqrt(mean(errors^2))
 }
 ```
 
 ```{r}
 rmspe_list <- lapply(spcov_params_list, get_decorr_rmspe, form, moss_train, moss_test)
-rmspe_min <- which.min(unlist(rmspe_list))
-spcov_params_min <- spcov_params_list[[rmspe_min]]
+which_rmspe_min <- which.min(unlist(rmspe_list))
+rmspe_min <- rmspe_list[[which_rmspe_min]]
+rmspe_min
+spcov_params_min <- spcov_params_list[[which_rmspe_min]]
+spcov_params_min
 ```
 
-```{r}
-get_indrf_rmspe <- function(formula, data_train, data_test) {
-  data_train <- st_drop_geometry(data_train)
-  data_test <- st_drop_geometry(data_test)
-  rf <- ranger(formula, data_train)
-  preds <- predict(rf, data = data_test)$predictions
-  yname <- as.character(attributes(terms(formula))$variables[[2]])
-  errors <- preds - data_test[[yname]]
-  sqrt(mean(errors^2))
-}
-```
 
-```{r}
-get_splmRF_rmspe <- function(formula, data_train, data_test, spcov_type = "exponential") {
-  out <- splmRF(formula, data_train, spcov_type = spcov_type)
-  preds <- predict(out, data_test)
-  yname <- as.character(attributes(terms(formula))$variables[[2]])
-  errors <- preds - data_test[[yname]]
-  sqrt(mean(errors^2))
-}
-```
 
-```{r}
-get_indrf_rmspe(form, moss_train_df, moss_test_df)
-get_splmRF_rmspe(form, moss_train, moss_test)
-get_decorr_rmspe(spcov_params_min, form, moss_train, moss_test)
-```
+

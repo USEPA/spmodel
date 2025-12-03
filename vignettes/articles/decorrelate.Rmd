@@ -106,7 +106,7 @@ val <- spcov_params(
 ```
 
 
-The spatial decorrelation transformation is applied using `decorrelate()`, which relies on at least the following three arguments:
+The spatial decorrelation transformation is applied using `decorrelate_data()`, which relies on at least the following three arguments:
 
 * `formula`: a formula that describes the relationship between the response variable and the explanatory variables
 * `data`: a `data.frame` or `sf` object that contains the response variable, explanatory variables, and spatial information
@@ -117,7 +117,7 @@ If `data` is an `sf` [@pebesma2018sf] object, spatial information is stored in t
 We apply the spatial decorrelation transformation to the training data according to `formula` and `spcov_params` by running
 ```{r}
 form <- log_Zn ~ log_dist2road + sideroad
-tmoss_train <- decorrelate(
+tmoss_train <- decorrelate_data(
   formula = form,
   data = moss_train,
   spcov_params = val
@@ -140,29 +140,51 @@ Then, we can take these test data predictions and recorrelate them with spatial 
 sp_decorr_preds <- recorrelate_newdata(rf_tpreds, tmoss_test)
 ```
 
-Finally, we compute our model evaluation metric, root-mean-squared-prediction error and predictive R-squared of the test data observations and corresponding predictions:
+Finally, we compute our model evaluation metric, root-mean-squared-prediction error (RMSPE) and predictive R-squared (R$^2$) of the test data observations and corresponding predictions:
 ```{r}
 get_rmspe_cor2 <- function(y, preds) {
   errors <- y - preds
   c("rmspe" = sqrt(mean(errors^2)), "cor2" = cor(y, preds)^2)
 }
-
 decorr_metrics <- get_rmspe_cor2(moss_test$log_Zn, sp_decorr_preds)
 print(decorr_metrics)
 ```
 
 # Comparing to a Independent (Standard) Random Forest
 
+We can compare the spatial decorrelation transformation to a standard random forest algorithm that assumes independence among observations. First, we must remove the spatial geometry structure from `moss_train` and `moss_test`, as `ranger()` does not accept `sf` objects:
 ```{r}
 moss_train_df <- st_drop_geometry(moss_train)
 moss_test_df <- st_drop_geometry(moss_test)
+```
+
+Then we may fit the model to training data, predict the test data, and compute the same  RMSPE and R$^2$ metrics:
+```{r}
 indrfmod <- ranger(form, data = moss_train_df)
 indrf_preds <- predict(indrfmod, data = moss_test_df)$predictions
 indrf_metrics <- get_rmspe_cor2(moss_test$log_Zn, indrf_preds)
 print(indrf_metrics)
 ```
 
+The spatial decorrelation transformation has a lower RMSPE and higher R$^2$ than the independent random forest, suggesting the spatial decorrelation transformation provides a better fit to the data. This can be visualized is the following observed vs predicted plots of the test data, where the spatial decorrelation predictions tend to more closely adhere to the 1-1 line than the independent random forest predictions:
+```{r}
+moss_test1 <- moss_test
+moss_test1$preds <- sp_decorr_preds
+moss_test1$type <- "decorr"
+moss_test2 <- moss_test
+moss_test2$preds <- indrf_preds
+moss_test2$type <- "ind"
+moss_test_wide <- rbind(moss_test1, moss_test2)
+ggplot(moss_test_wide, aes(x = preds, y = log_Zn, color = type, shape = type)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, color = "orange", linewidth = 2) +
+  theme_gray(base_size = 14)
+```
+
+
 # Comparing to a Spatial Residual Random Forest
+
+We can also compare the spatial decorrelation transformation to the spatial residual random forest already available in `spmodel`. The spatial residual random forest fits and independent random forest and the applies a spatial model to the residuals from that independent random forest [@fox2020comparing]. 
 
 ```{r}
 splmRFmod <- splmRF(form, data = moss_train, spcov_type = "exponential")
@@ -171,55 +193,86 @@ splmRF_metrics <- get_rmspe_cor2(moss_test$log_Zn, splmRF_preds)
 print(splmRF_metrics)
 ```
 
-# Estimating the Spatial Decorrelation Transformation Covariance Parameters 
+The spatial decorrelation transformation outperforms the spatial residual random forest, though the spatial residual random forest still notably outperforms the independent random forest.
 
+# A Grid Search to Estimate the Spatial Decorrelation Transformation Covariance Parameters 
 
-One approach to estimating parameters of that function is to use a grid search.
+In the prior example, we assumed the true spatial covariance parameters were known. This assumption is unsuitable in practice. One way to estimate the spatial covariance parameters is to use a grid search. In a grid search, several different spatial covariance parameter combinations are evaluated using the spatial decorrelation transformation and the parameter set minimizing some metric (here, test data RMSPE) are the final spatial covariance parameter estimates.
+The `decorrelate_grid()` function provides an initial grid of spatial covariance parameters:
+
 ```{r}
-form <- log_Zn ~ log_dist2road + sideroad
-lmod <- lm(form, data = moss_train)
-sigma2 <- summary(lmod)$sigma^2
-max_hdist <- as.numeric(max(st_distance(moss_train)))/2
-grid <- data.frame(
-  de = sigma2 * c(0.9, 0.1, 0.9, 0.1, 0.5, 0.5),
-  ie = sigma2 * c(0.1, 0.9, 0.1, 0.9, 0.5, 0.5),
-  range = max_hdist * c(1.5, 1.5, 0.5, 0.5, 1.5, 0.5)
+grid <- decorrelate_grid(
+  formula = form,
+  data = moss_train,
+  spcov_type = "exponential"
 )
+grid
 ```
 
+The grid values are chosen to explore different, plausible parts of the parameter space. The magnitudes of the `de` and `ie` variance parameters are based on the sample variance from an independent linear model fit using `lm()`, and the magnitude of the `range` parameters are based on whether or not spatial covariance decays to approximately zero in the spatial domain our outside the spatial domain. 
+
+To estimate which grid values minimize test set RMSPE, we will apply the spatial decorrelation transformation to each row (i.e., parameter set) of the grid and track RMSPE (and R$^2$):
+
 ```{r}
-get_spcov_params_list <- function(index, grid, spcov_type) {
-  spcov_vec <- grid[index, ]
-  spcov_params(
-    spcov_type = spcov_type,
-    de = spcov_vec[["de"]],
-    ie = spcov_vec[["ie"]],
-    range = spcov_vec[["range"]]
+y <- moss_test$log_Zn
+n_grid <- NROW(grid)
+grid$rmspe <- rep(0, n_grid)
+grid$cor2 <- rep(0, n_grid)
+for (i in seq(1, n_grid)) {
+  grid_row <- grid[i, ]
+  spcov_params_row <- spcov_params(
+    spcov_type = grid_row[["spcov_type"]],
+    de = grid_row[["de"]],
+    ie = grid_row[["ie"]],
+    range = grid_row[["range"]]
   )
-}
-
-spcov_params_list <- lapply(1:NROW(grid), get_spcov_params_list, grid, spcov_type = "exponential")
-```
-
-```{r}
-get_decorr_rmspe_cor2 <- function(spcov_params, formula, data_train, data_test) {
-  tdata_train <- decorrelate(formula, data_train, spcov_params)
-  rfmod <- ranger(x = tdata_train$tX, y = tdata_train$ty)
-  tdata_test <- decorrelate_newdata(tdata_train, newdata = data_test)
-  rf_tpreds <- predict(rfmod, data = tdata_test$tX_newdata)$predictions
-  sp_decorr_preds <- recorrelate_newdata(rf_tpreds, tdata_test)
-  errors <- data_test$log_Zn - sp_decorr_preds
-  list(rmspe = sqrt(mean(errors^2)), cor2 = cor(data_test$log_Zn, sp_decorr_preds)^2)
+  tmoss_train <- decorrelate_data(form, moss_train, spcov_params_row)
+  rfmod <- ranger(x = tmoss_train$tX, y = tmoss_train$ty)
+  tmoss_test <- decorrelate_newdata(tmoss_train, newdata = moss_test)
+  rf_tpreds <- predict(rfmod, data = tmoss_test$tX_newdata)$predictions
+  sp_decorr_preds <- recorrelate_newdata(rf_tpreds, tmoss_test)
+  errors <- y - sp_decorr_preds
+  grid$rmspe[i] <-  sqrt(mean(errors^2))
+  grid$cor2[i] <- cor(sp_decorr_preds, y)^2
 }
 ```
 
+The RMSPE and $R^2$ values were added to the grid:
 ```{r}
-metrics_list <- lapply(spcov_params_list, get_decorr_rmspe_cor2, form, moss_train, moss_test)
-which_rmspe_min <- which.min(sapply(rmspe_list, function(x) x$rmspe))
-metrics_list[[which_rmspe_min]]
-spcov_params_list[[which_rmspe_min]]
+grid
 ```
 
+The estimated spatial covariance parameters are the ones that minimize the test set RMSPE:
+```{r}
+best_rmspe <- which.min(grid$rmspe)
+best_rmspe_row <- grid[best_rmspe, ]
+best_rmspe_row
+```
 
+We can store these estimated spatial covariance parameters as an `spcov_params()` object to later be used with `decorrelate_data()`, `decorrelate_newdata()`, and `recorrelate_newdata()` to apply the spatial decorrelation transformation:
+```{r}
+spcov_params_use <- spcov_params(
+  spcov_type = best_rmspe_row[["spcov_type"]],
+  de = best_rmspe_row[["de"]], 
+  ie = best_rmspe_row[["ie"]],
+  range = best_rmspe_row[["range"]]
+)
+spcov_params_use
+```
 
+Anisotropy and random effects can also be applied to the grid creation via the `anisotropy` and `random` arguments, whose values can be used later to apply the spatial decorrelation transformation:
+```{r}
+grid <- decorrelate_grid(
+  formula = form,
+  data = moss_train,
+  spcov_type = "exponential",
+  anisotropy = TRUE,
+  random = ~ field_rep
+)
+NROW(grid)
+head(grid, n = 5)
+```
 
+# References {.unnumbered}
+
+<div id="refs"></div>

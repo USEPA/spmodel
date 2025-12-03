@@ -10,8 +10,8 @@
 decorrelate_newdata <- function(object, newdata, local, ...) {
 
 
-  if (!inherits(object, "decorrelate")) {
-    stop("object must have class \"decorrelate\".", call. = FALSE)
+  if (!inherits(object, "decorrelate_data")) {
+    stop("object must have class \"decorrelate_data\".", call. = FALSE)
   }
 
   if (!missing(local)) {

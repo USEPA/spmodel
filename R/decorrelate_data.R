@@ -13,7 +13,7 @@
 #'
 #' @return filler
 #' @export
-decorrelate <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering, local, ...) {
+decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering, local, ...) {
 
   if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
     anisotropy <- TRUE
@@ -164,7 +164,7 @@ decorrelate <- function(formula, data, spcov_params, xcoord, ycoord, randcov_par
     diagtol = data_object$diagtol,
     total_var = total_var
   )
-  new_output <- structure(output, class = "decorrelate")
+  new_output <- structure(output, class = "decorrelate_data")
   new_output
 }
 

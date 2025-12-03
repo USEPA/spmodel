@@ -202,24 +202,22 @@ spcov_params_list <- lapply(1:NROW(grid), get_spcov_params_list, grid, spcov_typ
 ```
 
 ```{r}
-get_decorr_rmspe <- function(spcov_params, formula, data_train, data_test) {
+get_decorr_rmspe_cor2 <- function(spcov_params, formula, data_train, data_test) {
   tdata_train <- decorrelate(formula, data_train, spcov_params)
   rfmod <- ranger(x = tdata_train$tX, y = tdata_train$ty)
   tdata_test <- decorrelate_newdata(tdata_train, newdata = data_test)
   rf_tpreds <- predict(rfmod, data = tdata_test$tX_newdata)$predictions
   sp_decorr_preds <- recorrelate_newdata(rf_tpreds, tdata_test)
   errors <- data_test$log_Zn - sp_decorr_preds
-  sqrt(mean(errors^2))
+  list(rmspe = sqrt(mean(errors^2)), cor2 = cor(data_test$log_Zn, sp_decorr_preds)^2)
 }
 ```
 
 ```{r}
-rmspe_list <- lapply(spcov_params_list, get_decorr_rmspe, form, moss_train, moss_test)
-which_rmspe_min <- which.min(unlist(rmspe_list))
-rmspe_min <- rmspe_list[[which_rmspe_min]]
-rmspe_min
-spcov_params_min <- spcov_params_list[[which_rmspe_min]]
-spcov_params_min
+metrics_list <- lapply(spcov_params_list, get_decorr_rmspe_cor2, form, moss_train, moss_test)
+which_rmspe_min <- which.min(sapply(rmspe_list, function(x) x$rmspe))
+metrics_list[[which_rmspe_min]]
+spcov_params_list[[which_rmspe_min]]
 ```
 
 

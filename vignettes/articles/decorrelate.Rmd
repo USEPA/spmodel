@@ -1,6 +1,6 @@
 ---
 title: "The Spatial Decorrelation Transformation for Machine Learning Models"
-author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
+author: "Michael Dumelle, Matt Heaton, and Ryan A. Hill"
 bibliography: '`r system.file("references.bib", package="spmodel")`'
 output:
   html_document:
@@ -24,9 +24,9 @@ library(ranger)
 
 `spmodel` is a **R** package used to fit, summarize, and
 predict for a variety of spatial statistical models. This vignette
-explores tools for a spatial decorrelation transformation that can be applied as a preprocessing step for machine learning models like random forests. The spatial decorrelation transformation can significantly improve a machine learning model's inferential and predictive capacity [@heaton2024adjusting].
+explores tools for a spatial decorrelation transformation that can be applied as a preprocessing step for machine learning models like random forests. The spatial decorrelation transformation can significantly improve a machine learning model's inferential and predictive capacity by formally incorporating spatial covariance into the model building process [@heaton2024adjusting].
 
-Before proceeding, we load  `spmodel`, `sf`, `ggplot2`, and `ranger` by running
+Before proceeding, we load  `spmodel`, `sf`, `ggplot2`, and `ranger`:
 ```{r, eval = FALSE}
 library(spmodel)
 library(sf)
@@ -36,185 +36,168 @@ library(ranger)
 
 If using `spmodel` in a formal publication or report, please cite it.
 Citing `spmodel` lets us devote more resources to the package in the
-future. We view the `spmodel` citation by running
+future. We view the `spmodel` citation:
 
 ```{r}
 citation(package = "spmodel")
 ```
 
-# The `moss` Data
+# The `lake` Data
 
-In this vignette, we use the point-referenced `moss` data, an `sf` object that contains data on heavy metals in mosses near a mining road in Alaska. We view the first few rows of `moss` by running
+In this vignette, we use the point-referenced `lake` data, an `sf` object that contains data on climate data for lakes in the southwestern United States. We view the first few rows of `lake`:
 ```{r}
-moss
+lake
 ```
-We can learn more about `moss` by running `help("moss", "spmodel")`.
+We can learn more about `lake` by running `help("lake", "spmodel")`.
 
-Our goal is to use a machine learning model (here, a random forest) to study the impact of the explanatory variables (log distance from the mining road and whether the datum is north or south of the mining road) on the response variable (log zinc concentration) while accounting for spatial covariance among nearby observations. Before fitting any models, we will visualize some relationships among these variables. First, we visualize the spatial distribution of log zinc concentration (`log_Zn`) in `moss` by running
-```{r log_zn, fig.cap="Distribution of log zinc concentration in the moss data.", out.width = "65%", fig.align="center"}
-ggplot(moss, aes(color = log_Zn)) +
+Our goal is to use a machine learning model (here, a random forest) to study the impact of the explanatory variable(s) (here, temperature) on the response variable (here, log conductivity) while accounting for spatial covariance among nearby observations. Before fitting any models, we will visualize some relationships among variables. First, we visualize the spatial distribution of log conductivity (`log_cond`) in `lake` by running
+```{r lake, fig.cap="Distribution of log conductivity in the data.", out.width = "65%", fig.align="center"}
+ggplot(lake, aes(color = log_cond)) +
   geom_sf() +
   scale_color_viridis_c() +
   theme_gray(base_size = 14)
 ```
 
-`log_Zn` values are highest near the mining road in the center of the spatial domain. Second, we visualize the relationship between log zinc concentration (`log_Zn`) and both the (logarithm of) distance from the road (`log_dist2road`) and the side of the road (`sideroad`) by running
+`log_cond` values are spatially patterned, whereby groups of high and low values of log conductivity occur together. Second, we visualize the relationship between log conductivity and temperature:
 ```{r}
-ggplot(moss, aes(x = log_dist2road, y = log_Zn, color = sideroad, shape = sideroad)) +
+ggplot(lake, aes(x = temp, y = log_cond)) +
   geom_point() +
   theme_gray(base_size = 14)
 ```
 
-There appears to be a linearly decreasing relationship between the `log_dist2road` and `log_Zn`.
+There appears to be a linearly increasing relationship between log conductivity and temperature. 
 
-Finally, we set a seed so that vignette output can be reproduced locally:
+Ultimately, we will use our machine learning model to predict log conductivity at new lakes in `lake_preds`. We can view the first few rows of `lake_preds`:
+```{r}
+lake_preds
+```
+
+
+Fitting random forest models involves some random components, so we set a reproducible seed so these results can be reproduced locally:
 ```{r}
 set.seed(0)
 ```
 
+## Splitting the Obsered Data Into Training and Test Sets
 
-# Creating Training and Test Data
+Evaluating the effectiveness of a machine learning model is a multi-step process. First, we split the `lake` data into separate training and test sets. The goal is to fit a model to the training set and use it to predict the response variable for each datum in the test set. Because the test set contains the measured value of the response variable, the accuracy of the predictions generated using the test set can be directly evaluated using a metric like root-mean-squared-prediction error or predictive $R^2$ (i.e., the squared correlation between observations and predictions). 
 
-Evaluating the effectiveness of a machine learning model is a multi-step process. First, we split our data up into separate training and test sets. The training data are used to build a model and use it to predict the response variable for each datum in the test data. These predictions are compared to the true, realized value of the response variable using a metric like root-mean-squared-prediction error or predictive R-squared. 
-
-We use a random 75/25 split for our training/test data, meaning that 75% of the observations are randomly assigned to the training data and 25% to the test data:
+We proceed by randomly assigning 75% of the `lake` data to the training set and the remaining 25% to the test set:
 ```{r}
-# number of observations in the moss data
-n <- NROW(moss)
+# number of observations in the lake data
+n <- NROW(lake)
 # creating an index that corresponds with the row position of each datum
 index <- seq(from = 1, to = n)
 # setting the size of the training data
 n_train <- floor(0.75 * n)
-# randomly generating the indices in moss that are assigned to the training data
+# randomly generating the indices in lake that are assigned to the training data
 train_index <- sample(index, size = n_train)
 # creating the training data
-moss_train <- moss[train_index, ]
+lake_train <- lake[train_index, ]
 # creating the test data
-moss_test <- moss[-train_index, ]
+lake_test <- lake[-train_index, ]
+# number of rows in each?
+NROW(lake_train)
+NROW(lake_test)
 ```
 
 # The Spatial Decorrelation Transformation
 
-The spatial decorrelation transformation removes spatial covariance (i.e., correlation) induced by some spatial covariance function. Suppose that we knew the response variable's true spatial covariance was exponential with a spatially dependent variance of 1.2, a range of 50,000 meters, and an independent variance of 0.2. Let's store this as an `spcov_params` object:
+The spatial decorrelation works by first decorrelating the data by removing spatial covariance (i.e., correlation, dependence). These decorrelated data are used to fit a machine learning model and use it to make predictions of new observations. These predictions are then adjusted by recorrelating the data by adding back in the original spatial covariance. This approach is flexible and can accommodate any machine learning model, as the decorrelation and recorrelation steps happen separately from the machine learning modeling. We first explore how the spatial decorrelation transformation works for a fixed set of spatial covariance parameters. We then show how to relax this assumption and actually estimate unknown spatial covariance parameters using a grid search.
+
+## Assuming Parameters are Known
+
+Suppose we had some prior information which led us to assume the response variable's true spatial covariance was an exponential type with a spatially dependent variance of 1.2, a range of 200,000 meters (200km), and an independent variance of 0.2. Let's store this as an `spcov_params` object:
 ```{r}
 val <- spcov_params(
   spcov_type = "exponential",
   de = 1.2,
-  range = 5e4,
+  range = 2e5,
   ie = 0.2
 )
 ```
 
-
-The spatial decorrelation transformation is applied using `decorrelate_data()`, which relies on at least the following three arguments:
+The data are spatially decorrelated using `decorrelate_data()`, which requires the following three arguments:
 
 * `formula`: a formula that describes the relationship between the response variable and the explanatory variables
 * `data`: a `data.frame` or `sf` object that contains the response variable, explanatory variables, and spatial information
 * `spcov_params`: the spatial covariance parameters as an `spcov_params()` object
 
-If `data` is an `sf` [@pebesma2018sf] object, spatial information is stored in the object's geometry. If `data` is a `data.frame`, then the x-coordinates and y-coordinates must be provided via the `xcoord` and `ycoord` arguments.
+If `data` is an `sf` [@pebesma2018sf] object, spatial information is stored in the object's geometry. If `data` is a `data.frame`, then the x-coordinates and y-coordinates must also be provided via the `xcoord` and `ycoord` arguments to `decorrelate_data()`.
 
-We apply the spatial decorrelation transformation to the training data according to `formula` and `spcov_params` by running
+The relationship between log conductivity (the response variable) and temperature (the explanatory variable) is captured using **R**'s formula object passed to `decorrelate_data()`:
 ```{r}
-form <- log_Zn ~ log_dist2road + sideroad
-tmoss_train <- decorrelate_data(
+# create a formula argument
+form <- log_cond ~ temp
+# decorrelate
+tlake_train <- decorrelate_data(
   formula = form,
-  data = moss_train,
+  data = lake_train,
   spcov_params = val
 )
 ```
 
-Now we can fit a machine learning model, here a random forest using the ranger **R** package [@wright2015ranger], to the transformed response variable (`tmoss_train$ty`) using the transformed explanatory variables (stored as a matrix in `tmoss_train$tX`):
+At this stage, we can fit a machine learning model to the decorrelated data. Here, we will fit a random forest using the `ranger` **R** package [@wright2015ranger]. We will pass to `ranger` the decorrelated explanatory variable matrix to the `x` argument and the decorrelated response variable to the `y` argument:
 ```{r}
-rfmod <- ranger(x = tmoss_train$tX, y = tmoss_train$ty)
+rfmod <- ranger(x = tlake_train$tX, y = tlake_train$ty)
 ```
 
-Before using `rfmod` to make predictions for the test data, we must transform the explanatory variables in the test data using `decorrelate_newdata()` so they are on the same scale as the transformed training data:
+We could inspect the random forest using any of the standard functions that interact with `ranger` objects, such as `print()` or variable importance via `importance()`:
 ```{r}
-tmoss_test <- decorrelate_newdata(tmoss_train, newdata = moss_test)
-rf_tpreds <- predict(rfmod, data = tmoss_test$tX_newdata)$predictions
+print(rfmod)
+rfmod_imp <- update(rfmod, importance = "impurity")
+importance(rfmod_imp)
 ```
 
-Then, we can take these test data predictions and recorrelate them with spatial covariance using `recorrelate()`:
+Before using `rfmod` to make predictions for the test data, we must decorrelate the explanatory variable in the test data using `decorrelate_newdata()` so they are on the same scale as the decorrelated training data:
 ```{r}
-sp_decorr_preds <- recorrelate_newdata(rf_tpreds, tmoss_test)
+tlake_test <- decorrelate_newdata(tlake_train, newdata = lake_test)
 ```
 
-Finally, we compute our model evaluation metric, root-mean-squared-prediction error (RMSPE) and predictive R-squared (R$^2$) of the test data observations and corresponding predictions:
+Then, we can use `predict()` to make predictions for the decorrelated test data and recorrelate them using `recorrelate_newdata()`:
+```{r}
+rf_tpreds <- predict(rfmod, data = tlake_test$tX_newdata)$predictions
+sp_decorr_preds <- recorrelate_newdata(rf_tpreds, tlake_test)
+```
+
+We can evaluate the accuracy of our predictions using metrics like root-mean-squared-prediction error (RMSPE) and predictive $R^2$:
 ```{r}
 get_rmspe_cor2 <- function(y, preds) {
   errors <- y - preds
   c("rmspe" = sqrt(mean(errors^2)), "cor2" = cor(y, preds)^2)
 }
-decorr_metrics <- get_rmspe_cor2(moss_test$log_Zn, sp_decorr_preds)
+decorr_metrics <- get_rmspe_cor2(lake_test$log_cond, sp_decorr_preds)
 print(decorr_metrics)
 ```
 
-# Comparing to a Independent (Standard) Random Forest
-
-We can compare the spatial decorrelation transformation to a standard random forest algorithm that assumes independence among observations. First, we must remove the spatial geometry structure from `moss_train` and `moss_test`, as `ranger()` does not accept `sf` objects:
+There is a noticeable positive correlation between the predictions of log conductivity and the observations themselves:
 ```{r}
-moss_train_df <- st_drop_geometry(moss_train)
-moss_test_df <- st_drop_geometry(moss_test)
-```
-
-Then we may fit the model to training data, predict the test data, and compute the same  RMSPE and R$^2$ metrics:
-```{r}
-indrfmod <- ranger(form, data = moss_train_df)
-indrf_preds <- predict(indrfmod, data = moss_test_df)$predictions
-indrf_metrics <- get_rmspe_cor2(moss_test$log_Zn, indrf_preds)
-print(indrf_metrics)
-```
-
-The spatial decorrelation transformation has a lower RMSPE and higher R$^2$ than the independent random forest, suggesting the spatial decorrelation transformation provides a better fit to the data. This can be visualized is the following observed vs predicted plots of the test data, where the spatial decorrelation predictions tend to more closely adhere to the 1-1 line than the independent random forest predictions:
-```{r}
-moss_test1 <- moss_test
-moss_test1$preds <- sp_decorr_preds
-moss_test1$type <- "decorr"
-moss_test2 <- moss_test
-moss_test2$preds <- indrf_preds
-moss_test2$type <- "ind"
-moss_test_wide <- rbind(moss_test1, moss_test2)
-ggplot(moss_test_wide, aes(x = preds, y = log_Zn, color = type, shape = type)) +
-  geom_point() +
+lake_test$decorr_preds <- sp_decorr_preds
+ggplot(lake_test, aes(x = decorr_preds, y = log_cond)) +
   geom_abline(intercept = 0, slope = 1, color = "orange", linewidth = 2) +
+  geom_point(size = 2) +
   theme_gray(base_size = 14)
 ```
 
+## Estimating Parameters Using a Grid Search
 
-# Comparing to a Spatial Residual Random Forest
+In practice, it is rare that the decorrelations parameters are actually known. Hence, we must generally have methods to estimate these parameters. One method for estimating these parameters using a grid search. In a grid search, a test set metric (here, RMSPE) is evaluated using several different parameter combinations. The parameter combination yielding the best test set metric is taken as the estimtaed parameter set. Grid searches can also be used to find initial values in some sort of optimization algorithm.
 
-We can also compare the spatial decorrelation transformation to the spatial residual random forest already available in `spmodel`. The spatial residual random forest fits and independent random forest and the applies a spatial model to the residuals from that independent random forest [@fox2020comparing]. 
-
-```{r}
-splmRFmod <- splmRF(form, data = moss_train, spcov_type = "exponential")
-splmRF_preds <- predict(splmRFmod, newdata = moss_test)
-splmRF_metrics <- get_rmspe_cor2(moss_test$log_Zn, splmRF_preds)
-print(splmRF_metrics)
-```
-
-The spatial decorrelation transformation outperforms the spatial residual random forest, though the spatial residual random forest still notably outperforms the independent random forest.
-
-# A Grid Search to Estimate the Spatial Decorrelation Transformation Covariance Parameters 
-
-In the prior example, we assumed the true spatial covariance parameters were known. This assumption is unsuitable in practice. One way to estimate the spatial covariance parameters is to use a grid search. In a grid search, several different spatial covariance parameter combinations are evaluated using the spatial decorrelation transformation and the parameter set minimizing some metric (here, test data RMSPE) are the final spatial covariance parameter estimates.
-The `decorrelate_grid()` function provides an initial grid of spatial covariance parameters:
-
+Parameter combinations can be created and evaluated using custom code, though the `decorrelate_grid()` function provides a grid which explores differet, plausible parameter combinations:
 ```{r}
 grid <- decorrelate_grid(
   formula = form,
-  data = moss_train,
+  data = lake_train,
   spcov_type = "exponential"
 )
 grid
 ```
 
-The grid values are chosen to explore different, plausible parts of the parameter space. The magnitudes of the `de` and `ie` variance parameters are based on the sample variance from an independent linear model fit using `lm()`, and the magnitude of the `range` parameters are based on whether or not spatial covariance decays to approximately zero in the spatial domain our outside the spatial domain. 
+The magnitudes of the `de` and `ie` variance parameters are based on the sample variance from an independent linear model fit using `lm()`, and the magnitude of the `range` parameters are based on whether or not spatial covariance decays to approximately zero in the spatial domain our outside the spatial domain. 
 
-To estimate which grid values minimize test set RMSPE, we will apply the spatial decorrelation transformation to each row (i.e., parameter set) of the grid and track RMSPE (and R$^2$):
-
+We can then apply the spatial decorrelation transformation to each element of the grid and compute the test set metric, RMSPE. We will simultaneously compute predictive $R^2$:
 ```{r}
-y <- moss_test$log_Zn
+y <- lake_test$log_cond
 n_grid <- NROW(grid)
 grid$rmspe <- rep(0, n_grid)
 grid$cor2 <- rep(0, n_grid)
@@ -226,30 +209,27 @@ for (i in seq(1, n_grid)) {
     ie = grid_row[["ie"]],
     range = grid_row[["range"]]
   )
-  tmoss_train <- decorrelate_data(form, moss_train, spcov_params_row)
-  rfmod <- ranger(x = tmoss_train$tX, y = tmoss_train$ty)
-  tmoss_test <- decorrelate_newdata(tmoss_train, newdata = moss_test)
-  rf_tpreds <- predict(rfmod, data = tmoss_test$tX_newdata)$predictions
-  sp_decorr_preds <- recorrelate_newdata(rf_tpreds, tmoss_test)
+  tlake_train <- decorrelate_data(form, lake_train, spcov_params_row)
+  rfmod <- ranger(x = tlake_train$tX, y = tlake_train$ty)
+  tlake_test <- decorrelate_newdata(tlake_train, newdata = lake_test)
+  rf_tpreds <- predict(rfmod, data = tlake_test$tX_newdata)$predictions
+  sp_decorr_preds <- recorrelate_newdata(rf_tpreds, tlake_test)
   errors <- y - sp_decorr_preds
   grid$rmspe[i] <-  sqrt(mean(errors^2))
   grid$cor2[i] <- cor(sp_decorr_preds, y)^2
 }
-```
-
-The RMSPE and $R^2$ values were added to the grid:
-```{r}
 grid
 ```
 
-The estimated spatial covariance parameters are the ones that minimize the test set RMSPE:
+We estimate the parameters via the combination that yields the smallest RMSPE:
 ```{r}
 best_rmspe <- which.min(grid$rmspe)
+best_rmspe
 best_rmspe_row <- grid[best_rmspe, ]
 best_rmspe_row
 ```
 
-We can store these estimated spatial covariance parameters as an `spcov_params()` object to later be used with `decorrelate_data()`, `decorrelate_newdata()`, and `recorrelate_newdata()` to apply the spatial decorrelation transformation:
+and store these parameters for future use with `decorrelate_data()`, `decorrelate_newdata()`, and `recorrelate_newdata()` to make predictions at the lakes in `lake_preds`:
 ```{r}
 spcov_params_use <- spcov_params(
   spcov_type = best_rmspe_row[["spcov_type"]],
@@ -260,18 +240,89 @@ spcov_params_use <- spcov_params(
 spcov_params_use
 ```
 
-Anisotropy and random effects can also be applied to the grid creation via the `anisotropy` and `random` arguments, whose values can be used later to apply the spatial decorrelation transformation:
+## Additional Grid Search Features
+
+Anisotropy and random effects can also be applied to the grid creation via the `anisotropy` and `random` arguments, whose values can be provided to `decorrelate_data()` using the `spcov_params` and `randcov_params` arguments:
 ```{r}
 grid <- decorrelate_grid(
   formula = form,
-  data = moss_train,
+  data = lake_train,
   spcov_type = "exponential",
   anisotropy = TRUE,
-  random = ~ field_rep
+  random = ~ year
 )
 NROW(grid)
 head(grid, n = 5)
 ```
+
+## Comparing to Other Approaches
+
+We can compare test set RMSPE from the spatial decorrelation transformation to test set RMSPE from other common approaches like an independent (standard) random forest and a spatial residual random forest.
+
+First we fit an independent random forest. We must remove the spatial geometry structure from `lake_train` and `lake_test`, as `ranger()` does not accept `sf` objects:
+```{r}
+lake_train_df <- st_drop_geometry(lake_train)
+lake_test_df <- st_drop_geometry(lake_test)
+```
+
+The we fit a random forest model to the training data, predict log conductivity in the test data, and compute RMSPE and predictive $R^2$:
+```{r}
+indrfmod <- ranger(form, data = lake_train_df)
+indrf_preds <- predict(indrfmod, data = lake_test_df)$predictions
+indrf_metrics <- get_rmspe_cor2(lake_test$log_cond, indrf_preds)
+```
+
+Similarly, we fit a spatial residual model [@fox2020comparing] to the training data, predict log conductivity in the test data, and compute RMSPE and predictive $R^2$:
+```{r}
+splmRFmod <- splmRF(form, data = lake_train, spcov_type = "exponential")
+splmRF_preds <- predict(splmRFmod, newdata = lake_test)
+splmRF_metrics <- get_rmspe_cor2(lake_test$log_cond, splmRF_preds)
+```
+
+Comparing the three approaches reveals that the spatial decorrelation transformation has the lowest (best) RMSPE and highest (best) predictive $R^2$, followed by, unsurprisingly, the spatial residual random forest and finally by the independent (standard) random forest:
+```{r}
+dat <- data.frame(
+  method = c("decorr", "indrf", "splmRF"),
+  rmspe = c(best_rmspe_row[["rmspe"]], indrf_metrics[["rmspe"]], splmRF_metrics[["rmspe"]]),
+  cor2 = c(best_rmspe_row[["cor2"]], indrf_metrics[["cor2"]], splmRF_metrics[["cor2"]])
+)
+dat[order(dat$rmspe), ]
+```
+
+## Predicting at Unobserved Lakes 
+
+A primary goal is to use the best machine learning model to make predictions of log conductivity at the lakes in `lake_preds`. We can visualize the lakes in `lake` alongside those in `lake_preds`:
+```{r}
+ggplot() +
+  geom_sf(data = lake, aes(color = log_cond)) +
+  geom_sf(data = lake_preds, shape = 17, size = 5) +
+  scale_color_viridis_c() +
+  theme_bw(base_size = 14)
+```
+
+Using the estimate decorrleation parameter, we decorrelate the `lake` data (according to `formula`):
+```{r}
+tlake <- decorrelate_data(form, lake, spcov_params = spcov_params_use)
+```
+
+Then, we fit a random forest model to the decorrelated data and make log conductivity predictions (on the decorrelated scale):
+```{r}
+rfmod <- ranger(x = tlake$tX, y = tlake$ty)
+tlake_preds <- decorrelate_newdata(tlake, newdata = lake_preds)
+rf_tpreds <- predict(rfmod, data = tlake_preds$tX_newdata)$predictions
+```
+
+Finally, we recorrelate the log conductivity predictions back to the original scale and visualize them alongside the log conductivity values in `lake`:
+```{r}
+lake_preds$preds <- recorrelate_newdata(rf_tpreds, tlake_preds)
+ggplot() +
+  geom_sf(data = lake, aes(color = log_cond)) +
+  geom_sf(data = lake_preds, aes(color = preds), shape = 17, size = 5) +
+  scale_color_viridis_c() +
+  theme_bw(base_size = 14)
+```
+
+The log conductivity predictions closely resemble patterns from the observed lakes.
 
 # References {.unnumbered}
 

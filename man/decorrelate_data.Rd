@@ -12,7 +12,7 @@ decorrelate_data(
   ycoord,
   randcov_params,
   partition_factor,
-  ordering,
+  ordering = "maxmin",
   local,
   ...
 )

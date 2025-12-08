@@ -146,7 +146,7 @@ We could inspect the random forest using any of the standard functions that inte
 ```{r}
 print(rfmod)
 rfmod_imp <- update(rfmod, importance = "impurity")
-importance(rfmod_imp)
+ranger::importance(rfmod_imp)
 ```
 
 Before using `rfmod` to make predictions for the test data, we must decorrelate the explanatory variable in the test data using `decorrelate_newdata()` so they are on the same scale as the decorrelated training data:

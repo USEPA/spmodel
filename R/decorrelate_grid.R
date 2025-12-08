@@ -13,6 +13,7 @@
 decorrelate_grid <- function(formula, data, spcov_type, xcoord, ycoord, anisotropy = FALSE, random) {
 
 
+
   # find ols sample variance
   lmod <- lm(formula, data)
   s2 <- summary(lmod)$sigma^2
@@ -83,7 +84,7 @@ decorrelate_grid <- function(formula, data, spcov_type, xcoord, ycoord, anisotro
   # take unique rows
   spcov_grid <- unique(spcov_grid)
 
-  if (!missing(random)) {
+  if (!missing(random) && !is.null(random)) {
     randcov_names <- get_randcov_names(random)
     # find number of random effects
     nvar_randcov <- length(randcov_names)

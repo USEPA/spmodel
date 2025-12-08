@@ -13,7 +13,7 @@
 #'
 #' @return filler
 #' @export
-decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering, local, ...) {
+decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
 
   if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
     anisotropy <- TRUE
@@ -22,7 +22,7 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
   }
 
   # set randcov_initial NULL if necessary
-  if (missing(randcov_params)) {
+  if (missing(randcov_params) || is.null(randcov_params)) {
     random <- NULL
     randcov_params <- NULL
   } else {
@@ -30,7 +30,7 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
   }
 
   # set partition factor if necessary
-  if (missing(partition_factor)) {
+  if (missing(partition_factor) || is.null(partition_factor)) {
     partition_factor <- NULL
   }
 
@@ -102,9 +102,9 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
   total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
 
   # do vecchia ordering here
-  if (missing(ordering)) {
-    ordering <- "none"
-  }
+  # if (missing(ordering)) {
+  #   ordering <- "none"
+  # }
   if (!ordering %in% c("none", "maxmin", "random")) {
     stop("Invalid ordering argument. Argument must be \"none\", \"maxmin\", or \"random\".", call. = FALSE)
   }

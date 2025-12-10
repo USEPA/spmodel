@@ -23,6 +23,9 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     data_sf <- suppressWarnings(sf::st_centroid(data))
     # store as data frame
     data <- sf_to_df(data_sf)
+    if (!missing(xcoord) || !missing(ycoord)) {
+      warning("data is an sf object. Ignoring xcoord and ycoord arguments.", call. = FALSE)
+    }
     ## name xcoord ".xcoord" to be used later
     xcoord <- ".xcoord"
     ## name ycoord ".ycoord" to be used later

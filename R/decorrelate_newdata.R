@@ -130,6 +130,8 @@ decorrelate_newdata <- function(object, newdata, local, ...) {
   # partition_index_obdata <- extra_partition_list$partition_index_obdata
 
   if (object$local$method == "all") {
+    if (object$anisotropy) object$anisotropy <- FALSE # reset anisotropy to
+    # FALSE because coordinates already transformed and covmatrix() will rotate/scale them again unnecessarily
     cov_mat <- covmatrix.splm(object)
     cor_mat <- cov_mat / object$total_var
     cor_lowchol <- t(chol(cor_mat))
@@ -256,6 +258,7 @@ get_decorrelate_newdata <- function(newdata_list, object, cor_lowchol_list, extr
     rSqrtSigInv_X <- cor_lowchol_list$rSqrtSigInv_X
     rSqrtSigInv_y <- cor_lowchol_list$rSqrtSigInv_y
   }
+
 
   sqrt_w <- sqrt(w)
   tX_newdata <- (newdata_list$x0 - crossprod(rSqrtSigInv_r0, rSqrtSigInv_X)) / sqrt_w

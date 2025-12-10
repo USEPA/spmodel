@@ -1,15 +1,16 @@
-decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", train, anisotropy = FALSE, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
+decorrelate <- function(formula, data, spcov_type = "exponential", spcov_params, xcoord, ycoord, algorithm = "ranger", training, anisotropy = FALSE, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
 
   xcoord <- substitute(xcoord)
   ycoord <- substitute(ycoord)
   if (missing(randcov_params)) randcov_params <- NULL
   if (missing(partition_factor)) partition_factor <- NULL
   if (missing(local)) local <- NULL
-  if (missing(train)) train <- NULL
+  if (missing(training)) training <- NULL
 
   if (missing(spcov_params)) {
 
-    if (missing(spcov_type)) spcov_type <- "exponential"
+    # if (missing(spcov_type)) spcov_type <- "exponential"
+
     init <- decorrelate_initial_search(
       formula = formula,
       data = data,
@@ -17,7 +18,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
       xcoord = xcoord,
       ycoord = ycoord,
       algorithm = algorithm,
-      train = train,
+      training = training,
       anisotropy = anisotropy,
       randcov_params = randcov_params,
       partition_factor = partition_factor,
@@ -27,6 +28,13 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
     )
     spcov_params <- init$spcov_params
     randcov_params <- init$randcov_params
+    grid <- init$grid
+    training_index <- init$training$training_index
+    test_index <- init$training$test_index
+  } else {
+    grid <- NULL
+    training_index <- NULL
+    test_index <- NULL
   }
 
   decorr <- decorrelate_data(
@@ -43,21 +51,25 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
   )
 
   fit <- fit_decorrelate_algorithm(decorr, algorithm, ...)
-  obj <- list(decorrelate_data = decorr, fit = fit, algorithm = algorithm, test_rmspe = init$min_rmspe)
+  obj <- list(
+    algorithm = algorithm,
+    decorrelate_data = decorr,
+    fit = fit,
+    grid = grid,
+    test_index = test_index,
+    training_index = training_index
+  )
   new_obj <- structure(obj, class = "decorrelate")
   new_obj
 }
 
-fit_decorrelate_algorithm <- function(object, algorithm, ...){
+fit_decorrelate_algorithm <- function(decorrelate_data, algorithm, ...){
 
   if (algorithm == "ranger") {
-
     if (!requireNamespace("ranger", quietly = TRUE)) {
       stop("Install the ranger package before using decorrelate() with algorithm \"ranger\".", call. = FALSE)
     }
-
-    fit <- ranger::ranger(x = object$tX, y = object$ty, ...)
-
+    fit <- ranger::ranger(x = decorrelate_data$tX, y = decorrelate_data$ty, ...)
   }
 
   # xgboost, nnet, randomForest
@@ -66,7 +78,7 @@ fit_decorrelate_algorithm <- function(object, algorithm, ...){
 
 }
 
-predict_decorrelate_algorithm <- function(object, tdata_test, algorithm, ...) {
+predict_decorrelate_algorithm <- function(decorrelate_data, tdata_test, algorithm, ...) {
 
   if (algorithm == "ranger") {
 
@@ -74,7 +86,7 @@ predict_decorrelate_algorithm <- function(object, tdata_test, algorithm, ...) {
       stop("Install the ranger package before using decorrelate() with algorithm \"ranger\".", call. = FALSE)
     }
 
-    preds <- predict(object, data = tdata_test$tX_newdata, ...)$predictions
+    preds <- predict(decorrelate_data, data = tdata_test$tX_newdata, ...)$predictions
 
   }
 
@@ -83,45 +95,53 @@ predict_decorrelate_algorithm <- function(object, tdata_test, algorithm, ...) {
   preds
 }
 
-get_train_list <- function(train, data) {
+get_training_list <- function(training, data) {
 
-  if (is.null(train)) {
-    train <- list(method = "split", prop = 0.75)
+  if (is.null(training)) {
+    training <- list(method = "split", prop = 0.75)
   }
 
-  if (!is.list(train)) {
-    stop("train must be a list")
+  if (!is.list(training)) {
+    stop("training must be a list")
   }
 
-  names_train <- names(train)
+  names_training <- names(training)
 
-  if (!"method" %in% names_train) {
-    train$method <- "split"
+  if (!"method" %in% names_training) {
+    training$method <- "split"
   }
 
-  if (!"prop" %in% names_train) {
-    train$prop <- 0.75
+  if (!"prop" %in% names_training) {
+    training$prop <- 0.75
   }
 
-  if (!"train_index" %in% names_train) {
+  if (!"training_index" %in% names_training && !"test_index" %in% names_training) {
     n <- NROW(data)
-    n_train <- floor(n * train$prop)
-    n_test <- n - n_train
-    index <- sample(seq(1, n))
-    train$train_index <- sort(index[seq(1, n_train)])
-    train$test_index <- sort(index[seq(n_train + 1, n)])
-  }
-
-  if (!"test_index" %in% names_train) {
-    n <- NROW(data)
-    n_train <- floor(n * train$prop)
-    n_test <- n - n_train
     index <- seq(1, n)
-    train$train_index <- sort(train$train_index)
-    train$test_index <- sort(index[-train$train_index])
+    index <- sample(index)
+    n_training <- floor(n * training$prop)
+    n_test <- n - n_training
+    training$training_index <- index[seq(1, n_training)]
+    training$test_index <- index[seq(n_training + 1, n)]
+  } else if ("training_index" %in% names_training && !"test_index" %in% names_training) {
+    n <- NROW(data)
+    index <- seq(1, n)
+    training$test_index <- index[-training$training_index]
+  } else if (!"training_index" %in% names_training && "test_index" %in% names_training) {
+    n <- NROW(data)
+    index <- seq(1, n)
+    training$training_index <- index[-training$test_index]
   }
 
+  training$training_index <- sort(training$training_index)
+  training$test_index <- sort(training$test_index)
 
-  train
+  if (length(training$training_index) == 0) stop("No observations detected in training data.", call. = FALSE)
+  if (length(training$test_index) == 0) stop("No observations detected in test data.", call. = FALSE)
+  if (any(duplicated(training$training_index))) stop("Cannot have duplicated rows in training_index.", call. = FALSE)
+  if (any(duplicated(training$test_index))) stop("Cannot have duplicated rows in test_index.", call. = FALSE)
+
+
+  training
 
 }

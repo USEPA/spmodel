@@ -1,4 +1,9 @@
-decorrelate_initial_search <- function(formula, data, spcov_type, xcoord, ycoord, algorithm, train, anisotropy, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
+decorrelate_initial_search <- function(formula, data, spcov_type, xcoord, ycoord, algorithm, training, anisotropy, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
+
+  training_list <- get_training_list(training, data)
+  data_training <- data[training_list$training_index, , drop = FALSE]
+  data_test <- data[training_list$test_index, , drop = FALSE]
+  yname <- as.character(attributes(terms(formula))$variables[[2]])
 
   if (!is.null(randcov_params)) {
     random <- reformulate(names(randcov_params))
@@ -9,7 +14,7 @@ decorrelate_initial_search <- function(formula, data, spcov_type, xcoord, ycoord
 
   grid <- decorrelate_grid(
     formula = formula,
-    data = data,
+    data = data_training,
     spcov_type = spcov_type,
     xcoord = xcoord,
     ycoord = ycoord,
@@ -21,6 +26,7 @@ decorrelate_initial_search <- function(formula, data, spcov_type, xcoord, ycoord
     grid$rotate <- 0
     grid$scale <- 1
   }
+
 
   params_list <- lapply(seq(1, NROW(grid)), function(x) {
     x <- grid[x, ]
@@ -42,31 +48,34 @@ decorrelate_initial_search <- function(formula, data, spcov_type, xcoord, ycoord
     list(spcov_params = spcov_params_val, randcov_params = randcov_params_val)
   })
 
-  train_list <- get_train_list(train, data)
-  data_train <- data[train_list$train_index, , drop = FALSE]
-  data_test <- data[train_list$test_index, , drop = FALSE]
-  yname <- as.character(attributes(terms(formula))$variables[[2]])
-  # need to come back and specify x levels in the training data here
 
   out <- lapply(params_list, function(x) {
-    tdata_train <- decorrelate_data(
+    tdata_training <- decorrelate_data(
       formula = formula,
-      data = data_train,
+      data = data_training,
       spcov_params = x$spcov_params,
+      xcoord = xcoord,
+      ycoord = ycoord,
       randcov_params = x$randcov_params,
       partition_factor = partition_factor,
       ordering = ordering,
       local = local,
       ...
     )
-    fit <- fit_decorrelate_algorithm(tdata_train, algorithm, ...)
-    tdata_test <- decorrelate_newdata(tdata_train, newdata = data_test)
+    # anisotropy is not getting accounted for somewhere here
+    fit <- fit_decorrelate_algorithm(tdata_training, algorithm, ...)
+    tdata_test <- decorrelate_newdata(tdata_training, newdata = data_test)
     preds <- predict_decorrelate_algorithm(fit, tdata_test, algorithm, ...)
     sp_decorr_preds <- recorrelate_newdata(preds, tdata_test)
     errors <- data_test[[yname]] - sp_decorr_preds
     rmspe <- sqrt(mean(errors^2))
     rmspe
   })
-  min_rmspe <- which.min(unlist(out))
-  list(spcov_params = params_list[[min_rmspe]]$spcov_params, randcov_params = params_list[[min_rmspe]]$randcov_params, min_rmspe = out[[min_rmspe]])
+  grid$rmspe <- unlist(out)
+  min_rmspe <- which.min(grid$rmspe)
+  spcov_params_val <- params_list[[min_rmspe]]$spcov_params
+  randcov_params_val <- params_list[[min_rmspe]]$randcov_params
+  grid <- grid[order(grid$rmspe), , drop = FALSE]
+  row.names(grid) <- NULL
+  list(spcov_params = spcov_params_val, randcov_params = randcov_params_val, grid = grid, training = training_list)
 }

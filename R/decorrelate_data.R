@@ -13,6 +13,10 @@
 #'
 #' @return filler
 #' @export
+#'
+#' @references Matthew J. Heaton, Andrew Millane, and Jake S. Rhodes. 2025. A Scalable
+#'   Spatial Decorrelation Preprocessing Approach for Machine and Deep Learning.
+#'   \emph{Journal of Data Science}. 1-15, DOI 10.6339/25-JDS1210
 decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
 
   if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {

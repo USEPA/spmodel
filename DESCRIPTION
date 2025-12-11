@@ -55,7 +55,10 @@ Suggests:
     pROC,
     emmeans (>= 1.4),
     estimability,
-    GPvecchia
+    GPvecchia,
+    randomForest,
+    xgboost,
+    spsurvey
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 URL: https://usepa.github.io/spmodel/

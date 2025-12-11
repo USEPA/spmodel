@@ -3,16 +3,27 @@
 #' @param formula filler
 #' @param data filler
 #' @param spcov_type filler
+#' @param spcov_params filler
 #' @param xcoord filler
 #' @param ycoord filler
 #' @param anisotropy filler
 #' @param random filler
+#' @param randcov_params filler
 #'
 #' @return filler
 #' @export
-decorrelate_grid <- function(formula, data, spcov_type, xcoord, ycoord, anisotropy = FALSE, random) {
+decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, anisotropy = FALSE, random, randcov_params) {
 
 
+
+  if (missing(spcov_params)) spcov_params <- NULL
+  if (!is.null(spcov_params)) spcov_type <- class(spcov_params)
+  if (missing(random)) random <- NULL
+  if (missing(randcov_params)) randcov_params <- NULL
+  if (!is.null(randcov_params)) {
+    # overwrite random if randcov_params provided
+    random <- reformulate(names(randcov_params))
+  }
 
   # find ols sample variance
   lmod <- lm(formula, data)
@@ -29,7 +40,7 @@ decorrelate_grid <- function(formula, data, spcov_type, xcoord, ycoord, anisotro
   xcoord <- substitute(xcoord)
   ycoord <- substitute(ycoord)
   if (inherits(data, "sf")) {
-    if (!inherits(spcov_initial, c("none", "ie")) && any(sf::st_geometry_type(data) != "POINT")) {
+    if (!spcov_type %in% c("none", "ie") && any(sf::st_geometry_type(data) != "POINT")) {
       warning("At least one geometry type in data is not equal to \"POINT\". Attempting to coerce all non-\"POINT\" geometries to \"POINT\" geometries via their centroids using sf::st_centroid().", call. = FALSE)
     }
     data_sf <- suppressWarnings(sf::st_centroid(data))
@@ -60,7 +71,6 @@ decorrelate_grid <- function(formula, data, spcov_type, xcoord, ycoord, anisotro
     ## scale
     scale <- 1
   }
-
 
   # find starting spatial grid
   spcov_grid <- expand.grid(de = de, ie = ie, range = range, rotate = rotate, scale = scale)
@@ -152,16 +162,35 @@ decorrelate_grid <- function(formula, data, spcov_type, xcoord, ycoord, anisotro
   cov_grid <- cov_grid[, c(ncols, seq(1, ncols - 1))]
   if (spcov_type %in% c("none", "ie")) {
     cov_grid$de <- 0
-    cov_grid$ie <- ns2
+    if (spcov_type == "none") {
+      cov_grid$ie <- 1
+    } else if (spcov_type == "ie") {
+      cov_grid$ie <- ns2
+    }
     cov_grid$range <- Inf
     cov_grid$rotate <- 0
     cov_grid$scale <- 1
     anisotropy <- FALSE
   }
-  if (!anisotropy) {
-    remove_cols <- which(names(cov_grid) %in% c("rotate", "scale"))
-    cov_grid <- cov_grid[, -remove_cols, drop = FALSE]
+  # if (!anisotropy) {
+  #   remove_cols <- which(names(cov_grid) %in% c("rotate", "scale"))
+  #   cov_grid <- cov_grid[, -remove_cols, drop = FALSE]
+  # }
+
+
+  if (!is.null(spcov_params)) {
+    for (x in names(spcov_params)) {
+      cov_grid[, x] <- spcov_params[[x]]
+    }
   }
+  if (!is.null(randcov_params)) {
+    randcov_names <- get_randcov_names(random)
+    names(randcov_params) <- randcov_names
+    for (x in randcov_names) {
+      cov_grid[, x] <- randcov_params[[x]]
+    }
+  }
+
   cov_grid <- unique(cov_grid)
   row.names(cov_grid) <- as.character(seq(1, NROW(cov_grid)))
   cov_grid

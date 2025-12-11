@@ -8,10 +8,12 @@ decorrelate_grid(
   formula,
   data,
   spcov_type,
+  spcov_params,
   xcoord,
   ycoord,
   anisotropy = FALSE,
-  random
+  random,
+  randcov_params
 )
 }
 \arguments{
@@ -21,6 +23,8 @@ decorrelate_grid(
 
 \item{spcov_type}{filler}
 
+\item{spcov_params}{filler}
+
 \item{xcoord}{filler}
 
 \item{ycoord}{filler}
@@ -28,6 +32,8 @@ decorrelate_grid(
 \item{anisotropy}{filler}
 
 \item{random}{filler}
+
+\item{randcov_params}{filler}
 }
 \value{
 filler

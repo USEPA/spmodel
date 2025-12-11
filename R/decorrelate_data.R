@@ -105,12 +105,9 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
   index <- seq(1, data_object$n)
   total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
 
-  # do vecchia ordering here
-  # if (missing(ordering)) {
-  #   ordering <- "none"
-  # }
-  if (!ordering %in% c("none", "maxmin", "random")) {
-    stop("Invalid ordering argument. Argument must be \"none\", \"maxmin\", or \"random\".", call. = FALSE)
+  # do ordering here
+  if (!ordering %in% c("maxmin", "grts", "random", "none")) {
+    stop("Invalid ordering argument. Argument must be \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
   }
 
   ord <- get_decorrelate_order(ordering, xcoord_val, ycoord_val)
@@ -347,6 +344,17 @@ get_decorrelate_order <- function(ordering, xcoord_val, ycoord_val) {
       stop("Install the GPvecchia package before using \"maxmin\" ordering", call. = FALSE)
     } else {
       ord <- GPvecchia::order_maxmin_exact(cbind(xcoord_val, ycoord_val))
+    }
+  }
+
+  if (ordering == "grts") {
+    if (!requireNamespace("spsurvey", quietly = TRUE)) {
+      stop("Install the spsurvey package before using \"grts\" ordering", call. = FALSE)
+    } else {
+      dat <- data.frame(xcoord_val = xcoord_val, ycoord_val = ycoord_val, ord = seq(1, n))
+      sframe <- st_as_sf(dat, coords = c("xcoord_val", "ycoord_val"), crs = NA)
+      samp <- spsurvey::grts(sframe, n_base = n, projcrs_check = FALSE)
+      ord <- samp$sites_base$ord
     }
   }
 

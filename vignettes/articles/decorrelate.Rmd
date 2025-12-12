@@ -157,7 +157,7 @@ tlake_test <- decorrelate_newdata(tlake_train, newdata = lake_test)
 Then, we can use `predict()` to make predictions for the decorrelated test data and recorrelate them using `recorrelate_newdata()`:
 ```{r}
 rf_tpreds <- predict(rfmod, data = tlake_test$tX_newdata)$predictions
-sp_decorr_preds <- recorrelate_newdata(rf_tpreds, tlake_test)
+sp_decorr_preds <- recorrelate_newdata(tlake_test, rf_tpreds)
 ```
 
 We can evaluate the accuracy of our predictions using metrics like root-mean-squared-prediction error (RMSPE) and predictive $R^2$:
@@ -213,7 +213,7 @@ for (i in seq(1, n_grid)) {
   rfmod <- ranger(x = tlake_train$tX, y = tlake_train$ty)
   tlake_test <- decorrelate_newdata(tlake_train, newdata = lake_test)
   rf_tpreds <- predict(rfmod, data = tlake_test$tX_newdata)$predictions
-  sp_decorr_preds <- recorrelate_newdata(rf_tpreds, tlake_test)
+  sp_decorr_preds <- recorrelate_newdata(tlake_test, rf_tpreds)
   errors <- y - sp_decorr_preds
   grid$rmspe[i] <-  sqrt(mean(errors^2))
   grid$cor2[i] <- cor(sp_decorr_preds, y)^2
@@ -314,7 +314,7 @@ rf_tpreds <- predict(rfmod, data = tlake_preds$tX_newdata)$predictions
 
 Finally, we recorrelate the log conductivity predictions back to the original scale and visualize them alongside the log conductivity values in `lake`:
 ```{r}
-lake_preds$preds <- recorrelate_newdata(rf_tpreds, tlake_preds)
+lake_preds$preds <- recorrelate_newdata(tlake_preds, rf_tpreds)
 ggplot() +
   geom_sf(data = lake, aes(color = log_cond)) +
   geom_sf(data = lake_preds, aes(color = preds), shape = 17, size = 5) +

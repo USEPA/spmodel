@@ -78,7 +78,7 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
     fit <- fit_decorrelate_algorithm(tdata_training, algorithm, ...)
     tdata_test <- decorrelate_newdata(tdata_training, newdata = data_test)
     preds <- predict_decorrelate_algorithm(fit, tdata_test, algorithm, ...)
-    sp_decorr_preds <- recorrelate_newdata(preds, tdata_test)
+    sp_decorr_preds <- recorrelate_newdata(tdata_test, preds)
     errors <- data_test[[yname]] - sp_decorr_preds
     rmspe <- sqrt(mean(errors^2))
     rmspe

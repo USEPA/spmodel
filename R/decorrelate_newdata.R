@@ -1,12 +1,67 @@
-#' Title
+#' Apply the Spatial Decorrelation Transformation to a Newdata Object for Prediction
 #'
-#' @param object filler
-#' @param newdata filler
-#' @param local filler
-#' @param ... filler
+#' @description Apply the spatial decorrelation transformation to a newdata object.
+#'   This object contains explanatory variables that are transformed for prediction
+#'   accoring to some spatial decorrelation transformation.
 #'
-#' @return filler
+#' @param object A [decorrelate_data()] object.
+#' @param newdata A data frame or \code{sf} object in which to
+#'   look for variables with which to predict. If a data frame, \code{newdata}
+#'   must contain all variables used by \code{formula(object)} and all variables
+#'   representing coordinates. If an \code{sf} object, \code{newdata} must contain
+#'   all variables used by \code{formula(object)} and coordinates are obtained
+#'   from the geometry of \code{newdata}. If omitted, missing data from the
+#'   fitted model object are used.
+#' @param local A optional logical or list controlling the big data approximation.
+#'   If omitted, \code{local} is set
+#'   to \code{TRUE} or \code{FALSE} based on the sample size (the number of
+#'   non-missing observations in \code{data}) -- if the sample size exceeds 5,000,
+#'   \code{local} is set to \code{TRUE}. Otherwise it is set to \code{FALSE}.
+#'   If \code{local} is \code{FALSE}, no big data approximation
+#'   is implemented. If a list is provided, the following arguments detail the big
+#'   data approximation:
+#'   \itemize{
+#'     \item \code{method}: The big data approximation method. If \code{method = "all"},
+#'       all observations are used and \code{size} is ignored. If \code{method = "distance"},
+#'       the \code{size} data observations closest (in terms of Euclidean distance)
+#'       to the observation requiring prediction are used.
+#'       If \code{method = "covariance"}, the \code{size} data observations
+#'       with the highest covariance with the observation requiring prediction are used.
+#'       If random effects and partition factors are not used in estimation and
+#'       the spatial covariance function is monotone decreasing,
+#'       \code{"distance"} and \code{"covariance"} are equivalent. The default
+#'       is \code{"covariance"}.
+#'     \item \code{size}: The number of data observations to use when \code{method}
+#'       is \code{"distance"} or \code{"covariance"}. The default is 30.
+#'     \item \code{parallel}: If \code{TRUE}, parallel processing via the
+#'       parallel package is automatically used. This can significantly speed
+#'       up computations even when \code{method = "all"} (i.e., no big data
+#'       approximation is used), as predictions
+#'       are spread out over multiple cores. The default is \code{FALSE}.
+#'     \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
+#'       parallelize over. The default is the number of available cores on your machine.
+#'   }
+#'   When \code{local} is a list, at least one list element must be provided to
+#'   initialize default arguments for the other list elements.
+#'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
+#'   that \code{local} is transformed into
+#'   \code{list(size = 30, method = "covariance", parallel = FALSE)}.
+#' @param ... Other arguments.
+#'
+#' @return A list with many elements that store information about
+#'   the fitted model object. Importantly, the list contains the following element:
+#'   \itemize{
+#'     \item \code{X_newdata}: The original fixed effects design matrix (of explanatory variables) for the prediction data.
+#'     \item \code{tX_newdata}: The spatially decorrelated fixed effects design matrix for the prediction data.
+#'   }
+#'
 #' @export
+#'
+#' @examples
+#' params <- spcov_params("exponential", de = 1, ie = 0.2, range = 1e5)
+#' decorr <- decorrelate_data(log_cond ~ temp, data = lake, spcov_params = params)
+#' decorr_newdata <- decorrelate_newdata(decorr, newdata = lake_preds)
+#' head(decorr_newdata$tX_newdata)
 decorrelate_newdata <- function(object, newdata, local, ...) {
 
 
@@ -163,7 +218,13 @@ decorrelate_newdata <- function(object, newdata, local, ...) {
   names(yscale) <- rownames(newdata)
   yoffset <- do.call("c", lapply(output, function(x) x$yoffset))
   names(yoffset) <- rownames(newdata)
+  # remove model matrix structure
+  X_newdata <- rbind(newdata_model)
+  rownames(X_newdata) <- rownames(newdata)
+  colnames(X_newdata) <- colnames(object$X)
+
   output <- list(
+    X_newdata = X_newdata,
     tX_newdata = tX_newdata,
     yscale = yscale,
     yoffset = yoffset

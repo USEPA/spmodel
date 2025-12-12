@@ -1,17 +1,17 @@
-#' Title
+#' Create a Spatial Decorrelation Transformation Grid
 #'
-#' @param formula filler
-#' @param data filler
-#' @param spcov_type filler
-#' @param spcov_params filler
-#' @param xcoord filler
-#' @param ycoord filler
-#' @param anisotropy filler
-#' @param random filler
-#' @param randcov_params filler
+#' @description
+#'  Create a spatial decorrelation transformation grid of initial parameters to be
+#'   evaluated via a grid search.
 #'
-#' @return filler
+#' @inheritParams decorrelate
+#'
+#' @return A grid of spatial decorrelation parameters stored as a \code{data.frame}.
+#'
 #' @export
+#'
+#' @examples
+#' decorrelate_grid(log_cond ~ temp, data = lake, spcov_type = "exponential")
 decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, anisotropy = FALSE, random, randcov_params) {
 
 

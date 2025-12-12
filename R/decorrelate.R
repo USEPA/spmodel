@@ -42,19 +42,19 @@
 #'   when evaluating test data performance.
 #'   The following arguments detail this process:
 #'   \itemize{
-#'    \item \code{method: }{The method used to evaluate test data performance.
+#'    \item \code{method}: The method used to evaluate test data performance.
 #'      Currently, the only option is \code{"split"}, which splits \code{data} up
-#'      into distinct training and test sets.}
-#'    \item \code{prop: }{The proportion (a numeric vector between zero and one) of observations in \code{data} that should
+#'      into distinct training and test sets.
+#'    \item \code{prop}: The proportion (a numeric vector between zero and one) of observations in \code{data} that should
 #'      be assigned to the training data. The default is 0.75, which means that
 #'      75\% of the observations are assigned to the training data and 25% to the
-#'      test data. Ignored if \code{training_index} or \code{test_index} are provided.}
-#'    \item \code{training_index: }{A numeric vector that specifies which rows (i.e., indices)
+#'      test data. Ignored if \code{training_index} or \code{test_index} are provided.
+#'    \item \code{training_index}: A numeric vector that specifies which rows (i.e., indices)
 #'      of \code{data} should be assigned to the training data. If omitted, defaults
-#'      to the rows which are not already included in \code{test_index}.}
-#'    \item \code{test_index: }{A numeric vector that specifies which rows (i.e., indices)
+#'      to the rows which are not already included in \code{test_index}.
+#'    \item \code{test_index}: A numeric vector that specifies which rows (i.e., indices)
 #'      of \code{data} should be assigned to the test data. If omitted, defaults
-#'      to the rows which are not already included in \code{training_index}.}
+#'      to the rows which are not already included in \code{training_index}.
 #'   }
 #'   If omitted, \code{training} is transformed into
 #'   \code{list(method = "split", prop = 0.75)}.
@@ -199,13 +199,15 @@
 #'
 #' @return A list with many elements that store information about the fitted model object:
 #'   \itemize{
-#'     \item{algorithm: }{The machine learning algorithm used.}
-#'     \item{decorrelate_data: }{The output of [decorrelate_data()] applied to \code{data}.}
-#'     \item{fit: }{The fitted machine learning model object applied to the decorrelated data.}
-#'     \item{grid: }{If used, the grid of spatial decorrelation parameters evaluated and their corresponding
-#'       root-mean-squared-prediction error (rmspe) when applied to the test data.}
-#'     \item{training_index: }{If used, the rows (i.e., indices) in \code{data} that were assigned to the training data.}
-#'     \item{test_index: }{If used, the rows (i.e., indices) in \code{data} that were assigned to the test data.}
+#'     \item \code{algorithm}: The machine learning algorithm used.
+#'     \item \code{decorrelate_data}: The output of [decorrelate_data()] applied to \code{data}.
+#'     \item \code{fit}: The fitted machine learning model object applied to the decorrelated data.
+#'     \item \code{grid}: If used, the grid of spatial decorrelation parameters evaluated and their corresponding
+#'       root-mean-squared-prediction error (rmspe) when applied to the test data.
+#'     \item \code{newdata}: The rows of \code{data} that have \code{NA} response values and are stored as prediction data.
+#'     \item \code{training_index}: If used, the observed rows (i.e., indices) in \code{data} that were assigned to the training data.
+#'     \item \code{test_index}: If used, the observed rows (i.e., indices) in \code{data} that were assigned to the test data.
+#'     \item \code{test_rmspe}: If used, the lowest test data root-mean-squared-prediction error.
 #'   }
 #'
 #' @export
@@ -215,8 +217,8 @@
 #'   \emph{Journal of Data Science}. 1-15, DOI 10.6339/25-JDS1210
 #'
 #' @examples
-#' out <- decorrelate(log_cond ~ temp, data = lake, spcov_type = "exponential")
-#' out$grid
+#' decorr <- decorrelate(log_cond ~ temp, data = lake, spcov_type = "exponential")
+#' decorr$grid
 decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
 
   # set exponential as default if nothing specified

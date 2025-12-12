@@ -1,22 +1,40 @@
-#' Title
+#' Apply the Spatial Decorrelation Transformation to a Data Object
 #'
-#' @param formula filler
-#' @param data filler
-#' @param spcov_params filler
-#' @param xcoord filler
-#' @param ycoord filler
-#' @param randcov_params filler
-#' @param partition_factor filler
-#' @param ordering filler
-#' @param local filler
-#' @param ... filler
+#' @description Apply the spatial decorrelation transformation to a data object.
+#'   This object contains the transformed explanatory and response variables
+#'   which can be used to fit a machine learning model. This object also contains
+#'   information needed to decorrelate prediction data.
 #'
-#' @return filler
+#' @inheritParams decorrelate
+#'
+#' @details The spatial decorrelation transformation is a preprocessing transformation
+#'   that reduces the impacts of spatial dependence (i.e., covariance, correlation)
+#'   on machine learning models. See [decorrelate()] and Heaton et al., 2025 for more details.
+#'
+#'
+#' @return A list with many elements that store information about
+#'   the fitted model object. Importantly, the list contains the following elements:
+#'   \itemize{
+#'     \item \code{X}: The original fixed effects design matrix (of explanatory variables)
+#'     \item \code{y}: The original response variable
+#'     \item \code{tX}: The spatially decorrelated transformed fixed effects design matrix
+#'     \item \code{ty}: The spatially decorrelated transformed response variable
+#'   }
+#'
 #' @export
+#'
+#' @seealso [decorrelate()] [spcov_params()] [randcov_params()]
+#'
 #'
 #' @references Matthew J. Heaton, Andrew Millane, and Jake S. Rhodes. 2025. A Scalable
 #'   Spatial Decorrelation Preprocessing Approach for Machine and Deep Learning.
 #'   \emph{Journal of Data Science}. 1-15, DOI 10.6339/25-JDS1210
+#'
+#' @examples
+#' params <- spcov_params("exponential", de = 1, ie = 0.2, range = 1e5)
+#' decorr <- decorrelate_data(log_cond ~ temp, data = lake, spcov_params = params)
+#' head(cbind(decorr$X, decorr$tX))
+#' head(cbind(decorr$y, decorr$ty))
 decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
 
   if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {

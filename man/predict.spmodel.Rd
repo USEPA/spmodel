@@ -16,6 +16,7 @@
 \alias{predict.spglm_list}
 \alias{predict.spgautor_list}
 \alias{predict.decorrelate}
+\alias{predict.decorrelate_list}
 \title{Model predictions (Kriging)}
 \usage{
 \method{predict}{splm}(
@@ -152,11 +153,19 @@
 )
 
 \method{predict}{decorrelate}(object, newdata, local, ...)
+
+\method{predict}{decorrelate_list}(object, newdata, local, ...)
 }
 \arguments{
-\item{object}{filler}
+\item{object}{A fitted model object.}
 
-\item{newdata}{filler}
+\item{newdata}{A data frame or \code{sf} object in which to
+look for variables with which to predict. If a data frame, \code{newdata}
+must contain all variables used by \code{formula(object)} and all variables
+representing coordinates. If an \code{sf} object, \code{newdata} must contain
+all variables used by \code{formula(object)} and coordinates are obtained
+from the geometry of \code{newdata}. If omitted, missing data from the
+fitted model object are used.}
 
 \item{se.fit}{A logical indicating if standard errors are returned.
 The default is \code{FALSE}.}
@@ -246,7 +255,9 @@ specified via either numeric position or name. The default is all terms are incl
 \item{na.action}{Missing (\code{NA}) values in \code{newdata} will return an error and should
 be removed before proceeding.}
 
-\item{...}{filler}
+\item{...}{Other arguments. Only used for models fit using \code{splmRF()}
+or \code{spautorRF()} where \code{...} indicates other
+arguments to \code{ranger::predict.ranger()}.}
 
 \item{dispersion}{The dispersion of assumed when computing the prediction standard errors
 for \code{spglm()} or \code{spgautor()} model objects when \code{family}
@@ -276,7 +287,8 @@ list element.
 For \code{splmRF} or \code{spautorRF} objects, a vector of predictions. For \code{splmRF_list}
 or \code{spautorRF_list} objects, a list that contains relevant quantities for each list element.
 
-filler
+For \code{decorrelate} objects, a vector of predictions. For \code{decorrelate_list}
+objects, a list that contains relevant quantities for each list element.
 }
 \description{
 Predicted values and intervals based on a fitted model object.
@@ -293,10 +305,14 @@ for each list element.
 
 For \code{splmRF} or \code{spautorRF} objects, random forest spatial residual
 model predictions are computed by combining the random forest prediction with
-the (empirical) best linear unbiased prediction for the residual. Fox et al. (2020)
-call this approach random forest regression Kriging. For \code{splmRF_list}
+the (empirical) best linear unbiased prediction for the residual. This
+approach is called random forest regression Kriging. For \code{splmRF_list}
 or \code{spautorRF} objects,
 predictions are returned for each list element.
+
+For \code{decorrelate} objects, the spatial decorrelation transformation
+predictions recorrelated to the original scale. For \code{decorrelate_list}
+objects, predictions are returned for each list element.
 }
 \examples{
 spmod <- splm(sulfate ~ 1,
@@ -322,6 +338,8 @@ predict(spgmod, moose_preds)
 predict(spgmod, moose_preds, interval = "prediction")
 augment(spgmod, newdata = moose_preds, interval = "prediction")
 }
+decorr <- decorrelate(log_cond ~ temp, data = lake, spcov_type = "exponential")
+predict(decorr, newdata = lake_preds)
 }
 \references{
 Fox, E.W., Ver Hoef, J. M., & Olsen, A. R. (2020). Comparing spatial

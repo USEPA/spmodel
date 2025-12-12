@@ -103,10 +103,14 @@
 #'
 #'   For \code{splmRF} or \code{spautorRF} objects, random forest spatial residual
 #'   model predictions are computed by combining the random forest prediction with
-#'   the (empirical) best linear unbiased prediction for the residual. Fox et al. (2020)
-#'   call this approach random forest regression Kriging. For \code{splmRF_list}
+#'   the (empirical) best linear unbiased prediction for the residual. This
+#'   approach is called random forest regression Kriging. For \code{splmRF_list}
 #'   or \code{spautorRF} objects,
 #'   predictions are returned for each list element.
+#'
+#'   For \code{decorrelate} objects, the spatial decorrelation transformation
+#'   predictions recorrelated to the original scale. For \code{decorrelate_list}
+#'   objects, predictions are returned for each list element.
 #'
 #' @return For \code{splm} or \code{spautor} objects, if \code{se.fit} is \code{FALSE}, \code{predict()} returns
 #'   a vector of predictions or a matrix of predictions with column names
@@ -122,6 +126,9 @@
 #'
 #'   For \code{splmRF} or \code{spautorRF} objects, a vector of predictions. For \code{splmRF_list}
 #'   or \code{spautorRF_list} objects, a list that contains relevant quantities for each list element.
+#'
+#'   For \code{decorrelate} objects, a vector of predictions. For \code{decorrelate_list}
+#'   objects, a list that contains relevant quantities for each list element.
 #'
 #' @name predict.spmodel
 #' @method predict splm

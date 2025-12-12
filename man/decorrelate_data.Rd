@@ -2,7 +2,7 @@
 % Please edit documentation in R/decorrelate_data.R
 \name{decorrelate_data}
 \alias{decorrelate_data}
-\title{Title}
+\title{Apply the Spatial Decorrelation Transformation to a Data Object}
 \usage{
 decorrelate_data(
   formula,
@@ -18,34 +18,111 @@ decorrelate_data(
 )
 }
 \arguments{
-\item{formula}{filler}
+\item{formula}{A two-sided linear formula describing the fixed effect structure
+of the model, with the response to the left of the \code{~} operator and
+the terms on the right, separated by \code{+} operators.}
 
-\item{data}{filler}
+\item{data}{A data frame or \code{sf} object object that contains
+the variables in \code{fixed}, \code{random}, and \code{partition_factor}
+as well as geographical information. If an \code{sf} object is
+provided with \code{POINT} geometries, the x-coordinates and y-coordinates
+are used directly. If an \code{sf} object is
+provided with \code{POLYGON} geometries, the x-coordinates and y-coordinates
+are taken as the centroids of each polygon.}
 
-\item{spcov_params}{filler}
+\item{spcov_params}{An object from \code{\link[=spcov_params]{spcov_params()}} that contains the
+spatial covariance parameters used by the spatial decorrelation transformation.}
 
-\item{xcoord}{filler}
+\item{xcoord}{The name of the column in \code{data} representing the x-coordinate.
+Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 
-\item{ycoord}{filler}
+\item{ycoord}{The name of the column in \code{data} representing the y-coordinate.
+Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.}
 
-\item{randcov_params}{filler}
+\item{randcov_params}{An object from \code{\link[=randcov_params]{randcov_params()}} that contains the
+random effect variances used by the spatial decorrelation transformation.}
 
-\item{partition_factor}{filler}
+\item{partition_factor}{A one-sided linear formula with a single term
+specifying the partition factor.  The partition factor assumes observations
+from different levels of the partition factor are uncorrelated.}
 
-\item{ordering}{filler}
+\item{ordering}{The data ordering applied. Available options
+include \code{"maxmin"}, \code{"grts"}, \code{"random"}, and \code{"xgboost"}.
+\code{"maxmin"} applies maximum minimum distance ordering via \code{GPvecchia::order_maxmin_exact()}.
+\code{"maxmin"} applies ordering using a spatially balanced GRTS sample via \code{spsurvey::grts()}.
+\code{"random"} applies a completely random ordering.
+\code{"maxmin"} applies no random ordering.
+The default is \code{"maxmin"}.}
 
-\item{local}{filler}
+\item{local}{A optional logical or list controlling the big data approximation.
+If omitted, \code{local} is set
+to \code{TRUE} or \code{FALSE} based on the sample size (the number of
+non-missing observations in \code{data}) -- if the sample size exceeds 5,000,
+\code{local} is set to \code{TRUE}. Otherwise it is set to \code{FALSE}.
+If \code{local} is \code{FALSE}, no big data approximation
+is implemented. If a list is provided, the following arguments detail the big
+data approximation:
+\itemize{
+\item \code{method}: The big data approximation method. If \code{method = "all"},
+all observations are used and \code{size} is ignored. If \code{method = "distance"},
+the \code{size} data observations closest (in terms of Euclidean distance)
+to the observation requiring prediction are used.
+If \code{method = "covariance"}, the \code{size} data observations
+with the highest covariance with the observation requiring prediction are used.
+If random effects and partition factors are not used in estimation and
+the spatial covariance function is monotone decreasing,
+\code{"distance"} and \code{"covariance"} are equivalent. The default
+is \code{"covariance"}.
+\item \code{size}: The number of data observations to use when \code{method}
+is \code{"distance"} or \code{"covariance"}. The default is 30.
+\item \code{parallel}: If \code{TRUE}, parallel processing via the
+parallel package is automatically used. This can significantly speed
+up computations even when \code{method = "all"} (i.e., no big data
+approximation is used), as predictions
+are spread out over multiple cores. The default is \code{FALSE}.
+\item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
+parallelize over. The default is the number of available cores on your machine.
+}
+When \code{local} is a list, at least one list element must be provided to
+initialize default arguments for the other list elements.
+If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
+that \code{local} is transformed into
+\code{list(size = 30, method = "covariance", parallel = FALSE)}.}
 
-\item{...}{filler}
+\item{...}{Other arguments to the functions called by \code{algorithm}.}
 }
 \value{
-filler
+A list with many elements that store information about
+the fitted model object. Importantly, the list contains the following elements:
+\itemize{
+\item \code{X}: The original fixed effects design matrix (of explanatory variables)
+\item \code{y}: The original response variable
+\item \code{tX}: The spatially decorrelated transformed fixed effects design matrix
+\item \code{ty}: The spatially decorrelated transformed response variable
+}
 }
 \description{
-Title
+Apply the spatial decorrelation transformation to a data object.
+This object contains the transformed explanatory and response variables
+which can be used to fit a machine learning model. This object also contains
+information needed to decorrelate prediction data.
+}
+\details{
+The spatial decorrelation transformation is a preprocessing transformation
+that reduces the impacts of spatial dependence (i.e., covariance, correlation)
+on machine learning models. See \code{\link[=decorrelate]{decorrelate()}} and Heaton et al., 2025 for more details.
+}
+\examples{
+params <- spcov_params("exponential", de = 1, ie = 0.2, range = 1e5)
+decorr <- decorrelate_data(log_cond ~ temp, data = lake, spcov_params = params)
+head(cbind(decorr$X, decorr$tX))
+head(cbind(decorr$y, decorr$ty))
 }
 \references{
 Matthew J. Heaton, Andrew Millane, and Jake S. Rhodes. 2025. A Scalable
 Spatial Decorrelation Preprocessing Approach for Machine and Deep Learning.
 \emph{Journal of Data Science}. 1-15, DOI 10.6339/25-JDS1210
+}
+\seealso{
+\code{\link[=decorrelate]{decorrelate()}} \code{\link[=spcov_params]{spcov_params()}} \code{\link[=randcov_params]{randcov_params()}}
 }

@@ -163,7 +163,8 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
   if (spcov_type %in% c("none", "ie")) {
     cov_grid$de <- 0
     if (spcov_type == "none") {
-      cov_grid$ie <- 1
+      cov_grid$ie <- ns2
+      # cov_grid$ie <- 1
     } else if (spcov_type == "ie") {
       cov_grid$ie <- ns2
     }

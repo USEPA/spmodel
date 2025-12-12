@@ -1,9 +1,13 @@
 decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm, training, anisotropy, random, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
 
+
   training_list <- get_training_list(training, data)
   data_training <- data[training_list$training_index, , drop = FALSE]
   data_test <- data[training_list$test_index, , drop = FALSE]
   yname <- as.character(attributes(terms(formula))$variables[[2]])
+
+
+
 
   grid <- decorrelate_grid(
     formula = formula,

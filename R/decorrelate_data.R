@@ -181,13 +181,168 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
     newdata = data_object$newdata,
     anisotropy = data_object$anisotropy,
     diagtol = data_object$diagtol,
-    total_var = total_var
+    total_var = total_var,
+    ordering = ordering
   )
   new_output <- structure(output, class = "decorrelate_data")
   new_output
 }
 
+# non standard evaluation for x and y coordinates
+# substitute only works when the function is the parent function, so commenting
+# out for use with decorrelate()
+decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
 
+  if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
+    anisotropy <- TRUE
+  } else {
+    anisotropy <- FALSE
+  }
+
+  # set randcov_initial NULL if necessary
+  if (missing(randcov_params) || is.null(randcov_params)) {
+    random <- NULL
+    randcov_params <- NULL
+  } else {
+    random <- reformulate(names(randcov_params))
+  }
+
+  # set partition factor if necessary
+  if (missing(partition_factor) || is.null(partition_factor)) {
+    partition_factor <- NULL
+  }
+
+  # non standard evaluation for x and y coordinates
+  # xcoord <- substitute(xcoord)
+  # ycoord <- substitute(ycoord)
+
+  # get data object
+  data_object <- get_data_object_splm(
+    formula = formula,
+    data = data,
+    spcov_initial = spcov_initial(class(spcov_params)), # default placeholder
+    xcoord = xcoord,
+    ycoord = ycoord,
+    estmethod = "reml",  # default placeholder
+    anisotropy = anisotropy,
+    random = random,
+    randcov_initial = NULL, # default placeholder
+    partition_factor = NULL, # default placeholder
+    local = FALSE, # default placeholder
+    range_constrain = FALSE, # default placeholder
+    ...
+  )
+
+  if (missing(local)) {
+    local <- NULL
+  }
+  if (is.null(local)) {
+    if (data_object$n > 1000) {
+      local <- TRUE
+      message("Because the sample size exceeds 1,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+    } else {
+      local <- FALSE
+    }
+  }
+  local <- get_local_list_decorrelate(local)
+
+  # random effects
+  if (is.null(random)) {
+    randcov_matrix_val <- NULL
+  } else {
+    names(randcov_params) <- get_randcov_names(random) # fixes names
+    randcov_matrix_val <- randcov_matrix(randcov_params, data_object$randcov_list[[1]])
+  }
+
+  if (is.null(partition_factor)) {
+    partition_matrix_val <- NULL
+  } else {
+    partition_matrix_val <- partition_matrix(partition_factor, data)
+  }
+
+
+  # return original information here if spcov_type "none"
+
+
+  obdata <- data_object$obdata
+  X <- data_object$X_list[[1]]
+  y <- data_object$y_list[[1]]
+  xcoord_val <- obdata[[data_object$xcoord]]
+  ycoord_val <- obdata[[data_object$ycoord]]
+  if (anisotropy) {
+    obdata_aniscoords <- transform_anis2(xcoord_val, ycoord_val, spcov_params[["rotate"]], spcov_params[["scale"]])
+    xcoord_val <- obdata_aniscoords$xcoord
+    ycoord_val <- obdata_aniscoords$ycoord
+  }
+
+
+  index <- seq(1, data_object$n)
+  total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
+
+  # do ordering here
+  if (!ordering %in% c("maxmin", "grts", "random", "none")) {
+    stop("Invalid ordering argument. Argument must be \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
+  }
+
+  ord <- get_decorrelate_order(ordering, xcoord_val, ycoord_val)
+
+  # order all values
+  X <- X[ord$order, , drop = FALSE]
+  y <- y[ord$order, , drop = FALSE]
+  xcoord_val <- xcoord_val[ord$order]
+  ycoord_val <- ycoord_val[ord$order]
+  if (!is.null(randcov_matrix_val)) {
+    randcov_matrix_val <- randcov_matrix_val[ord$order, ord$order, drop = FALSE]
+  }
+  if (!is.null(partition_matrix_val)) {
+    partition_matrix_val <- partition_matrix_val[ord$order, ord$order, drop = FALSE]
+  }
+
+
+  if (local$parallel) {
+    cl <- parallel::makeCluster(local$ncores)
+    vals <- parallel::parLapply(cl, index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix_val, partition_matrix_val)
+    cl <- parallel::stopCluster(cl)
+  } else {
+    vals <- lapply(index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix_val, partition_matrix_val)
+  }
+  X <- do.call("rbind", lapply(vals, function(x) x$X))
+  y <- do.call("rbind", lapply(vals, function(x) x$y))
+  tX <- do.call("rbind", lapply(vals, function(x) x$tX))
+  ty <- do.call("rbind", lapply(vals, function(x) x$ty))
+
+  # undo vecchia ordering here
+  X <- X[ord$inv_order, , drop = FALSE]
+  y <- y[ord$inv_order, , drop = FALSE]
+  tX <- tX[ord$inv_order, , drop = FALSE]
+  ty <- ty[ord$inv_order, , drop = FALSE]
+
+  coefs <- list(spcov = spcov_params, randcov = randcov_params)
+  output <- list(
+    obdata = data_object$obdata,
+    coefficients = coefs,
+    X = X,
+    y = as.vector(y),
+    tX = tX,
+    ty = as.vector(ty),
+    xcoord = data_object$xcoord,
+    ycoord = data_object$ycoord,
+    random = random,
+    partition_factor = partition_factor,
+    dim_coords = data_object$dim_coords,
+    terms = data_object$terms,
+    xlevels = data_object$xlevels,
+    contrasts = data_object$contrasts,
+    local = local,
+    newdata = data_object$newdata,
+    anisotropy = data_object$anisotropy,
+    diagtol = data_object$diagtol,
+    total_var = total_var,
+    ordering = ordering
+  )
+  new_output <- structure(output, class = "decorrelate_data")
+  new_output
+}
 
 
 get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix, partition_matrix) {
@@ -303,6 +458,7 @@ get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_
 }
 
 get_local_list_decorrelate <- function(local) {
+
 
   if (is.logical(local)) {
     if (local) {

@@ -7,9 +7,7 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
   yname <- as.character(attributes(terms(formula))$variables[[2]])
 
 
-
-
-  grid <- decorrelate_grid(
+  grid <- decorrelate_grid_internal(
     formula = formula,
     data = data_training,
     spcov_type = spcov_type,
@@ -62,7 +60,8 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
 
 
   out <- lapply(params_list, function(x) {
-    tdata_training <- decorrelate_data(
+    # warnings get repeated for each get_data_object() call
+    tdata_training <- suppressWarnings(decorrelate_data_internal(
       formula = formula,
       data = data_training,
       spcov_params = x$spcov_params,
@@ -73,7 +72,7 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
       ordering = ordering,
       local = local,
       ...
-    )
+    ))
     # anisotropy is not getting accounted for somewhere here
     fit <- fit_decorrelate_algorithm(tdata_training, algorithm, ...)
     tdata_test <- decorrelate_newdata(tdata_training, newdata = data_test)

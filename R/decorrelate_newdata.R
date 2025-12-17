@@ -69,9 +69,19 @@ decorrelate_newdata <- function(object, newdata, local, ...) {
     stop("object must have class \"decorrelate_data\".", call. = FALSE)
   }
 
-  if (!missing(local)) {
+  # if (!missing(local)) {
+  #   object$local <- get_local_list_decorrelate(local)
+  # }
+
+  if (missing(local)) {
+    local <- NULL
+  }
+  if (is.null(local)) {
+    object$local <- object$local
+  } else {
     object$local <- get_local_list_decorrelate(local)
   }
+
 
   # rename relevant quantities
   obdata <- object$obdata
@@ -226,6 +236,7 @@ decorrelate_newdata <- function(object, newdata, local, ...) {
   output <- list(
     X_newdata = X_newdata,
     tX_newdata = tX_newdata,
+    local = object$local,
     yscale = yscale,
     yoffset = yoffset
   )

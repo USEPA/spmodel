@@ -1,5 +1,5 @@
 ---
-title: "The Spatial Decorrelation Transformation for Machine Learning Models"
+title: "The Spatial Decorrelation Transformation for Machine and Deep Learning Models"
 author: "Michael Dumelle, Matt Heaton, and Ryan A. Hill"
 bibliography: '`r system.file("references.bib", package="spmodel")`'
 output:
@@ -24,7 +24,7 @@ library(ranger)
 
 `spmodel` is a **R** package used to fit, summarize, and
 predict for a variety of spatial statistical models. This vignette
-explores tools for a spatial decorrelation transformation that can be applied as a preprocessing step for machine learning models like random forests. The spatial decorrelation transformation can significantly improve a machine learning model's inferential and predictive capacity by formally incorporating spatial covariance into the model building process [@heaton2024adjusting].
+explores tools for a spatial decorrelation transformation that can be applied as a preprocessing step for machine and deep learning models like random forests. The spatial decorrelation works by first decorrelating the data by removing spatial covariance (i.e., correlation, dependence). These decorrelated data are used to fit a machine learning model and use it to make predictions of new observations. These predictions are then adjusted by recorrelating the data by adding back in the original spatial covariance. This approach is flexible and can accommodate any machine learning model, as the decorrelation and recorrelation steps happen separately from the machine learning modeling. The spatial decorrelation transformation can significantly improve a machine learning model's inferential and predictive capacity by formally incorporating spatial covariance into the model building process [@heaton2025adjusting].
 
 Before proceeding, we load  `spmodel`, `sf`, `ggplot2`, and `ranger`:
 ```{r, eval = FALSE}
@@ -72,13 +72,113 @@ Ultimately, we will use our machine learning model to predict log conductivity a
 lake_preds
 ```
 
+We can also view the `lake_preds` locations (large triangles) alongside hte `lake` locations (small circles):
+```{r}
+ggplot() +
+  geom_sf(data = lake) +
+  geom_sf(data = lake_preds, pch = 17, size = 5) +
+  theme_gray(base_size = 14)
+```
 
-Fitting random forest models involves some random components, so we set a reproducible seed so these results can be reproduced locally:
+
+Fitting machine learning models often involves some random components (i.e., randomly subsampling variables), so we set a reproducible seed to reproduce results locally:
 ```{r}
 set.seed(0)
 ```
 
-## Splitting the Obsered Data Into Training and Test Sets
+# The Spatial Decorrelation Transformation and `decorrelate()`
+
+## The `decorrelate()` Function
+
+The `decorrelate()` function applies the spatial decorrelation transformation directly to a (training) data set. `decorrelate()` generally requires the following three arguments:
+
+* `formula`: a formula that describes the relationship between the response variable ($\mathbf{y}$) and explanatory variables ($\mathbf{X}$)
+* `data`: a `data.frame` or `sf` object that contains the response variable, explanatory variables, and spatial information
+* `spcov_type`: the spatial covariance type (`"exponential"`, `"matern"`, `"car"`, etc)
+
+```{r}
+decorr_mod <- decorrelate(
+  formula = log_cond ~ temp,
+  data = lake,
+  spcov_type = "exponential"
+)
+```
+
+If `data` is an `sf` [@pebesma2018sf] object, spatial information is stored in the object's geometry. If `data` is a `data.frame`, then the x-coordinates and y-coordinates must also be provided via the `xcoord` and `ycoord` arguments to `decorrelate()`.
+
+The `decorrelate()` estimates spatial decorrelation transformation parameters using a grid search approach [@heaton2025adjusting]. Observations in `data` are randomly assigned to a training or test set. By default, 75% of the observations are assigned to the training set and the remaining 25% to the test set. For each set of parameters in the grid search, the following steps are applied:
+
+1. The spatial decorrelation transformation is applied to the training set 
+2. A machine learning algorithm (by default, a random forest) is fit to the transformed training data set
+3. The spatial decorrelation transformation is applied to the test set
+4. The fitted machine learning algorithm is used to predict the response variable for the transformed test set
+5. The predictions are recorrelated back to the original (i.e., untransformed) scale
+
+The grid element whose parameters yield the lowest root-mean-squared-prediction error (RMSPE) in the test set are considered the "estimated" parameters. Using those estimated parameters, the spatial decorrelation transformation is applied to the entire data set (all observations in `data`) and stored in the `decorrelate_data` element of `decorrelate()`. Several other useful pieces of information are stored in the `decorrelate()` output, such as the evaluated grid and machine learning algorithm used.
+
+
+## Prediction Using `predict()`
+
+
+
+## Comparing to a Standard (Independent) Random Forest
+
+```{r}
+decorr_mod <- decorrelate(
+  formula = log_cond ~ temp,
+  data = lake,
+  spcov_type = "exponential",
+  training = list(training_index = seq(1, 60))
+)
+decorr_mod$training_index
+decorr_mod$test_index
+```
+
+```{r}
+rf_mod <- decorrelate(
+  formula = log_cond ~ temp,
+  data = lake,
+  spcov_type = "none"
+)
+
+rf_mod$test_rmspe
+decorr_mod$test_rmspe
+```
+
+## Additional Features
+
+```{r}
+decorr_mod <- decorrelate(
+  formula = log_cond ~ temp,
+  data = lake,
+  spcov_type = "exponential",
+  algorithm = "xgboost"
+)
+```
+
+
+```{r}
+decorr_mod <- decorrelate(
+  formula = log_cond ~ temp,
+  data = lake,
+  spcov_type = "exponential",
+  random = ~ origin
+)
+```
+
+
+```{r}
+decorr_mod <- decorrelate(
+  formula = log_cond ~ temp,
+  data = lake,
+  spcov_type = "exponential",
+  local = TRUE
+)
+```
+
+# Building Your Own Spatial Decorrelation Transformation
+
+## Step 1: Split the Obsered Data Into Training and Test Sets
 
 Evaluating the effectiveness of a machine learning model is a multi-step process. First, we split the `lake` data into separate training and test sets. The goal is to fit a model to the training set and use it to predict the response variable for each datum in the test set. Because the test set contains the measured value of the response variable, the accuracy of the predictions generated using the test set can be directly evaluated using a metric like root-mean-squared-prediction error or predictive $R^2$ (i.e., the squared correlation between observations and predictions). 
 
@@ -101,7 +201,7 @@ NROW(lake_train)
 NROW(lake_test)
 ```
 
-# The Spatial Decorrelation Transformation
+# The Spatial Decorrelation Transformation2
 
 The spatial decorrelation works by first decorrelating the data by removing spatial covariance (i.e., correlation, dependence). These decorrelated data are used to fit a machine learning model and use it to make predictions of new observations. These predictions are then adjusted by recorrelating the data by adding back in the original spatial covariance. This approach is flexible and can accommodate any machine learning model, as the decorrelation and recorrelation steps happen separately from the machine learning modeling. We first explore how the spatial decorrelation transformation works for a fixed set of spatial covariance parameters. We then show how to relax this assumption and actually estimate unknown spatial covariance parameters using a grid search.
 

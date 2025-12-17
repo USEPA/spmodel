@@ -275,8 +275,8 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
       data = data,
       spcov_type = spcov_type,
       spcov_params = spcov_params,
-      xcoord = xcoord,
-      ycoord = ycoord,
+      xcoord,
+      ycoord,
       algorithm = algorithm,
       training = training,
       anisotropy = anisotropy,
@@ -300,7 +300,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
     test_rmspe <- NULL
   }
 
-  decorr <- decorrelate_data(
+  decorr <- decorrelate_data_internal(
     formula = formula,
     data = data,
     spcov_params = spcov_params,
@@ -316,6 +316,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
   fit <- fit_decorrelate_algorithm(decorr, algorithm, ...)
   obj <- list(
     algorithm = algorithm,
+    call = match.call(),
     decorrelate_data = decorr,
     fit = fit,
     grid = grid,

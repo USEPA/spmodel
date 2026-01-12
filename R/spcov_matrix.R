@@ -160,7 +160,7 @@ spcov_matrix.magnetic <- function(spcov_params, dist_matrix, diagtol = 0, ...) {
 spcov_matrix.matern <- function(spcov_params, dist_matrix, diagtol = 0, ...) {
   eta <- sqrt(2 * spcov_params[["extra"]]) * (dist_matrix / spcov_params[["range"]])
   spcov_matrix_val <- spcov_params[["de"]] * 2^(1 - spcov_params[["extra"]]) / gamma(spcov_params[["extra"]]) * eta^spcov_params[["extra"]] * besselK(as.matrix(eta), nu = spcov_params[["extra"]]) # eta as sparse matrix causes error
-  dist_matrix_zero <- which(dist_matrix == 0)
+  dist_matrix_zero <- which(dist_matrix == 0) # consider epsilon threshold instead of exactly zero?
   spcov_matrix_val[dist_matrix_zero] <- spcov_params[["de"]]
   spcov_params[["ie"]] <- max(spcov_params[["ie"]], 1e-4 * spcov_params[["de"]], diagtol)
   diag(spcov_matrix_val) <- spcov_params[["de"]] + spcov_params[["ie"]]

@@ -235,7 +235,7 @@ that \code{local} is transformed into
 If \code{block} is \code{TRUE}, \code{local} accepts \code{method} and \code{size},
 and \code{method} takes values of \code{"all"}, \code{"covariance"},
 and \code{"distance"}, similar as when \code{block} is \code{FALSE}.
-The default \code{method} is \code{"distance"} with size \code{1000}. This default \code{size} is
+The default \code{method} is \code{"covariance"} with size \code{4000}. This default \code{size} is
 much larger than when \code{block} is \code{FALSE}. This is because when \code{block} is \code{TRUE},
 covariances and explanatory variables are averaged before prediction, which greatly
 reduces computational burden, only requiring the Cholesky decomposition

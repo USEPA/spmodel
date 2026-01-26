@@ -55,6 +55,9 @@ test_that("generics work spglm point data", {
   # deviance
   expect_vector(deviance(spmod1))
 
+  # eacf
+  expect_s3_class(eacf(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord), "data.frame")
+
   # esv
   expect_s3_class(esv(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord), "data.frame")
 
@@ -220,6 +223,9 @@ test_that("generics work spglm point data with missing", {
   # deviance
   expect_vector(deviance(spmod1))
 
+  # eacf
+  expect_s3_class(eacf(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord), "data.frame")
+
   # esv
   expect_s3_class(esv(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord), "data.frame")
 
@@ -379,6 +385,9 @@ test_that("generics work spglm polygon data with missing", {
 
   # deviance
   expect_vector(deviance(spmod1))
+
+  # eacf
+  expect_s3_class(eacf(y ~ x, exdata_Mpoly, xcoord = xcoord, ycoord = ycoord), "data.frame")
 
   # esv
   expect_s3_class(esv(y ~ x, exdata_Mpoly, xcoord = xcoord, ycoord = ycoord), "data.frame")

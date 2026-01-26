@@ -168,7 +168,7 @@ get_local_list_prediction_block <- function(local) {
 
   if (is.logical(local)) {
     if (local) {
-      local <- list(method = "covariance", size = 1000)
+      local <- list(method = "covariance", size = 4000)
     } else {
       local <- list(method = "all")
     }
@@ -190,10 +190,19 @@ get_local_list_prediction_block <- function(local) {
   }
 
   if (local$method %in% c("distance", "covariance") && !"size" %in% names_local) {
-    local$size <- 1000
+    local$size <- 4000
   }
 
-  # no parallel required
+  if (!"parallel" %in% names_local) {
+    local$parallel <- FALSE
+    local$ncores <- NULL
+  }
+
+  if (local$parallel) {
+    if (!"ncores" %in% names_local) {
+      local$ncores <- parallel::detectCores()
+    }
+  }
 
   local
 }

@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.12.0</span>
       </span>
     </div>
 
@@ -72,6 +72,24 @@
       <small>Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="0.12.0" id="spmodel-0120">spmodel 0.12.0<small>2026-01-24</small><a class="anchor" aria-label="anchor" href="#spmodel-0120"></a></h2>
+<div class="section level3">
+<h3 id="major-updates-0-12-0">Major Updates<a class="anchor" aria-label="anchor" href="#major-updates-0-12-0"></a></h3>
+<ul><li>Added <code><a href="../reference/eacf.html">eacf()</a></code> to compute the empirical autocovariance function.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="minor-updates-0-12-0">Minor Updates<a class="anchor" aria-label="anchor" href="#minor-updates-0-12-0"></a></h3>
+<ul><li>Changed the default <code>size</code> argument to the local argument in <code>predict(..., block = TRUE)</code> and <code>augment(..., block = TRUE)</code> from 1000 to 4000. This enhances the block prediction (i.e., Kriging) approximation’s accuracy but can slightly increase computational complexity.</li>
+<li>Enhanced efficiency of block prediction (i.e., Kriging) for large <code>newdata</code> objects.</li>
+<li>Added a warning message that clarifies <code>xcoord</code> and <code>ycoord</code> are ignored when <code>data</code> is an <code>sf</code> object.</li>
+<li>Minor documentation updates.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-12-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-12-0"></a></h3>
+<ul><li>Fixed a bug in <code>predict(object, newdata)</code> and <code>augment(object, newdata)</code> that could cause <code>NA</code> values when the spatial covariance was <code>"matern"</code> and a location in <code>newdata</code> was the exact same as a location in <code>data</code> (the <code>data</code> argument used to fit <code>object</code>).</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.11.1" id="spmodel-0111">spmodel 0.11.1<small>2025-11-14</small><a class="anchor" aria-label="anchor" href="#spmodel-0111"></a></h2>
 <div class="section level3">

@@ -1,7 +1,7 @@
-#' Compute the empirical semivariogram
+#' Compute the empirical autocovariance
 #'
-#' @description Compute the empirical semivariogram for varying bin sizes and
-#'   cutoff values.
+#' @description Compute the empirical autocovariance (i.e., empirical covariance)
+#'   for varying bin sizes and cutoff values.
 #'
 #' @param formula A formula describing the fixed effect structure.
 #' @param data A data frame or \code{sf} object containing the variables in \code{formula}
@@ -10,62 +10,52 @@
 #'   Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.
 #' @param ycoord Name of the variable in \code{data} representing the y-coordinate.
 #'   Can be quoted or unquoted. Not required if \code{data} is an \code{sf} object.
-#' @param cloud A logical indicating whether the empirical semivariogram should
-#'   be summarized by distance class or not. When \code{cloud = FALSE} (the default), pairwise semivariances
+#' @param cloud A logical indicating whether the empirical autocovariance should
+#'   be summarized by distance class or not. When \code{cloud = FALSE} (the default), pairwise autocovariances
 #'   are binned and averaged within distance classes. When \code{cloud} = TRUE,
-#'   all pairwise semivariances and distances are returned (this is known as
-#'   the "cloud" semivariogram).
-#' @param robust A logical indicating whether the robust semivariogram
-#' (Cressie and Hawkins, 1980) is used. The default is \code{FALSE}.
+#'   all pairwise autocovariances and distances are returned (this is known as
+#'   the "cloud" autocovariance).
 #' @param bins The number of equally spaced bins. The default is 15. Ignored if
 #'   \code{cloud = TRUE}.
 #' @param cutoff The maximum distance considered.
 #'   The default is half the diagonal of the bounding box from the coordinates.
 #' @param dist_matrix A distance matrix to be used instead of providing coordinate names.
 #' @param partition_factor An optional formula specifying the partition factor.
-#'   If specified, semivariances are only computed for observations sharing the
+#'   If specified, autocovariances are only computed for observations sharing the
 #'   same level of the partition factor.
 #'
-#' @details The empirical semivariogram is a tool used to visualize and model
+#' @details The empirical autocovariance (i.e., empirical covariance) is a tool used to visualize and model
 #'   spatial dependence by estimating the semivariance of a process at varying distances.
 #'   For a constant-mean process, the
-#'   semivariance at distance \eqn{h} is denoted \eqn{\gamma(h)} and defined as
-#'   \eqn{0.5 * Var(z1  - z2)}. Under second-order stationarity,
-#'   \eqn{\gamma(h) = Cov(0) - Cov(h)}, where \eqn{Cov(h)} is the covariance function at distance \code{h}. Typically the residuals from an ordinary
+#'   autocovariance at distance \eqn{h} is denoted \eqn{Cov(h)} and defined as
+#'   \eqn{Cov(z1, z2)}. Under second-order stationarity,
+#'   \eqn{Cov(h) = Cov(0) - \gamma(h)}, where \eqn{gamma(h)} is the semivariance function at distance \code{h}. Typically the residuals from an ordinary
 #'   least squares fit defined by \code{formula} are second-order stationary with
-#'   mean zero. These residuals are used to compute the empirical semivariogram.
-#'   At a distance \code{h}, the empirical semivariance is
-#'   \eqn{1/N(h) \sum (r1 - r2)^2}, where \eqn{N(h)} is the number of (unique)
+#'   mean zero. These residuals are used to compute the empirical autocovariance
+#'   At a distance \code{h}, the empirical autocovariance is
+#'   \eqn{1/N(h) \sum (r1 \times r2)}, where \eqn{N(h)} is the number of (unique)
 #'   pairs in the set of observations whose distance separation is \code{h} and
 #'   \code{r1} and \code{r2} are residuals corresponding to observations whose
-#'   distance separation is \code{h}. The robust version is described by
-#'   Cressie and Hawkins (1980). In spmodel, these distance bins actually
+#'   distance separation is \code{h}. In spmodel, these distance bins actually
 #'   contain observations whose distance separation is \code{h +- c},
 #'   where \code{c} is a constant determined implicitly by \code{bins}. Typically,
 #'   only observations whose distance separation is below some cutoff are used
 #'   to compute the empirical semivariogram (this cutoff is determined by \code{cutoff}).
 #'
-#'   When using [splm()] with \code{estmethod} as \code{"sv-wls"}, the empirical
-#'   semivariogram is calculated internally and used to estimate spatial
-#'   covariance parameters.
-#'
-#' @name esv
+#' @name eacf
 #'
 #' @return If \code{cloud = FALSE}, a tibble (data.frame) with distance bins
-#'   (\code{bins}), the average distance (\code{dist}), the average semivariance (\code{gamma}), and the
+#'   (\code{bins}), the average distance (\code{dist}), the average autocovariance (\code{acov}), and the
 #'   number of (unique) pairs (\code{np}). If \code{cloud = TRUE}, a tibble
-#'   (data.frame) with distance (\code{dist}) and semivariance (\code{gamma})
+#'   (data.frame) with distance (\code{dist}) and autocovariance (\code{acov})
 #'   for each unique pair.
 #'
 #' @export
 #'
 #' @examples
-#' esv(sulfate ~ 1, sulfate)
-#' plot(esv(sulfate ~ 1, sulfate))
-#' @references Cressie, N & Hawkins, D.M. 1980. Robust estimation of the variogram.
-#' \emph{Journal of the International Association for Mathematical Geology},
-#' \strong{12}, 115-125.
-esv <- function(formula, data, xcoord, ycoord, cloud = FALSE, robust = FALSE, bins = 15, cutoff, dist_matrix, partition_factor) {
+#' eacf(sulfate ~ 1, sulfate)
+#' plot(eacf(sulfate ~ 1, sulfate))
+eacf <- function(formula, data, xcoord, ycoord, cloud = FALSE, bins = 15, cutoff, dist_matrix, partition_factor) {
 
   # filter out missing response values
   na_index <- is.na(data[[all.vars(formula)[1]]])
@@ -159,7 +149,7 @@ esv <- function(formula, data, xcoord, ycoord, cloud = FALSE, robust = FALSE, bi
   # compute squared differences in the residuals
   lmod <- lm(formula = formula, data = data)
   residuals <- residuals(lmod)
-  residual_matrix <- as.matrix(spdist(xcoord_val = residuals))
+  residual_matrix <- outer(residuals, residuals) # ybar is the fitted mean
   residual_matrix <- residual_matrix[upper.tri(residual_matrix)]
   if (!is.null(partition_factor)) {
     residual_matrix <- residual_matrix * partition_matrix_val
@@ -167,33 +157,30 @@ esv <- function(formula, data, xcoord, ycoord, cloud = FALSE, robust = FALSE, bi
 
   residual_vector <- residual_matrix
   residual_vector <- residual_vector[dist_index]
-  residual_vector2 <- residual_vector^2
+  residual_vector2 <- residual_vector # just to align with esv() names
+
 
   if (cloud) {
-    esv_out <- get_esv_cloud(residual_vector2, dist_vector)
+    eacf_out <- get_eacf_cloud(residual_vector2, dist_vector)
   } else {
-    if (robust) {
-      residual_vector12 <- sqrt(residual_vector)
-      esv_out <- get_esv_robust(residual_vector12, dist_vector, bins, cutoff)
-    } else {
-      esv_out <- get_esv(residual_vector2, dist_vector, bins, cutoff)
-    }
+    eacf_out <- get_eacf(residual_vector2, dist_vector, bins, cutoff)
   }
 
 
 
+
   # remove NA
-  # esv_out <- na.omit(esv_out)
-  esv_out <- structure(esv_out, class = c("esv", class(esv_out)), call = match.call(), cloud = cloud)
-  esv_out
+  # eacf_out <- na.omit(eacf_out)
+  eacf_out <- structure(eacf_out, class = c("eacf", class(eacf_out)), call = match.call(), cloud = cloud)
+  eacf_out
 }
 
-#' @rdname esv
-#' @method plot esv
-#' @param x An object from \code{esv()}.
+#' @rdname eacf
+#' @method plot eacf
+#' @param x An object from \code{eacf()}.
 #' @param ... Other arguments passed to other methods.
 #' @export
-plot.esv <- function(x, ...) {
+plot.eacf <- function(x, ...) {
 
   cal <- attr(x, "call")
   if (!is.na(m.f <- match("formula", names(cal)))) {
@@ -210,8 +197,8 @@ plot.esv <- function(x, ...) {
   }
 
   dotlist <- list(...)
-  dotlist <- get_esv_dotlist_defaults(x, dotlist, cloud = attr(x, "cloud"))
+  dotlist <- get_eacf_dotlist_defaults(x, dotlist, cloud = attr(x, "cloud"))
 
-  do.call("plot", c(list(x = x$dist, y = x$gamma), dotlist))
+  do.call("plot", c(list(x = x$dist, y = x$acov), dotlist))
   title(sub = sub.caption)
 }

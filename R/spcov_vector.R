@@ -133,6 +133,8 @@ spcov_vector.magnetic <- function(spcov_params, dist_vector) {
 spcov_vector.matern <- function(spcov_params, dist_vector) {
   eta <- sqrt(2 * spcov_params[["extra"]]) * (dist_vector / spcov_params[["range"]])
   spcov_vector_val <- spcov_params[["de"]] * 2^(1 - spcov_params[["extra"]]) / gamma(spcov_params[["extra"]]) * eta^spcov_params[["extra"]] * besselK(as.matrix(eta), nu = spcov_params[["extra"]])
+  dist_vector_zero <- which(dist_vector == 0) # consider epsilon threshold instead of exactly zero?
+  spcov_vector_val[dist_vector_zero] <- spcov_params[["de"]]
   spcov_vector_val
 }
 

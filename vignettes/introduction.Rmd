@@ -43,11 +43,13 @@ If you use `spmodel` in a formal publication or report, please cite it. Citing `
 citation(package = "spmodel")
 ```
 
-There are three more `spmodel` vignettes available on our website at [https://usepa.github.io/spmodel/](https://usepa.github.io/spmodel/):
+There are five more `spmodel` vignettes available on our website at [https://usepa.github.io/spmodel/](https://usepa.github.io/spmodel/):
 
 1. A Detailed Guide to `spmodel`
-2. Spatial Generalized Linear Models in `spmodel 
-3. Technical Details
+2. Spatial Generalized Linear Models in `spmodel` 
+3. Using `emmeans` to Estimate Marginal Means of `spmodel` Objects
+4. Block Prediction (i.e., Blocking Kriging) in `spmodel`
+5. Technical Details
 
 Additionally, there are two workbooks that have accompanied recent `spmodel` workshops:
 

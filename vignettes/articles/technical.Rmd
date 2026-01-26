@@ -1330,13 +1330,19 @@ The following table contains a table of inverse link functions, $d_i$, and $D_{i
 
 : A table of inverse link functions and relevant quantities for each spatial generalized linear model family.
 
-# The Empirical Semivariogram (`esv()`) {#sec:esv}
+# The Empirical Semivariogram and Autocovariance (`esv()` and `eacf()`) {#sec:esv}
 
-The empirical semivariogram is a moment-based estimate of the theoretical semivariogram. The empirical semivariogram quantifies half of the average squared difference in the response among observations in several distance classes. More formally, the empirical semivariogram is defined as \begin{equation}\label{eq:esv}
+The empirical semivariogram is a moment-based estimate of the theoretical semivariogram. The empirical semivariogram quantifies half of the average squared difference in the response among observations in several distance classes. More formally, the empirical semivariogram, $\hat{\gamma}(h)$, is defined as \begin{equation}\label{eq:esv}
   \hat{\gamma}(h) = \frac{1}{2|N(h)|} \sum_{N(h)} (y_i - y_j)^2, 
-\end{equation} where $N(h)$ is the set of observations in $\mathbf{y}$ that are $h$ distance apart (distance classes) and $|N(h)|$ is the cardinality of $N(h)$ [@cressie1993statistics]. Often the set $N(h)$ contains observations that are $h \pm c$ apart, where $c$ is some constant. This approach is known as "binning" the empirical semivariogram. The default in `spmodel` is to construct the semivariogram using 15 equally spaced bins where $h$ is contained in $(0, h_{max}]$, and $h_{max}$ is known as a "distance cutoff". Distance cutoffs are commonly used when constructing $\hat{\gamma}(h)$ because there tend to be few pairs with large distances. The default in `spmodel` is to use a cutoff of half the maximum distance (hypotenuse) of the domain's bounding box.
+\end{equation} where $N(h)$ is the set of observations in $\mathbf{y}$ that are $h$ distance apart (distance classes) and $|N(h)|$ is the cardinality of $N(h)$ [@cressie1993statistics]. Often the set $N(h)$ contains observations that are $h \pm c$ apart, where $c$ is some constant. This approach is known as "binning" the empirical semivariogram. The default in `spmodel` is to construct the semivariogram using 15 equally spaced bins where $h$ is contained in $(0, h_{max}]$, and $h_{max}$ is known as a "distance cutoff". Distance cutoffs are commonly used when constructing $\hat{\gamma}(h)$ because there tend to be few pairs with large distances. The default in `spmodel` is to use a cutoff of half the maximum distance (hypotenuse) of the domain's bounding box. Because we are typically interested in characterizing residual semivariance, $y_i$ and $y_j$ tend to represent residuals from an ordinary least squares fit given some fixed effects design matrix, $\mathbf{X}$, and fixed effects, $\hat{\boldsymbol{\beta}}$.
 
 The main purpose of the empirical semivariogram is its use in semivariogram weighted least squares estimation for spatial linear models, though it can also be used as a visual diagnostic to assess the fit of a spatial covariance function.
+
+The empirical semivariogram is closely related to the empirical autocovariance [@zimmerman2024spatial]. The empirical autocovariance quantifies the average covariance among observations in several distance classes. Using similar notation as for the empirical semivariogram,
+\begin{equation}\label{eq:eacf}
+  \hat{eacf}(h) = \frac{1}{|N(h)|} \sum_{N(h)} (y_i - \hat{y})(y_j - \hat{y}), 
+\end{equation}
+where $\hat{y} = \bar{y}$, the sample mean of all the observations. Like with `esv()`, the default is to use 15 equally spaced bins with a distance cutoff of half the maximum distance (hypotenuse) of the domain's bounding box. Because we are typically interested in characterizing residual autocovariance, $y_i - \hat{y}$ and $y_j - \hat{y}$ tend to represent residuals from an ordinary least squares fit given some fixed effects design matrix, $\mathbf{X}$, and fixed effects, $\hat{\boldsymbol{\beta}}$.
 
 # A Note on Covariance Square Roots and Inverse Products {#sec:iprod}
 

@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.12.0</span>
       </span>
     </div>
 
@@ -3461,13 +3461,15 @@ y_i^2)}{2y_i\exp(w_i)}\)</span></td>
 </div>
 </div>
 <div class="section level2">
-<h2 id="sec:esv">The Empirical Semivariogram (<code>esv()</code>)<a class="anchor" aria-label="anchor" href="#sec:esv"></a>
+<h2 id="sec:esv">The Empirical Semivariogram and Autocovariance (<code>esv()</code>
+and <code>eacf()</code>)<a class="anchor" aria-label="anchor" href="#sec:esv"></a>
 </h2>
 <p>The empirical semivariogram is a moment-based estimate of the
 theoretical semivariogram. The empirical semivariogram quantifies half
 of the average squared difference in the response among observations in
-several distance classes. More formally, the empirical semivariogram is
-defined as <span class="math display">\[\begin{equation}\label{eq:esv}
+several distance classes. More formally, the empirical semivariogram,
+<span class="math inline">\(\hat{\gamma}(h)\)</span>, is defined as
+<span class="math display">\[\begin{equation}\label{eq:esv}
   \hat{\gamma}(h) = \frac{1}{2|N(h)|} \sum_{N(h)} (y_i - y_j)^2,
 \end{equation}\]</span> where <span class="math inline">\(N(h)\)</span>
 is the set of observations in <span class="math inline">\(\mathbf{y}\)</span> that are <span class="math inline">\(h\)</span> distance apart (distance classes) and
@@ -3481,11 +3483,29 @@ semivariogram using 15 equally spaced bins where <span class="math inline">\(h\)
 Distance cutoffs are commonly used when constructing <span class="math inline">\(\hat{\gamma}(h)\)</span> because there tend to be
 few pairs with large distances. The default in <code>spmodel</code> is
 to use a cutoff of half the maximum distance (hypotenuse) of the
-domain’s bounding box.</p>
+domain’s bounding box. Because we are typically interested in
+characterizing residual semivariance, <span class="math inline">\(y_i\)</span> and <span class="math inline">\(y_j\)</span> tend to represent residuals from an
+ordinary least squares fit given some fixed effects design matrix, <span class="math inline">\(\mathbf{X}\)</span>, and fixed effects, <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span>.</p>
 <p>The main purpose of the empirical semivariogram is its use in
 semivariogram weighted least squares estimation for spatial linear
 models, though it can also be used as a visual diagnostic to assess the
 fit of a spatial covariance function.</p>
+<p>The empirical semivariogram is closely related to the empirical
+autocovariance <span class="citation">(Zimmerman and Ver Hoef
+2024)</span>. The empirical autocovariance quantifies the average
+covariance among observations in several distance classes. Using similar
+notation as for the empirical semivariogram, <span class="math display">\[\begin{equation}\label{eq:eacf}
+  \hat{eacf}(h) = \frac{1}{|N(h)|} \sum_{N(h)} (y_i - \hat{y})(y_j -
+\hat{y}),
+\end{equation}\]</span> where <span class="math inline">\(\hat{y} =
+\bar{y}\)</span>, the sample mean of all the observations. Like with
+<code><a href="../reference/esv.html">esv()</a></code>, the default is to use 15 equally spaced bins with a
+distance cutoff of half the maximum distance (hypotenuse) of the
+domain’s bounding box. Because we are typically interested in
+characterizing residual autocovariance, <span class="math inline">\(y_i
+- \hat{y}\)</span> and <span class="math inline">\(y_j -
+\hat{y}\)</span> tend to represent residuals from an ordinary least
+squares fit given some fixed effects design matrix, <span class="math inline">\(\mathbf{X}\)</span>, and fixed effects, <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span>.</p>
 </div>
 <div class="section level2">
 <h2 id="sec:iprod">A Note on Covariance Square Roots and Inverse Products<a class="anchor" aria-label="anchor" href="#sec:iprod"></a>

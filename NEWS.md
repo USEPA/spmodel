@@ -1,3 +1,20 @@
+# spmodel 0.12.0
+
+## Major Updates
+
+* Added `eacf()` to compute the empirical autocovariance function.
+
+## Minor Updates
+
+* Changed the default `size` argument to the local argument in `predict(..., block = TRUE)` and `augment(..., block = TRUE)` from 1000 to 4000. This enhances the block prediction (i.e., Kriging) approximation's accuracy but can slightly increase computational complexity.
+* Enhanced efficiency of block prediction (i.e., Kriging) for large `newdata` objects.
+* Added a warning message that clarifies `xcoord` and `ycoord` are ignored when `data` is an `sf` object.
+* Minor documentation updates.
+
+## Bug Fixes
+
+* Fixed a bug in `predict(object, newdata)` and `augment(object, newdata)` that could cause `NA` values when the spatial covariance was `"matern"` and a location in `newdata` was the exact same as a location in `data` (the `data` argument used to fit `object`).
+
 # spmodel 0.11.1
 
 ## Minor Updates

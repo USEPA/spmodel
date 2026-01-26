@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.11.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.12.0</span>
       </span>
     </div>
 
@@ -326,7 +326,7 @@ that <code>local</code> is transformed into
 <p>If <code>block</code> is <code>TRUE</code>, <code>local</code> accepts <code>method</code> and <code>size</code>,
 and <code>method</code> takes values of <code>"all"</code>, <code>"covariance"</code>,
 and <code>"distance"</code>, similar as when <code>block</code> is <code>FALSE</code>.
-The default <code>method</code> is <code>"distance"</code> with size <code>1000</code>. This default <code>size</code> is
+The default <code>method</code> is <code>"covariance"</code> with size <code>4000</code>. This default <code>size</code> is
 much larger than when <code>block</code> is <code>FALSE</code>. This is because when <code>block</code> is <code>TRUE</code>,
 covariances and explanatory variables are averaged before prediction, which greatly
 reduces computational burden, only requiring the Cholesky decomposition
@@ -418,6 +418,7 @@ regression to random forests for large environmental data sets.
 <span class="r-in"><span>  data <span class="op">=</span> <span class="va">sulfate</span>,</span></span>
 <span class="r-in"><span>  spcov_type <span class="op">=</span> <span class="st">"exponential"</span>, xcoord <span class="op">=</span> <span class="va">x</span>, ycoord <span class="op">=</span> <span class="va">y</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>data is an sf object. Ignoring xcoord and ycoord arguments.</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">spmod</span>, <span class="va">sulfate_preds</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         1         2         3         4         5         6         7         8 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  1.618435 24.371803  8.945102 16.452377  4.925139 26.795441  2.869041 14.255129 </span>

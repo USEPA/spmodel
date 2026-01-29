@@ -181,6 +181,14 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
     add_newdata_rows <- FALSE
   }
 
+  # edit newdata if random effect or partition factor levels are new
+  if (!is.null(object$random) || !is.null(object$partition_factor)) {
+    random_names <- all.vars(object$random)
+    partition_names <- all.vars(object$partition_factor)
+    varnames <- unique(c(random_names, partition_names))
+    newdata <- replace_newdata(varnames, obdata, newdata)
+  }
+
   # deal with local
   if (is.null(local)) {
     if (object$n > 10000) {
@@ -1272,4 +1280,27 @@ get_extra_partition_list <- function(object, obdata, newdata) {
     partition_index_obdata <- NULL
   }
   list(reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata)
+}
+
+replace_newdata <- function(varnames, obdata, newdata) {
+  newdata_vec <- lapply(varnames, function(x) {
+    obdata_vec <- obdata[[x]]
+    newdata_vec <- newdata[[x]]
+    index_vec <- ! newdata_vec %in% obdata_vec
+    if (any(index_vec)) {
+      if (is.factor(newdata_vec)) {
+        newdata_vec <- as.character(newdata_vec)
+        newdata_vec[index_vec] <- "...this_is_a_new_level..."
+        newdata_vec <- as.factor(newdata_vec)
+      } else {
+        newdata_vec[index_vec] <- "...this_is_a_new_level..."
+      }
+    }
+    newdata_vec
+  })
+  names(newdata_vec) <- varnames
+  for (x in varnames) {
+    newdata[[x]] <- newdata_vec[[x]]
+  }
+  newdata
 }

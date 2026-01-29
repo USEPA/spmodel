@@ -1,3 +1,9 @@
+# spmodel 0.12.1
+
+## Minor Updates
+
+* Improved efficiency of prediction using `splm(..., data)` and `spglm(..., data)` model objects having many random effect or partition factor levels in `newdata` that are not present in `data` .
+
 # spmodel 0.12.0
 
 ## Major Updates

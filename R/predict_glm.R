@@ -67,6 +67,13 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms")
     add_newdata_rows <- FALSE
   }
 
+  if (!is.null(object$random) || !is.null(object$partition_factor)) {
+    random_names <- all.vars(object$random)
+    partition_names <- all.vars(object$partition_factor)
+    varnames <- unique(c(random_names, partition_names))
+    newdata <- replace_newdata(varnames, obdata, newdata)
+  }
+
   # set newdata_size if needed
   if (is.null(newdata_size) && object$family == "binomial") {
     newdata_size <- rep(1, NROW(newdata))

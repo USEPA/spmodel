@@ -1292,15 +1292,19 @@ replace_newdata <- function(varnames, obdata, newdata) {
         newdata_vec <- as.character(newdata_vec)
         newdata_vec[index_vec] <- "...this_is_a_new_level..."
         newdata_vec <- as.factor(newdata_vec)
-      } else {
+      } else if (is.character(newdata_vec)) {
         newdata_vec[index_vec] <- "...this_is_a_new_level..."
+      } else { # don't replace if numeric/integer (continuous random slope)
+        newdata_vec <- NULL
       }
     }
     newdata_vec
   })
   names(newdata_vec) <- varnames
   for (x in varnames) {
-    newdata[[x]] <- newdata_vec[[x]]
+    if (!is.null(newdata_vec[[x]])) {
+      newdata[[x]] <- newdata_vec[[x]]
+    }
   }
   newdata
 }

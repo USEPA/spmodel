@@ -339,8 +339,8 @@ test_that("generics work spglm point data with missing", {
 test_that("generics work spglm polygon data with missing", {
   load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
 
-  spmod1 <- spglm(abs(y) ~ x, "Gamma", exdata_Mpoly, spcov_type = "exponential", xcoord = "xcoord", ycoord = "ycoord", estmethod = "reml")
-  spmod2 <- spglm(abs(y) ~ x, Gamma, exdata_Mpoly, spcov_type = "ie", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
+  spmod1 <- suppressWarnings(spglm(abs(y) ~ x, "Gamma", exdata_Mpoly, spcov_type = "exponential", estmethod = "reml")) # coercion to POINT warning
+  spmod2 <- suppressWarnings(spglm(abs(y) ~ x, Gamma, exdata_Mpoly, spcov_type = "ie", estmethod = "reml")) # coercion to POINT warning
 
   # AIC
   expect_vector(AIC(spmod1))

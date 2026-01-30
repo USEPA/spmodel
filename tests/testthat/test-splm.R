@@ -333,8 +333,8 @@ test_that("generics work splm point data with missing", {
 test_that("generics work splm polygon data with missing", {
   load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
 
-  spmod1 <- splm(y ~ x, exdata_Mpoly, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
-  spmod2 <- splm(y ~ x, exdata_Mpoly, spcov_type = "none", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
+  spmod1 <- suppressWarnings(splm(y ~ x, exdata_Mpoly, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")) # # coercion to POINT warning and xcoord, ycoord warnings
+  spmod2 <- suppressWarnings(splm(y ~ x, exdata_Mpoly, spcov_type = "none", estmethod = "reml")) # # coercion to POINT warning
 
   # AIC
   expect_vector(AIC(spmod1))

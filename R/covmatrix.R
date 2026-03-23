@@ -64,6 +64,26 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
   }
 
   if (cov_type == "pred.pred") {
+
+    # add random effect levels to newdata (if needed)
+    if (!is.null(object$random)) {
+      randcov_vars <- all.vars(object$random)
+      for (x in randcov_vars) {
+        if (is.character(newdata[[x]])) {
+          newdata[[x]] <- factor(newdata[[x]], levels = levels(as.factor(object$obdata[[x]])))
+        }
+      }
+    }
+    # add partition factor levels to newdata (if needed)
+    if (!is.null(object$partition_factor)) {
+      partition_vars <- all.vars(object$partition_factor)
+      for (x in partition_vars) {
+        if (is.character(newdata[[x]])) {
+          newdata[[x]] <- factor(newdata[[x]], levels = levels(as.factor(object$obdata[[x]])))
+        }
+      }
+    }
+
     if (inherits(object$newdata, "sf")) {
       object$obdata <- sf_to_df(object$newdata)
     } else {

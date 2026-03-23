@@ -5,6 +5,10 @@
 * Improved efficiency of prediction using `splm(..., data)` and `spglm(..., data)` model objects having many random effect or partition factor levels in `newdata` that are not present in `data` .
 * Minor unit test updates.
 
+## Bug Fixes
+
+* Fixed a bug that occurred when calling `predict(object, newdata = newdata, block = TRUE, ...)` if at least one level of a random effect or partition factor from `data` (used to fit `object`) was not present in `newdata`.
+
 # spmodel 0.12.0
 
 ## Major Updates

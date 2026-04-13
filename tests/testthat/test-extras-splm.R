@@ -853,20 +853,20 @@ if (test_local) {
 
     # polygon data
     spcov_type <- "exponential"
-    expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "reml"), NA)
-    expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "ml"), NA)
-    expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
-    expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
+    expect_error(suppressWarnings(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "reml")), NA) # POINT warning
+    expect_error(suppressWarnings(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "ml")), NA)  # POINT warning
+    expect_error(suppressWarnings(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-wls")), NA)  # POINT warning
+    expect_error(suppressWarnings(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-cl")), NA)  # POINT warning
     spcov_type <- "none"
     expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "reml"), NA)
     expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "ml"), NA)
     expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
     expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
     spcov_type <- "matern"
-    expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "reml"), NA)
-    expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "ml"), NA)
-    expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
-    expect_error(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
+    expect_error(suppressWarnings(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "reml")), NA)  # POINT warning
+    expect_error(suppressWarnings(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "ml")), NA)  # POINT warning
+    expect_error(suppressWarnings(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-wls")), NA)  # POINT warning
+    expect_error(suppressWarnings(splm(y ~ x, exdata_poly, spcov_type = spcov_type, estmethod = "sv-cl")), NA)  # POINT warning
 
     # warning when geographic
     expect_warning(splm(y ~ x, exdata_sf_geo, spcov_type = spcov_type, estmethod = "reml"))

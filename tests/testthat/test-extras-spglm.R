@@ -104,15 +104,15 @@ if (test_local) {
 
   test_that("the model runs on other data sets", {
     expect_error(spglm(abs(y) ~ x, family = "Gamma", data = exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml"), NA)
-    expect_error(spglm(abs(y) ~ x, family = Gamma, data = exdata_poly, xcoord = xcoord, ycoord = ycoord, spcov_type = "matern", estmethod = "reml"), NA)
+    expect_error(suppressWarnings(spglm(abs(y) ~ x, family = Gamma, data = exdata_poly, xcoord = xcoord, ycoord = ycoord, spcov_type = "matern", estmethod = "reml")), NA) # POINT, xcoord, ycoord warnings
 
 
     # complicated models
     expect_error(spglm(abs(y) ~ x, family = "Gamma", data = exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~group, partition_factor = ~group, anisotropy = TRUE, local = TRUE), NA)
-    expect_error(spglm(abs(y) ~ x,
+    expect_error(suppressWarnings(spglm(abs(y) ~ x,
       family = Gamma, data = exdata_poly, xcoord = xcoord, ycoord = ycoord, spcov_type = "matern", estmethod = "reml",
       random = ~group, partition_factor = ~subgroup
-    ), NA)
+    )), NA) # POINT, xcoord, ycoord warnings
   })
 
 

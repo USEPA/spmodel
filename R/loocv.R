@@ -132,8 +132,29 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
     model_frame <- model.frame(object)
     y <- model.response(model_frame)
 
+
     extra_randcov_list <- get_extra_randcov_list(object, object$obdata, newdata = object$obdata)
     extra_partition_list <- get_extra_partition_list(object, object$obdata, newdata = object$obdata)
+
+
+
+    # add dummy level if necessary
+    ## random effect
+    if (!is.null(extra_randcov_list$Z_index_obdata_list)) {
+      for (x in names(extra_randcov_list$Z_index_obdata_list)) {
+        val <- extra_randcov_list$Z_index_obdata_list[[x]]$reform_bar2_xlev[[1]]
+        if (! "...this_is_a_new_level..." %in% val) {
+          extra_randcov_list$Z_index_obdata_list[[x]]$reform_bar2_xlev[[1]] <- c(val, "...this_is_a_new_level...")
+        }
+      }
+    }
+    ## partition factor
+    if (!is.null(extra_partition_list$partition_index_obdata)) {
+      val <- extra_partition_list$partition_index_obdata$reform_bar2_xlev[[1]]
+      if (! "...this_is_a_new_level..." %in% val) {
+        extra_partition_list$partition_index_obdata$reform_bar2_xlev[[1]] <- c(val, "...this_is_a_new_level...")
+      }
+    }
 
     if (local_list$parallel) {
       # turn of parallel as it is used different in predict

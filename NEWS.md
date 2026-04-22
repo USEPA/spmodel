@@ -9,6 +9,8 @@
 
 * Fixed a bug that occurred when calling `predict(object, newdata = newdata, block = TRUE, ...)` if at least one level of a random effect or partition factor from `data` (used to fit `object`) was not present in `newdata`.
 * Fixed a bug that occurred when calling `loocv(object, local = TRUE, ...)` if at least one level of a random effect or partition factor from `data` (used to fit `object`) was represented by only one observation in `data`. 
+* Fixed a bug that prevented proper centering by `offset` in `data` for prediction using `spglm(..., data)` and `spgautor(..., data)` model objects.
+* Fixed a bug that prevented adding `offset` to `splm()` model object fitted values when `spcov_type = "none"` or `class(spcov_initial) = "none"`.
 
 # spmodel 0.12.0
 

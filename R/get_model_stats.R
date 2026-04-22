@@ -185,6 +185,11 @@ get_model_stats_splm_iid <- function(cov_est_object, data_object, estmethod) {
     randcov = NULL
   )
 
+  # offset order
+  if (!is.null(data_object$offset)) {
+    fitted$response <- fitted$response + data_object$offset
+  }
+
 
   # return hat values
   hatvalues <- diag(X %*% tcrossprod(cor_betahat, X))

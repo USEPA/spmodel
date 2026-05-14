@@ -1,5 +1,9 @@
 # spmodel 0.12.1
 
+## Major Updates
+
+* Changed the default relative stopping tolerance (i.e., `reltol`) passed to `stats::optim(method = "Nelder-Mead", ...)` from `1e-4` to `1e-6`, affecting `splm()`, `spglm()`, `spautor()`, `spgautor()`, and `splmRF()` model objects. The intent of this change is to help prevent convergence to a local maximum that is not a global maximum. This change may affect default backwards compatibility of fitted models, depending on the shape of their objective function.
+
 ## Minor Updates
 
 * Improved efficiency of prediction using `splm(..., data)` and `spglm(..., data)` model objects having many random effect or partition factor levels in `newdata` that are not present in `data` .

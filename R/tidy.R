@@ -54,7 +54,7 @@ tidy.splm <- function(x, conf.int = FALSE,
       rownames = "term", .name_repair = "minimal"
       )
       colnames(ci) <- c("term", "conf.low", "conf.high")
-      result <- tibble::as_tibble(base::merge(result, ci, by = "term"), .name_repair = "minimal")
+      result <- tibble::as_tibble(base::merge(result, ci, by = "term", sort = FALSE), .name_repair = "minimal")
     }
   } else if (effects == "spcov") {
     spcoef <- coefficients(x, type = "spcov")
@@ -117,7 +117,7 @@ tidy.spautor <- function(x, conf.int = FALSE,
       rownames = "term", .name_repair = "minimal"
       )
       colnames(ci) <- c("term", "conf.low", "conf.high")
-      result <- tibble::as_tibble(base::merge(result, ci, by = "term"), .name_repair = "minimal")
+      result <- tibble::as_tibble(base::merge(result, ci, by = "term", sort = FALSE), .name_repair = "minimal")
     }
   } else if (effects == "spcov") {
     spcoef <- coefficients(x, type = "spcov")

@@ -91,12 +91,12 @@
 #'   specifying the partition factor.  The partition factor assumes observations
 #'   from different levels of the partition factor are uncorrelated.
 #' @param ordering The data ordering applied. Available options
-#'   include \code{"maxmin"}, \code{"grts"}, \code{"random"}, and \code{"xgboost"}.
+#'   include \code{"grts"}, \code{"maxmin"}, \code{"random"}, and \code{"xgboost"}.
+#'   \code{"grts"} applies ordering using a spatially balanced GRTS sample via \code{spsurvey::grts()}.
 #'   \code{"maxmin"} applies maximum minimum distance ordering via \code{GPvecchia::order_maxmin_exact()}.
-#'   \code{"maxmin"} applies ordering using a spatially balanced GRTS sample via \code{spsurvey::grts()}.
 #'   \code{"random"} applies a completely random ordering.
-#'   \code{"maxmin"} applies no random ordering.
-#'   The default is \code{"maxmin"}.
+#'   \code{"none"} applies no random ordering.
+#'   The default is \code{"grts"}.
 #' @param local A optional logical or list controlling the big data approximation.
 #'   If omitted, \code{local} is set
 #'   to \code{TRUE} or \code{FALSE} based on the sample size (the number of
@@ -225,7 +225,7 @@
 #' @examples
 #' decorr <- decorrelate(log_cond ~ temp, data = lake, spcov_type = "exponential")
 #' decorr$grid
-decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", statistic = "rmspe", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering = "maxmin", local, grid, ...) {
+decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", statistic = "rmspe", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering = "grts", local, grid, ...) {
 
   # set exponential as default if nothing specified
   if (missing(spcov_type) && missing(spcov_params)) {

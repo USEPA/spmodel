@@ -12,7 +12,7 @@ decorrelate_data(
   ycoord,
   randcov_params,
   partition_factor,
-  ordering = "maxmin",
+  ordering = "grts",
   local,
   ...
 )
@@ -47,12 +47,12 @@ specifying the partition factor.  The partition factor assumes observations
 from different levels of the partition factor are uncorrelated.}
 
 \item{ordering}{The data ordering applied. Available options
-include \code{"maxmin"}, \code{"grts"}, \code{"random"}, and \code{"xgboost"}.
+include \code{"grts"}, \code{"maxmin"}, \code{"random"}, and \code{"xgboost"}.
+\code{"grts"} applies ordering using a spatially balanced GRTS sample via \code{spsurvey::grts()}.
 \code{"maxmin"} applies maximum minimum distance ordering via \code{GPvecchia::order_maxmin_exact()}.
-\code{"maxmin"} applies ordering using a spatially balanced GRTS sample via \code{spsurvey::grts()}.
 \code{"random"} applies a completely random ordering.
-\code{"maxmin"} applies no random ordering.
-The default is \code{"maxmin"}.}
+\code{"none"} applies no random ordering.
+The default is \code{"grts"}.}
 
 \item{local}{A optional logical or list controlling the big data approximation.
 If omitted, \code{local} is set

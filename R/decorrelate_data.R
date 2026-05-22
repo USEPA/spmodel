@@ -35,7 +35,7 @@
 #' decorr <- decorrelate_data(log_cond ~ temp, data = lake, spcov_params = params)
 #' head(cbind(decorr$X, decorr$tX))
 #' head(cbind(decorr$y, decorr$ty))
-decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
+decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering = "grts", local, ...) {
 
   if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
     anisotropy <- TRUE

@@ -12,6 +12,7 @@ decorrelate(
   xcoord,
   ycoord,
   algorithm = "ranger",
+  statistic = "rmspe",
   training,
   evaluate_test,
   anisotropy = FALSE,
@@ -20,6 +21,7 @@ decorrelate(
   partition_factor,
   ordering = "maxmin",
   local,
+  grid,
   ...
 )
 }
@@ -64,6 +66,11 @@ include \code{"ranger"}, \code{"randomForest"}, and \code{"xgboost"}.
 \code{"ranger"} specifies a random forest via \code{\link[ranger:ranger]{ranger::ranger()}}.
 \code{"randomForest"} specifies a random forest via \code{\link[randomForest:randomForest]{randomForest::randomForest()}}.
 \code{"xgboost"} specifies a boosted decision tree ensemble via \code{\link[xgboost:xgboost]{xgboost::xgboost()}}.}
+
+\item{statistic}{The statistic used to evaluate fit in the test data. Available options
+include \code{"rmspe"} (root-mean-squared-prediction error), \code{"medae"}
+(median absolute error), and \code{"cor2"} (the predictive R-squared; i.e., the
+squared correlation between observations and predictions).}
 
 \item{training}{An list controlling how the training and test data are assigned
 when evaluating test data performance.
@@ -161,6 +168,9 @@ initialize default arguments for the other list elements.
 If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 that \code{local} is transformed into
 \code{list(size = 30, method = "covariance", parallel = FALSE)}.}
+
+\item{grid}{An explicit grid of parameter values by which to evaluate fit. The
+names of \code{grid} must contain all the names returned by \code{decorrelate_grid(formula, data, ...)}.}
 
 \item{...}{Other arguments to the functions called by \code{algorithm}.}
 }

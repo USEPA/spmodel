@@ -38,6 +38,10 @@
 #'   \code{"ranger"} specifies a random forest via [ranger::ranger()].
 #'   \code{"randomForest"} specifies a random forest via [randomForest::randomForest()].
 #'   \code{"xgboost"} specifies a boosted decision tree ensemble via [xgboost::xgboost()].
+#' @param statistic The statistic used to evaluate fit in the test data. Available options
+#'   include \code{"rmspe"} (root-mean-squared-prediction error), \code{"medae"}
+#'   (median absolute error), and \code{"cor2"} (the predictive R-squared; i.e., the
+#'   squared correlation between observations and predictions).
 #' @param training An list controlling how the training and test data are assigned
 #'   when evaluating test data performance.
 #'   The following arguments detail this process:
@@ -127,6 +131,8 @@
 #'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 #'   that \code{local} is transformed into
 #'   \code{list(size = 30, method = "covariance", parallel = FALSE)}.
+#' @param grid An explicit grid of parameter values by which to evaluate fit. The
+#'   names of \code{grid} must contain all the names returned by \code{decorrelate_grid(formula, data, ...)}.
 #' @param ... Other arguments to the functions called by \code{algorithm}.
 #'
 #' @details The spatial decorrelation transformation is a preprocessing transformation
@@ -219,13 +225,15 @@
 #' @examples
 #' decorr <- decorrelate(log_cond ~ temp, data = lake, spcov_type = "exponential")
 #' decorr$grid
-decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
+decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", statistic = "rmspe", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering = "maxmin", local, grid, ...) {
 
   # set exponential as default if nothing specified
   if (missing(spcov_type) && missing(spcov_params)) {
     spcov_type <- "exponential"
     message("No spatial covariance type provided. Assuming \"exponential\".")
   }
+
+  if (! statistic %in% c("rmspe", "medae", "cor2")) stop("statistic must be \"rmspe\", \"medae\", or \"cor2\".", call. = FALSE)
 
   if (!missing(spcov_type) && length(spcov_type) > 1) {
     if (missing(training)) training <- list()
@@ -250,6 +258,9 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
   if (missing(local)) local <- NULL
   if (missing(training)) training <- NULL
   if (missing(evaluate_test)) evaluate_test <- FALSE
+  if (missing(grid)) grid <- NULL
+
+  # write a decorrelate_checks()?
 
   # store NA values in newdata
   # all training_index and test_index values correspond to the
@@ -268,8 +279,6 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
   }
   if (evaluate_test) {
 
-    # if (missing(spcov_type)) spcov_type <- "exponential"
-
     init <- decorrelate_initial_search(
       formula = formula,
       data = data,
@@ -278,6 +287,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
       xcoord,
       ycoord,
       algorithm = algorithm,
+      statistic = statistic,
       training = training,
       anisotropy = anisotropy,
       random = random,
@@ -285,6 +295,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
       partition_factor = partition_factor,
       ordering = ordering,
       local = local,
+      grid = grid,
       ...
     )
     spcov_params <- init$spcov_params
@@ -293,11 +304,15 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
     training_index <- init$training$training_index
     test_index <- init$training$test_index
     test_rmspe <- init$test_rmspe
+    test_medae <- init$test_medae
+    test_cor2 <- init$test_cor2
   } else {
     grid <- NULL
     training_index <- NULL
     test_index <- NULL
     test_rmspe <- NULL
+    test_medae <- NULL
+    test_cor2 <- NULL
   }
 
   decorr <- decorrelate_data_internal(
@@ -323,7 +338,9 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
     newdata = newdata,
     test_index = test_index,
     training_index = training_index,
-    test_rmspe = test_rmspe
+    test_rmspe = test_rmspe,
+    test_medae = test_medae,
+    test_cor2 = test_cor2
   )
   new_obj <- structure(obj, class = "decorrelate")
   new_obj

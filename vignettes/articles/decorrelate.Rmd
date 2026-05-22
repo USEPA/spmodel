@@ -1,5 +1,5 @@
 ---
-title: "The Spatial Decorrelation Transformation for Machine and Deep Learning Models"
+title: "The Spatial Decorrelation Transformation for Machine Learning Models"
 author: "Michael Dumelle, Matt Heaton, and Ryan A. Hill"
 bibliography: '`r system.file("references.bib", package="spmodel")`'
 output:
@@ -24,7 +24,7 @@ library(ranger)
 
 `spmodel` is a **R** package used to fit, summarize, and
 predict for a variety of spatial statistical models. This vignette
-explores tools for a spatial decorrelation transformation that can be applied as a preprocessing step for machine and deep learning models like random forests. The spatial decorrelation works by first decorrelating the data by removing spatial covariance (i.e., correlation, dependence). These decorrelated data are used to fit a machine learning model and use it to make predictions of new observations. These predictions are then adjusted by recorrelating the data by adding back in the original spatial covariance. This approach is flexible and can accommodate any machine learning model, as the decorrelation and recorrelation steps happen separately from the machine learning modeling. The spatial decorrelation transformation can significantly improve a machine learning model's inferential and predictive capacity by formally incorporating spatial covariance into the model building process [@heaton2025adjusting].
+explores tools for a spatial decorrelation transformation that can be applied as a preprocessing step for machine learning models like random forests [@breiman2001random]. The spatial decorrelation works by first decorrelating the data by removing spatial covariance (i.e., correlation, dependence). These decorrelated data are used to fit a machine learning model and use it to make predictions of new observations. These predictions are then adjusted by recorrelating the data by adding back in the original spatial covariance. This approach is flexible and can accommodate any machine learning model, as the decorrelation and recorrelation steps happen separately from the machine learning modeling. The spatial decorrelation transformation can significantly improve a machine learning model's inferential and predictive capacity by formally incorporating spatial covariance into the model building process [@heaton2025adjusting].
 
 Before proceeding, we load  `spmodel`, `sf`, `ggplot2`, and `ranger`:
 ```{r, eval = FALSE}
@@ -119,9 +119,23 @@ The grid element whose parameters yield the lowest root-mean-squared-prediction 
 
 ## Prediction Using `predict()`
 
+Like other models in `spmodel`, we can make predictions at unobserved locations using `predict()`:
+```{r}
+lake_preds$preds <- predict(decorr_mod, newdata = lake_preds)
+```
 
+The log conductivity predictions closely resemble patterns from the observed lakes:
+```{r}
+ggplot() +
+  geom_sf(data = lake, aes(color = log_cond)) +
+  geom_sf(data = lake_preds, aes(color = preds), shape = 17, size = 5) +
+  scale_color_viridis_c() +
+  theme_bw(base_size = 14)
+```
 
 ## Comparing to a Standard (Independent) Random Forest
+
+We can evaluate performance of the spatial decorrelation transformation relative to an standard (i.e., independent) random forest. We refit `decorr_mod` using the first 60 rows as training data and the subsequent 42 rows as test data:
 
 ```{r}
 decorr_mod <- decorrelate(
@@ -130,51 +144,40 @@ decorr_mod <- decorrelate(
   spcov_type = "exponential",
   training = list(training_index = seq(1, 60))
 )
-decorr_mod$training_index
-decorr_mod$test_index
 ```
 
+
+Then we fit a standard random forest by specifying `spcov_type = "none"`:
 ```{r}
 rf_mod <- decorrelate(
   formula = log_cond ~ temp,
   data = lake,
-  spcov_type = "none"
+  spcov_type = "none",
+  training = list(training_index = seq(1, 60))
 )
+```
 
-rf_mod$test_rmspe
+The decorrelated random forest has much lower RMSPE in the test data set.
+```{r}
 decorr_mod$test_rmspe
+rf_mod$test_rmspe
 ```
 
 ## Additional Features
 
+Like other `spmodel` functions, `decorrelate()` accepts various additional arguments (see `?decorrelate` for a list). Here, we fit an exponential spatial decorrelation transformation with a random effect for lake origin (human-made versus naturally occurring) using the xgboost algorithm [@chen2025xgboost] to fit the model and predictive R-squared (`cor2`) to evaluate the model.
 ```{r}
 decorr_mod <- decorrelate(
   formula = log_cond ~ temp,
   data = lake,
   spcov_type = "exponential",
-  algorithm = "xgboost"
-)
-```
-
-
-```{r}
-decorr_mod <- decorrelate(
-  formula = log_cond ~ temp,
-  data = lake,
-  spcov_type = "exponential",
+  algorithm = "xgboost",
+  statistic = "cor2",
   random = ~ origin
 )
 ```
 
-
-```{r}
-decorr_mod <- decorrelate(
-  formula = log_cond ~ temp,
-  data = lake,
-  spcov_type = "exponential",
-  local = TRUE
-)
-```
+The `local` argument is used to implement the big data approximation described by @heaton2025adjusting.
 
 # Building Your Own Spatial Decorrelation Transformation
 
@@ -201,11 +204,9 @@ NROW(lake_train)
 NROW(lake_test)
 ```
 
-# The Spatial Decorrelation Transformation2
+## Step 2: Apply The Spatial Decorrelation Transformation
 
 The spatial decorrelation works by first decorrelating the data by removing spatial covariance (i.e., correlation, dependence). These decorrelated data are used to fit a machine learning model and use it to make predictions of new observations. These predictions are then adjusted by recorrelating the data by adding back in the original spatial covariance. This approach is flexible and can accommodate any machine learning model, as the decorrelation and recorrelation steps happen separately from the machine learning modeling. We first explore how the spatial decorrelation transformation works for a fixed set of spatial covariance parameters. We then show how to relax this assumption and actually estimate unknown spatial covariance parameters using a grid search.
-
-## Assuming Parameters are Known
 
 Suppose we had some prior information which led us to assume the response variable's true spatial covariance was an exponential type with a spatially dependent variance of 1.2, a range of 200,000 meters (200km), and an independent variance of 0.2. Let's store this as an `spcov_params` object:
 ```{r}
@@ -237,6 +238,8 @@ tlake_train <- decorrelate_data(
 )
 ```
 
+## Step 3: Fit a Machine Learning Model to the Decorrelated Data
+
 At this stage, we can fit a machine learning model to the decorrelated data. Here, we will fit a random forest using the `ranger` **R** package [@wright2015ranger]. We will pass to `ranger` the decorrelated explanatory variable matrix to the `x` argument and the decorrelated response variable to the `y` argument:
 ```{r}
 rfmod <- ranger(x = tlake_train$tX, y = tlake_train$ty)
@@ -249,6 +252,8 @@ rfmod_imp <- update(rfmod, importance = "impurity")
 ranger::importance(rfmod_imp)
 ```
 
+## Step 4: Use the Machine Learning Model to Evaluate Prediction Performance for the Test Data
+
 Before using `rfmod` to make predictions for the test data, we must decorrelate the explanatory variable in the test data using `decorrelate_newdata()` so they are on the same scale as the decorrelated training data:
 ```{r}
 tlake_test <- decorrelate_newdata(tlake_train, newdata = lake_test)
@@ -260,13 +265,13 @@ rf_tpreds <- predict(rfmod, data = tlake_test$tX_newdata)$predictions
 sp_decorr_preds <- recorrelate_newdata(tlake_test, rf_tpreds)
 ```
 
-We can evaluate the accuracy of our predictions using metrics like root-mean-squared-prediction error (RMSPE) and predictive $R^2$:
+We can evaluate the accuracy of our predictions using metrics like root-mean-squared-prediction error (RMSPE), median absolute error, and predictive $R^2$:
 ```{r}
-get_rmspe_cor2 <- function(y, preds) {
+get_metrics <- function(y, preds) {
   errors <- y - preds
-  c("rmspe" = sqrt(mean(errors^2)), "cor2" = cor(y, preds)^2)
+  c("rmspe" = sqrt(mean(errors^2)), "medae" = median(abs(errors)), "cor2" = cor(y, preds)^2)
 }
-decorr_metrics <- get_rmspe_cor2(lake_test$log_cond, sp_decorr_preds)
+decorr_metrics <- get_metrics(lake_test$log_cond, sp_decorr_preds)
 print(decorr_metrics)
 ```
 
@@ -300,6 +305,7 @@ We can then apply the spatial decorrelation transformation to each element of th
 y <- lake_test$log_cond
 n_grid <- NROW(grid)
 grid$rmspe <- rep(0, n_grid)
+grid$medae <- rep(0, n_grid)
 grid$cor2 <- rep(0, n_grid)
 for (i in seq(1, n_grid)) {
   grid_row <- grid[i, ]
@@ -316,6 +322,7 @@ for (i in seq(1, n_grid)) {
   sp_decorr_preds <- recorrelate_newdata(tlake_test, rf_tpreds)
   errors <- y - sp_decorr_preds
   grid$rmspe[i] <-  sqrt(mean(errors^2))
+  grid$medae[i] <- median(abs(errors))
   grid$cor2[i] <- cor(sp_decorr_preds, y)^2
 }
 grid
@@ -369,24 +376,19 @@ The we fit a random forest model to the training data, predict log conductivity 
 ```{r}
 indrfmod <- ranger(form, data = lake_train_df)
 indrf_preds <- predict(indrfmod, data = lake_test_df)$predictions
-indrf_metrics <- get_rmspe_cor2(lake_test$log_cond, indrf_preds)
+indrf_metrics <- get_metrics(lake_test$log_cond, indrf_preds)
 ```
 
-Similarly, we fit a spatial residual model [@fox2020comparing] to the training data, predict log conductivity in the test data, and compute RMSPE and predictive $R^2$:
-```{r}
-splmRFmod <- splmRF(form, data = lake_train, spcov_type = "exponential")
-splmRF_preds <- predict(splmRFmod, newdata = lake_test)
-splmRF_metrics <- get_rmspe_cor2(lake_test$log_cond, splmRF_preds)
-```
 
 Comparing the three approaches reveals that the spatial decorrelation transformation has the lowest (best) RMSPE and highest (best) predictive $R^2$, followed by, unsurprisingly, the spatial residual random forest and finally by the independent (standard) random forest:
 ```{r}
 dat <- data.frame(
-  method = c("decorr", "indrf", "splmRF"),
-  rmspe = c(best_rmspe_row[["rmspe"]], indrf_metrics[["rmspe"]], splmRF_metrics[["rmspe"]]),
-  cor2 = c(best_rmspe_row[["cor2"]], indrf_metrics[["cor2"]], splmRF_metrics[["cor2"]])
+  method = c("decorr", "indrf"),
+  rmspe = c(best_rmspe_row[["rmspe"]], indrf_metrics[["rmspe"]]),
+  medae = c(best_rmspe_row[["medae"]], indrf_metrics[["medae"]]),
+  cor2 = c(best_rmspe_row[["cor2"]], indrf_metrics[["cor2"]])
 )
-dat[order(dat$rmspe), ]
+dat
 ```
 
 ## Predicting at Unobserved Lakes 

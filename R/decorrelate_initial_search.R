@@ -1,13 +1,14 @@
-decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm, training, anisotropy, random, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
+decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm, statistic, training, anisotropy, random, randcov_params, partition_factor, ordering = "maxmin", local, grid, ...) {
 
 
   training_list <- get_training_list(training, data)
   data_training <- data[training_list$training_index, , drop = FALSE]
   data_test <- data[training_list$test_index, , drop = FALSE]
-  yname <- as.character(attributes(terms(formula))$variables[[2]])
+  # yname <- as.character(attributes(terms(formula))$variables[[2]])
+  yval <- model.response(model.frame(formula, data = data_test))
 
 
-  grid <- decorrelate_grid_internal(
+  grid_compare <- decorrelate_grid_internal(
     formula = formula,
     data = data_training,
     spcov_type = spcov_type,
@@ -18,11 +19,12 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
     random = random,
     randcov_params = randcov_params
   )
-
-  # if (!anisotropy) {
-  #   grid$rotate <- 0
-  #   grid$scale <- 1
-  # }
+  if (is.null(grid)) {
+    grid <- grid_compare
+  } else {
+    if (any(! names(grid_compare) %in% names(grid))) stop("Invalid grid column names. Column names in grid must contain all column names returned by decorrelate_grid(formula, data, ...).", call. = FALSE)
+    grid <- grid[, names(grid) %in% names(grid_compare), drop = FALSE]
+  }
 
   params_list <- lapply(seq(1, NROW(grid)), function(x) {
     x <- grid[x, ]
@@ -78,16 +80,33 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
     tdata_test <- decorrelate_newdata(tdata_training, newdata = data_test)
     preds <- predict_decorrelate_algorithm(fit, tdata_test, algorithm, ...)
     sp_decorr_preds <- recorrelate_newdata(tdata_test, preds)
-    errors <- data_test[[yname]] - sp_decorr_preds
+    errors <- yval - sp_decorr_preds
     rmspe <- sqrt(mean(errors^2))
-    rmspe
+    medae <- median(abs(errors))
+    cor2 <- cor(yval, sp_decorr_preds)^2
+    list(rmspe = rmspe, medae = medae, cor2 = cor2)
   })
-  grid$rmspe <- unlist(out)
-  min_rmspe <- which.min(grid$rmspe)
-  test_rmspe <- grid$rmspe[min_rmspe]
-  spcov_params_val <- params_list[[min_rmspe]]$spcov_params
-  randcov_params_val <- params_list[[min_rmspe]]$randcov_params
-  grid <- grid[order(grid$rmspe), , drop = FALSE]
+  grid$rmspe <- unlist(lapply(out, function(x) x$rmspe))
+  grid$medae <- unlist(lapply(out, function(x) x$medae))
+  grid$cor2 <- unlist(lapply(out, function(x) x$cor2))
+  if (statistic == "cor2") {
+    best_val <- which.max(grid[[statistic]])
+  } else {
+    best_val <- which.min(grid[[statistic]])
+  }
+
+  test_rmspe <- grid$rmspe[best_val]
+  test_medae <- grid$medae[best_val]
+  test_cor2 <- grid$cor2[best_val]
+  spcov_params_val <- params_list[[best_val]]$spcov_params
+  randcov_params_val <- params_list[[best_val]]$randcov_params
+
+  if (statistic == "cor2") {
+    grid <- grid[order(grid[[statistic]], decreasing = TRUE), , drop = FALSE]
+  } else {
+    grid <- grid[order(grid[[statistic]]), , drop = FALSE]
+  }
   row.names(grid) <- NULL
-  list(spcov_params = spcov_params_val, randcov_params = randcov_params_val, grid = grid, training = training_list, test_rmspe = test_rmspe)
+
+  list(spcov_params = spcov_params_val, randcov_params = randcov_params_val, grid = grid, training = training_list, test_rmspe = test_rmspe, test_medae = test_medae, test_cor2 = test_cor2)
 }

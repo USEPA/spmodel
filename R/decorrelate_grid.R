@@ -32,9 +32,11 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
 
   # find sets of starting values
   ## de
-  de <- c(0.1, 0.5, 0.9)
+  # de <- c(0.1, 0.5, 0.9)
+  de <- c(0, 0.25, 0.5, 0.75, 1)
   ## ie
-  ie <- c(0.1, 0.5, 0.9)
+  # ie <- c(0.1, 0.5, 0.9)
+  ie <- c(0, 0.25, 0.5, 0.75, 1)
   ## range
   # non standard evaluation for x and y coordinates
   xcoord <- substitute(xcoord)
@@ -62,9 +64,11 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
   ## anisotropy
   if (anisotropy) {
     ## rotate
-    rotate <- c(0, 30 * pi / 180, 60 * pi / 180)
+    # rotate <- c(0, 30 * pi / 180, 60 * pi / 180)
+    rotate <- c(0, 45, 90, 135) * pi / 180
     ## scale
-    scale <- c(0.25, 0.75, 1)
+    # scale <- c(0.25, 0.75, 1)
+    scale <- c(0.5, 1)
   } else {
     ## rotate
     rotate <- 0
@@ -83,11 +87,12 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
   spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
   spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
 
-  if (anisotropy) {
-    # anisotropy rotation does not matter with scale parameter of one
-    spcov_grid$rotate[spcov_grid$scale == 1] <- 0
-  }
-
+  # change range to Inf for independence
+  spcov_grid$range[spcov_grid$de == 0] <- Inf
+  # set scale to one
+  spcov_grid$scale[spcov_grid$de == 0] <- 1
+  # anisotropy correction
+  spcov_grid$rotate[spcov_grid$scale == 1] <- 0
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid
@@ -124,9 +129,8 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
 
     # random dominated grid
     ## spatial component 10%
-    # randcov_grid_spcov <- spcov_grid_init[spcov_grid_init$de == spcov_grid_init$ie & spcov_grid_init$range == min(spcov_grid_init$range), , drop = FALSE]
     ## include all range parameter values for decorrelate grid search
-    randcov_grid_spcov <- spcov_grid_init[spcov_grid_init$de == spcov_grid_init$ie, , drop = FALSE]
+    randcov_grid_spcov <- spcov_grid_init[spcov_grid_init$de == spcov_grid_init$ie & spcov_grid_init$range == min(spcov_grid_init$range), , drop = FALSE]
     randcov_grid_spcov[, c("de", "ie")] <- 0.1 * randcov_grid_spcov[, c("de", "ie")]
 
     # random dominant grid
@@ -173,6 +177,7 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
     cov_grid$scale <- 1
     anisotropy <- FALSE
   }
+  cov_grid$spcov_type[cov_grid$de == 0] <- "none"
   # if (!anisotropy) {
   #   remove_cols <- which(names(cov_grid) %in% c("rotate", "scale"))
   #   cov_grid <- cov_grid[, -remove_cols, drop = FALSE]
@@ -222,9 +227,11 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
 
   # find sets of starting values
   ## de
-  de <- c(0.1, 0.5, 0.9)
+  # de <- c(0.1, 0.5, 0.9)
+  de <- c(0, 0.25, 0.5, 0.75, 1)
   ## ie
-  ie <- c(0.1, 0.5, 0.9)
+  # ie <- c(0.1, 0.5, 0.9)
+  ie <- c(0, 0.25, 0.5, 0.75, 1)
   ## range
   # non standard evaluation for x and y coordinates
   # substitute only works when the function is the parent function, so commenting
@@ -254,9 +261,11 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
   ## anisotropy
   if (anisotropy) {
     ## rotate
-    rotate <- c(0, 30 * pi / 180, 60 * pi / 180)
+    # rotate <- c(0, 30 * pi / 180, 60 * pi / 180)
+    rotate <- c(0, 45, 90, 135) * pi / 180
     ## scale
-    scale <- c(0.25, 0.75, 1)
+    # scale <- c(0.25, 0.75, 1)
+    scale <- c(0.5, 1)
   } else {
     ## rotate
     rotate <- 0
@@ -275,11 +284,12 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
   spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
   spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
 
-  if (anisotropy) {
-    # anisotropy rotation does not matter with scale parameter of one
-    spcov_grid$rotate[spcov_grid$scale == 1] <- 0
-  }
-
+  # change range to Inf for independence
+  spcov_grid$range[spcov_grid$de == 0] <- Inf
+  # set scale to one
+  spcov_grid$scale[spcov_grid$de == 0] <- 1
+  # anisotropy correction
+  spcov_grid$rotate[spcov_grid$scale == 1] <- 0
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid
@@ -316,9 +326,8 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
 
     # random dominated grid
     ## spatial component 10%
-    # randcov_grid_spcov <- spcov_grid_init[spcov_grid_init$de == spcov_grid_init$ie & spcov_grid_init$range == min(spcov_grid_init$range), , drop = FALSE]
     ## include all range parameter values for decorrelate grid search
-    randcov_grid_spcov <- spcov_grid_init[spcov_grid_init$de == spcov_grid_init$ie, , drop = FALSE]
+    randcov_grid_spcov <- spcov_grid_init[spcov_grid_init$de == spcov_grid_init$ie & spcov_grid_init$range == min(spcov_grid_init$range), , drop = FALSE]
     randcov_grid_spcov[, c("de", "ie")] <- 0.1 * randcov_grid_spcov[, c("de", "ie")]
 
     # random dominant grid
@@ -365,6 +374,7 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
     cov_grid$scale <- 1
     anisotropy <- FALSE
   }
+  cov_grid$spcov_type[cov_grid$de == 0] <- "none"
   # if (!anisotropy) {
   #   remove_cols <- which(names(cov_grid) %in% c("rotate", "scale"))
   #   cov_grid <- cov_grid[, -remove_cols, drop = FALSE]

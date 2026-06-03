@@ -39,8 +39,9 @@
 #'   \code{"randomForest"} specifies a random forest via [randomForest::randomForest()].
 #'   \code{"xgboost"} specifies a boosted decision tree ensemble via [xgboost::xgboost()].
 #' @param statistic The statistic used to evaluate fit in the test data. Available options
-#'   include \code{"rmspe"} (root-mean-squared-prediction error), \code{"medae"}
-#'   (median absolute error), and \code{"cor2"} (the predictive R-squared; i.e., the
+#'   include \code{"bias"} (mean bias), \code{"MSPE"} (mean-squared-prediction error),
+#'    \code{"RMSPE"} (root-mean-squared-prediction error)
+#'   and \code{"cor2"} (the predictive R-squared; i.e., the
 #'   squared correlation between observations and predictions).
 #' @param training An list controlling how the training and test data are assigned
 #'   when evaluating test data performance.
@@ -50,8 +51,8 @@
 #'      Currently, the only option is \code{"split"}, which splits \code{data} up
 #'      into distinct training and test sets.
 #'    \item \code{prop}: The proportion (a numeric vector between zero and one) of observations in \code{data} that should
-#'      be assigned to the training data. The default is 0.75, which means that
-#'      75\% of the observations are assigned to the training data and 25% to the
+#'      be assigned to the training data. The default is 0.7, which means that
+#'      70\% of the observations are assigned to the training data and 30% to the
 #'      test data. Ignored if \code{training_index} or \code{test_index} are provided.
 #'    \item \code{training_index}: A numeric vector that specifies which rows (i.e., indices)
 #'      of \code{data} should be assigned to the training data. If omitted, defaults
@@ -61,7 +62,7 @@
 #'      to the rows which are not already included in \code{training_index}.
 #'   }
 #'   If omitted, \code{training} is transformed into
-#'   \code{list(method = "split", prop = 0.75)}.
+#'   \code{list(method = "split", prop = 0.70)}.
 #' @param evaluate_test A logical indicating whether a grid should be constructed
 #'   and evaluated when spatial decorrelation parameters are known (i.e.,
 #'   \code{spcov_params} is specified, and, if random effects are included, \code{randcov_params} is specified).
@@ -91,9 +92,14 @@
 #'   specifying the partition factor.  The partition factor assumes observations
 #'   from different levels of the partition factor are uncorrelated.
 #' @param ordering The data ordering applied. Available options
-#'   include \code{"grts"}, \code{"maxmin"}, \code{"random"}, and \code{"xgboost"}.
+#'   include \code{"grts"}, \code{"maxmin"}, \code{"middleout"},
+#'   \code{"outsidein"}, \code{"coordinate"}, \code{"random"}, and \code{"none"}.
 #'   \code{"grts"} applies ordering using a spatially balanced GRTS sample via \code{spsurvey::grts()}.
 #'   \code{"maxmin"} applies maximum minimum distance ordering via \code{GPvecchia::order_maxmin_exact()}.
+#'   \code{"middleout"} applies middle out ordering via \code{GPvecchia::order_middleout()}.
+#'   \code{"outsidein"} applies middle out ordering via \code{GPvecchia::order_outsidein()}.
+#'   \code{"coordinate"} applies middle out ordering via \code{GPvecchia::order_coordinate(..., coordinate = c(1, 2))},
+#'   which orders from bottom-left to top-right of the spatial domain.
 #'   \code{"random"} applies a completely random ordering.
 #'   \code{"none"} applies no random ordering.
 #'   The default is \code{"grts"}.
@@ -209,11 +215,14 @@
 #'     \item \code{decorrelate_data}: The output of [decorrelate_data()] applied to \code{data}.
 #'     \item \code{fit}: The fitted machine learning model object applied to the decorrelated data.
 #'     \item \code{grid}: If used, the grid of spatial decorrelation parameters evaluated and their corresponding
-#'       root-mean-squared-prediction error (rmspe) when applied to the test data.
+#'       metrics when applied to the test data.
 #'     \item \code{newdata}: The rows of \code{data} that have \code{NA} response values and are stored as prediction data.
 #'     \item \code{training_index}: If used, the observed rows (i.e., indices) in \code{data} that were assigned to the training data.
 #'     \item \code{test_index}: If used, the observed rows (i.e., indices) in \code{data} that were assigned to the test data.
-#'     \item \code{test_rmspe}: If used, the lowest test data root-mean-squared-prediction error.
+#'     \item \code{test_bias}: If used, the lowest (absolute) mean bias.
+#'     \item \code{test_MSPE}: If used, the lowest test data mean-squared-prediction error.
+#'     \item \code{test_RMSPE}: If used, the lowest test data root-mean-squared-prediction error.
+#'     \item \code{test_cor2}: If used, the highest test data predictive R-squared.
 #'   }
 #'
 #' @export
@@ -225,7 +234,7 @@
 #' @examples
 #' decorr <- decorrelate(log_cond ~ temp, data = lake, spcov_type = "exponential")
 #' decorr$grid
-decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", statistic = "rmspe", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering = "grts", local, grid, ...) {
+decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", statistic = "RMSPE", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering = "grts", local, grid, ...) {
 
   # set exponential as default if nothing specified
   if (missing(spcov_type) && missing(spcov_params)) {
@@ -233,7 +242,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
     message("No spatial covariance type provided. Assuming \"exponential\".")
   }
 
-  if (! statistic %in% c("rmspe", "medae", "cor2")) stop("statistic must be \"rmspe\", \"medae\", or \"cor2\".", call. = FALSE)
+  if (! statistic %in% c("bias", "MSPE", "RMSPE", "cor2")) stop("statistic must be \"bias\", \"MSPE\", \"RMSPE\" or \"cor2\".", call. = FALSE)
 
   if (!missing(spcov_type) && length(spcov_type) > 1) {
     if (missing(training)) training <- list()
@@ -303,15 +312,17 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
     grid <- init$grid
     training_index <- init$training$training_index
     test_index <- init$training$test_index
-    test_rmspe <- init$test_rmspe
-    test_medae <- init$test_medae
+    test_bias <- init$test_bias
+    test_MSPE <- init$test_MSPE
+    test_RMSPE <- init$test_RMSPE
     test_cor2 <- init$test_cor2
   } else {
     grid <- NULL
     training_index <- NULL
     test_index <- NULL
-    test_rmspe <- NULL
-    test_medae <- NULL
+    test_bias <- NULL
+    test_MSPE <- NULL
+    test_RMSPE <- NULL
     test_cor2 <- NULL
   }
 
@@ -338,8 +349,9 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
     newdata = newdata,
     test_index = test_index,
     training_index = training_index,
-    test_rmspe = test_rmspe,
-    test_medae = test_medae,
+    test_bias = test_bias,
+    test_MSPE = test_MSPE,
+    test_RMSPE = test_RMSPE,
     test_cor2 = test_cor2
   )
   new_obj <- structure(obj, class = "decorrelate")
@@ -400,7 +412,7 @@ predict_decorrelate_algorithm <- function(decorrelate_data, tdata_test, algorith
 get_training_list <- function(training, data) {
 
   if (is.null(training)) {
-    training <- list(method = "split", prop = 0.75)
+    training <- list(method = "split", prop = 0.7)
   }
 
   if (!is.list(training)) {
@@ -414,7 +426,7 @@ get_training_list <- function(training, data) {
   }
 
   if (!"prop" %in% names_training) {
-    training$prop <- 0.75
+    training$prop <- 0.7
   }
 
   if (!"training_index" %in% names_training && !"test_index" %in% names_training) {

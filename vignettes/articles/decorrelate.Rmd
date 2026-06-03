@@ -159,8 +159,8 @@ rf_mod <- decorrelate(
 
 The decorrelated random forest has much lower RMSPE in the test data set.
 ```{r}
-decorr_mod$test_rmspe
-rf_mod$test_rmspe
+decorr_mod$test_RMSPE
+rf_mod$test_RMSPE
 ```
 
 ## Additional Features
@@ -192,7 +192,7 @@ n <- NROW(lake)
 # creating an index that corresponds with the row position of each datum
 index <- seq(from = 1, to = n)
 # setting the size of the training data
-n_train <- floor(0.75 * n)
+n_train <- floor(0.7 * n)
 # randomly generating the indices in lake that are assigned to the training data
 train_index <- sample(index, size = n_train)
 # creating the training data
@@ -269,7 +269,7 @@ We can evaluate the accuracy of our predictions using metrics like root-mean-squ
 ```{r}
 get_metrics <- function(y, preds) {
   errors <- y - preds
-  c("rmspe" = sqrt(mean(errors^2)), "medae" = median(abs(errors)), "cor2" = cor(y, preds)^2)
+  c("bias" = mean(errors), "MSPE" = mean(errors^2), "RMSPE" = sqrt(mean(errors^2)), "cor2" = cor(y, preds)^2)
 }
 decorr_metrics <- get_metrics(lake_test$log_cond, sp_decorr_preds)
 print(decorr_metrics)
@@ -304,8 +304,9 @@ We can then apply the spatial decorrelation transformation to each element of th
 ```{r}
 y <- lake_test$log_cond
 n_grid <- NROW(grid)
-grid$rmspe <- rep(0, n_grid)
-grid$medae <- rep(0, n_grid)
+grid$bias <- rep(0, n_grid)
+grid$MSPE <- rep(0, n_grid)
+grid$RMSPE <- rep(0, n_grid)
 grid$cor2 <- rep(0, n_grid)
 for (i in seq(1, n_grid)) {
   grid_row <- grid[i, ]
@@ -321,8 +322,9 @@ for (i in seq(1, n_grid)) {
   rf_tpreds <- predict(rfmod, data = tlake_test$tX_newdata)$predictions
   sp_decorr_preds <- recorrelate_newdata(tlake_test, rf_tpreds)
   errors <- y - sp_decorr_preds
-  grid$rmspe[i] <-  sqrt(mean(errors^2))
-  grid$medae[i] <- median(abs(errors))
+  grid$bias[i] <- mean(errors)
+  grid$MSPE[i] <- mean(errors^2)
+  grid$RMSPE[i] <-  sqrt(mean(errors^2))
   grid$cor2[i] <- cor(sp_decorr_preds, y)^2
 }
 grid
@@ -330,19 +332,19 @@ grid
 
 We estimate the parameters via the combination that yields the smallest RMSPE:
 ```{r}
-best_rmspe <- which.min(grid$rmspe)
-best_rmspe
-best_rmspe_row <- grid[best_rmspe, ]
-best_rmspe_row
+best_RMSPE <- which.min(grid$RMSPE)
+best_RMSPE
+best_RMSPE_row <- grid[best_RMSPE, ]
+best_RMSPE_row
 ```
 
 and store these parameters for future use with `decorrelate_data()`, `decorrelate_newdata()`, and `recorrelate_newdata()` to make predictions at the lakes in `lake_preds`:
 ```{r}
 spcov_params_use <- spcov_params(
-  spcov_type = best_rmspe_row[["spcov_type"]],
-  de = best_rmspe_row[["de"]], 
-  ie = best_rmspe_row[["ie"]],
-  range = best_rmspe_row[["range"]]
+  spcov_type = best_RMSPE_row[["spcov_type"]],
+  de = best_RMSPE_row[["de"]], 
+  ie = best_RMSPE_row[["ie"]],
+  range = best_RMSPE_row[["range"]]
 )
 spcov_params_use
 ```
@@ -384,9 +386,10 @@ Comparing the three approaches reveals that the spatial decorrelation transforma
 ```{r}
 dat <- data.frame(
   method = c("decorr", "indrf"),
-  rmspe = c(best_rmspe_row[["rmspe"]], indrf_metrics[["rmspe"]]),
-  medae = c(best_rmspe_row[["medae"]], indrf_metrics[["medae"]]),
-  cor2 = c(best_rmspe_row[["cor2"]], indrf_metrics[["cor2"]])
+  bias = c(best_RMSPE_row[["bias"]], indrf_metrics[["bias"]]),
+  MSPE = c(best_RMSPE_row[["MSPE"]], indrf_metrics[["MSPE"]]),
+  RMSPE = c(best_RMSPE_row[["RMSPE"]], indrf_metrics[["RMSPE"]]),
+  cor2 = c(best_RMSPE_row[["cor2"]], indrf_metrics[["cor2"]])
 )
 dat
 ```

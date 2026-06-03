@@ -12,7 +12,7 @@ decorrelate(
   xcoord,
   ycoord,
   algorithm = "ranger",
-  statistic = "rmspe",
+  statistic = "RMSPE",
   training,
   evaluate_test,
   anisotropy = FALSE,
@@ -68,8 +68,9 @@ include \code{"ranger"}, \code{"randomForest"}, and \code{"xgboost"}.
 \code{"xgboost"} specifies a boosted decision tree ensemble via \code{\link[xgboost:xgboost]{xgboost::xgboost()}}.}
 
 \item{statistic}{The statistic used to evaluate fit in the test data. Available options
-include \code{"rmspe"} (root-mean-squared-prediction error), \code{"medae"}
-(median absolute error), and \code{"cor2"} (the predictive R-squared; i.e., the
+include \code{"bias"} (mean bias), \code{"MSPE"} (mean-squared-prediction error),
+\code{"RMSPE"} (root-mean-squared-prediction error)
+and \code{"cor2"} (the predictive R-squared; i.e., the
 squared correlation between observations and predictions).}
 
 \item{training}{An list controlling how the training and test data are assigned
@@ -80,8 +81,8 @@ The following arguments detail this process:
 Currently, the only option is \code{"split"}, which splits \code{data} up
 into distinct training and test sets.
 \item \code{prop}: The proportion (a numeric vector between zero and one) of observations in \code{data} that should
-be assigned to the training data. The default is 0.75, which means that
-75\\% of the observations are assigned to the training data and 25\% to the
+be assigned to the training data. The default is 0.7, which means that
+70\\% of the observations are assigned to the training data and 30\% to the
 test data. Ignored if \code{training_index} or \code{test_index} are provided.
 \item \code{training_index}: A numeric vector that specifies which rows (i.e., indices)
 of \code{data} should be assigned to the training data. If omitted, defaults
@@ -91,7 +92,7 @@ of \code{data} should be assigned to the test data. If omitted, defaults
 to the rows which are not already included in \code{training_index}.
 }
 If omitted, \code{training} is transformed into
-\code{list(method = "split", prop = 0.75)}.}
+\code{list(method = "split", prop = 0.70)}.}
 
 \item{evaluate_test}{A logical indicating whether a grid should be constructed
 and evaluated when spatial decorrelation parameters are known (i.e.,
@@ -127,9 +128,14 @@ specifying the partition factor.  The partition factor assumes observations
 from different levels of the partition factor are uncorrelated.}
 
 \item{ordering}{The data ordering applied. Available options
-include \code{"grts"}, \code{"maxmin"}, \code{"random"}, and \code{"xgboost"}.
+include \code{"grts"}, \code{"maxmin"}, \code{"middleout"},
+\code{"outsidein"}, \code{"coordinate"}, \code{"random"}, and \code{"none"}.
 \code{"grts"} applies ordering using a spatially balanced GRTS sample via \code{spsurvey::grts()}.
 \code{"maxmin"} applies maximum minimum distance ordering via \code{GPvecchia::order_maxmin_exact()}.
+\code{"middleout"} applies middle out ordering via \code{GPvecchia::order_middleout()}.
+\code{"outsidein"} applies middle out ordering via \code{GPvecchia::order_outsidein()}.
+\code{"coordinate"} applies middle out ordering via \code{GPvecchia::order_coordinate(..., coordinate = c(1, 2))},
+which orders from bottom-left to top-right of the spatial domain.
 \code{"random"} applies a completely random ordering.
 \code{"none"} applies no random ordering.
 The default is \code{"grts"}.}
@@ -181,11 +187,14 @@ A list with many elements that store information about the fitted model object:
 \item \code{decorrelate_data}: The output of \code{\link[=decorrelate_data]{decorrelate_data()}} applied to \code{data}.
 \item \code{fit}: The fitted machine learning model object applied to the decorrelated data.
 \item \code{grid}: If used, the grid of spatial decorrelation parameters evaluated and their corresponding
-root-mean-squared-prediction error (rmspe) when applied to the test data.
+metrics when applied to the test data.
 \item \code{newdata}: The rows of \code{data} that have \code{NA} response values and are stored as prediction data.
 \item \code{training_index}: If used, the observed rows (i.e., indices) in \code{data} that were assigned to the training data.
 \item \code{test_index}: If used, the observed rows (i.e., indices) in \code{data} that were assigned to the test data.
-\item \code{test_rmspe}: If used, the lowest test data root-mean-squared-prediction error.
+\item \code{test_bias}: If used, the lowest (absolute) mean bias.
+\item \code{test_MSPE}: If used, the lowest test data mean-squared-prediction error.
+\item \code{test_RMSPE}: If used, the lowest test data root-mean-squared-prediction error.
+\item \code{test_cor2}: If used, the highest test data predictive R-squared.
 }
 }
 \description{

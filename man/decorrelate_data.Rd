@@ -47,9 +47,14 @@ specifying the partition factor.  The partition factor assumes observations
 from different levels of the partition factor are uncorrelated.}
 
 \item{ordering}{The data ordering applied. Available options
-include \code{"grts"}, \code{"maxmin"}, \code{"random"}, and \code{"xgboost"}.
+include \code{"grts"}, \code{"maxmin"}, \code{"middleout"},
+\code{"outsidein"}, \code{"coordinate"}, \code{"random"}, and \code{"none"}.
 \code{"grts"} applies ordering using a spatially balanced GRTS sample via \code{spsurvey::grts()}.
 \code{"maxmin"} applies maximum minimum distance ordering via \code{GPvecchia::order_maxmin_exact()}.
+\code{"middleout"} applies middle out ordering via \code{GPvecchia::order_middleout()}.
+\code{"outsidein"} applies middle out ordering via \code{GPvecchia::order_outsidein()}.
+\code{"coordinate"} applies middle out ordering via \code{GPvecchia::order_coordinate(..., coordinate = c(1, 2))},
+which orders from bottom-left to top-right of the spatial domain.
 \code{"random"} applies a completely random ordering.
 \code{"none"} applies no random ordering.
 The default is \code{"grts"}.}

@@ -124,8 +124,8 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
   total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
 
   # do ordering here
-  if (!ordering %in% c("maxmin", "grts", "random", "none")) {
-    stop("Invalid ordering argument. Argument must be \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
+  if (!ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
+    stop("Invalid ordering argument. Argument must be \"middleout\", \"outsidein\", \"coordinate\", \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
   }
 
   ord <- get_decorrelate_order(ordering, xcoord_val, ycoord_val)
@@ -191,7 +191,7 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
 # non standard evaluation for x and y coordinates
 # substitute only works when the function is the parent function, so commenting
 # out for use with decorrelate()
-decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering = "maxmin", local, ...) {
+decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering, local, ...) {
 
   if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
     anisotropy <- TRUE
@@ -280,8 +280,8 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
   total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
 
   # do ordering here
-  if (!ordering %in% c("maxmin", "grts", "random", "none")) {
-    stop("Invalid ordering argument. Argument must be \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
+  if (!ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
+    stop("Invalid ordering argument. Argument must be \"middleout\", \"outsidein\", \"coordinate\", \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
   }
 
   ord <- get_decorrelate_order(ordering, xcoord_val, ycoord_val)
@@ -513,11 +513,35 @@ get_decorrelate_order <- function(ordering, xcoord_val, ycoord_val) {
     ord <- sample(ord)
   }
 
-  if (ordering == "maxmin") {
+  if (ordering %in% "maxmin") {
     if (!requireNamespace("GPvecchia", quietly = TRUE)) {
       stop("Install the GPvecchia package before using \"maxmin\" ordering", call. = FALSE)
     } else {
       ord <- GPvecchia::order_maxmin_exact(cbind(xcoord_val, ycoord_val))
+    }
+  }
+
+  if (ordering %in% "middleout") {
+    if (!requireNamespace("GPvecchia", quietly = TRUE)) {
+      stop("Install the GPvecchia package before using \"middleout\" ordering", call. = FALSE)
+    } else {
+      ord <- GPvecchia::order_middleout(cbind(xcoord_val, ycoord_val))
+    }
+  }
+
+  if (ordering %in% "outsidein") {
+    if (!requireNamespace("GPvecchia", quietly = TRUE)) {
+      stop("Install the GPvecchia package before using \"outsidein\" ordering", call. = FALSE)
+    } else {
+      ord <- GPvecchia::order_outsidein(cbind(xcoord_val, ycoord_val))
+    }
+  }
+
+  if (ordering %in% "coordinate") {
+    if (!requireNamespace("GPvecchia", quietly = TRUE)) {
+      stop("Install the GPvecchia package before using \"coordinate\" ordering", call. = FALSE)
+    } else {
+      ord <- GPvecchia::order_coordinate(cbind(xcoord_val, ycoord_val), coordinate = c(1, 2))
     }
   }
 

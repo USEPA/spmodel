@@ -83,7 +83,7 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
     bias <- mean(errors)
     MSPE <- mean(errors^2)
     RMSPE <- sqrt(MSPE)
-    cor2 <- cor(yval, sp_decorr_preds)^2
+    cor2 <- suppressWarnings(cor(yval, sp_decorr_preds))^2 # warning for iid data when sp_decorr_preds = 0
     list(bias = bias, MSPE = MSPE, RMSPE = RMSPE, cor2 = cor2)
   })
   grid$bias <- unlist(lapply(out, function(x) x$bias))

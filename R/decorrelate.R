@@ -402,9 +402,9 @@ predict_decorrelate_algorithm <- function(decorrelate_data, tdata_test, algorith
     preds <- predict(decorrelate_data, newdata = tdata_test$tX_newdata, ...)
   }
 
-  if (algorithm == "nnet") {
-    preds <- predict(decorrelate_data, newdata = tdata_test$tX_newdata, ...)
-  }
+  # if (algorithm == "nnet") {
+  #   preds <- predict(decorrelate_data, newdata = tdata_test$tX_newdata, ...)
+  # }
 
   preds
 }

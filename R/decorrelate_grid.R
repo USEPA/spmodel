@@ -33,10 +33,10 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
   # find sets of starting values
   ## de
   # de <- c(0.1, 0.5, 0.9)
-  de <- c(0, 0.25, 0.5, 0.75, 1)
+  de <- c(0.05, 0.25, 0.5, 0.75, 0.95)
   ## ie
   # ie <- c(0.1, 0.5, 0.9)
-  ie <- c(0, 0.25, 0.5, 0.75, 1)
+  ie <- c(0.05, 0.25, 0.5, 0.75, 0.95)
   ## range
   # non standard evaluation for x and y coordinates
   xcoord <- substitute(xcoord)
@@ -87,10 +87,6 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
   spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
   spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
 
-  # change range to Inf for independence
-  spcov_grid$range[spcov_grid$de == 0] <- Inf
-  # set scale to one
-  spcov_grid$scale[spcov_grid$de == 0] <- 1
   # anisotropy correction
   spcov_grid$rotate[spcov_grid$scale == 1] <- 0
 
@@ -197,6 +193,15 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
     }
   }
 
+  # create iid grid
+  iid_grid <- as.data.frame(matrix(0, nrow = 1, ncol = NCOL(cov_grid)))
+  names(iid_grid) <- names(cov_grid)
+  iid_grid$spcov_type <- "none"
+  iid_grid$ie <- 1
+  iid_grid$range <- Inf
+  iid_grid$scale <- 1
+  cov_grid <- rbind(cov_grid, iid_grid)
+
   cov_grid <- unique(cov_grid)
   row.names(cov_grid) <- as.character(seq(1, NROW(cov_grid)))
   cov_grid
@@ -228,10 +233,10 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
   # find sets of starting values
   ## de
   # de <- c(0.1, 0.5, 0.9)
-  de <- c(0, 0.25, 0.5, 0.75, 1)
+  de <- c(0.25, 0.5, 0.75, 0.95)
   ## ie
   # ie <- c(0.1, 0.5, 0.9)
-  ie <- c(0, 0.25, 0.5, 0.75, 1)
+  ie <- c(0.05, 0.25, 0.5, 0.75)
   ## range
   # non standard evaluation for x and y coordinates
   # substitute only works when the function is the parent function, so commenting
@@ -284,10 +289,6 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
   spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
   spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
 
-  # change range to Inf for independence
-  spcov_grid$range[spcov_grid$de == 0] <- Inf
-  # set scale to one
-  spcov_grid$scale[spcov_grid$de == 0] <- 1
   # anisotropy correction
   spcov_grid$rotate[spcov_grid$scale == 1] <- 0
 
@@ -394,6 +395,16 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
     }
   }
 
+  # create iid grid
+  iid_grid <- as.data.frame(matrix(0, nrow = 1, ncol = NCOL(cov_grid)))
+  names(iid_grid) <- names(cov_grid)
+  iid_grid$spcov_type <- "none"
+  iid_grid$ie <- 1
+  iid_grid$range <- Inf
+  iid_grid$scale <- 1
+  cov_grid <- rbind(cov_grid, iid_grid)
+
+  # return cov grid
   cov_grid <- unique(cov_grid)
   row.names(cov_grid) <- as.character(seq(1, NROW(cov_grid)))
   cov_grid

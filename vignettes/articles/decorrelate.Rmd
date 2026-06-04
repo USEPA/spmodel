@@ -135,7 +135,7 @@ ggplot() +
 
 ## Comparing to a Standard (Independent) Random Forest
 
-We can evaluate performance of the spatial decorrelation transformation relative to an standard (i.e., independent) random forest. We refit `decorr_mod` using the first 60 rows as training data and the subsequent 42 rows as test data:
+We can evaluate performance of the spatial decorrelation transformation relative to an standard (i.e., independent) random forest. We refit `decorr_mod` using the first 60 rows as training data and the remaining 42 as test data:
 
 ```{r}
 decorr_mod <- decorrelate(
@@ -185,7 +185,7 @@ The `local` argument is used to implement the big data approximation described b
 
 Evaluating the effectiveness of a machine learning model is a multi-step process. First, we split the `lake` data into separate training and test sets. The goal is to fit a model to the training set and use it to predict the response variable for each datum in the test set. Because the test set contains the measured value of the response variable, the accuracy of the predictions generated using the test set can be directly evaluated using a metric like root-mean-squared-prediction error or predictive $R^2$ (i.e., the squared correlation between observations and predictions). 
 
-We proceed by randomly assigning 75% of the `lake` data to the training set and the remaining 25% to the test set:
+We proceed by randomly assigning 70% of the `lake` data to the training set and the remaining 30% to the test set:
 ```{r}
 # number of observations in the lake data
 n <- NROW(lake)
@@ -288,7 +288,7 @@ ggplot(lake_test, aes(x = decorr_preds, y = log_cond)) +
 
 In practice, it is rare that the decorrelations parameters are actually known. Hence, we must generally have methods to estimate these parameters. One method for estimating these parameters using a grid search. In a grid search, a test set metric (here, RMSPE) is evaluated using several different parameter combinations. The parameter combination yielding the best test set metric is taken as the estimtaed parameter set. Grid searches can also be used to find initial values in some sort of optimization algorithm.
 
-Parameter combinations can be created and evaluated using custom code, though the `decorrelate_grid()` function provides a grid which explores differet, plausible parameter combinations:
+Parameter combinations can be created and evaluated using custom code, though the `decorrelate_grid()` function provides a grid which explores different, plausible parameter combinations:
 ```{r}
 grid <- decorrelate_grid(
   formula = form,
@@ -349,6 +349,19 @@ spcov_params_use <- spcov_params(
 spcov_params_use
 ```
 
+```{r}
+indrf_row <- grid[grid$spcov_type == "none", ]
+dat <- data.frame(
+  method = c("decorr", "indrf"),
+  bias = c(best_RMSPE_row[["bias"]], indrf_row[["bias"]]),
+  MSPE = c(best_RMSPE_row[["MSPE"]], indrf_row[["MSPE"]]),
+  RMSPE = c(best_RMSPE_row[["RMSPE"]], indrf_row[["RMSPE"]]),
+  cor2 = c(best_RMSPE_row[["cor2"]], indrf_row[["cor2"]])
+)
+dat
+```
+
+
 ## Additional Grid Search Features
 
 Anisotropy and random effects can also be applied to the grid creation via the `anisotropy` and `random` arguments, whose values can be provided to `decorrelate_data()` using the `spcov_params` and `randcov_params` arguments:
@@ -362,36 +375,6 @@ grid <- decorrelate_grid(
 )
 NROW(grid)
 head(grid, n = 5)
-```
-
-## Comparing to Other Approaches
-
-We can compare test set RMSPE from the spatial decorrelation transformation to test set RMSPE from other common approaches like an independent (standard) random forest and a spatial residual random forest.
-
-First we fit an independent random forest. We must remove the spatial geometry structure from `lake_train` and `lake_test`, as `ranger()` does not accept `sf` objects:
-```{r}
-lake_train_df <- st_drop_geometry(lake_train)
-lake_test_df <- st_drop_geometry(lake_test)
-```
-
-The we fit a random forest model to the training data, predict log conductivity in the test data, and compute RMSPE and predictive $R^2$:
-```{r}
-indrfmod <- ranger(form, data = lake_train_df)
-indrf_preds <- predict(indrfmod, data = lake_test_df)$predictions
-indrf_metrics <- get_metrics(lake_test$log_cond, indrf_preds)
-```
-
-
-Comparing the three approaches reveals that the spatial decorrelation transformation has the lowest (best) RMSPE and highest (best) predictive $R^2$, followed by, unsurprisingly, the spatial residual random forest and finally by the independent (standard) random forest:
-```{r}
-dat <- data.frame(
-  method = c("decorr", "indrf"),
-  bias = c(best_RMSPE_row[["bias"]], indrf_metrics[["bias"]]),
-  MSPE = c(best_RMSPE_row[["MSPE"]], indrf_metrics[["MSPE"]]),
-  RMSPE = c(best_RMSPE_row[["RMSPE"]], indrf_metrics[["RMSPE"]]),
-  cor2 = c(best_RMSPE_row[["cor2"]], indrf_metrics[["cor2"]])
-)
-dat
 ```
 
 ## Predicting at Unobserved Lakes 

@@ -284,6 +284,7 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
     stop("Invalid ordering argument. Argument must be \"middleout\", \"outsidein\", \"coordinate\", \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
   }
 
+  # ordering done with separate random elements (grts, random) for each grid item (fix)
   ord <- get_decorrelate_order(ordering, xcoord_val, ycoord_val)
 
   # order all values

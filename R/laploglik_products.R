@@ -85,16 +85,15 @@ laploglik_products.exponential <- function(spcov_params_val, dispersion_params_v
   mHldet <- w_and_H$mHldet
 
   betahat <- tcrossprod(cov_betahat, SigInv_X) %*% w
-  # reset w after finding betahat
-  if (!is.null(data_object$offset)) {
-    w <- w + data_object$offset
-  }
   X <- do.call("rbind", data_object$X_list)
   r <- w - X %*% betahat
   rt_SigInv_r <- crossprod(r, SigInv) %*% r
 
   # get wolfinger objects
   y <- as.vector(do.call("rbind", data_object$y_list))
+  if (!is.null(data_object$offset)) {
+    w <- w + data_object$offset
+  }
   l00 <- get_l00(data_object$family, w, y, data_object$size, dispersion)
   l01 <- mHldet
   l1 <- sum(unlist(lapply(cholprods_list, function(x) 2 * sum(log(diag(x$Sig_lowchol))))))
@@ -213,14 +212,23 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
   Ptheta <- SigInv - SigInv_X %*% tcrossprod(cov_betahat, SigInv_X)
   y <- as.vector(do.call("rbind", data_object$y_list))
   size <- data_object$size
+  # reasonable but yielded unstable hessian for small means
+  # if (!is.null(data_object$offset)) {
+  #   y <- as.vector(y/invlink(data_object$offset, family, size))
+  # }
   w <- get_w_init(family, y, dispersion)
   wdiffmax <- Inf
   iter <- 0
 
-
-
+  if (!is.null(data_object$offset)) {
+    w <- w + as.vector(data_object$offset)
+  }
   if (length(SigInv_list) == 1) {
     while (iter < 50 && wdiffmax > 1e-4) {
+      # this adding within the loop is not necessary, can be done before
+      # if (!is.null(data_object$offset)) {
+      #   w <- w + as.vector(data_object$offset)
+      # }
       iter <- iter + 1
       # compute the d vector
       d <- get_d(family, w, y, size, dispersion)
@@ -244,6 +252,14 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
       wdiffmax <- max(abs(wnew - w))
       # update w
       w <- wnew
+      # this adding within the loop is not necessary, can be done after
+      # if (!is.null(data_object$offset)) {
+      #   w <- w - as.vector(data_object$offset)
+      # }
+    }
+
+    if (!is.null(data_object$offset)) {
+      w <- w - as.vector(data_object$offset)
     }
 
     mHldet <- as.numeric(determinant(-H, logarithm = TRUE)$modulus)
@@ -315,12 +331,6 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
     if (ret_mHInv) {
       w_and_H_list$mHInv <- -HInv
     }
-  }
-
-
-  # handle offset
-  if (!is.null(data_object$offset)) {
-    w_and_H_list$w <- w_and_H_list$w - data_object$offset
   }
 
   w_and_H_list

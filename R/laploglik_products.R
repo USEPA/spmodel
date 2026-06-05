@@ -220,9 +220,9 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
   wdiffmax <- Inf
   iter <- 0
 
-  if (!is.null(data_object$offset)) {
-    w <- w + as.vector(data_object$offset)
-  }
+  # if (!is.null(data_object$offset)) {
+  #   w <- w + as.vector(data_object$offset)
+  # }
   if (length(SigInv_list) == 1) {
     while (iter < 50 && wdiffmax > 1e-4) {
       # this adding within the loop is not necessary, can be done before
@@ -231,11 +231,19 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
       # }
       iter <- iter + 1
       # compute the d vector
-      d <- get_d(family, w, y, size, dispersion)
+      if (!is.null(data_object$offset)) {
+        d <- get_d(family, w + as.vector(data_object$offset), y, size, dispersion)
+      } else {
+        d <- get_d(family, w, y, size, dispersion)
+      }
       # and then the gradient vector
       g <- d - Ptheta %*% w
       # Next, compute H
-      D <- get_D(family, w, y, size, dispersion)
+      if (!is.null(data_object$offset)) {
+        D <- get_D(family, w + as.vector(data_object$offset), y, size, dispersion)
+      } else {
+        D <- get_D(family, w, y, size, dispersion)
+      }
       H <- D - Ptheta # not PD but -H is
       # can consider changing tol here for numeric stability
       solveHg <- solve(H, g)
@@ -258,9 +266,9 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
       # }
     }
 
-    if (!is.null(data_object$offset)) {
-      w <- w - as.vector(data_object$offset)
-    }
+    # if (!is.null(data_object$offset)) {
+    #   w <- w - as.vector(data_object$offset)
+    # }
 
     mHldet <- as.numeric(determinant(-H, logarithm = TRUE)$modulus)
     # mHldet <- 2 * sum(log(diag(mH_upchol)))
@@ -345,18 +353,26 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
   wdiffmax <- Inf
   iter <- 0
 
-  if (!is.null(data_object$offset)) {
-    w <- w + as.vector(data_object$offset)
-  }
+  # if (!is.null(data_object$offset)) {
+  #   w <- w + as.vector(data_object$offset)
+  # }
 
   while (iter < 50 && wdiffmax > 1e-4) {
     iter <- iter + 1
     # compute the d vector
-    d <- get_d(family, w, y, size, dispersion)
+    if (!is.null(data_object$offset)) {
+      d <- get_d(family, w + as.vector(data_object$offset), y, size, dispersion)
+    } else {
+      d <- get_d(family, w, y, size, dispersion)
+    }
     # and then the gradient vector
     g <- d - Ptheta %*% w
     # Next, compute H
-    D <- get_D(family, w, y, size, dispersion)
+    if (!is.null(data_object$offset)) {
+      D <- get_D(family, w + as.vector(data_object$offset), y, size, dispersion)
+    } else {
+      D <- get_D(family, w, y, size, dispersion)
+    }
     H <- D - Ptheta # not PD but -H is
     # can consider changing tol here for numeric stability
     solveHg <- solve(H, g)
@@ -376,9 +392,9 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
   }
 
 
-  if (!is.null(data_object$offset)) {
-    w <- w - as.vector(data_object$offset)
-  }
+  # if (!is.null(data_object$offset)) {
+  #   w <- w - as.vector(data_object$offset)
+  # }
 
   mHldet <- as.numeric(determinant(-H, logarithm = TRUE)$modulus)
   # mHldet <- 2 * sum(log(diag(mH_upchol)))

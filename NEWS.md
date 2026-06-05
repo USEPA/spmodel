@@ -16,6 +16,7 @@
 * Fixed a bug that prevented proper centering by `offset` in `data` for prediction using `spglm(..., data)` and `spgautor(..., data)` model objects.
 * Fixed a bug that prevented adding `offset` to `splm()` model object fitted values when `spcov_type = "none"` or `class(spcov_initial) = "none"`.
 * Fixed a bug that reordered rows alphabetically when calling `tidy(..., conf.int = TRUE)`.
+* Fixed a bug that occurred when simulating spatial data with anisotropy.
 
 # spmodel 0.12.0
 

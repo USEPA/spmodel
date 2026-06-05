@@ -176,16 +176,16 @@ laploglik_products.car <- function(spcov_params_val, dispersion_params_val, data
   mHldet <- w_and_H$mHldet
 
   betahat <- tcrossprod(cov_betahat, SigInv_X) %*% w
-  # reset w after finding betahat
-  if (!is.null(data_object$offset)) {
-    w <- w + data_object$offset
-  }
+
   X <- data_object$X
   r <- w - X %*% betahat
   rt_SigInv_r <- crossprod(r, SigInv) %*% r
 
   # get wolfinger objects
   y <- data_object$y
+  if (!is.null(data_object$offset)) {
+    w <- w + data_object$offset
+  }
   l00 <- get_l00(data_object$family, w, y, data_object$size, dispersion)
   l01 <- mHldet
   l1 <- Sigldet
@@ -344,6 +344,11 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
   w <- get_w_init(family, y, dispersion)
   wdiffmax <- Inf
   iter <- 0
+
+  if (!is.null(data_object$offset)) {
+    w <- w + as.vector(data_object$offset)
+  }
+
   while (iter < 50 && wdiffmax > 1e-4) {
     iter <- iter + 1
     # compute the d vector
@@ -370,6 +375,11 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
     w <- wnew
   }
 
+
+  if (!is.null(data_object$offset)) {
+    w <- w - as.vector(data_object$offset)
+  }
+
   mHldet <- as.numeric(determinant(-H, logarithm = TRUE)$modulus)
   # mHldet <- 2 * sum(log(diag(mH_upchol)))
   w_and_H_list <- list(w = w, H = NULL, mHldet = mHldet)
@@ -379,11 +389,6 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
     w_and_H_list$mHInv <- -HInv
     # mHInv <- chol2inv(mH_upchol)
     # w_and_H_list$mHInv <- mHInv
-  }
-
-  # handle offset
-  if (!is.null(data_object$offset)) {
-    w_and_H_list$w <- w_and_H_list$w - data_object$offset
   }
 
   w_and_H_list

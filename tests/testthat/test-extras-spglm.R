@@ -62,7 +62,7 @@ if (test_local) {
     # complicated models
     expect_error(spglm(prop ~ x, family = "beta", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", anisotropy = TRUE), NA)
     expect_error(spglm(prop ~ x + offset(offset),
-      family = beta, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "reml",
+      family = beta, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "ie", estmethod = "reml",
       local = list(method = "kmeans")
     ), NA)
   })

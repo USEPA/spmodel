@@ -1,6 +1,6 @@
 Package: spmodel
 Title: Spatial Statistical Modeling and Prediction
-Version: 0.13.0
+Version: 0.13.1
 Authors@R: c(
     person(given = "Michael",
            family = "Dumelle",

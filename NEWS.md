@@ -1,3 +1,10 @@
+# spmodel 0.13.1
+
+## Minor Updates
+
+* Added exponentiated versions of logged variables in `lake`, `moss`, `seal`, and `texas`.
+* Minor documentation updates.
+
 # spmodel 0.13.0
 
 ## Major Updates

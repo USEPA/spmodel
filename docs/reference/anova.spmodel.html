@@ -18,7 +18,7 @@ a likelihood ratio test for two fitted model objects."><meta property="og:image"
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.12.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.13.0</span>
       </span>
     </div>
 
@@ -199,18 +199,18 @@ model nested in a "full" model. Then <code><a href="https://rdrr.io/r/stats/anov
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Response: z</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Df    Chi2 Pr(&gt;Chi2)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  1 43.4600 4.327e-11 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> water        1  1.6603 0.1975631    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> tarp         2 15.4071 0.0004512 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  1 45.5642 1.477e-11 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> water        1  1.6738 0.1957448    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tarp         2 15.4585 0.0004398 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   effects        df statistic  p.value</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> (Intercept)     1     43.5  4.33<span style="color: #949494;">e</span><span style="color: #BB0000;">-11</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> water           1      1.66 1.98<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> tarp            2     15.4  4.51<span style="color: #949494;">e</span><span style="color: #BB0000;">- 4</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> (Intercept)     1     45.6  1.48<span style="color: #949494;">e</span><span style="color: #BB0000;">-11</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> water           1      1.67 1.96<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> tarp            2     15.5  4.40<span style="color: #949494;">e</span><span style="color: #BB0000;">- 4</span></span>
 <span class="r-in"><span><span class="co"># see terms</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">effects</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "(Intercept)" "water"       "tarp"       </span>
@@ -218,13 +218,13 @@ model nested in a "full" model. Then <code><a href="https://rdrr.io/r/stats/anov
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   effects        df statistic  p.value</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> water, tarp     3      17.1 0.000<span style="text-decoration: underline;">685</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> water, tarp     3      17.1 0.000<span style="text-decoration: underline;">664</span></span>
 <span class="r-in"><span><span class="co"># same as</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">spmod</span>, Terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   effects        df statistic  p.value</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> water, tarp     3      17.1 0.000<span style="text-decoration: underline;">685</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> water, tarp     3      17.1 0.000<span style="text-decoration: underline;">664</span></span>
 <span class="r-in"><span><span class="co"># likelihood ratio test</span></span></span>
 <span class="r-in"><span><span class="va">lmod</span> <span class="op">&lt;-</span> <span class="fu"><a href="splm.html">splm</a></span><span class="op">(</span><span class="va">z</span> <span class="op">~</span> <span class="va">water</span> <span class="op">+</span> <span class="va">tarp</span>,</span></span>
 <span class="r-in"><span>  data <span class="op">=</span> <span class="va">caribou</span>,</span></span>

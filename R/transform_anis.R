@@ -16,7 +16,7 @@ transform_anis <- function(data, xcoord, ycoord, rotate, scale) {
   list(xcoord_val = new_coords[1, ], ycoord_val = new_coords[2, ])
 }
 
-#' The inverse of transforming coordiantes to accommodate anisotropy
+#' The inverse of transforming coordinates to accommodate anisotropy
 #'
 #' @return new coordinates
 #'

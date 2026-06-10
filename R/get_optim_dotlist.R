@@ -30,7 +30,8 @@ get_optim_dotlist <- function(...) {
   }
 
   if (!("reltol" %in% names(dotlist$control))) {
-    dotlist$control$reltol <- 1e-4
+    # prior to 0.13.0 reltol was 1e-4
+    dotlist$control$reltol <- 1e-6
   }
 
   dotlist$lower <- -Inf

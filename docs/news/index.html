@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.12.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.13.0</span>
       </span>
     </div>
 
@@ -72,6 +72,27 @@
       <small>Source: <a href="https://github.com/USEPA/spmodel/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="0.13.0" id="spmodel-0130">spmodel 0.13.0<small>2026-06-10</small><a class="anchor" aria-label="anchor" href="#spmodel-0130"></a></h2>
+<div class="section level3">
+<h3 id="major-updates-0-13-0">Major Updates<a class="anchor" aria-label="anchor" href="#major-updates-0-13-0"></a></h3>
+<ul><li>Changed the default relative stopping tolerance (i.e., <code>reltol</code>) passed to <code>stats::optim(method = "Nelder-Mead", ...)</code> from <code>1e-4</code> to <code>1e-6</code>, affecting <code><a href="../reference/splm.html">splm()</a></code>, <code><a href="../reference/spglm.html">spglm()</a></code>, <code><a href="../reference/spautor.html">spautor()</a></code>, <code><a href="../reference/spgautor.html">spgautor()</a></code>, and <code><a href="../reference/splmRF.html">splmRF()</a></code> model objects. The intent of this change is to help prevent convergence to a local maximum that is not a global maximum. This change may affect default backwards compatibility of fitted models, depending on the shape of their objective function. If the fitted model has changed due to the change in <code>reltol</code>, adding <code>control = list(reltol = 1e-4)</code> as an argument to <code><a href="../reference/splm.html">splm()</a></code>, <code><a href="../reference/spglm.html">spglm()</a></code>, <code><a href="../reference/spautor.html">spautor()</a></code>, <code><a href="../reference/spgautor.html">spgautor()</a></code>, or <code><a href="../reference/splmRF.html">splmRF()</a></code> will reproduce the original fitted model.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="minor-updates-0-13-0">Minor Updates<a class="anchor" aria-label="anchor" href="#minor-updates-0-13-0"></a></h3>
+<ul><li>Improved efficiency of prediction using <code>splm(..., data)</code> and <code>spglm(..., data)</code> model objects having many random effect or partition factor levels in <code>newdata</code> that are not present in <code>data</code> .</li>
+<li>Minor unit test updates.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-13-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-13-0"></a></h3>
+<ul><li>Fixed a bug that occurred when calling <code>predict(object, newdata = newdata, block = TRUE, ...)</code> if at least one level of a random effect or partition factor from <code>data</code> (used to fit <code>object</code>) was not present in <code>newdata</code>.</li>
+<li>Fixed a bug that occurred when calling <code>loocv(object, local = TRUE, ...)</code> if at least one level of a random effect or partition factor from <code>data</code> (used to fit <code>object</code>) was represented by only one observation in <code>data</code>.</li>
+<li>Fixed a bug that prevented proper centering by <code>offset</code> in <code>data</code> for prediction using <code>spglm(..., data)</code> and <code>spgautor(..., data)</code> model objects.</li>
+<li>Fixed a bug that prevented adding <code>offset</code> to <code><a href="../reference/splm.html">splm()</a></code> model object fitted values when <code>spcov_type = "none"</code> or <code>class(spcov_initial) = "none"</code>.</li>
+<li>Fixed a bug that reordered rows alphabetically when calling <code>tidy(..., conf.int = TRUE)</code>.</li>
+<li>Fixed a bug that occurred when simulating spatial data with anisotropy.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.12.0" id="spmodel-0120">spmodel 0.12.0<small>2026-01-24</small><a class="anchor" aria-label="anchor" href="#spmodel-0120"></a></h2>
 <div class="section level3">

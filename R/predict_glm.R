@@ -67,6 +67,13 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms")
     add_newdata_rows <- FALSE
   }
 
+  if (!is.null(object$random) || !is.null(object$partition_factor)) {
+    random_names <- all.vars(object$random)
+    partition_names <- all.vars(object$partition_factor)
+    varnames <- unique(c(random_names, partition_names))
+    newdata <- replace_newdata(varnames, obdata, newdata)
+  }
+
   # set newdata_size if needed
   if (is.null(newdata_size) && object$family == "binomial") {
     newdata_size <- rep(1, NROW(newdata))
@@ -332,7 +339,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms")
         y = object$y, dim_coords = object$dim_coords,
         betahat = coefficients(object), cov_betahat = vcov(object, var_correct = FALSE),
         contrasts = object$contrasts,
-        local = local_list, family = object$family, w = fitted(object, type = "link"), size = object$size,
+        local = local_list, family = object$family, w = fitted(object, type = "link"), model_offset = model.offset(model.frame(object)), size = object$size,
         dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind,
         xlevels = object$xlevels, diagtol = object$diagtol
       )
@@ -356,7 +363,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms")
         betahat = coefficients(object), cov_betahat = vcov(object, var_correct = FALSE),
         contrasts = object$contrasts,
         local = local_list, family = object$family,
-        w = fitted(object, type = "link"), size = object$size,
+        w = fitted(object, type = "link"), model_offset = model.offset(model.frame(object)), size = object$size,
         dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind,
         xlevels = object$xlevels, diagtol = object$diagtol
       )
@@ -492,7 +499,13 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
                            Z_index_obdata_list, reform_bar1_list, Z_val_obdata_list, partition_factor,
                            reform_bar2, partition_index_obdata, cov_lowchol,
                            Xmat, y, betahat, cov_betahat, dim_coords, contrasts, local,
-                           family, w, size, dispersion, predvar_adjust_ind, xlevels, diagtol) {
+                           family, w, model_offset, size, dispersion, predvar_adjust_ind, xlevels, diagtol) {
+
+
+  # adjust w
+  if (!is.null(model_offset)) {
+    w <- w - model_offset
+  }
 
 
   # storing partition vector
@@ -752,6 +765,10 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
 
     # find w observed
     w <- fitted(object, type = "link")
+    model_offset <- model.offset(model.frame(object))
+    if (!is.null(model_offset)) {
+      w <- w - model_offset
+    }
     SqrtSigInv_w <- forwardsolve(cov_matrix_lowchol, w)
 
     # beta hat

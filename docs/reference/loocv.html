@@ -18,7 +18,7 @@ efficient approximations for big data."><meta property="og:image" content="https
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.12.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.13.0</span>
       </span>
     </div>
 
@@ -184,26 +184,26 @@ criterion). cor2 is not returned when <code>object</code> was fit using
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      bias   MSPE RMSPE  cor2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> 0.003<span style="text-decoration: underline;">73</span> 0.035<span style="text-decoration: underline;">3</span> 0.188 0.218</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> 0.003<span style="text-decoration: underline;">75</span> 0.035<span style="text-decoration: underline;">3</span> 0.188 0.219</span>
 <span class="r-in"><span><span class="fu">loocv</span><span class="op">(</span><span class="va">spmod</span>, cv_predict <span class="op">=</span> <span class="cn">TRUE</span>, se.fit <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $stats</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      bias   MSPE RMSPE  cor2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> 0.003<span style="text-decoration: underline;">73</span> 0.035<span style="text-decoration: underline;">3</span> 0.188 0.218</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> 0.003<span style="text-decoration: underline;">75</span> 0.035<span style="text-decoration: underline;">3</span> 0.188 0.219</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $cv_predict</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 1.976891 2.279097 2.104800 2.001062 2.252981 2.081761 2.036528 1.906351</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [9] 2.209990 1.920595 1.953973 2.197366 1.941609 2.149225 2.029657 2.073248</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [17] 2.148203 2.023779 2.100568 1.929728 2.000196 1.782930 1.907800 2.191920</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [25] 1.915703 1.917835 2.269514 1.941046 1.801330 2.120519</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 1.978139 2.280002 2.104862 2.000554 2.253466 2.082967 2.037058 1.905427</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [9] 2.209731 1.920353 1.953703 2.197089 1.940796 2.148495 2.030212 2.073714</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [17] 2.147453 2.023614 2.099895 1.929836 1.999964 1.782125 1.907520 2.191863</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [25] 1.915546 1.917932 2.270373 1.940667 1.801009 2.121204</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $se.fit</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 0.1948550 0.1908319 0.1902988 0.1966091 0.2011680 0.1929935 0.1896957</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [8] 0.1828196 0.1827176 0.1901259 0.1852316 0.1842182 0.1836098 0.1843557</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [15] 0.1869189 0.1852316 0.1842182 0.1836098 0.1843557 0.1869189 0.1929935</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [22] 0.1896957 0.1828196 0.1827176 0.1901259 0.1948550 0.1908319 0.1902988</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [29] 0.1966091 0.2011680</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 0.1948501 0.1907239 0.1902286 0.1964758 0.2011452 0.1928919 0.1896041</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [8] 0.1826513 0.1825524 0.1900351 0.1851119 0.1840579 0.1834773 0.1842208</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [15] 0.1867929 0.1851119 0.1840579 0.1834773 0.1842208 0.1867929 0.1928919</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [22] 0.1896041 0.1826513 0.1825524 0.1900351 0.1948501 0.1907239 0.1902286</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [29] 0.1964758 0.2011452</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>

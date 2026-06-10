@@ -1,3 +1,23 @@
+# spmodel 0.13.0
+
+## Major Updates
+
+* Changed the default relative stopping tolerance (i.e., `reltol`) passed to `stats::optim(method = "Nelder-Mead", ...)` from `1e-4` to `1e-6`, affecting `splm()`, `spglm()`, `spautor()`, `spgautor()`, and `splmRF()` model objects. The intent of this change is to help prevent convergence to a local maximum that is not a global maximum. This change may affect default backwards compatibility of fitted models, depending on the shape of their objective function. If the fitted model has changed due to the change in `reltol`, adding `control = list(reltol = 1e-4)` as an argument to `splm()`, `spglm()`, `spautor()`, `spgautor()`, or `splmRF()` will reproduce the original fitted model.
+
+## Minor Updates
+
+* Improved efficiency of prediction using `splm(..., data)` and `spglm(..., data)` model objects having many random effect or partition factor levels in `newdata` that are not present in `data` .
+* Minor unit test updates.
+
+## Bug Fixes
+
+* Fixed a bug that occurred when calling `predict(object, newdata = newdata, block = TRUE, ...)` if at least one level of a random effect or partition factor from `data` (used to fit `object`) was not present in `newdata`.
+* Fixed a bug that occurred when calling `loocv(object, local = TRUE, ...)` if at least one level of a random effect or partition factor from `data` (used to fit `object`) was represented by only one observation in `data`. 
+* Fixed a bug that prevented proper centering by `offset` in `data` for prediction using `spglm(..., data)` and `spgautor(..., data)` model objects.
+* Fixed a bug that prevented adding `offset` to `splm()` model object fitted values when `spcov_type = "none"` or `class(spcov_initial) = "none"`.
+* Fixed a bug that reordered rows alphabetically when calling `tidy(..., conf.int = TRUE)`.
+* Fixed a bug that occurred when simulating spatial data with anisotropy.
+
 # spmodel 0.12.0
 
 ## Major Updates

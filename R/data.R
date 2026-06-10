@@ -2,7 +2,7 @@
 #'
 #' @description Heavy metals in mosses near a mining road in Alaska, USA.
 #'
-#' @format An \code{sf} object with 365 rows and 10 columns:
+#' @format An \code{sf} object with 365 rows and 12 columns:
 #'
 #' \itemize{
 #'   \item sample: A factor with a sample identifier. Some samples were
@@ -17,7 +17,9 @@
 #'     Takes values \code{N} (north of the haul road) and \code{S} (south
 #'     of the haul road).
 #'   \item log_dist2road: The log of distance (in meters) to the haul road.
+#'   \item dist2road: The distance (in meters) to the haul road.
 #'   \item log_Zn: The log of zinc concentration in moss tissue (mg/kg).
+#'   \item Zn: The zinc concentration in moss tissue (mg/kg).
 #'   \item geometry: \code{POINT} geometry representing coordinates in an Alaska
 #'     Albers projection (EPSG: 3338). Distances between points are in meters.
 #' }
@@ -62,9 +64,10 @@
 #'
 #' @description Estimated harbor-seal trends from abundance data in southeast Alaska, USA.
 #'
-#' @format A \code{sf} object with 149 rows and 2 columns:
+#' @format A \code{sf} object with 149 rows and 3 columns:
 #' \itemize{
 #'   \item log_trend: The log of the estimated harbor-seal trends from abundance data.
+#'   \item trend: The estimated harbor-seal trends from abundance data.
 #'   \item stock: A seal stock factor with two levels: 8 and 10. The factor levels indicate the
 #'     type of seal stock (i.e., type of seal). Stocks 8 and 10 are two distinct stocks
 #'     (out of 13 total stocks) in southeast Alaska.
@@ -157,11 +160,12 @@
 #' @description Lake data collected as part of the United States Environmental Protection
 #'   Agency's 2012 and 2017 National Lakes Assessment and LakeCat.
 #'
-#' @format An \code{sf} object with 102 rows and 9 columns:
+#' @format An \code{sf} object with 102 rows and 10 columns:
 #'
 #' \itemize{
 #'   \item comid: A common identifier from NHDPlusV2.
 #'   \item log_cond: The natural logarithm of lake conductivity.
+#'   \item cond: The lake conductivity.
 #'   \item state: The US state: One of Arizona (AZ), Colorado (CO), Nevada (NV),
 #'     Utah (UT).
 #'   \item temp: Lake catchment 30-year average temperature (in degrees Celsius).
@@ -199,12 +203,13 @@
 #' @description Texas voter turnout data collected during the United States 1980 Presidential
 #'   election.
 #'
-#' @format An \code{sf} object with 254 rows and 4 columns:
+#' @format An \code{sf} object with 254 rows and 5 columns:
 #'
 #' \itemize{
 #'   \item FIPS: Federal Information Processing System (FIPS) county codes.
 #'   \item turnout: Proportion of eligible voters who voted.
 #'   \item log_income: The natural logarithm of average per capita (in dollars) income.
+#'   \item income: The average per capita (in dollars) income.
 #'   \item geometry: \code{POINT} geometry representing coordinates in a NAD83
 #'     projection (EPSG: 5070). Distances between points are in meters.
 #' }

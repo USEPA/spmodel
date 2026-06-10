@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.12.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.13.0</span>
       </span>
     </div>
 
@@ -214,22 +214,22 @@ fit and summarize this model by running:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
 <span><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span><span class="co">#&gt; -3.1268 -0.9543  0.0707  0.8315  3.2323 </span></span>
+<span><span class="co">#&gt; -3.1485 -0.9733  0.0490  0.8168  3.2232 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients (fixed):</span></span>
 <span><span class="co">#&gt;             Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; (Intercept)  5.81994    0.39616  14.691   &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; stateCO     -0.93855    0.57028  -1.646   0.0998 .  </span></span>
-<span><span class="co">#&gt; stateNV      0.08179    0.54934   0.149   0.8817    </span></span>
-<span><span class="co">#&gt; stateUT     -0.03993    0.51767  -0.077   0.9385    </span></span>
+<span><span class="co">#&gt; (Intercept)  5.82803    0.41633  13.999   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; stateCO     -0.93746    0.60188  -1.558    0.119    </span></span>
+<span><span class="co">#&gt; stateNV      0.08518    0.57571   0.148    0.882    </span></span>
+<span><span class="co">#&gt; stateUT     -0.02632    0.54839  -0.048    0.962    </span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Pseudo R-squared: 0.04172</span></span>
+<span><span class="co">#&gt; Pseudo R-squared: 0.03776</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients (exponential spatial covariance):</span></span>
 <span><span class="co">#&gt;        de        ie     range </span></span>
-<span><span class="co">#&gt; 1.631e+00 3.658e-03 3.727e+04</span></span></code></pre>
+<span><span class="co">#&gt; 1.704e+00 1.231e-04 4.123e+04</span></span></code></pre>
 <p>The <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> output provides mean estimates for each
 state relative to the difference from a <em>reference group</em> (here,
 AZ). Often, however, the question “What is the mean in each group?” is
@@ -243,10 +243,10 @@ confidence intervals for each factor level:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">em11</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;  state emmean    SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  AZ      5.82 0.396 Inf      5.04      6.60</span></span>
-<span><span class="co">#&gt;  CO      4.88 0.410 Inf      4.08      5.69</span></span>
-<span><span class="co">#&gt;  NV      5.90 0.381 Inf      5.16      6.65</span></span>
-<span><span class="co">#&gt;  UT      5.78 0.333 Inf      5.13      6.43</span></span>
+<span><span class="co">#&gt;  AZ      5.83 0.416 Inf      5.01      6.64</span></span>
+<span><span class="co">#&gt;  CO      4.89 0.435 Inf      4.04      5.74</span></span>
+<span><span class="co">#&gt;  NV      5.91 0.398 Inf      5.13      6.69</span></span>
+<span><span class="co">#&gt;  UT      5.80 0.357 Inf      5.10      6.50</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; Confidence level used: 0.95</span></span></code></pre>
@@ -257,10 +257,10 @@ frame using <code><a href="https://rdrr.io/r/base/data.frame.html" class="extern
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">em11</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;   state   emmean        SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt; 1    AZ 5.819938 0.3961566 Inf  5.043485  6.596390</span></span>
-<span><span class="co">#&gt; 2    CO 4.881391 0.4102283 Inf  4.077359  5.685424</span></span>
-<span><span class="co">#&gt; 3    NV 5.901723 0.3806448 Inf  5.155673  6.647773</span></span>
-<span><span class="co">#&gt; 4    UT 5.780011 0.3333187 Inf  5.126718  6.433303</span></span></code></pre>
+<span><span class="co">#&gt; 1    AZ 5.828033 0.4163274 Inf  5.012046  6.644019</span></span>
+<span><span class="co">#&gt; 2    CO 4.890569 0.4346870 Inf  4.038599  5.742540</span></span>
+<span><span class="co">#&gt; 3    NV 5.913214 0.3977708 Inf  5.133597  6.692830</span></span>
+<span><span class="co">#&gt; 4    UT 5.801714 0.3571189 Inf  5.101774  6.501654</span></span></code></pre>
 <p>We then visualize the means and confidence intervals:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">em11</span><span class="op">)</span></span></code></pre></div>
@@ -275,12 +275,12 @@ factor level to all other factor levels that are easily visualized:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/pairs.html" class="external-link">pairs</a></span><span class="op">(</span><span class="va">em11</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;  contrast estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  AZ - CO    0.9385 0.570 Inf   1.646  0.3529</span></span>
-<span><span class="co">#&gt;  AZ - NV   -0.0818 0.549 Inf  -0.149  0.9988</span></span>
-<span><span class="co">#&gt;  AZ - UT    0.0399 0.518 Inf   0.077  0.9998</span></span>
-<span><span class="co">#&gt;  CO - NV   -1.0203 0.560 Inf  -1.823  0.2623</span></span>
-<span><span class="co">#&gt;  CO - UT   -0.8986 0.528 Inf  -1.701  0.3231</span></span>
-<span><span class="co">#&gt;  NV - UT    0.1217 0.503 Inf   0.242  0.9950</span></span>
+<span><span class="co">#&gt;  AZ - CO    0.9375 0.602 Inf   1.558  0.4031</span></span>
+<span><span class="co">#&gt;  AZ - NV   -0.0852 0.576 Inf  -0.148  0.9988</span></span>
+<span><span class="co">#&gt;  AZ - UT    0.0263 0.548 Inf   0.048  1.0000</span></span>
+<span><span class="co">#&gt;  CO - NV   -1.0226 0.589 Inf  -1.736  0.3051</span></span>
+<span><span class="co">#&gt;  CO - UT   -0.9111 0.562 Inf  -1.621  0.3666</span></span>
+<span><span class="co">#&gt;  NV - UT    0.1115 0.530 Inf   0.210  0.9967</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; P value adjustment: tukey method for comparing a family of 4 estimates</span></span></code></pre>
@@ -296,12 +296,12 @@ the Bonferroni method instead of Tukey method</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/pairs.html" class="external-link">pairs</a></span><span class="op">(</span><span class="va">em11</span>, adjust <span class="op">=</span> <span class="st">"bonferroni"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;  contrast estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  AZ - CO    0.9385 0.570 Inf   1.646  0.5989</span></span>
-<span><span class="co">#&gt;  AZ - NV   -0.0818 0.549 Inf  -0.149  1.0000</span></span>
-<span><span class="co">#&gt;  AZ - UT    0.0399 0.518 Inf   0.077  1.0000</span></span>
-<span><span class="co">#&gt;  CO - NV   -1.0203 0.560 Inf  -1.823  0.4096</span></span>
-<span><span class="co">#&gt;  CO - UT   -0.8986 0.528 Inf  -1.701  0.5337</span></span>
-<span><span class="co">#&gt;  NV - UT    0.1217 0.503 Inf   0.242  1.0000</span></span>
+<span><span class="co">#&gt;  AZ - CO    0.9375 0.602 Inf   1.558  0.7160</span></span>
+<span><span class="co">#&gt;  AZ - NV   -0.0852 0.576 Inf  -0.148  1.0000</span></span>
+<span><span class="co">#&gt;  AZ - UT    0.0263 0.548 Inf   0.048  1.0000</span></span>
+<span><span class="co">#&gt;  CO - NV   -1.0226 0.589 Inf  -1.736  0.4958</span></span>
+<span><span class="co">#&gt;  CO - UT   -0.9111 0.562 Inf  -1.621  0.6299</span></span>
+<span><span class="co">#&gt;  NV - UT    0.1115 0.530 Inf   0.210  1.0000</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; P value adjustment: bonferroni method for 6 tests</span></span></code></pre>
@@ -309,12 +309,12 @@ the Bonferroni method instead of Tukey method</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/pairs.html" class="external-link">pairs</a></span><span class="op">(</span><span class="va">em11</span>, adjust <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;  contrast estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  AZ - CO    0.9385 0.570 Inf   1.646  0.0998</span></span>
-<span><span class="co">#&gt;  AZ - NV   -0.0818 0.549 Inf  -0.149  0.8817</span></span>
-<span><span class="co">#&gt;  AZ - UT    0.0399 0.518 Inf   0.077  0.9385</span></span>
-<span><span class="co">#&gt;  CO - NV   -1.0203 0.560 Inf  -1.823  0.0683</span></span>
-<span><span class="co">#&gt;  CO - UT   -0.8986 0.528 Inf  -1.701  0.0890</span></span>
-<span><span class="co">#&gt;  NV - UT    0.1217 0.503 Inf   0.242  0.8088</span></span>
+<span><span class="co">#&gt;  AZ - CO    0.9375 0.602 Inf   1.558  0.1193</span></span>
+<span><span class="co">#&gt;  AZ - NV   -0.0852 0.576 Inf  -0.148  0.8824</span></span>
+<span><span class="co">#&gt;  AZ - UT    0.0263 0.548 Inf   0.048  0.9617</span></span>
+<span><span class="co">#&gt;  CO - NV   -1.0226 0.589 Inf  -1.736  0.0826</span></span>
+<span><span class="co">#&gt;  CO - UT   -0.9111 0.562 Inf  -1.621  0.1050</span></span>
+<span><span class="co">#&gt;  NV - UT    0.1115 0.530 Inf   0.210  0.8334</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic</span></span></code></pre>
 </div>
@@ -334,10 +334,10 @@ with two levels, 2012 and 2017:</p>
 <code class="sourceCode R"><span><span class="va">em21</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rvlenth.github.io/emmeans/reference/emmeans.html" class="external-link">emmeans</a></span><span class="op">(</span><span class="va">spmod2</span>, <span class="op">~</span> <span class="va">state</span><span class="op">)</span></span>
 <span><span class="va">em21</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;  state emmean    SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  AZ      5.78 0.424 Inf      4.95      6.61</span></span>
-<span><span class="co">#&gt;  CO      4.86 0.442 Inf      4.00      5.73</span></span>
-<span><span class="co">#&gt;  NV      5.88 0.404 Inf      5.08      6.67</span></span>
-<span><span class="co">#&gt;  UT      5.70 0.377 Inf      4.96      6.44</span></span>
+<span><span class="co">#&gt;  AZ      5.77 0.415 Inf      4.96      6.59</span></span>
+<span><span class="co">#&gt;  CO      4.86 0.431 Inf      4.01      5.70</span></span>
+<span><span class="co">#&gt;  NV      5.87 0.396 Inf      5.09      6.65</span></span>
+<span><span class="co">#&gt;  UT      5.69 0.366 Inf      4.97      6.41</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Results are averaged over the levels of: year </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
@@ -346,8 +346,8 @@ with two levels, 2012 and 2017:</p>
 <code class="sourceCode R"><span><span class="va">em22</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rvlenth.github.io/emmeans/reference/emmeans.html" class="external-link">emmeans</a></span><span class="op">(</span><span class="va">spmod2</span>, <span class="op">~</span> <span class="va">year</span><span class="op">)</span></span>
 <span><span class="va">em22</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;  year emmean    SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  2012   5.67 0.213 Inf      5.26      6.09</span></span>
-<span><span class="co">#&gt;  2017   5.44 0.265 Inf      4.92      5.96</span></span>
+<span><span class="co">#&gt;  2012   5.67 0.208 Inf      5.26      6.08</span></span>
+<span><span class="co">#&gt;  2017   5.43 0.261 Inf      4.92      5.94</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Results are averaged over the levels of: state </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
@@ -358,14 +358,14 @@ variables separated by <code>+</code>):</p>
 <code class="sourceCode R"><span><span class="va">em23</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rvlenth.github.io/emmeans/reference/emmeans.html" class="external-link">emmeans</a></span><span class="op">(</span><span class="va">spmod2</span>, <span class="op">~</span> <span class="va">state</span> <span class="op">+</span> <span class="va">year</span><span class="op">)</span></span>
 <span><span class="va">em23</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;  state year emmean    SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  AZ    2012   5.90 0.426 Inf      5.06      6.73</span></span>
-<span><span class="co">#&gt;  CO    2012   4.98 0.449 Inf      4.10      5.86</span></span>
-<span><span class="co">#&gt;  NV    2012   5.99 0.409 Inf      5.19      6.80</span></span>
-<span><span class="co">#&gt;  UT    2012   5.82 0.364 Inf      5.11      6.53</span></span>
-<span><span class="co">#&gt;  AZ    2017   5.66 0.452 Inf      4.78      6.55</span></span>
-<span><span class="co">#&gt;  CO    2017   4.74 0.463 Inf      3.84      5.65</span></span>
-<span><span class="co">#&gt;  NV    2017   5.76 0.430 Inf      4.91      6.60</span></span>
-<span><span class="co">#&gt;  UT    2017   5.58 0.422 Inf      4.76      6.41</span></span>
+<span><span class="co">#&gt;  AZ    2012   5.89 0.417 Inf      5.08      6.71</span></span>
+<span><span class="co">#&gt;  CO    2012   4.98 0.438 Inf      4.12      5.84</span></span>
+<span><span class="co">#&gt;  NV    2012   5.99 0.401 Inf      5.20      6.77</span></span>
+<span><span class="co">#&gt;  UT    2012   5.81 0.353 Inf      5.12      6.50</span></span>
+<span><span class="co">#&gt;  AZ    2017   5.66 0.443 Inf      4.79      6.52</span></span>
+<span><span class="co">#&gt;  CO    2017   4.74 0.453 Inf      3.85      5.63</span></span>
+<span><span class="co">#&gt;  NV    2017   5.75 0.423 Inf      4.92      6.58</span></span>
+<span><span class="co">#&gt;  UT    2017   5.57 0.412 Inf      4.77      6.38</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; Confidence level used: 0.95</span></span></code></pre>
@@ -393,8 +393,8 @@ warns users about:</p>
 <pre><code><span><span class="co">#&gt; NOTE: Results may be misleading due to involvement in interactions</span></span></code></pre>
 <pre><code><span><span class="co">#&gt;  state emmean    SE  df asymp.LCL asymp.UCL</span></span>
 <span><span class="co">#&gt;  AZ      5.70 0.435 Inf      4.85      6.56</span></span>
-<span><span class="co">#&gt;  CO      4.88 0.440 Inf      4.02      5.74</span></span>
-<span><span class="co">#&gt;  NV      5.82 0.412 Inf      5.02      6.63</span></span>
+<span><span class="co">#&gt;  CO      4.88 0.441 Inf      4.02      5.75</span></span>
+<span><span class="co">#&gt;  NV      5.82 0.413 Inf      5.01      6.63</span></span>
 <span><span class="co">#&gt;  UT      5.76 0.398 Inf      4.98      6.54</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Results are averaged over the levels of: year </span></span>
@@ -407,17 +407,17 @@ for each year</em>:</p>
 <span><span class="va">em31</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; year = 2012:</span></span>
 <span><span class="co">#&gt;  state emmean    SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  AZ      5.90 0.426 Inf      5.06      6.73</span></span>
-<span><span class="co">#&gt;  CO      4.98 0.449 Inf      4.10      5.86</span></span>
-<span><span class="co">#&gt;  NV      5.99 0.409 Inf      5.19      6.80</span></span>
-<span><span class="co">#&gt;  UT      5.82 0.364 Inf      5.11      6.53</span></span>
+<span><span class="co">#&gt;  AZ      5.89 0.417 Inf      5.08      6.71</span></span>
+<span><span class="co">#&gt;  CO      4.98 0.438 Inf      4.12      5.84</span></span>
+<span><span class="co">#&gt;  NV      5.99 0.401 Inf      5.20      6.77</span></span>
+<span><span class="co">#&gt;  UT      5.81 0.353 Inf      5.12      6.50</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; year = 2017:</span></span>
 <span><span class="co">#&gt;  state emmean    SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  AZ      5.66 0.452 Inf      4.78      6.55</span></span>
-<span><span class="co">#&gt;  CO      4.74 0.463 Inf      3.84      5.65</span></span>
-<span><span class="co">#&gt;  NV      5.76 0.430 Inf      4.91      6.60</span></span>
-<span><span class="co">#&gt;  UT      5.58 0.422 Inf      4.76      6.41</span></span>
+<span><span class="co">#&gt;  AZ      5.66 0.443 Inf      4.79      6.52</span></span>
+<span><span class="co">#&gt;  CO      4.74 0.453 Inf      3.85      5.63</span></span>
+<span><span class="co">#&gt;  NV      5.75 0.423 Inf      4.92      6.58</span></span>
+<span><span class="co">#&gt;  UT      5.57 0.412 Inf      4.77      6.38</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; Confidence level used: 0.95</span></span></code></pre>
@@ -425,21 +425,21 @@ for each year</em>:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/pairs.html" class="external-link">pairs</a></span><span class="op">(</span><span class="va">em31</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; year = 2012:</span></span>
 <span><span class="co">#&gt;  contrast estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  AZ - CO    0.9161 0.610 Inf   1.501  0.4366</span></span>
-<span><span class="co">#&gt;  AZ - NV   -0.0958 0.582 Inf  -0.164  0.9984</span></span>
-<span><span class="co">#&gt;  AZ - UT    0.0788 0.559 Inf   0.141  0.9990</span></span>
-<span><span class="co">#&gt;  CO - NV   -1.0118 0.597 Inf  -1.696  0.3259</span></span>
-<span><span class="co">#&gt;  CO - UT   -0.8373 0.575 Inf  -1.456  0.4645</span></span>
-<span><span class="co">#&gt;  NV - UT    0.1745 0.540 Inf   0.323  0.9884</span></span>
+<span><span class="co">#&gt;  AZ - CO    0.9168 0.596 Inf   1.539  0.4141</span></span>
+<span><span class="co">#&gt;  AZ - NV   -0.0944 0.570 Inf  -0.165  0.9984</span></span>
+<span><span class="co">#&gt;  AZ - UT    0.0826 0.545 Inf   0.152  0.9988</span></span>
+<span><span class="co">#&gt;  CO - NV   -1.0112 0.583 Inf  -1.734  0.3061</span></span>
+<span><span class="co">#&gt;  CO - UT   -0.8342 0.560 Inf  -1.490  0.4434</span></span>
+<span><span class="co">#&gt;  NV - UT    0.1770 0.528 Inf   0.335  0.9870</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; year = 2017:</span></span>
 <span><span class="co">#&gt;  contrast estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  AZ - CO    0.9161 0.610 Inf   1.501  0.4366</span></span>
-<span><span class="co">#&gt;  AZ - NV   -0.0958 0.582 Inf  -0.164  0.9984</span></span>
-<span><span class="co">#&gt;  AZ - UT    0.0788 0.559 Inf   0.141  0.9990</span></span>
-<span><span class="co">#&gt;  CO - NV   -1.0118 0.597 Inf  -1.696  0.3259</span></span>
-<span><span class="co">#&gt;  CO - UT   -0.8373 0.575 Inf  -1.456  0.4645</span></span>
-<span><span class="co">#&gt;  NV - UT    0.1745 0.540 Inf   0.323  0.9884</span></span>
+<span><span class="co">#&gt;  AZ - CO    0.9168 0.596 Inf   1.539  0.4141</span></span>
+<span><span class="co">#&gt;  AZ - NV   -0.0944 0.570 Inf  -0.165  0.9984</span></span>
+<span><span class="co">#&gt;  AZ - UT    0.0826 0.545 Inf   0.152  0.9988</span></span>
+<span><span class="co">#&gt;  CO - NV   -1.0112 0.583 Inf  -1.734  0.3061</span></span>
+<span><span class="co">#&gt;  CO - UT   -0.8342 0.560 Inf  -1.490  0.4434</span></span>
+<span><span class="co">#&gt;  NV - UT    0.1770 0.528 Inf   0.335  0.9870</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; P value adjustment: tukey method for comparing a family of 4 estimates</span></span></code></pre>
@@ -453,19 +453,19 @@ each state</em></p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/pairs.html" class="external-link">pairs</a></span><span class="op">(</span><span class="va">em32</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; state = AZ:</span></span>
 <span><span class="co">#&gt;  contrast            estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  year2012 - year2017    0.237 0.227 Inf   1.047  0.2952</span></span>
+<span><span class="co">#&gt;  year2012 - year2017    0.239 0.227 Inf   1.053  0.2925</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; state = CO:</span></span>
 <span><span class="co">#&gt;  contrast            estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  year2012 - year2017    0.237 0.227 Inf   1.047  0.2952</span></span>
+<span><span class="co">#&gt;  year2012 - year2017    0.239 0.227 Inf   1.053  0.2925</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; state = NV:</span></span>
 <span><span class="co">#&gt;  contrast            estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  year2012 - year2017    0.237 0.227 Inf   1.047  0.2952</span></span>
+<span><span class="co">#&gt;  year2012 - year2017    0.239 0.227 Inf   1.053  0.2925</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; state = UT:</span></span>
 <span><span class="co">#&gt;  contrast            estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  year2012 - year2017    0.237 0.227 Inf   1.047  0.2952</span></span>
+<span><span class="co">#&gt;  year2012 - year2017    0.239 0.227 Inf   1.053  0.2925</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic</span></span></code></pre>
 <p>And we can quantify the effect of each combination of
@@ -474,48 +474,48 @@ each state</em></p>
 <code class="sourceCode R"><span><span class="va">em33</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rvlenth.github.io/emmeans/reference/emmeans.html" class="external-link">emmeans</a></span><span class="op">(</span><span class="va">spmod2</span>, <span class="op">~</span> <span class="va">state</span> <span class="op">+</span> <span class="va">year</span><span class="op">)</span></span>
 <span><span class="va">em33</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;  state year emmean    SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  AZ    2012   5.90 0.426 Inf      5.06      6.73</span></span>
-<span><span class="co">#&gt;  CO    2012   4.98 0.449 Inf      4.10      5.86</span></span>
-<span><span class="co">#&gt;  NV    2012   5.99 0.409 Inf      5.19      6.80</span></span>
-<span><span class="co">#&gt;  UT    2012   5.82 0.364 Inf      5.11      6.53</span></span>
-<span><span class="co">#&gt;  AZ    2017   5.66 0.452 Inf      4.78      6.55</span></span>
-<span><span class="co">#&gt;  CO    2017   4.74 0.463 Inf      3.84      5.65</span></span>
-<span><span class="co">#&gt;  NV    2017   5.76 0.430 Inf      4.91      6.60</span></span>
-<span><span class="co">#&gt;  UT    2017   5.58 0.422 Inf      4.76      6.41</span></span>
+<span><span class="co">#&gt;  AZ    2012   5.89 0.417 Inf      5.08      6.71</span></span>
+<span><span class="co">#&gt;  CO    2012   4.98 0.438 Inf      4.12      5.84</span></span>
+<span><span class="co">#&gt;  NV    2012   5.99 0.401 Inf      5.20      6.77</span></span>
+<span><span class="co">#&gt;  UT    2012   5.81 0.353 Inf      5.12      6.50</span></span>
+<span><span class="co">#&gt;  AZ    2017   5.66 0.443 Inf      4.79      6.52</span></span>
+<span><span class="co">#&gt;  CO    2017   4.74 0.453 Inf      3.85      5.63</span></span>
+<span><span class="co">#&gt;  NV    2017   5.75 0.423 Inf      4.92      6.58</span></span>
+<span><span class="co">#&gt;  UT    2017   5.57 0.412 Inf      4.77      6.38</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; Confidence level used: 0.95</span></span></code></pre>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/pairs.html" class="external-link">pairs</a></span><span class="op">(</span><span class="va">em33</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;  contrast                  estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  AZ year2012 - CO year2012   0.9161 0.610 Inf   1.501  0.8071</span></span>
-<span><span class="co">#&gt;  AZ year2012 - NV year2012  -0.0958 0.582 Inf  -0.164  1.0000</span></span>
-<span><span class="co">#&gt;  AZ year2012 - UT year2012   0.0788 0.559 Inf   0.141  1.0000</span></span>
-<span><span class="co">#&gt;  AZ year2012 - AZ year2017   0.2372 0.227 Inf   1.047  0.9672</span></span>
-<span><span class="co">#&gt;  AZ year2012 - CO year2017   1.1533 0.644 Inf   1.791  0.6261</span></span>
-<span><span class="co">#&gt;  AZ year2012 - NV year2017   0.1414 0.621 Inf   0.228  1.0000</span></span>
-<span><span class="co">#&gt;  AZ year2012 - UT year2017   0.3159 0.622 Inf   0.508  0.9996</span></span>
-<span><span class="co">#&gt;  CO year2012 - NV year2012  -1.0118 0.597 Inf  -1.696  0.6902</span></span>
-<span><span class="co">#&gt;  CO year2012 - UT year2012  -0.8373 0.575 Inf  -1.456  0.8308</span></span>
-<span><span class="co">#&gt;  CO year2012 - AZ year2017  -0.6789 0.658 Inf  -1.032  0.9697</span></span>
-<span><span class="co">#&gt;  CO year2012 - CO year2017   0.2372 0.227 Inf   1.047  0.9672</span></span>
-<span><span class="co">#&gt;  CO year2012 - NV year2017  -0.7746 0.642 Inf  -1.207  0.9302</span></span>
-<span><span class="co">#&gt;  CO year2012 - UT year2017  -0.6001 0.644 Inf  -0.932  0.9830</span></span>
-<span><span class="co">#&gt;  NV year2012 - UT year2012   0.1745 0.540 Inf   0.323  1.0000</span></span>
-<span><span class="co">#&gt;  NV year2012 - AZ year2017   0.3329 0.628 Inf   0.530  0.9995</span></span>
-<span><span class="co">#&gt;  NV year2012 - CO year2017   1.2490 0.635 Inf   1.968  0.5037</span></span>
-<span><span class="co">#&gt;  NV year2012 - NV year2017   0.2372 0.227 Inf   1.047  0.9672</span></span>
-<span><span class="co">#&gt;  NV year2012 - UT year2017   0.4117 0.609 Inf   0.676  0.9976</span></span>
-<span><span class="co">#&gt;  UT year2012 - AZ year2017   0.1584 0.583 Inf   0.272  1.0000</span></span>
-<span><span class="co">#&gt;  UT year2012 - CO year2017   1.0745 0.591 Inf   1.817  0.6081</span></span>
-<span><span class="co">#&gt;  UT year2012 - NV year2017   0.0627 0.562 Inf   0.112  1.0000</span></span>
-<span><span class="co">#&gt;  UT year2012 - UT year2017   0.2372 0.227 Inf   1.047  0.9672</span></span>
-<span><span class="co">#&gt;  AZ year2017 - CO year2017   0.9161 0.610 Inf   1.501  0.8071</span></span>
-<span><span class="co">#&gt;  AZ year2017 - NV year2017  -0.0958 0.582 Inf  -0.164  1.0000</span></span>
-<span><span class="co">#&gt;  AZ year2017 - UT year2017   0.0788 0.559 Inf   0.141  1.0000</span></span>
-<span><span class="co">#&gt;  CO year2017 - NV year2017  -1.0118 0.597 Inf  -1.696  0.6902</span></span>
-<span><span class="co">#&gt;  CO year2017 - UT year2017  -0.8373 0.575 Inf  -1.456  0.8308</span></span>
-<span><span class="co">#&gt;  NV year2017 - UT year2017   0.1745 0.540 Inf   0.323  1.0000</span></span>
+<span><span class="co">#&gt;  AZ year2012 - CO year2012   0.9168 0.596 Inf   1.539  0.7863</span></span>
+<span><span class="co">#&gt;  AZ year2012 - NV year2012  -0.0944 0.570 Inf  -0.165  1.0000</span></span>
+<span><span class="co">#&gt;  AZ year2012 - UT year2012   0.0826 0.545 Inf   0.152  1.0000</span></span>
+<span><span class="co">#&gt;  AZ year2012 - AZ year2017   0.2389 0.227 Inf   1.053  0.9662</span></span>
+<span><span class="co">#&gt;  AZ year2012 - CO year2017   1.1557 0.630 Inf   1.833  0.5972</span></span>
+<span><span class="co">#&gt;  AZ year2012 - NV year2017   0.1445 0.610 Inf   0.237  1.0000</span></span>
+<span><span class="co">#&gt;  AZ year2012 - UT year2017   0.3215 0.609 Inf   0.528  0.9995</span></span>
+<span><span class="co">#&gt;  CO year2012 - NV year2012  -1.0112 0.583 Inf  -1.734  0.6650</span></span>
+<span><span class="co">#&gt;  CO year2012 - UT year2012  -0.8342 0.560 Inf  -1.490  0.8130</span></span>
+<span><span class="co">#&gt;  CO year2012 - AZ year2017  -0.6779 0.645 Inf  -1.052  0.9663</span></span>
+<span><span class="co">#&gt;  CO year2012 - CO year2017   0.2389 0.227 Inf   1.053  0.9662</span></span>
+<span><span class="co">#&gt;  CO year2012 - NV year2017  -0.7723 0.630 Inf  -1.226  0.9243</span></span>
+<span><span class="co">#&gt;  CO year2012 - UT year2017  -0.5953 0.630 Inf  -0.945  0.9816</span></span>
+<span><span class="co">#&gt;  NV year2012 - UT year2012   0.1770 0.528 Inf   0.335  1.0000</span></span>
+<span><span class="co">#&gt;  NV year2012 - AZ year2017   0.3332 0.617 Inf   0.540  0.9994</span></span>
+<span><span class="co">#&gt;  NV year2012 - CO year2017   1.2501 0.622 Inf   2.010  0.4750</span></span>
+<span><span class="co">#&gt;  NV year2012 - NV year2017   0.2389 0.227 Inf   1.053  0.9662</span></span>
+<span><span class="co">#&gt;  NV year2012 - UT year2017   0.4159 0.598 Inf   0.695  0.9971</span></span>
+<span><span class="co">#&gt;  UT year2012 - AZ year2017   0.1562 0.570 Inf   0.274  1.0000</span></span>
+<span><span class="co">#&gt;  UT year2012 - CO year2017   1.0731 0.577 Inf   1.861  0.5780</span></span>
+<span><span class="co">#&gt;  UT year2012 - NV year2017   0.0619 0.550 Inf   0.112  1.0000</span></span>
+<span><span class="co">#&gt;  UT year2012 - UT year2017   0.2389 0.227 Inf   1.053  0.9662</span></span>
+<span><span class="co">#&gt;  AZ year2017 - CO year2017   0.9168 0.596 Inf   1.539  0.7863</span></span>
+<span><span class="co">#&gt;  AZ year2017 - NV year2017  -0.0944 0.570 Inf  -0.165  1.0000</span></span>
+<span><span class="co">#&gt;  AZ year2017 - UT year2017   0.0826 0.545 Inf   0.152  1.0000</span></span>
+<span><span class="co">#&gt;  CO year2017 - NV year2017  -1.0112 0.583 Inf  -1.734  0.6650</span></span>
+<span><span class="co">#&gt;  CO year2017 - UT year2017  -0.8342 0.560 Inf  -1.490  0.8130</span></span>
+<span><span class="co">#&gt;  NV year2017 - UT year2017   0.1770 0.528 Inf   0.335  1.0000</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; P value adjustment: tukey method for comparing a family of 8 estimates</span></span></code></pre>
@@ -539,10 +539,10 @@ us quantify the effect of state at the average temperature value:</p>
 <span><span class="va">em41</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; temp = 7.63:</span></span>
 <span><span class="co">#&gt;  state emmean    SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  AZ      4.67 0.305 Inf      4.07      5.26</span></span>
-<span><span class="co">#&gt;  CO      5.70 0.212 Inf      5.29      6.12</span></span>
-<span><span class="co">#&gt;  NV      5.64 0.204 Inf      5.25      6.04</span></span>
-<span><span class="co">#&gt;  UT      6.05 0.144 Inf      5.77      6.33</span></span>
+<span><span class="co">#&gt;  AZ      4.67 0.304 Inf      4.07      5.26</span></span>
+<span><span class="co">#&gt;  CO      5.70 0.209 Inf      5.29      6.11</span></span>
+<span><span class="co">#&gt;  NV      5.64 0.203 Inf      5.25      6.04</span></span>
+<span><span class="co">#&gt;  UT      6.05 0.143 Inf      5.77      6.33</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; Confidence level used: 0.95</span></span></code></pre>
@@ -550,12 +550,12 @@ us quantify the effect of state at the average temperature value:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/pairs.html" class="external-link">pairs</a></span><span class="op">(</span><span class="va">em41</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; temp = 7.63:</span></span>
 <span><span class="co">#&gt;  contrast estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  AZ - CO   -1.0362 0.371 Inf  -2.790  0.0270</span></span>
-<span><span class="co">#&gt;  AZ - NV   -0.9786 0.367 Inf  -2.668  0.0382</span></span>
-<span><span class="co">#&gt;  AZ - UT   -1.3826 0.337 Inf  -4.099  0.0002</span></span>
-<span><span class="co">#&gt;  CO - NV    0.0576 0.294 Inf   0.196  0.9973</span></span>
-<span><span class="co">#&gt;  CO - UT   -0.3465 0.256 Inf  -1.353  0.5289</span></span>
-<span><span class="co">#&gt;  NV - UT   -0.4040 0.249 Inf  -1.621  0.3668</span></span>
+<span><span class="co">#&gt;  AZ - CO   -1.0345 0.368 Inf  -2.808  0.0257</span></span>
+<span><span class="co">#&gt;  AZ - NV   -0.9771 0.365 Inf  -2.677  0.0373</span></span>
+<span><span class="co">#&gt;  AZ - UT   -1.3829 0.336 Inf  -4.122  0.0002</span></span>
+<span><span class="co">#&gt;  CO - NV    0.0573 0.291 Inf   0.197  0.9973</span></span>
+<span><span class="co">#&gt;  CO - UT   -0.3484 0.253 Inf  -1.377  0.5137</span></span>
+<span><span class="co">#&gt;  NV - UT   -0.4058 0.248 Inf  -1.637  0.3580</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; P value adjustment: tukey method for comparing a family of 4 estimates</span></span></code></pre>
@@ -566,21 +566,21 @@ values, we can supply them via the <code>at</code> argument:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/pairs.html" class="external-link">pairs</a></span><span class="op">(</span><span class="va">em42</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; temp = 2:</span></span>
 <span><span class="co">#&gt;  contrast estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  AZ - CO   -0.3838 0.508 Inf  -0.756  0.8742</span></span>
-<span><span class="co">#&gt;  AZ - NV   -0.8791 0.593 Inf  -1.483  0.4477</span></span>
-<span><span class="co">#&gt;  AZ - UT   -0.4548 0.499 Inf  -0.911  0.7987</span></span>
-<span><span class="co">#&gt;  CO - NV   -0.4953 0.437 Inf  -1.135  0.6680</span></span>
-<span><span class="co">#&gt;  CO - UT   -0.0709 0.297 Inf  -0.239  0.9952</span></span>
-<span><span class="co">#&gt;  NV - UT    0.4244 0.426 Inf   0.996  0.7518</span></span>
+<span><span class="co">#&gt;  AZ - CO   -0.3803 0.505 Inf  -0.753  0.8755</span></span>
+<span><span class="co">#&gt;  AZ - NV   -0.8775 0.590 Inf  -1.487  0.4452</span></span>
+<span><span class="co">#&gt;  AZ - UT   -0.4471 0.496 Inf  -0.901  0.8042</span></span>
+<span><span class="co">#&gt;  CO - NV   -0.4972 0.435 Inf  -1.144  0.6621</span></span>
+<span><span class="co">#&gt;  CO - UT   -0.0668 0.295 Inf  -0.227  0.9959</span></span>
+<span><span class="co">#&gt;  NV - UT    0.4304 0.424 Inf   1.016  0.7403</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; temp = 8:</span></span>
 <span><span class="co">#&gt;  contrast estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  AZ - CO   -1.0785 0.369 Inf  -2.920  0.0184</span></span>
-<span><span class="co">#&gt;  AZ - NV   -0.9850 0.358 Inf  -2.753  0.0301</span></span>
-<span><span class="co">#&gt;  AZ - UT   -1.4428 0.332 Inf  -4.346  0.0001</span></span>
-<span><span class="co">#&gt;  CO - NV    0.0934 0.298 Inf   0.313  0.9893</span></span>
-<span><span class="co">#&gt;  CO - UT   -0.3643 0.267 Inf  -1.367  0.5204</span></span>
-<span><span class="co">#&gt;  NV - UT   -0.4577 0.250 Inf  -1.828  0.2599</span></span>
+<span><span class="co">#&gt;  AZ - CO   -1.0769 0.366 Inf  -2.940  0.0173</span></span>
+<span><span class="co">#&gt;  AZ - NV   -0.9836 0.356 Inf  -2.762  0.0293</span></span>
+<span><span class="co">#&gt;  AZ - UT   -1.4436 0.330 Inf  -4.371  0.0001</span></span>
+<span><span class="co">#&gt;  CO - NV    0.0933 0.295 Inf   0.316  0.9891</span></span>
+<span><span class="co">#&gt;  CO - UT   -0.3667 0.263 Inf  -1.392  0.5044</span></span>
+<span><span class="co">#&gt;  NV - UT   -0.4600 0.249 Inf  -1.847  0.2514</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; P value adjustment: tukey method for comparing a family of 4 estimates</span></span></code></pre>
@@ -595,10 +595,10 @@ separately for each state:</p>
 <code class="sourceCode R"><span><span class="va">em43</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rvlenth.github.io/emmeans/reference/emtrends.html" class="external-link">emtrends</a></span><span class="op">(</span><span class="va">spmod4</span>, <span class="op">~</span> <span class="va">state</span>, var <span class="op">=</span> <span class="st">"temp"</span><span class="op">)</span></span>
 <span><span class="va">em43</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;  state temp.trend     SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  AZ         0.159 0.0319 Inf    0.0962     0.221</span></span>
-<span><span class="co">#&gt;  CO         0.274 0.0429 Inf    0.1905     0.358</span></span>
-<span><span class="co">#&gt;  NV         0.176 0.0492 Inf    0.0798     0.273</span></span>
-<span><span class="co">#&gt;  UT         0.323 0.0367 Inf    0.2514     0.395</span></span>
+<span><span class="co">#&gt;  AZ         0.159 0.0317 Inf    0.0964     0.221</span></span>
+<span><span class="co">#&gt;  CO         0.275 0.0424 Inf    0.1916     0.358</span></span>
+<span><span class="co">#&gt;  NV         0.176 0.0491 Inf    0.0800     0.273</span></span>
+<span><span class="co">#&gt;  UT         0.325 0.0365 Inf    0.2531     0.396</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; Confidence level used: 0.95</span></span></code></pre>
@@ -614,17 +614,17 @@ factors:</p>
 <span><span class="va">em51</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; temp = 7.63, year = 2012:</span></span>
 <span><span class="co">#&gt;  state emmean    SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  AZ      4.93 0.339 Inf      4.26      5.59</span></span>
-<span><span class="co">#&gt;  CO      5.71 0.243 Inf      5.23      6.18</span></span>
+<span><span class="co">#&gt;  AZ      4.93 0.341 Inf      4.26      5.59</span></span>
+<span><span class="co">#&gt;  CO      5.71 0.246 Inf      5.23      6.19</span></span>
 <span><span class="co">#&gt;  NV      5.76 0.250 Inf      5.27      6.25</span></span>
-<span><span class="co">#&gt;  UT      6.06 0.144 Inf      5.78      6.34</span></span>
+<span><span class="co">#&gt;  UT      6.06 0.145 Inf      5.77      6.34</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; temp = 7.63, year = 2017:</span></span>
 <span><span class="co">#&gt;  state emmean    SE  df asymp.LCL asymp.UCL</span></span>
 <span><span class="co">#&gt;  AZ      3.71 0.647 Inf      2.45      4.98</span></span>
-<span><span class="co">#&gt;  CO      5.69 0.312 Inf      5.08      6.30</span></span>
+<span><span class="co">#&gt;  CO      5.69 0.314 Inf      5.07      6.30</span></span>
 <span><span class="co">#&gt;  NV      5.39 0.352 Inf      4.70      6.08</span></span>
-<span><span class="co">#&gt;  UT      6.17 1.452 Inf      3.33      9.02</span></span>
+<span><span class="co">#&gt;  UT      6.17 1.445 Inf      3.33      9.00</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; Confidence level used: 0.95</span></span></code></pre>
@@ -633,13 +633,13 @@ factors:</p>
 <span><span class="va">em52</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; temp = 7.63, state = AZ:</span></span>
 <span><span class="co">#&gt;  year emmean    SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  2012   4.93 0.339 Inf      4.26      5.59</span></span>
+<span><span class="co">#&gt;  2012   4.93 0.341 Inf      4.26      5.59</span></span>
 <span><span class="co">#&gt;  2017   3.71 0.647 Inf      2.45      4.98</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; temp = 7.63, state = CO:</span></span>
 <span><span class="co">#&gt;  year emmean    SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  2012   5.71 0.243 Inf      5.23      6.18</span></span>
-<span><span class="co">#&gt;  2017   5.69 0.312 Inf      5.08      6.30</span></span>
+<span><span class="co">#&gt;  2012   5.71 0.246 Inf      5.23      6.19</span></span>
+<span><span class="co">#&gt;  2017   5.69 0.314 Inf      5.07      6.30</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; temp = 7.63, state = NV:</span></span>
 <span><span class="co">#&gt;  year emmean    SE  df asymp.LCL asymp.UCL</span></span>
@@ -648,8 +648,8 @@ factors:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; temp = 7.63, state = UT:</span></span>
 <span><span class="co">#&gt;  year emmean    SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  2012   6.06 0.144 Inf      5.78      6.34</span></span>
-<span><span class="co">#&gt;  2017   6.17 1.452 Inf      3.33      9.02</span></span>
+<span><span class="co">#&gt;  2012   6.06 0.145 Inf      5.77      6.34</span></span>
+<span><span class="co">#&gt;  2017   6.17 1.445 Inf      3.33      9.00</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; Confidence level used: 0.95</span></span></code></pre>
@@ -658,34 +658,34 @@ factors:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/pairs.html" class="external-link">pairs</a></span><span class="op">(</span><span class="va">em53</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; temp = 7.63:</span></span>
 <span><span class="co">#&gt;  contrast                  estimate    SE  df z.ratio p.value</span></span>
-<span><span class="co">#&gt;  AZ year2012 - CO year2012  -0.7793 0.417 Inf  -1.868  0.5729</span></span>
-<span><span class="co">#&gt;  AZ year2012 - NV year2012  -0.8351 0.421 Inf  -1.983  0.4936</span></span>
-<span><span class="co">#&gt;  AZ year2012 - UT year2012  -1.1323 0.369 Inf  -3.072  0.0443</span></span>
-<span><span class="co">#&gt;  AZ year2012 - AZ year2017   1.2122 0.716 Inf   1.694  0.6915</span></span>
-<span><span class="co">#&gt;  AZ year2012 - CO year2017  -0.7639 0.461 Inf  -1.658  0.7147</span></span>
-<span><span class="co">#&gt;  AZ year2012 - NV year2017  -0.4664 0.489 Inf  -0.954  0.9805</span></span>
-<span><span class="co">#&gt;  AZ year2012 - UT year2017  -1.2457 1.491 Inf  -0.835  0.9911</span></span>
-<span><span class="co">#&gt;  CO year2012 - NV year2012  -0.0557 0.348 Inf  -0.160  1.0000</span></span>
-<span><span class="co">#&gt;  CO year2012 - UT year2012  -0.3529 0.283 Inf  -1.249  0.9170</span></span>
-<span><span class="co">#&gt;  CO year2012 - AZ year2017   1.9916 0.691 Inf   2.882  0.0762</span></span>
-<span><span class="co">#&gt;  CO year2012 - CO year2017   0.0155 0.367 Inf   0.042  1.0000</span></span>
-<span><span class="co">#&gt;  CO year2012 - NV year2017   0.3130 0.428 Inf   0.732  0.9961</span></span>
-<span><span class="co">#&gt;  CO year2012 - UT year2017  -0.4664 1.472 Inf  -0.317  1.0000</span></span>
-<span><span class="co">#&gt;  NV year2012 - UT year2012  -0.2972 0.288 Inf  -1.031  0.9699</span></span>
-<span><span class="co">#&gt;  NV year2012 - AZ year2017   2.0473 0.694 Inf   2.952  0.0627</span></span>
-<span><span class="co">#&gt;  NV year2012 - CO year2017   0.0712 0.400 Inf   0.178  1.0000</span></span>
-<span><span class="co">#&gt;  NV year2012 - NV year2017   0.3687 0.420 Inf   0.878  0.9880</span></span>
-<span><span class="co">#&gt;  NV year2012 - UT year2017  -0.4107 1.473 Inf  -0.279  1.0000</span></span>
-<span><span class="co">#&gt;  UT year2012 - AZ year2017   2.3445 0.663 Inf   3.537  0.0096</span></span>
-<span><span class="co">#&gt;  UT year2012 - CO year2017   0.3684 0.344 Inf   1.072  0.9626</span></span>
-<span><span class="co">#&gt;  UT year2012 - NV year2017   0.6659 0.380 Inf   1.751  0.6535</span></span>
-<span><span class="co">#&gt;  UT year2012 - UT year2017  -0.1134 1.455 Inf  -0.078  1.0000</span></span>
-<span><span class="co">#&gt;  AZ year2017 - CO year2017  -1.9761 0.718 Inf  -2.751  0.1076</span></span>
-<span><span class="co">#&gt;  AZ year2017 - NV year2017  -1.6786 0.736 Inf  -2.279  0.3050</span></span>
-<span><span class="co">#&gt;  AZ year2017 - UT year2017  -2.4580 1.590 Inf  -1.546  0.7823</span></span>
-<span><span class="co">#&gt;  CO year2017 - NV year2017   0.2975 0.470 Inf   0.633  0.9984</span></span>
-<span><span class="co">#&gt;  CO year2017 - UT year2017  -0.4819 1.485 Inf  -0.324  1.0000</span></span>
-<span><span class="co">#&gt;  NV year2017 - UT year2017  -0.7793 1.494 Inf  -0.522  0.9996</span></span>
+<span><span class="co">#&gt;  AZ year2012 - CO year2012  -0.7827 0.420 Inf  -1.862  0.5770</span></span>
+<span><span class="co">#&gt;  AZ year2012 - NV year2012  -0.8365 0.423 Inf  -1.979  0.4962</span></span>
+<span><span class="co">#&gt;  AZ year2012 - UT year2012  -1.1311 0.370 Inf  -3.055  0.0466</span></span>
+<span><span class="co">#&gt;  AZ year2012 - AZ year2017   1.2113 0.715 Inf   1.694  0.6913</span></span>
+<span><span class="co">#&gt;  AZ year2012 - CO year2017  -0.7609 0.463 Inf  -1.644  0.7237</span></span>
+<span><span class="co">#&gt;  AZ year2012 - NV year2017  -0.4668 0.490 Inf  -0.953  0.9807</span></span>
+<span><span class="co">#&gt;  AZ year2012 - UT year2017  -1.2399 1.484 Inf  -0.835  0.9911</span></span>
+<span><span class="co">#&gt;  CO year2012 - NV year2012  -0.0537 0.351 Inf  -0.153  1.0000</span></span>
+<span><span class="co">#&gt;  CO year2012 - UT year2012  -0.3484 0.286 Inf  -1.218  0.9268</span></span>
+<span><span class="co">#&gt;  CO year2012 - AZ year2017   1.9940 0.692 Inf   2.881  0.0765</span></span>
+<span><span class="co">#&gt;  CO year2012 - CO year2017   0.0219 0.368 Inf   0.059  1.0000</span></span>
+<span><span class="co">#&gt;  CO year2012 - NV year2017   0.3160 0.430 Inf   0.735  0.9959</span></span>
+<span><span class="co">#&gt;  CO year2012 - UT year2017  -0.4572 1.466 Inf  -0.312  1.0000</span></span>
+<span><span class="co">#&gt;  NV year2012 - UT year2012  -0.2946 0.289 Inf  -1.018  0.9719</span></span>
+<span><span class="co">#&gt;  NV year2012 - AZ year2017   2.0477 0.694 Inf   2.952  0.0627</span></span>
+<span><span class="co">#&gt;  NV year2012 - CO year2017   0.0756 0.401 Inf   0.188  1.0000</span></span>
+<span><span class="co">#&gt;  NV year2012 - NV year2017   0.3697 0.419 Inf   0.882  0.9877</span></span>
+<span><span class="co">#&gt;  NV year2012 - UT year2017  -0.4034 1.466 Inf  -0.275  1.0000</span></span>
+<span><span class="co">#&gt;  UT year2012 - AZ year2017   2.3424 0.663 Inf   3.533  0.0098</span></span>
+<span><span class="co">#&gt;  UT year2012 - CO year2017   0.3702 0.346 Inf   1.071  0.9627</span></span>
+<span><span class="co">#&gt;  UT year2012 - NV year2017   0.6644 0.381 Inf   1.743  0.6587</span></span>
+<span><span class="co">#&gt;  UT year2012 - UT year2017  -0.1088 1.447 Inf  -0.075  1.0000</span></span>
+<span><span class="co">#&gt;  AZ year2017 - CO year2017  -1.9721 0.719 Inf  -2.743  0.1098</span></span>
+<span><span class="co">#&gt;  AZ year2017 - NV year2017  -1.6780 0.737 Inf  -2.278  0.3057</span></span>
+<span><span class="co">#&gt;  AZ year2017 - UT year2017  -2.4512 1.583 Inf  -1.549  0.7809</span></span>
+<span><span class="co">#&gt;  CO year2017 - NV year2017   0.2941 0.472 Inf   0.624  0.9986</span></span>
+<span><span class="co">#&gt;  CO year2017 - UT year2017  -0.4790 1.478 Inf  -0.324  1.0000</span></span>
+<span><span class="co">#&gt;  NV year2017 - UT year2017  -0.7731 1.487 Inf  -0.520  0.9996</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; P value adjustment: tukey method for comparing a family of 8 estimates</span></span></code></pre>
@@ -694,17 +694,17 @@ factors:</p>
 <span><span class="va">em54</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; year = 2012:</span></span>
 <span><span class="co">#&gt;  state temp.trend     SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  AZ         0.145 0.0358 Inf    0.0748     0.215</span></span>
-<span><span class="co">#&gt;  CO         0.269 0.0482 Inf    0.1747     0.364</span></span>
-<span><span class="co">#&gt;  NV         0.168 0.1029 Inf   -0.0338     0.369</span></span>
-<span><span class="co">#&gt;  UT         0.325 0.0390 Inf    0.2486     0.401</span></span>
+<span><span class="co">#&gt;  AZ         0.145 0.0359 Inf    0.0746     0.215</span></span>
+<span><span class="co">#&gt;  CO         0.269 0.0487 Inf    0.1737     0.365</span></span>
+<span><span class="co">#&gt;  NV         0.168 0.1030 Inf   -0.0340     0.370</span></span>
+<span><span class="co">#&gt;  UT         0.324 0.0391 Inf    0.2472     0.400</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; year = 2017:</span></span>
 <span><span class="co">#&gt;  state temp.trend     SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  AZ         0.225 0.0656 Inf    0.0962     0.354</span></span>
-<span><span class="co">#&gt;  CO         0.293 0.0704 Inf    0.1546     0.431</span></span>
-<span><span class="co">#&gt;  NV         0.178 0.0562 Inf    0.0682     0.288</span></span>
-<span><span class="co">#&gt;  UT         0.362 0.2438 Inf   -0.1159     0.840</span></span>
+<span><span class="co">#&gt;  AZ         0.225 0.0657 Inf    0.0962     0.354</span></span>
+<span><span class="co">#&gt;  CO         0.292 0.0707 Inf    0.1538     0.431</span></span>
+<span><span class="co">#&gt;  NV         0.178 0.0563 Inf    0.0680     0.289</span></span>
+<span><span class="co">#&gt;  UT         0.359 0.2426 Inf   -0.1169     0.834</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; Confidence level used: 0.95</span></span></code></pre>
@@ -713,23 +713,23 @@ factors:</p>
 <span><span class="va">em55</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; state = AZ:</span></span>
 <span><span class="co">#&gt;  year temp.trend     SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  2012      0.145 0.0358 Inf    0.0748     0.215</span></span>
-<span><span class="co">#&gt;  2017      0.225 0.0656 Inf    0.0962     0.354</span></span>
+<span><span class="co">#&gt;  2012      0.145 0.0359 Inf    0.0746     0.215</span></span>
+<span><span class="co">#&gt;  2017      0.225 0.0657 Inf    0.0962     0.354</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; state = CO:</span></span>
 <span><span class="co">#&gt;  year temp.trend     SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  2012      0.269 0.0482 Inf    0.1747     0.364</span></span>
-<span><span class="co">#&gt;  2017      0.293 0.0704 Inf    0.1546     0.431</span></span>
+<span><span class="co">#&gt;  2012      0.269 0.0487 Inf    0.1737     0.365</span></span>
+<span><span class="co">#&gt;  2017      0.292 0.0707 Inf    0.1538     0.431</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; state = NV:</span></span>
 <span><span class="co">#&gt;  year temp.trend     SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  2012      0.168 0.1029 Inf   -0.0338     0.369</span></span>
-<span><span class="co">#&gt;  2017      0.178 0.0562 Inf    0.0682     0.288</span></span>
+<span><span class="co">#&gt;  2012      0.168 0.1030 Inf   -0.0340     0.370</span></span>
+<span><span class="co">#&gt;  2017      0.178 0.0563 Inf    0.0680     0.289</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; state = UT:</span></span>
 <span><span class="co">#&gt;  year temp.trend     SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  2012      0.325 0.0390 Inf    0.2486     0.401</span></span>
-<span><span class="co">#&gt;  2017      0.362 0.2438 Inf   -0.1159     0.840</span></span>
+<span><span class="co">#&gt;  2012      0.324 0.0391 Inf    0.2472     0.400</span></span>
+<span><span class="co">#&gt;  2017      0.359 0.2426 Inf   -0.1169     0.834</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; Confidence level used: 0.95</span></span></code></pre>
@@ -737,14 +737,14 @@ factors:</p>
 <code class="sourceCode R"><span><span class="va">em56</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rvlenth.github.io/emmeans/reference/emtrends.html" class="external-link">emtrends</a></span><span class="op">(</span><span class="va">spmod5</span>, <span class="op">~</span> <span class="va">state</span> <span class="op">+</span> <span class="va">year</span>, var <span class="op">=</span> <span class="st">"temp"</span><span class="op">)</span></span>
 <span><span class="va">em56</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;  state year temp.trend     SE  df asymp.LCL asymp.UCL</span></span>
-<span><span class="co">#&gt;  AZ    2012      0.145 0.0358 Inf    0.0748     0.215</span></span>
-<span><span class="co">#&gt;  CO    2012      0.269 0.0482 Inf    0.1747     0.364</span></span>
-<span><span class="co">#&gt;  NV    2012      0.168 0.1029 Inf   -0.0338     0.369</span></span>
-<span><span class="co">#&gt;  UT    2012      0.325 0.0390 Inf    0.2486     0.401</span></span>
-<span><span class="co">#&gt;  AZ    2017      0.225 0.0656 Inf    0.0962     0.354</span></span>
-<span><span class="co">#&gt;  CO    2017      0.293 0.0704 Inf    0.1546     0.431</span></span>
-<span><span class="co">#&gt;  NV    2017      0.178 0.0562 Inf    0.0682     0.288</span></span>
-<span><span class="co">#&gt;  UT    2017      0.362 0.2438 Inf   -0.1159     0.840</span></span>
+<span><span class="co">#&gt;  AZ    2012      0.145 0.0359 Inf    0.0746     0.215</span></span>
+<span><span class="co">#&gt;  CO    2012      0.269 0.0487 Inf    0.1737     0.365</span></span>
+<span><span class="co">#&gt;  NV    2012      0.168 0.1030 Inf   -0.0340     0.370</span></span>
+<span><span class="co">#&gt;  UT    2012      0.324 0.0391 Inf    0.2472     0.400</span></span>
+<span><span class="co">#&gt;  AZ    2017      0.225 0.0657 Inf    0.0962     0.354</span></span>
+<span><span class="co">#&gt;  CO    2017      0.292 0.0707 Inf    0.1538     0.431</span></span>
+<span><span class="co">#&gt;  NV    2017      0.178 0.0563 Inf    0.0680     0.289</span></span>
+<span><span class="co">#&gt;  UT    2017      0.359 0.2426 Inf   -0.1169     0.834</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Degrees-of-freedom method: asymptotic </span></span>
 <span><span class="co">#&gt; Confidence level used: 0.95</span></span></code></pre>
@@ -769,34 +769,34 @@ interactions) on log conductivity:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
 <span><span class="co">#&gt;       Min        1Q    Median        3Q       Max </span></span>
-<span><span class="co">#&gt; -2.365453 -0.407594 -0.004431  0.442618  2.800836 </span></span>
+<span><span class="co">#&gt; -2.354623 -0.404763 -0.001426  0.444013  2.801426 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients (fixed):</span></span>
 <span><span class="co">#&gt;                       Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; (Intercept)            3.82008    0.57177   6.681 2.37e-11 ***</span></span>
-<span><span class="co">#&gt; stateCO               -0.16961    0.65306  -0.260 0.795081    </span></span>
-<span><span class="co">#&gt; stateNV                0.66076    1.06190   0.622 0.533782    </span></span>
-<span><span class="co">#&gt; stateUT               -0.24208    0.63669  -0.380 0.703782    </span></span>
-<span><span class="co">#&gt; year2017              -1.82264    1.21829  -1.496 0.134638    </span></span>
-<span><span class="co">#&gt; temp                   0.14495    0.03580   4.048 5.16e-05 ***</span></span>
-<span><span class="co">#&gt; stateCO:year2017       1.62871    1.33955   1.216 0.224037    </span></span>
-<span><span class="co">#&gt; stateNV:year2017       1.37359    1.60190   0.857 0.391183    </span></span>
-<span><span class="co">#&gt; stateUT:year2017       1.65398    1.35275   1.223 0.221450    </span></span>
-<span><span class="co">#&gt; stateCO:temp           0.12429    0.06007   2.069 0.038541 *  </span></span>
-<span><span class="co">#&gt; stateNV:temp           0.02283    0.10891   0.210 0.833939    </span></span>
-<span><span class="co">#&gt; stateUT:temp           0.18001    0.05291   3.402 0.000668 ***</span></span>
-<span><span class="co">#&gt; year2017:temp          0.07995    0.07318   1.093 0.274581    </span></span>
-<span><span class="co">#&gt; stateCO:year2017:temp -0.05658    0.10837  -0.522 0.601601    </span></span>
-<span><span class="co">#&gt; stateNV:year2017:temp -0.06943    0.13717  -0.506 0.612759    </span></span>
-<span><span class="co">#&gt; stateUT:year2017:temp -0.04300    0.25431  -0.169 0.865724    </span></span>
+<span><span class="co">#&gt; (Intercept)            3.81882    0.57406   6.652 2.88e-11 ***</span></span>
+<span><span class="co">#&gt; stateCO               -0.16530    0.65566  -0.252 0.800951    </span></span>
+<span><span class="co">#&gt; stateNV                0.66205    1.06415   0.622 0.533848    </span></span>
+<span><span class="co">#&gt; stateUT               -0.23392    0.63944  -0.366 0.714493    </span></span>
+<span><span class="co">#&gt; year2017              -1.82141    1.21707  -1.497 0.134508    </span></span>
+<span><span class="co">#&gt; temp                   0.14498    0.03592   4.036 5.44e-05 ***</span></span>
+<span><span class="co">#&gt; stateCO:year2017       1.62235    1.33773   1.213 0.225220    </span></span>
+<span><span class="co">#&gt; stateNV:year2017       1.37143    1.60001   0.857 0.391367    </span></span>
+<span><span class="co">#&gt; stateUT:year2017       1.66483    1.34976   1.233 0.217417    </span></span>
+<span><span class="co">#&gt; stateCO:temp           0.12418    0.06051   2.052 0.040161 *  </span></span>
+<span><span class="co">#&gt; stateNV:temp           0.02285    0.10906   0.209 0.834066    </span></span>
+<span><span class="co">#&gt; stateUT:temp           0.17879    0.05308   3.368 0.000756 ***</span></span>
+<span><span class="co">#&gt; year2017:temp          0.07992    0.07309   1.093 0.274189    </span></span>
+<span><span class="co">#&gt; stateCO:year2017:temp -0.05671    0.10825  -0.524 0.600344    </span></span>
+<span><span class="co">#&gt; stateNV:year2017:temp -0.06941    0.13715  -0.506 0.612811    </span></span>
+<span><span class="co">#&gt; stateUT:year2017:temp -0.04516    0.25289  -0.179 0.858273    </span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Pseudo R-squared: 0.673</span></span>
+<span><span class="co">#&gt; Pseudo R-squared: 0.6694</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients (exponential spatial covariance):</span></span>
 <span><span class="co">#&gt;        de        ie     range </span></span>
-<span><span class="co">#&gt; 6.161e-01 1.121e-03 8.759e+03</span></span></code></pre>
+<span><span class="co">#&gt; 6.197e-01 2.322e-05 9.249e+03</span></span></code></pre>
 <p>We perform an analysis of variance by running:</p>
 <div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">spmod5</span><span class="op">)</span></span></code></pre></div>
@@ -804,14 +804,14 @@ interactions) on log conductivity:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Response: log_cond</span></span>
 <span><span class="co">#&gt;                 Df    Chi2 Pr(&gt;Chi2)    </span></span>
-<span><span class="co">#&gt; (Intercept)      1 44.6380 2.370e-11 ***</span></span>
-<span><span class="co">#&gt; state            3  1.0013  0.800930    </span></span>
-<span><span class="co">#&gt; year             1  2.2382  0.134638    </span></span>
-<span><span class="co">#&gt; temp             1 16.3896 5.157e-05 ***</span></span>
-<span><span class="co">#&gt; state:year       3  1.6435  0.649577    </span></span>
-<span><span class="co">#&gt; state:temp       3 12.5878  0.005618 ** </span></span>
-<span><span class="co">#&gt; year:temp        1  1.1937  0.274581    </span></span>
-<span><span class="co">#&gt; state:year:temp  3  0.3903  0.942244    </span></span>
+<span><span class="co">#&gt; (Intercept)      1 44.2537 2.885e-11 ***</span></span>
+<span><span class="co">#&gt; state            3  0.9783  0.806509    </span></span>
+<span><span class="co">#&gt; year             1  2.2397  0.134508    </span></span>
+<span><span class="co">#&gt; temp             1 16.2874 5.442e-05 ***</span></span>
+<span><span class="co">#&gt; state:year       3  1.6545  0.647088    </span></span>
+<span><span class="co">#&gt; state:temp       3 12.3512  0.006272 ** </span></span>
+<span><span class="co">#&gt; year:temp        1  1.1957  0.274189    </span></span>
+<span><span class="co">#&gt; state:year:temp  3  0.3925  0.941786    </span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre>
 <p>The analysis of variance suggests a significant intercept,
@@ -832,7 +832,7 @@ about <code>emmeans</code>, visit the website <a href="https://rvlenth.github.io
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-lenth2024emmeans" class="csl-entry">
 Lenth, Russell V. 2024. <em>Emmeans: Estimated Marginal Means, Aka
 Least-Squares Means</em>. <a href="https://CRAN.R-project.org/package=emmeans" class="external-link">https://CRAN.R-project.org/package=emmeans</a>.

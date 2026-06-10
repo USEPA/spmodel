@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.12.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.13.0</span>
       </span>
     </div>
 
@@ -308,8 +308,8 @@ the neighborhood structure in <span class="math inline">\(\mathbf{y}\)</span>. P
 running <code><a href="../reference/spautor.html">help("spautor", "spmodel")</a></code> or
 <code><a href="../articles/technical.html">vignette("technical", "spmodel")</a></code>.</p>
 <p>One way to define <span class="math inline">\(\mathbf{W}\)</span> is
-through queen contiguity <span class="citation">(Anselin, Syabri, and
-Kho 2010)</span>. Two observations are queen contiguous if they share a
+through queen contiguity <span class="citation">(Anselin et al.
+2010)</span>. Two observations are queen contiguous if they share a
 boundary. The <span class="math inline">\(ij\)</span>th element of <span class="math inline">\(\mathbf{W}\)</span> is then one if observation
 <span class="math inline">\(i\)</span> and observation <span class="math inline">\(j\)</span> are queen contiguous and zero
 otherwise. Observations are not considered neighbors with themselves, so
@@ -518,7 +518,7 @@ diag(\mathbf{H}_s)},
 \end{equation}\]</span> where <span class="math inline">\(\mathbf{e}_p\)</span> are the Pearson residuals
 and <span class="math inline">\(diag(\mathbf{H}_s)\)</span> is the
 diagonal of the spatial hat matrix, <span class="math inline">\(\mathbf{H}_s \equiv \mathbf{X}^* (\mathbf{X}^{*
-\top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}\)</span> <span class="citation">(Montgomery, Peck, and Vining 2021)</span>, and <span class="math inline">\(\odot\)</span> denotes the Hadmard (element-wise)
+\top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}\)</span> <span class="citation">(Montgomery et al. 2021)</span>, and <span class="math inline">\(\odot\)</span> denotes the Hadmard (element-wise)
 product. The larger the Cook’s distance, the larger the influence.</p>
 <p>To better understand the previous form, recall that the the
 non-spatial linear model <span class="math inline">\(\mathbf{y} =
@@ -581,8 +581,8 @@ vector <span class="math inline">\(\mathbf{u}\)</span>, denoted <span class="mat
   \mathbf{\hat{u}} = \sigma^2_u \mathbf{Z}^\top
 \mathbf{\Sigma}^{-1}(\mathbf{y} - \mathbf{X} \boldsymbol{\hat{\beta}}),
 \end{equation}\]</span> where <span class="math inline">\(\sigma^2_u\)</span> is the variance of <span class="math inline">\(\mathbf{u}\)</span>.</p>
-<p><span class="citation">Searle, Casella, and McCulloch (2009)</span>
-generalize this idea by showing that for a random vector <span class="math inline">\(\boldsymbol{\alpha}\)</span> in a linear model,
+<p><span class="citation">Searle et al. (2009)</span> generalize this
+idea by showing that for a random vector <span class="math inline">\(\boldsymbol{\alpha}\)</span> in a linear model,
 the best linear unbiased predictor (based on the response, <span class="math inline">\(\mathbf{y}\)</span>) of <span class="math inline">\(\boldsymbol{\alpha}\)</span>, denoted <span class="math inline">\(\boldsymbol{\hat{\alpha}}\)</span>, is given by
 <span class="math display">\[\begin{equation}\label{eq:blup_gen}
   \boldsymbol{\hat{\alpha}} = \text{E}(\boldsymbol{\alpha}) +
@@ -675,9 +675,8 @@ matrix is given by <span class="math display">\[\begin{equation}
 \mathbf{H}_s = \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1}
 \mathbf{X}^{* \top}.
 \end{equation}\]</span> The diagonal of this matrix yields the leverage
-(hat) values for each observation <span class="citation">(Montgomery,
-Peck, and Vining 2021)</span>. The larger the hat value, the larger the
-leverage.</p>
+(hat) values for each observation <span class="citation">(Montgomery et
+al. 2021)</span>. The larger the hat value, the larger the leverage.</p>
 <p>To better understand the previous form, recall that the the
 non-spatial linear model <span class="math inline">\(\mathbf{y} =
 \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}\)</span> assumes
@@ -1097,8 +1096,7 @@ and <span class="math inline">\(\mathbf{\dot{e}}_{u, slm}\)</span> are
 the spatial linear model predictions of the random forest residuals for
 <span class="math inline">\(\mathbf{y}_u\)</span>. This process of
 obtaining predictions is sometimes analogously called random forest
-regression Kriging <span class="citation">(Fox, Ver Hoef, and Olsen
-2020)</span>.</p>
+regression Kriging <span class="citation">(Fox et al. 2020)</span>.</p>
 <p>Uncertainty quantification in a random forest context has been
 studied <span class="citation">(Meinshausen and Ridgeway 2006)</span>
 but is not currently available in <code>spmodel</code>. Big data are
@@ -1463,11 +1461,10 @@ maximum likelihood estimates for <span class="math inline">\(\boldsymbol{\beta}\
 reduce bias in that variances of <span class="math inline">\(\boldsymbol{\hat{\beta}}_{ml}\)</span> that can
 occur due to the simultaneous estimation of <span class="math inline">\(\boldsymbol{\beta}\)</span> and <span class="math inline">\(\boldsymbol{\theta}\)</span>, restricted maximum
 likelihood estimation (REML) <span class="citation">(Patterson and
-Thompson 1971; Harville 1977; Wolfinger, Tobias, and Sall 1994)</span>
-has been shown to be better than maximum likelihood estimation.
-Integrating <span class="math inline">\(\boldsymbol{\beta}\)</span> out
-of a Gaussian likelihood yields the restricted Gaussian likelihood.
-Minus twice a restricted Gaussian log-likelihood is given by <span class="math display">\[\begin{equation}\label{eq:reml-lik}
+Thompson 1971; Harville 1977; Wolfinger et al. 1994)</span> has been
+shown to be better than maximum likelihood estimation. Integrating <span class="math inline">\(\boldsymbol{\beta}\)</span> out of a Gaussian
+likelihood yields the restricted Gaussian likelihood. Minus twice a
+restricted Gaussian log-likelihood is given by <span class="math display">\[\begin{equation}\label{eq:reml-lik}
   -2\ell_R(\boldsymbol{\theta}) = -2\ell_p(\boldsymbol{\theta})  +
 \ln{|\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X}|} - p \ln{2\pi}
 ,
@@ -1515,8 +1512,8 @@ closed form solution for <span class="math inline">\(\hat{\sigma}^2_{reml}\)</sp
 combined with <span class="math inline">\(\hat{\sigma}^2_{reml}\)</span>
 to yield <span class="math inline">\(\boldsymbol{\hat{\theta}}_{reml}\)</span> and
 subsequently <span class="math inline">\(\boldsymbol{\hat{\beta}}_{reml}\)</span>. For more
-on profiling Gaussian likelihoods, see <span class="citation">Wolfinger,
-Tobias, and Sall (1994)</span>.</p>
+on profiling Gaussian likelihoods, see <span class="citation">Wolfinger
+et al. (1994)</span>.</p>
 <p>Both maximum likelihood and restricted maximum likelihood estimation
 rely on the <span class="math inline">\(n \times n\)</span> covariance
 matrix inverse. Inverting an <span class="math inline">\(n \times
@@ -1702,18 +1699,20 @@ squares regression of <span class="math inline">\(\mathbf{y}\)</span> on
 <p>Parameter estimation is performed using <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code>.
 The default estimation method is Nelder-Mead <span class="citation">(Nelder and Mead 1965)</span> and the stopping
 criterion is a relative convergence tolerance (<code>reltol</code>) of
-.0001. If only one parameter requires estimation (on the profiled scale
-if relevant), the Brent algorithm is instead used <span class="citation">(Brent 1971)</span>. Arguments to <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code>
-are passed via <code>...</code> to <code><a href="../reference/splm.html">splm()</a></code> and
-<code><a href="../reference/spautor.html">spautor()</a></code>. For example, the default estimation method and
-convergence criteria are overridden by passing <code>method</code> and
-<code>control</code>, respectively, to <code><a href="../reference/splm.html">splm()</a></code> and
-<code><a href="../reference/spautor.html">spautor()</a></code>. If the <code>lower</code> and <code>upper</code>
-arguments to <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> are specified in <code><a href="../reference/splm.html">splm()</a></code>
-and <code><a href="../reference/spautor.html">spautor()</a></code> to be passed to <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code>, they
-are ignored, as optimization for all parameters is generally
-unconstrained. Initial values for <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> are found using
-the grid search described next.</p>
+1e-6 (1e-4 prior to version 0.13.0). If only one parameter requires
+estimation (on the profiled scale if relevant), the Brent algorithm is
+instead used <span class="citation">(Brent 1971)</span>. Arguments to
+<code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> are passed via <code>...</code> to
+<code><a href="../reference/splm.html">splm()</a></code> and <code><a href="../reference/spautor.html">spautor()</a></code>. For example, the default
+estimation method and convergence criteria are overridden by passing
+<code>method</code> and <code>control</code>, respectively, to
+<code><a href="../reference/splm.html">splm()</a></code> and <code><a href="../reference/spautor.html">spautor()</a></code>. If the
+<code>lower</code> and <code>upper</code> arguments to
+<code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> are specified in <code><a href="../reference/splm.html">splm()</a></code> and
+<code><a href="../reference/spautor.html">spautor()</a></code> to be passed to <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code>, they are
+ignored, as optimization for all parameters is generally unconstrained.
+Initial values for <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> are found using the grid search
+described next.</p>
 <div class="section level5">
 <h5 id="sec:grid-lm">Grid Search<a class="anchor" aria-label="anchor" href="#sec:grid-lm"></a>
 </h5>
@@ -2334,8 +2333,7 @@ these residuals: <span class="math display">\[\begin{equation*}
 residuals. Random forest spatial residual models can significantly
 improve predictive accuracy for new data compared to standard random
 forest models by formally incorporating spatial covariance in the random
-forest residuals <span class="citation">(Fox, Ver Hoef, and Olsen
-2020)</span>.</p>
+forest residuals <span class="citation">(Fox et al. 2020)</span>.</p>
 <p>Different estimation methods, different spatial covariance functions,
 fixing spatial covariance parameter values, random effects, anisotropy,
 partition factors, and big data are accommodated in the spatial linear
@@ -3294,11 +3292,10 @@ function.</p>
 \varphi \ln(1 - y_i)
 \end{equation*}\]</span></p>
 <p>Sometimes the deviance contribution from the <span class="math inline">\(i\)</span>th observation can be computationally
-unstable and yield a negative value <span class="citation">(Espinheira,
-Ferrari, and Cribari-Neto 2008)</span>. This can happen, for example,
-when <span class="math inline">\(y_i\)</span> is close to zero or one.
-When this happens, the deviance contribution is truncated to zero to
-reflect the fact that the theoretical deviance contribution must be
+unstable and yield a negative value <span class="citation">(Espinheira
+et al. 2008)</span>. This can happen, for example, when <span class="math inline">\(y_i\)</span> is close to zero or one. When this
+happens, the deviance contribution is truncated to zero to reflect the
+fact that the theoretical deviance contribution must be
 non-negative.</p>
 </div>
 <div class="section level4">
@@ -3597,14 +3594,12 @@ Sherman-Morrison-Woodbury formula required to efficiently find the log
 determinant and inverse of the Hessian, <span class="math inline">\(\mathbf{G}\)</span>, when using spatial indexing
 for big data. For more on stability of spatial covariance matrices, see
 <span class="citation">Diamond and Armstrong (1984)</span>, <span class="citation">Posa (1989)</span>, <span class="citation">O’Dowd
-(1991)</span>, <span class="citation">Ababou, Bagtzoglou, and Wood
-(1994)</span>, <span class="citation">Booker et al. (1999)</span>, <span class="citation">Martin and Simpson (2005)</span>, <span class="citation">Bivand, Pebesma, and Gomez-Rubio (2013)</span>, and
-<span class="citation">Ver Hoef (2018)</span>, among others.</p>
+(1991)</span>, <span class="citation">Ababou et al. (1994)</span>, <span class="citation">Booker et al. (1999)</span>, <span class="citation">Martin and Simpson (2005)</span>, <span class="citation">Bivand et al. (2013)</span>, and <span class="citation">Ver Hoef (2018)</span>, among others.</p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-ababou1994condition" class="csl-entry">
 Ababou, Rachid, Amvrossios C Bagtzoglou, and Eric F Wood. 1994.
 <span>“On the Condition Number of Covariance Matrices in Kriging,
@@ -3614,7 +3609,7 @@ Geology</em> 26: 99–133.
 <div id="ref-anselin2010geoda" class="csl-entry">
 Anselin, Luc, Ibnu Syabri, and Youngihn Kho. 2010. <span>“GeoDa: An
 Introduction to Spatial Data Analysis.”</span> In <em>Handbook of
-Applied Spatial Analysis</em>, 73–89. Springer.
+Applied Spatial Analysis</em>. Springer.
 </div>
 <div id="ref-bivand2013sp" class="csl-entry">
 Bivand, Roger S., Edzer Pebesma, and Virgilio Gomez-Rubio. 2013.
@@ -3651,8 +3646,8 @@ Squares.”</span> <em>Journal of the International Association for
 Mathematical Geology</em> 17 (5): 563–86.
 </div>
 <div id="ref-cressie1993statistics" class="csl-entry">
-———. 1993. <em>Statistics for Spatial Data (Revised Edition)</em>.
-Wiley: Hoboken, NJ. <a href="https://doi.org/10.1002/9781119115151" class="external-link">https://doi.org/10.1002/9781119115151</a>.
+Cressie, Noel. 1993. <em>Statistics for Spatial Data (Revised
+Edition)</em>. Wiley: Hoboken, NJ. <a href="https://doi.org/10.1002/9781119115151" class="external-link">https://doi.org/10.1002/9781119115151</a>.
 </div>
 <div id="ref-cribari2010beta" class="csl-entry">
 Cribari-Neto, Francisco, and Achim Zeileis. 2010. <span>“Beta Regression
@@ -3749,9 +3744,10 @@ Inference for Fixed Effects from Restricted Maximum Likelihood.”</span>
 <em>Biometrics</em>, 983–97.
 </div>
 <div id="ref-kenward2009improved" class="csl-entry">
-———. 2009. <span>“An Improved Approximation to the Precision of Fixed
-Effects from Restricted Maximum Likelihood.”</span> <em>Computational
-Statistics &amp; Data Analysis</em> 53 (7): 2583–95.
+Kenward, Michael G, and James H Roger. 2009. <span>“An Improved
+Approximation to the Precision of Fixed Effects from Restricted Maximum
+Likelihood.”</span> <em>Computational Statistics &amp; Data
+Analysis</em> 53 (7): 2583–95.
 </div>
 <div id="ref-littell2006sas" class="csl-entry">
 Littell, Ramon C, George A Milliken, Walter W Stroup, Russell D
@@ -3760,8 +3756,8 @@ Models</em>. SAS publishing.
 </div>
 <div id="ref-macqueen1967classification" class="csl-entry">
 MacQueen, J. 1967. <span>“Classification and Analysis of Multivariate
-Observations.”</span> In <em>5th Berkeley Symp. Math. Statist.
-Probability</em>, 281–97. University of California Los Angeles LA USA.
+Observations.”</span> <em>5th Berkeley Symp. Math. Statist.
+Probability</em>, 281–97.
 </div>
 <div id="ref-martin2005use" class="csl-entry">
 Martin, Jay D, and Timothy W Simpson. 2005. <span>“Use of Kriging Models
@@ -3817,8 +3813,7 @@ Mean Squared Error of Small-Area Estimators.”</span> <em>Journal of the
 American Statistical Association</em> 85 (409): 163–71.
 </div>
 <div id="ref-robin2011proc" class="csl-entry">
-Robin, Xavier, Natacha Turck, Alexandre Hainard, Natalia Tiberti,
-Frédérique Lisacek, Jean-Charles Sanchez, and Markus Müller. 2011.
+Robin, Xavier, Natacha Turck, Alexandre Hainard, et al. 2011.
 <span>“pROC: An Open-Source Package for r and s+ to Analyze and Compare
 ROC Curves.”</span> <em>BMC Bioinformatics</em> 12: 77.
 </div>
@@ -3871,7 +3866,7 @@ in the Detroit Region.”</span> <em>Economic Geography</em> 46 (sup1):
 </div>
 <div id="ref-venables2002mass" class="csl-entry">
 Venables, W. N., and B. D. Ripley. 2002. <em>Modern Applied Statistics
-with s</em>. Fourth. New York: Springer. <a href="http://www.stats.ox.ac.uk/pub/MASS4/" class="external-link">http://www.stats.ox.ac.uk/pub/MASS4/</a>.
+with s</em>. Fourth. Springer. <a href="http://www.stats.ox.ac.uk/pub/MASS4/" class="external-link">http://www.stats.ox.ac.uk/pub/MASS4/</a>.
 </div>
 <div id="ref-ver2008spatial" class="csl-entry">
 Ver Hoef, Jay M. 2008. <span>“Spatial Methods for Plot-Based Sampling of
@@ -3879,13 +3874,13 @@ Wildlife Populations.”</span> <em>Environmental and Ecological
 Statistics</em> 15: 3–13.
 </div>
 <div id="ref-ver2012invented" class="csl-entry">
-———. 2012. <span>“Who Invented the Delta Method?”</span> <em>The
-American Statistician</em> 66 (2): 124–27.
+Ver Hoef, Jay M. 2012. <span>“Who Invented the Delta Method?”</span>
+<em>The American Statistician</em> 66 (2): 124–27.
 </div>
 <div id="ref-ver2018kriging" class="csl-entry">
-———. 2018. <span>“Kriging Models for Linear Networks and Non-Euclidean
-Distances: Cautions and Solutions.”</span> <em>Methods in Ecology and
-Evolution</em> 9 (6): 1600–1613.
+Ver Hoef, Jay M. 2018. <span>“Kriging Models for Linear Networks and
+Non-Euclidean Distances: Cautions and Solutions.”</span> <em>Methods in
+Ecology and Evolution</em> 9 (6): 1600–1613.
 </div>
 <div id="ref-ver2024marginal" class="csl-entry">
 Ver Hoef, Jay M, Eryn Blagg, Michael Dumelle, Philip M Dixon, Dale L
@@ -3908,7 +3903,7 @@ Monographs</em> 88 (1): 36–59.
 </div>
 <div id="ref-wolf1978helmert" class="csl-entry">
 Wolf, Helmut. 1978. <span>“The Helmert Block Method-Its Origin and
-Development.”</span> In <em>Proceedings of the Second International
+Development.”</span> <em>Proceedings of the Second International
 Symposium on Problems Related to the Redefinition of North American
 Geodetic Networks,(NOAA, Arlington-Va, 1978)</em>, 319–26.
 </div>
@@ -3916,7 +3911,7 @@ Geodetic Networks,(NOAA, Arlington-Va, 1978)</em>, 319–26.
 Wolfinger, Russ, Randy Tobias, and John Sall. 1994. <span>“Computing
 Gaussian Likelihoods and Their Derivatives for General Linear Mixed
 Models.”</span> <em>SIAM Journal on Scientific Computing</em> 15 (6):
-1294–1310.
+1294–310.
 </div>
 <div id="ref-woodbury1950inverting" class="csl-entry">
 Woodbury, Max A. 1950. <em>Inverting Modified Matrices</em>. Department

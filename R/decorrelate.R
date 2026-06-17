@@ -102,7 +102,8 @@
 #'   which orders from bottom-left to top-right of the spatial domain.
 #'   \code{"random"} applies a completely random ordering.
 #'   \code{"none"} applies no random ordering.
-#'   The default is \code{"grts"}.
+#'   The default is \code{"maxmin"} unless there are multiple observations at a single
+#'   location, in which case the default is \code{"grts"}.
 #' @param local A optional logical or list controlling the big data approximation.
 #'   If omitted, \code{local} is set
 #'   to \code{TRUE} or \code{FALSE} based on the sample size (the number of
@@ -240,7 +241,7 @@
 #' @examples
 #' decorr <- decorrelate(log_cond ~ temp, data = lake, spcov_type = "exponential")
 #' decorr$grid
-decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", statistic = "RMSPE", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering = "grts", local, grid, dense_grid, ...) {
+decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", statistic = "RMSPE", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering, local, grid, dense_grid, ...) {
 
   # set exponential as default if nothing specified
   if (missing(spcov_type) && missing(spcov_params)) {
@@ -270,6 +271,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
   if (missing(random)) random <- NULL
   if (missing(randcov_params)) randcov_params <- NULL
   if (missing(partition_factor)) partition_factor <- NULL
+  if (missing(ordering)) ordering <- NULL
   if (missing(local)) local <- NULL
   if (missing(training)) training <- NULL
   if (missing(evaluate_test)) evaluate_test <- FALSE
@@ -349,7 +351,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
     ycoord = ycoord,
     randcov_params = randcov_params,
     partition_factor = partition_factor,
-    ordering = ordering,
+    ordering = ordering, # change to ordering_list
     local = local,
     ...
   )

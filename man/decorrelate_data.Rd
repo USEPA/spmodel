@@ -12,7 +12,7 @@ decorrelate_data(
   ycoord,
   randcov_params,
   partition_factor,
-  ordering = "grts",
+  ordering,
   local,
   ...
 )
@@ -57,7 +57,8 @@ include \code{"grts"}, \code{"maxmin"}, \code{"middleout"},
 which orders from bottom-left to top-right of the spatial domain.
 \code{"random"} applies a completely random ordering.
 \code{"none"} applies no random ordering.
-The default is \code{"grts"}.}
+The default is \code{"maxmin"} unless there are multiple observations at a single
+location, in which case the default is \code{"grts"}.}
 
 \item{local}{A optional logical or list controlling the big data approximation.
 If omitted, \code{local} is set

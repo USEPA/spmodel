@@ -35,7 +35,7 @@
 #' decorr <- decorrelate_data(log_cond ~ temp, data = lake, spcov_params = params)
 #' head(cbind(decorr$X, decorr$tX))
 #' head(cbind(decorr$y, decorr$ty))
-decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering = "grts", local, ...) {
+decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering, local, ...) {
 
   if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
     anisotropy <- TRUE
@@ -123,7 +123,16 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
   index <- seq(1, data_object$n)
   total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
 
+
   # do ordering here
+  if (missing(ordering)) {
+    any_dup <- any(duplicated(cbind(xcoord_val, ycoord_val)))
+    if (any_dup) {
+      ordering <- "grts"
+    } else {
+      ordering <- "maxmin"
+    }
+  }
   if (!ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
     stop("Invalid ordering argument. Argument must be \"middleout\", \"outsidein\", \"coordinate\", \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
   }
@@ -248,6 +257,15 @@ decorrelate_data_internal_part1 <- function(formula, data, xcoord, ycoord, rando
   index <- seq(1, data_object$n)
 
   # do ordering here
+  if (is.null(ordering)) {
+    any_dup <- any(duplicated(cbind(xcoord_val, ycoord_val)))
+    if (any_dup) {
+      ordering <- "grts"
+    } else {
+      ordering <- "maxmin"
+    }
+  }
+
   if (!ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
     stop("Invalid ordering argument. Argument must be \"middleout\", \"outsidein\", \"coordinate\", \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
   }
@@ -456,12 +474,21 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
   total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
 
   # do ordering here
+  if (is.null(ordering)) {
+    any_dup <- any(duplicated(cbind(xcoord_val, ycoord_val)))
+    if (any_dup) {
+      ordering <- "grts"
+    } else {
+      ordering <- "maxmin"
+    }
+  }
+
   if (!ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
     stop("Invalid ordering argument. Argument must be \"middleout\", \"outsidein\", \"coordinate\", \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
   }
 
   # ordering done with separate random elements (grts, random) for each grid item (fix)
-  ord <- get_decorrelate_order(ordering, xcoord_val, ycoord_val)
+  ord <- get_decorrelate_order(ordering, xcoord_val, ycoord_val) # remove this eventually replace with ordering_list
 
   # order all values
   X <- X[ord$order, , drop = FALSE]

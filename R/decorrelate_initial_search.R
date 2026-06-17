@@ -1,4 +1,4 @@
-decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm, statistic, training, anisotropy, random, randcov_params, partition_factor, ordering = "maxmin", local, grid, ...) {
+decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm, statistic, training, anisotropy, random, randcov_params, partition_factor, ordering = "maxmin", local, grid, dense_grid, ...) {
 
 
   training_list <- get_training_list(training, data)
@@ -16,7 +16,8 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
     ycoord = ycoord,
     anisotropy = anisotropy,
     random = random,
-    randcov_params = randcov_params
+    randcov_params = randcov_params,
+    dense_grid = dense_grid
   )
   if (is.null(grid)) {
     grid <- grid_compare
@@ -52,29 +53,33 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
       remove_cols <- c("spcov_type", "de", "ie", "range", "rotate", "scale")
       if ("extra" %in% names(x)) remove_cols <- c(remove_cols, "extra")
       randcov_params_val <- unlist(x[, -which(names(x) %in% remove_cols), drop = FALSE])
-      names(randcov_params_val) <- paste("(", names(randcov_params_val), ")", sep = "")
+      names(randcov_params_val) <- paste("", names(randcov_params_val), "", sep = "")
     } else {
       randcov_params_val <- NULL
     }
     list(spcov_params = spcov_params_val, randcov_params = randcov_params_val)
   })
 
+  decorrelate_part1 <- decorrelate_data_internal_part1(
+    formula = formula,
+    data = data_training,
+    xcoord = xcoord,
+    ycoord = ycoord,
+    random = random,
+    partition_factor = partition_factor,
+    ordering = ordering,
+    local = local,
+    ...
+  )
 
   out <- lapply(params_list, function(x) {
-    # warnings get repeated for each get_data_object() call
-    tdata_training <- suppressWarnings(decorrelate_data_internal(
-      formula = formula,
-      data = data_training,
+    tdata_training <- decorrelate_data_internal_part2(
       spcov_params = x$spcov_params,
-      xcoord = xcoord,
-      ycoord = ycoord,
       randcov_params = x$randcov_params,
-      partition_factor = partition_factor,
-      ordering = ordering,
-      local = local,
+      decorrelate_part1_object = decorrelate_part1,
       ...
-    ))
-    # anisotropy is not getting accounted for somewhere here
+    )
+
     fit <- fit_decorrelate_algorithm(tdata_training, algorithm, ...)
     tdata_test <- decorrelate_newdata(tdata_training, newdata = data_test)
     preds <- predict_decorrelate_algorithm(fit, tdata_test, algorithm, ...)

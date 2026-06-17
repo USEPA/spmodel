@@ -6,13 +6,20 @@
 #'
 #' @inheritParams decorrelate
 #'
+#' @param dense_grid A logical
+#'   which controls the density of the constructed grid to be evaluated. If
+#'   \code{dense_grid} is \code{TRUE}, a denser grid is used. If \code{dense_grid}
+#'   is \code{FALSE}, a sparser grid is used. By default, \code{dense_grid}
+#'   is \code{FALSE} when the sample size is greater than 5,000 and \code{TRUE}
+#'   otherwise.
+#'
 #' @return A grid of spatial decorrelation parameters stored as a \code{data.frame}.
 #'
 #' @export
 #'
 #' @examples
 #' decorrelate_grid(log_cond ~ temp, data = lake, spcov_type = "exponential")
-decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, anisotropy = FALSE, random, randcov_params) {
+decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, anisotropy = FALSE, random, randcov_params, dense_grid) {
 
 
 
@@ -25,6 +32,15 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
     random <- reformulate(names(randcov_params))
   }
 
+  if (missing(dense_grid)) {
+    if (NROW(data) <= 5000) {
+      dense_grid <- TRUE
+    } else {
+      dense_grid <- FALSE
+    }
+  }
+
+
   # find ols sample variance
   lmod <- lm(formula, data)
   s2 <- summary(lmod)$sigma^2
@@ -33,10 +49,19 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
   # find sets of starting values
   ## de
   # de <- c(0.1, 0.5, 0.9)
-  de <- c(0.05, 0.25, 0.5, 0.75, 0.95)
+  if (dense_grid) {
+    de <- c(0.05, 0.25, 0.5, 0.75, 0.95)
+  } else {
+    de <- c(0.5, 0.95)
+  }
+
   ## ie
   # ie <- c(0.1, 0.5, 0.9)
-  ie <- c(0.05, 0.25, 0.5, 0.75, 0.95)
+  if (dense_grid) {
+    ie <- c(0.05, 0.25, 0.5, 0.75, 0.95)
+  } else {
+    ie <- c(0.05, 0.5)
+  }
   ## range
   # non standard evaluation for x and y coordinates
   xcoord <- substitute(xcoord)
@@ -65,10 +90,19 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
   if (anisotropy) {
     ## rotate
     # rotate <- c(0, 30 * pi / 180, 60 * pi / 180)
-    rotate <- c(0, 45, 90, 135) * pi / 180
+    if (dense_grid) {
+      rotate <- c(0, 45, 90, 135) * pi / 180
+    } else {
+      rotate <- c(0, 90) * pi / 180
+    }
+
     ## scale
     # scale <- c(0.25, 0.75, 1)
-    scale <- c(0.5, 1)
+    if (dense_grid) {
+      scale <- c(0.25, 0.5, 0.75, 1)
+    } else {
+      scale <- c(0.5, 1)
+    }
   } else {
     ## rotate
     rotate <- 0
@@ -207,12 +241,11 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
   cov_grid
 }
 
-
 # non standard evaluation for x and y coordinates
 # substitute only works when the function is the parent function, so commenting
 # out for use with decorrelate()
 # also suppress POINT coerion warning
-decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, anisotropy = FALSE, random, randcov_params) {
+decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, anisotropy = FALSE, random, randcov_params, dense_grid) {
 
 
 
@@ -233,10 +266,19 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
   # find sets of starting values
   ## de
   # de <- c(0.1, 0.5, 0.9)
-  de <- c(0.25, 0.5, 0.75, 0.95)
+  if (dense_grid) {
+    de <- c(0.05, 0.25, 0.5, 0.75, 0.95)
+  } else {
+    de <- c(0.5, 0.95)
+  }
+
   ## ie
   # ie <- c(0.1, 0.5, 0.9)
-  ie <- c(0.05, 0.25, 0.5, 0.75)
+  if (dense_grid) {
+    ie <- c(0.05, 0.25, 0.5, 0.75, 0.95)
+  } else {
+    ie <- c(0.05, 0.5)
+  }
   ## range
   # non standard evaluation for x and y coordinates
   # substitute only works when the function is the parent function, so commenting
@@ -267,10 +309,19 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
   if (anisotropy) {
     ## rotate
     # rotate <- c(0, 30 * pi / 180, 60 * pi / 180)
-    rotate <- c(0, 45, 90, 135) * pi / 180
+    if (dense_grid) {
+      rotate <- c(0, 45, 90, 135) * pi / 180
+    } else {
+      rotate <- c(0, 90) * pi / 180
+    }
+
     ## scale
     # scale <- c(0.25, 0.75, 1)
-    scale <- c(0.5, 1)
+    if (dense_grid) {
+      scale <- c(0.25, 0.5, 0.75, 1)
+    } else {
+      scale <- c(0.5, 1)
+    }
   } else {
     ## rotate
     rotate <- 0

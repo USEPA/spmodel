@@ -377,6 +377,20 @@ NROW(grid)
 head(grid, n = 5)
 ```
 
+
+```{r}
+grid <- decorrelate_grid(
+  formula = form,
+  data = lake_train,
+  spcov_type = "exponential",
+  anisotropy = TRUE,
+  random = ~ year,
+  dense_grid = FALSE
+)
+NROW(grid)
+head(grid, n = 5)
+```
+
 ## Predicting at Unobserved Lakes 
 
 A primary goal is to use the best machine learning model to make predictions of log conductivity at the lakes in `lake_preds`. We can visualize the lakes in `lake` alongside those in `lake_preds`:

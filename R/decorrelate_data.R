@@ -188,6 +188,182 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
   new_output
 }
 
+decorrelate_data_internal_part1 <- function(formula, data, xcoord, ycoord, random, partition_factor, ordering, local, ...) {
+
+  if (missing(random)) {
+    random <- NULL
+  }
+
+  # set partition factor if necessary
+  if (missing(partition_factor) || is.null(partition_factor)) {
+    partition_factor <- NULL
+  }
+
+  # non standard evaluation for x and y coordinates
+  # xcoord <- substitute(xcoord)
+  # ycoord <- substitute(ycoord)
+
+  # get data object
+  data_object <- get_data_object_splm(
+    formula = formula,
+    data = data,
+    spcov_initial = spcov_initial("exponential"), # default placeholder
+    xcoord = xcoord,
+    ycoord = ycoord,
+    estmethod = "reml",  # default placeholder
+    anisotropy = FALSE, # default placeholder
+    random = random,
+    randcov_initial = NULL, # default placeholder
+    partition_factor = NULL, # default placeholder
+    local = FALSE, # default placeholder
+    range_constrain = FALSE, # default placeholder
+    ...
+  )
+
+  if (missing(local)) {
+    local <- NULL
+  }
+  if (is.null(local)) {
+    if (data_object$n > 500) {
+      local <- TRUE
+      message("Because the sample size exceeds 500, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+    } else {
+      local <- FALSE
+    }
+  }
+  local <- get_local_list_decorrelate(local)
+
+  if (is.null(partition_factor)) {
+    partition_matrix_val <- NULL
+  } else {
+    partition_matrix_val <- partition_matrix(partition_factor, data)
+  }
+
+  obdata <- data_object$obdata
+  X <- data_object$X_list[[1]]
+  y <- data_object$y_list[[1]]
+  xcoord_val <- obdata[[data_object$xcoord]]
+  ycoord_val <- obdata[[data_object$ycoord]]
+
+  index <- seq(1, data_object$n)
+
+  # do ordering here
+  if (!ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
+    stop("Invalid ordering argument. Argument must be \"middleout\", \"outsidein\", \"coordinate\", \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
+  }
+
+  # ordering done with separate random elements (grts, random) for each grid item (fix)
+  ord <- get_decorrelate_order(ordering, xcoord_val, ycoord_val)
+
+  # order all values
+  X <- X[ord$order, , drop = FALSE]
+  y <- y[ord$order, , drop = FALSE]
+  xcoord_val <- xcoord_val[ord$order]
+  ycoord_val <- ycoord_val[ord$order]
+  if (!is.null(partition_matrix_val)) {
+    partition_matrix_val <- partition_matrix_val[ord$order, ord$order, drop = FALSE]
+  }
+
+  list(
+    index = index,
+    X = X,
+    y = y,
+    xcoord_val = xcoord_val,
+    ycoord_val = ycoord_val,
+    local = local,
+    random = random,
+    partition_factor = partition_factor,
+    partition_matrix_val = partition_matrix_val,
+    ord = ord,
+    ordering = ordering,
+    data_object = data_object
+  )
+}
+
+decorrelate_data_internal_part2 <- function(spcov_params, randcov_params, decorrelate_part1_object, ...) {
+
+  index <- decorrelate_part1_object$index
+  total_var <- decorrelate_part1_object$total_var
+  X <- decorrelate_part1_object$X
+  y <- decorrelate_part1_object$y
+  xcoord_val <- decorrelate_part1_object$xcoord_val
+  ycoord_val <- decorrelate_part1_object$ycoord_val
+  local <- decorrelate_part1_object$local
+  random <- decorrelate_part1_object$random
+  partition_factor <- decorrelate_part1_object$partition_factor
+  partition_matrix_val <- decorrelate_part1_object$partition_matrix_val
+  ord <- decorrelate_part1_object$ord
+  ordering <- decorrelate_part1_object$ordering
+  data_object <- decorrelate_part1_object$data_object
+
+
+    if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
+      anisotropy <- TRUE
+    } else {
+      anisotropy <- FALSE
+    }
+
+    if (anisotropy) {
+      obdata_aniscoords <- transform_anis2(xcoord_val, ycoord_val, spcov_params[["rotate"]], spcov_params[["scale"]])
+      xcoord_val <- obdata_aniscoords$xcoord
+      ycoord_val <- obdata_aniscoords$ycoord
+    }
+
+  if (!is.null(randcov_params)) {
+    randcov_matrix_val <- randcov_matrix(randcov_params, data_object$randcov_list[[1]])
+    randcov_matrix_val <- randcov_matrix_val[ord$order, ord$order, drop = FALSE]
+  } else {
+    randcov_matrix_val <- NULL
+  }
+
+
+  total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
+
+  if (local$parallel) {
+    cl <- parallel::makeCluster(local$ncores)
+    vals <- parallel::parLapply(cl, index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix_val, partition_matrix_val)
+    cl <- parallel::stopCluster(cl)
+  } else {
+    vals <- lapply(index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix_val, partition_matrix_val)
+  }
+  X <- do.call("rbind", lapply(vals, function(x) x$X))
+  y <- do.call("rbind", lapply(vals, function(x) x$y))
+  tX <- do.call("rbind", lapply(vals, function(x) x$tX))
+  ty <- do.call("rbind", lapply(vals, function(x) x$ty))
+
+  # undo vecchia ordering here
+  X <- X[ord$inv_order, , drop = FALSE]
+  y <- y[ord$inv_order, , drop = FALSE]
+  tX <- tX[ord$inv_order, , drop = FALSE]
+  ty <- ty[ord$inv_order, , drop = FALSE]
+
+  coefs <- list(spcov = spcov_params, randcov = randcov_params)
+  output <- list(
+    obdata = data_object$obdata,
+    coefficients = coefs,
+    X = X,
+    y = as.vector(y),
+    tX = tX,
+    ty = as.vector(ty),
+    xcoord = data_object$xcoord,
+    ycoord = data_object$ycoord,
+    random = random,
+    partition_factor = partition_factor,
+    dim_coords = data_object$dim_coords,
+    terms = data_object$terms,
+    xlevels = data_object$xlevels,
+    contrasts = data_object$contrasts,
+    local = local,
+    newdata = data_object$newdata,
+    anisotropy = anisotropy,
+    diagtol = data_object$diagtol,
+    total_var = total_var,
+    ordering = ordering
+  )
+  new_output <- structure(output, class = "decorrelate_data")
+  new_output
+}
+
 # non standard evaluation for x and y coordinates
 # substitute only works when the function is the parent function, so commenting
 # out for use with decorrelate()
@@ -237,9 +413,9 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
     local <- NULL
   }
   if (is.null(local)) {
-    if (data_object$n > 1000) {
+    if (data_object$n > 500) {
       local <- TRUE
-      message("Because the sample size exceeds 1,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+      message("Because the sample size exceeds 500, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
     } else {
       local <- FALSE
     }

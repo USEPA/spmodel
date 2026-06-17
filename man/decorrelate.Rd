@@ -22,6 +22,7 @@ decorrelate(
   ordering = "grts",
   local,
   grid,
+  dense_grid,
   ...
 )
 }
@@ -82,7 +83,7 @@ Currently, the only option is \code{"split"}, which splits \code{data} up
 into distinct training and test sets.
 \item \code{prop}: The proportion (a numeric vector between zero and one) of observations in \code{data} that should
 be assigned to the training data. The default is 0.7, which means that
-70\\% of the observations are assigned to the training data and 30\% to the
+70\% of the observations are assigned to the training data and 30\% to the
 test data. Ignored if \code{training_index} or \code{test_index} are provided.
 \item \code{training_index}: A numeric vector that specifies which rows (i.e., indices)
 of \code{data} should be assigned to the training data. If omitted, defaults
@@ -177,6 +178,13 @@ that \code{local} is transformed into
 
 \item{grid}{An explicit grid of parameter values by which to evaluate fit. The
 names of \code{grid} must contain all the names returned by \code{decorrelate_grid(formula, data, ...)}.}
+
+\item{dense_grid}{If \code{grid} is not provided, \code{dense_grid} is a logical
+which controls the density of the constructed grid to be evaluated. If
+\code{dense_grid} is \code{TRUE}, a denser grid is used. If \code{dense_grid}
+is \code{FALSE}, a sparser grid is used. By default, \code{dense_grid}
+is \code{FALSE} when the sample size is greater than 5,000 and \code{TRUE}
+otherwise.}
 
 \item{...}{Other arguments to the functions called by \code{algorithm}.}
 }

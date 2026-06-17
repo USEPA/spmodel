@@ -13,7 +13,8 @@ decorrelate_grid(
   ycoord,
   anisotropy = FALSE,
   random,
-  randcov_params
+  randcov_params,
+  dense_grid
 )
 }
 \arguments{
@@ -73,6 +74,13 @@ parentheses can be omitted.}
 
 \item{randcov_params}{An object from \code{\link[=randcov_params]{randcov_params()}} that contains the
 random effect variances used by the spatial decorrelation transformation.}
+
+\item{dense_grid}{A logical
+which controls the density of the constructed grid to be evaluated. If
+\code{dense_grid} is \code{TRUE}, a denser grid is used. If \code{dense_grid}
+is \code{FALSE}, a sparser grid is used. By default, \code{dense_grid}
+is \code{FALSE} when the sample size is greater than 5,000 and \code{TRUE}
+otherwise.}
 }
 \value{
 A grid of spatial decorrelation parameters stored as a \code{data.frame}.

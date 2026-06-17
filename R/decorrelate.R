@@ -52,7 +52,7 @@
 #'      into distinct training and test sets.
 #'    \item \code{prop}: The proportion (a numeric vector between zero and one) of observations in \code{data} that should
 #'      be assigned to the training data. The default is 0.7, which means that
-#'      70\% of the observations are assigned to the training data and 30% to the
+#'      70% of the observations are assigned to the training data and 30% to the
 #'      test data. Ignored if \code{training_index} or \code{test_index} are provided.
 #'    \item \code{training_index}: A numeric vector that specifies which rows (i.e., indices)
 #'      of \code{data} should be assigned to the training data. If omitted, defaults
@@ -139,6 +139,12 @@
 #'   \code{list(size = 30, method = "covariance", parallel = FALSE)}.
 #' @param grid An explicit grid of parameter values by which to evaluate fit. The
 #'   names of \code{grid} must contain all the names returned by \code{decorrelate_grid(formula, data, ...)}.
+#' @param dense_grid If \code{grid} is not provided, \code{dense_grid} is a logical
+#'   which controls the density of the constructed grid to be evaluated. If
+#'   \code{dense_grid} is \code{TRUE}, a denser grid is used. If \code{dense_grid}
+#'   is \code{FALSE}, a sparser grid is used. By default, \code{dense_grid}
+#'   is \code{FALSE} when the sample size is greater than 5,000 and \code{TRUE}
+#'   otherwise.
 #' @param ... Other arguments to the functions called by \code{algorithm}.
 #'
 #' @details The spatial decorrelation transformation is a preprocessing transformation
@@ -234,7 +240,7 @@
 #' @examples
 #' decorr <- decorrelate(log_cond ~ temp, data = lake, spcov_type = "exponential")
 #' decorr$grid
-decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", statistic = "RMSPE", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering = "grts", local, grid, ...) {
+decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", statistic = "RMSPE", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering = "grts", local, grid, dense_grid, ...) {
 
   # set exponential as default if nothing specified
   if (missing(spcov_type) && missing(spcov_params)) {
@@ -283,6 +289,14 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
     newdata <- NULL
   }
 
+  if (missing(dense_grid)) {
+    if (NROW(data) <= 5000) {
+      dense_grid <- TRUE
+    } else {
+      dense_grid <- FALSE
+    }
+  }
+
   if (is.null(spcov_params) || (!is.null(random) && is.null(randcov_params))) {
     evaluate_test <- TRUE
   }
@@ -305,6 +319,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
       ordering = ordering,
       local = local,
       grid = grid,
+      dense_grid = dense_grid,
       ...
     )
     spcov_params <- init$spcov_params

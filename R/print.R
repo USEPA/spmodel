@@ -284,8 +284,8 @@ print.decorrelate <- function(x, digits = max(3L, getOption("digits") - 3L),
 
   cat("\n")
 
-  stats <- c("bias" = x$test_bias, "MSPE" = x$test_MSPE,
-             "RMSPE" = x$test_RMSPE, "cor2" = x$test_cor2)
+  stats <- c("bias" = x$test$bias, "MSPE" = x$test$MSPE,
+             "RMSPE" = x$test$RMSPE, "cor2" = x$test$cor2)
   cat("stats:\n")
   print.default(format(stats, digits = digits),
                 print.gap = 2L,

@@ -81,7 +81,7 @@ The following arguments detail this process:
 \item \code{method}: The method used to evaluate test data performance.
 Currently, the only option is \code{"split"}, which splits \code{data} up
 into distinct training and test sets.
-\item \code{prop}: The proportion (a numeric vector between zero and one) of observations in \code{data} that should
+\item \code{p}: The proportion (a numeric vector between zero and one) of observations in \code{data} that should
 be assigned to the training data. The default is 0.7, which means that
 70\% of the observations are assigned to the training data and 30\% to the
 test data. Ignored if \code{training_index} or \code{test_index} are provided.
@@ -93,7 +93,7 @@ of \code{data} should be assigned to the test data. If omitted, defaults
 to the rows which are not already included in \code{training_index}.
 }
 If omitted, \code{training} is transformed into
-\code{list(method = "split", prop = 0.70)}.}
+\code{list(method = "split", p = 0.70)}.}
 
 \item{evaluate_test}{A logical indicating whether a grid should be constructed
 and evaluated when spatial decorrelation parameters are known (i.e.,

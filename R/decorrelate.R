@@ -50,7 +50,7 @@
 #'    \item \code{method}: The method used to evaluate test data performance.
 #'      Currently, the only option is \code{"split"}, which splits \code{data} up
 #'      into distinct training and test sets.
-#'    \item \code{prop}: The proportion (a numeric vector between zero and one) of observations in \code{data} that should
+#'    \item \code{p}: The proportion (a numeric vector between zero and one) of observations in \code{data} that should
 #'      be assigned to the training data. The default is 0.7, which means that
 #'      70% of the observations are assigned to the training data and 30% to the
 #'      test data. Ignored if \code{training_index} or \code{test_index} are provided.
@@ -62,7 +62,7 @@
 #'      to the rows which are not already included in \code{training_index}.
 #'   }
 #'   If omitted, \code{training} is transformed into
-#'   \code{list(method = "split", prop = 0.70)}.
+#'   \code{list(method = "split", p = 0.70)}.
 #' @param evaluate_test A logical indicating whether a grid should be constructed
 #'   and evaluated when spatial decorrelation parameters are known (i.e.,
 #'   \code{spcov_params} is specified, and, if random effects are included, \code{randcov_params} is specified).
@@ -290,6 +290,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
   } else {
     newdata <- NULL
   }
+  training <- get_training_list(training, data)
 
   if (missing(dense_grid)) {
     if (NROW(data) <= 5000) {
@@ -304,43 +305,73 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
   }
   if (evaluate_test) {
 
-    init <- decorrelate_initial_search(
-      formula = formula,
-      data = data,
-      spcov_type = spcov_type,
-      spcov_params = spcov_params,
-      xcoord,
-      ycoord,
-      algorithm = algorithm,
-      statistic = statistic,
-      training = training,
-      anisotropy = anisotropy,
-      random = random,
-      randcov_params = randcov_params,
-      partition_factor = partition_factor,
-      ordering = ordering,
-      local = local,
-      grid = grid,
-      dense_grid = dense_grid,
-      ...
+    names_training <- names(training$training)
+    init <- lapply(names_training, function(x) {
+      decorrelate_initial_search(
+        formula = formula,
+        data = data,
+        spcov_type = spcov_type,
+        spcov_params = spcov_params,
+        xcoord,
+        ycoord,
+        algorithm = algorithm,
+        statistic = statistic,
+        training_list = training$training[[x]],
+        anisotropy = anisotropy,
+        random = random,
+        randcov_params = randcov_params,
+        partition_factor = partition_factor,
+        ordering = ordering,
+        local = local,
+        grid = grid,
+        dense_grid = dense_grid,
+        ...
+      )
+    })
+    if (length(names_training) == 1) {
+      grid <- init[[1]]$grid
+    } else {
+      grids <- do.call(rbind, lapply(init, function(x) x$grid))
+      if ("extra" %in% names(grids)) {
+        form <- cbind(bias, MSPE, RMSPE, cor2) ~ spcov_type + de + ie + range + rotate + scale + extra
+      } else {
+        form <- cbind(bias, MSPE, RMSPE, cor2) ~ spcov_type + de + ie + range + rotate + scale
+      }
+      grid <- aggregate(grids, form, mean)
+      grid[, "RMSPE"] <- sqrt(grid[, "MSPE"])
+    }
+
+    if (statistic == "cor2") {
+      best_val <- which.max(grid[[statistic]])
+    } else if (statistic == "bias") {
+      best_val <- which.min(abs(grid[[statistic]]))
+    } else {
+      best_val <- which.min(grid[[statistic]])
+    }
+
+    test <- list(
+      bias = grid$bias[best_val],
+      MSPE = grid$MSPE[best_val],
+      RMSPE = grid$RMSPE[best_val],
+      cor2 = grid$cor2[best_val]
     )
-    spcov_params <- init$spcov_params
-    randcov_params <- init$randcov_params
-    grid <- init$grid
-    training_index <- init$training$training_index
-    test_index <- init$training$test_index
-    test_bias <- init$test_bias
-    test_MSPE <- init$test_MSPE
-    test_RMSPE <- init$test_RMSPE
-    test_cor2 <- init$test_cor2
+
+    params_list <- get_params_list(grid, random, randcov_params)
+    spcov_params <- params_list[[best_val]]$spcov_params
+    randcov_params <- params_list[[best_val]]$randcov_params
+
+    if (statistic == "cor2") {
+      grid <- grid[order(grid[[statistic]], decreasing = TRUE), , drop = FALSE]
+    } else if (statistic == "bias") {
+      grid <- grid[order(abs(grid[[statistic]])), , drop = FALSE]
+    } else {
+      grid <- grid[order(grid[[statistic]]), , drop = FALSE]
+    }
+    row.names(grid) <- NULL
   } else {
     grid <- NULL
-    training_index <- NULL
-    test_index <- NULL
-    test_bias <- NULL
-    test_MSPE <- NULL
-    test_RMSPE <- NULL
-    test_cor2 <- NULL
+    training <- NULL
+    test <- NULL
   }
 
   decorr <- decorrelate_data_internal(
@@ -364,12 +395,8 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
     fit = fit,
     grid = grid,
     newdata = newdata,
-    test_index = test_index,
-    training_index = training_index,
-    test_bias = test_bias,
-    test_MSPE = test_MSPE,
-    test_RMSPE = test_RMSPE,
-    test_cor2 = test_cor2
+    training = training,
+    test = test
   )
   new_obj <- structure(obj, class = "decorrelate")
   new_obj
@@ -429,7 +456,7 @@ predict_decorrelate_algorithm <- function(decorrelate_data, tdata_test, algorith
 get_training_list <- function(training, data) {
 
   if (is.null(training)) {
-    training <- list(method = "split", prop = 0.7)
+    training <- list()
   }
 
   if (!is.list(training)) {
@@ -442,36 +469,87 @@ get_training_list <- function(training, data) {
     training$method <- "split"
   }
 
-  if (!"prop" %in% names_training) {
-    training$prop <- 0.7
+  if (training$method == "split") {
+    # do stuff
+
+    if (!"p" %in% names_training) {
+      training$p <- 0.75
+    }
+
+    if (!"replicate" %in% names_training) {
+      training$replicate <- 1
+    }
+
+    if (!"training_index" %in% names_training && !"test_index" %in% names_training) {
+      n <- NROW(data)
+      index <- seq(1, n)
+      n_training <- floor(n * training$p)
+      n_test <- n - n_training
+      training$training <- lapply(seq(1, training$replicate), function(x) {
+        index <- sample(index)
+        training_index <- index[seq(1, n_training)]
+        test_index <- index[seq(n_training + 1, n)]
+        list(training_index = training_index, test_index = test_index)
+      })
+    } else if ("training_index" %in% names_training && !"test_index" %in% names_training) {
+      n <- NROW(data)
+      index <- seq(1, n)
+      training_index <- training$training_index
+      test_index <- index[-training$training_index]
+      training$training <- list(training_index = training_index, test_index = test_index)
+      training$training_index <- NULL
+    } else if (!"training_index" %in% names_training && "test_index" %in% names_training) {
+      n <- NROW(data)
+      index <- seq(1, n)
+      test_index <- training$test_index
+      training_index <- index[-training$test_index]
+      training$training <- list(training_index = training_index, test_index = test_index)
+      training$test_index <- NULL
+    }
+
+    # sort
+    training$training <- lapply(training$training, function(x) {
+      training_index <- sort(x$training_index)
+      test_index <- sort(x$test_index)
+      if (length(training_index) == 0) stop("No observations detected in training data.", call. = FALSE)
+      if (length(test_index) == 0) stop("No observations detected in test data.", call. = FALSE)
+      if (any(duplicated(training_index))) stop("Cannot have duplicated rows in training_index.", call. = FALSE)
+      if (any(duplicated(test_index))) stop("Cannot have duplicated rows in test_index.", call. = FALSE)
+      list(training_index = training_index, test_index = test_index)
+    })
+    names(training$training) <- as.character(seq(1, training$replicate))
+
   }
 
-  if (!"training_index" %in% names_training && !"test_index" %in% names_training) {
+  if (training$method == "cv") {
+    # do stuff
+
     n <- NROW(data)
     index <- seq(1, n)
-    index <- sample(index)
-    n_training <- floor(n * training$prop)
-    n_test <- n - n_training
-    training$training_index <- index[seq(1, n_training)]
-    training$test_index <- index[seq(n_training + 1, n)]
-  } else if ("training_index" %in% names_training && !"test_index" %in% names_training) {
-    n <- NROW(data)
-    index <- seq(1, n)
-    training$test_index <- index[-training$training_index]
-  } else if (!"training_index" %in% names_training && "test_index" %in% names_training) {
-    n <- NROW(data)
-    index <- seq(1, n)
-    training$training_index <- index[-training$test_index]
+
+    if (!"folds" %in% names_training) {
+      training$folds <- 4
+    }
+
+    if (!"folds_index" %in% names_training) {
+      folds_index <- rep(seq(1, training$folds), length.out = n)
+      training$folds_index <- sample(folds_index)
+    }
+
+    unq_folds <- sort(unique(training$folds_index))
+    training$training <- lapply(unq_folds, function(x) {
+      in_fold <- training$folds_index == x
+      training_index <- index[!in_fold]
+      test_index <- index[in_fold]
+      if (length(training_index) == 0) stop("No observations detected in training data.", call. = FALSE)
+      if (length(test_index) == 0) stop("No observations detected in test data.", call. = FALSE)
+      if (any(duplicated(training_index))) stop("Cannot have duplicated rows in training_index.", call. = FALSE)
+      if (any(duplicated(test_index))) stop("Cannot have duplicated rows in test_index.", call. = FALSE)
+      list(training_index = training_index, test_index = test_index)
+    })
+    names(training$training) <- unq_folds
+
   }
-
-  training$training_index <- sort(training$training_index)
-  training$test_index <- sort(training$test_index)
-
-  if (length(training$training_index) == 0) stop("No observations detected in training data.", call. = FALSE)
-  if (length(training$test_index) == 0) stop("No observations detected in test data.", call. = FALSE)
-  if (any(duplicated(training$training_index))) stop("Cannot have duplicated rows in training_index.", call. = FALSE)
-  if (any(duplicated(training$test_index))) stop("Cannot have duplicated rows in test_index.", call. = FALSE)
-
 
   training
 

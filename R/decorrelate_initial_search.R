@@ -1,7 +1,6 @@
-decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm, statistic, training, anisotropy, random, randcov_params, partition_factor, ordering = "maxmin", local, grid, dense_grid, ...) {
+decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm, statistic, training_list, anisotropy, random, randcov_params, partition_factor, ordering = "maxmin", local, grid, dense_grid, ...) {
 
 
-  training_list <- get_training_list(training, data)
   data_training <- data[training_list$training_index, , drop = FALSE]
   data_test <- data[training_list$test_index, , drop = FALSE]
   yval <- model.response(model.frame(formula, data = data_test))
@@ -26,39 +25,7 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
     grid <- grid[, names(grid) %in% names(grid_compare), drop = FALSE]
   }
 
-  params_list <- lapply(seq(1, NROW(grid)), function(x) {
-    x <- grid[x, ]
-    spcov_type <- x[["spcov_type"]]
-    if ("extra" %in% names(x)) {
-      spcov_params_val <- spcov_params(
-        spcov_type = spcov_type,
-        de = x[["de"]],
-        ie = x[["ie"]],
-        range = x[["range"]],
-        extra = x[["extra"]],
-        rotate = x[["rotate"]],
-        scale = x[["scale"]]
-      )
-    } else {
-      spcov_params_val <- spcov_params(
-        spcov_type = spcov_type,
-        de = x[["de"]],
-        ie = x[["ie"]],
-        range = x[["range"]],
-        rotate = x[["rotate"]],
-        scale = x[["scale"]]
-      )
-    }
-    if (!is.null(random) || !is.null(randcov_params)) {
-      remove_cols <- c("spcov_type", "de", "ie", "range", "rotate", "scale")
-      if ("extra" %in% names(x)) remove_cols <- c(remove_cols, "extra")
-      randcov_params_val <- unlist(x[, -which(names(x) %in% remove_cols), drop = FALSE])
-      names(randcov_params_val) <- paste("", names(randcov_params_val), "", sep = "")
-    } else {
-      randcov_params_val <- NULL
-    }
-    list(spcov_params = spcov_params_val, randcov_params = randcov_params_val)
-  })
+  params_list <- get_params_list(grid, random, randcov_params)
 
   decorrelate_part1 <- decorrelate_data_internal_part1(
     formula = formula,
@@ -95,32 +62,44 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
   grid$MSPE <- unlist(lapply(out, function(x) x$MSPE))
   grid$RMSPE <- unlist(lapply(out, function(x) x$RMSPE))
   grid$cor2 <- unlist(lapply(out, function(x) x$cor2))
-  if (statistic == "cor2") {
-    best_val <- which.max(grid[[statistic]])
-  } else if (statistic == "bias") {
-    best_val <- which.min(abs(grid[[statistic]]))
-  } else {
-    best_val <- which.min(grid[[statistic]])
-  }
 
-  test_bias <- grid$bias[best_val]
-  test_MSPE = grid$MSPE[best_val]
-  test_RMSPE = grid$RMSPE[best_val]
-  test_cor2 <- grid$cor2[best_val]
-  spcov_params_val <- params_list[[best_val]]$spcov_params
-  randcov_params_val <- params_list[[best_val]]$randcov_params
-
-  if (statistic == "cor2") {
-    grid <- grid[order(grid[[statistic]], decreasing = TRUE), , drop = FALSE]
-  } else if (statistic == "bias") {
-    grid <- grid[order(abs(grid[[statistic]])), , drop = FALSE]
-  } else {
-    grid <- grid[order(grid[[statistic]]), , drop = FALSE]
-  }
-  row.names(grid) <- NULL
-
-  list(spcov_params = spcov_params_val, randcov_params = randcov_params_val,
-       grid = grid, training = training_list, test_bias = test_bias,
-       test_MSPE = test_MSPE, test_RMSPE = test_RMSPE, test_cor2 = test_cor2
+  list(params_list = params_list,
+       grid = grid, training = training_list
       )
+}
+
+get_params_list <- function(grid, random, randcov_params) {
+  params_list <- lapply(seq(1, NROW(grid)), function(x) {
+    x <- grid[x, ]
+    spcov_type <- x[["spcov_type"]]
+    if ("extra" %in% names(x) && spcov_type != "none") {
+      spcov_params_val <- spcov_params(
+        spcov_type = spcov_type,
+        de = x[["de"]],
+        ie = x[["ie"]],
+        range = x[["range"]],
+        extra = x[["extra"]],
+        rotate = x[["rotate"]],
+        scale = x[["scale"]]
+      )
+    } else {
+      spcov_params_val <- spcov_params(
+        spcov_type = spcov_type,
+        de = x[["de"]],
+        ie = x[["ie"]],
+        range = x[["range"]],
+        rotate = x[["rotate"]],
+        scale = x[["scale"]]
+      )
+    }
+    if (!is.null(random) || !is.null(randcov_params)) {
+      remove_cols <- c("spcov_type", "de", "ie", "range", "rotate", "scale", "bias", "MSPE", "RMSPE", "cor2")
+      if ("extra" %in% names(x)) remove_cols <- c(remove_cols, "extra")
+      randcov_params_val <- unlist(x[, -which(names(x) %in% remove_cols), drop = FALSE])
+      names(randcov_params_val) <- paste("", names(randcov_params_val), "", sep = "")
+    } else {
+      randcov_params_val <- NULL
+    }
+    list(spcov_params = spcov_params_val, randcov_params = randcov_params_val)
+  })
 }

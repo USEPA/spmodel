@@ -48,21 +48,27 @@
 #'   The following arguments detail this process:
 #'   \itemize{
 #'    \item \code{method}: The method used to evaluate test data performance.
-#'      Currently, the only option is \code{"split"}, which splits \code{data} up
-#'      into distinct training and test sets.
+#'      \code{"split"} will split \code{data} up into distinct training and test sets
+#'      proportionally based on \code{p}. \code{"cv"} will split \code{data} up
+#'      via k-fold cross validation based on \code{folds}, the number of folds.
 #'    \item \code{p}: The proportion (a numeric vector between zero and one) of observations in \code{data} that should
-#'      be assigned to the training data. The default is 0.7, which means that
-#'      70% of the observations are assigned to the training data and 30% to the
+#'      be assigned to the training data. The default is 0.75, which means that
+#'      75% of the observations are assigned to the training data and 25% to the
 #'      test data. Ignored if \code{training_index} or \code{test_index} are provided.
+#'    \item \code{replicate}: The number of times to replicate \code{"split"} with different random training and test assignments.
+#'    \item \code{folds}: The number of folds to use in cross-validation. Requires \code{method = "cv"}. Ignored if \code{folds_index} is specified.
 #'    \item \code{training_index}: A numeric vector that specifies which rows (i.e., indices)
 #'      of \code{data} should be assigned to the training data. If omitted, defaults
 #'      to the rows which are not already included in \code{test_index}.
 #'    \item \code{test_index}: A numeric vector that specifies which rows (i.e., indices)
 #'      of \code{data} should be assigned to the test data. If omitted, defaults
 #'      to the rows which are not already included in \code{training_index}.
+#'    \item \code{folds_index}: A numeric vector that specifies which rows
+#'      of \code{data} are associated with each cross-validation fold. Requires
+#'      \code{method = "cv"}.
 #'   }
 #'   If omitted, \code{training} is transformed into
-#'   \code{list(method = "split", p = 0.70)}.
+#'   \code{list(method = "split", p = 0.75)}.
 #' @param evaluate_test A logical indicating whether a grid should be constructed
 #'   and evaluated when spatial decorrelation parameters are known (i.e.,
 #'   \code{spcov_params} is specified, and, if random effects are included, \code{randcov_params} is specified).
@@ -206,6 +212,10 @@
 #'   spatial and random effects components is then multiplied element-wise
 #'   (Hadmard product) by \eqn{P}, yielding the final covariance matrix.
 #'
+#'   \code{training} Details: When \code{replicate} or the number of cross validation folds is at
+#'     least two, there are separate grids evaluated for each replication (or fold). Statistics in each grid are
+#'     averaged across replications (or folds) to determine a final grid ranked by \code{statistic}.
+#'
 #'   \code{local} Details: The big data approximation works by leveraging the
 #'   conditional nature of the spatial decorrelation transformation via the
 #'   Vecchia approximation. The Vecchia approximation enables efficient computation
@@ -224,12 +234,9 @@
 #'     \item \code{grid}: If used, the grid of spatial decorrelation parameters evaluated and their corresponding
 #'       metrics when applied to the test data.
 #'     \item \code{newdata}: The rows of \code{data} that have \code{NA} response values and are stored as prediction data.
-#'     \item \code{training_index}: If used, the observed rows (i.e., indices) in \code{data} that were assigned to the training data.
-#'     \item \code{test_index}: If used, the observed rows (i.e., indices) in \code{data} that were assigned to the test data.
-#'     \item \code{test_bias}: If used, the lowest (absolute) mean bias.
-#'     \item \code{test_MSPE}: If used, the lowest test data mean-squared-prediction error.
-#'     \item \code{test_RMSPE}: If used, the lowest test data root-mean-squared-prediction error.
-#'     \item \code{test_cor2}: If used, the highest test data predictive R-squared.
+#'     \item \code{training}: If used, the observations assigned to each training and test data set.
+#'     \item \code{test}: If used, a list with the lowest (absolute) mean bias (bias), mean-squared-prediction error (MSPE),
+#'       root-mean-squared-prediction error (RMSPE), and predictive R-squared (cor2).
 #'   }
 #'
 #' @export
@@ -267,9 +274,15 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
 
   xcoord <- substitute(xcoord)
   ycoord <- substitute(ycoord)
+  if (missing(spcov_type) && !missing(spcov_params)) {
+    spcov_type <- class(spcov_params)
+  }
   if (missing(spcov_params)) spcov_params <- NULL
   if (missing(random)) random <- NULL
   if (missing(randcov_params)) randcov_params <- NULL
+  if (!is.null(randcov_params) && is.null(random)) {
+    random <- reformulate(names(randcov_params))
+  }
   if (missing(partition_factor)) partition_factor <- NULL
   if (missing(ordering)) ordering <- NULL
   if (missing(local)) local <- NULL
@@ -305,6 +318,12 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
   }
   if (evaluate_test) {
 
+    if (is.null(random)) {
+      add_iid <- ifelse(!is.null(spcov_params) || !is.null(grid), FALSE, TRUE)
+    } else {
+      add_iid <- ifelse((!is.null(spcov_params) && !is.null(randcov_params)) || !is.null(grid), FALSE, TRUE)
+    }
+
     names_training <- names(training$training)
     init <- lapply(names_training, function(x) {
       decorrelate_initial_search(
@@ -325,6 +344,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
         local = local,
         grid = grid,
         dense_grid = dense_grid,
+        add_iid = add_iid,
         ...
       )
     })
@@ -332,13 +352,9 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
       grid <- init[[1]]$grid
     } else {
       grids <- do.call(rbind, lapply(init, function(x) x$grid))
-      if ("extra" %in% names(grids)) {
-        form <- cbind(bias, MSPE, RMSPE, cor2) ~ spcov_type + de + ie + range + rotate + scale + extra
-      } else {
-        form <- cbind(bias, MSPE, RMSPE, cor2) ~ spcov_type + de + ie + range + rotate + scale
-      }
-      grid <- aggregate(grids, form, mean)
-      grid[, "RMSPE"] <- sqrt(grid[, "MSPE"])
+      form <- cbind(bias, MSPE, RMSPE, cor2) ~ .
+      grid <- aggregate(x = form, data = grids, FUN = mean)
+      # grid[, "RMSPE"] <- sqrt(grid[, "MSPE"])
     }
 
     if (statistic == "cor2") {
@@ -380,6 +396,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
     spcov_params = spcov_params,
     xcoord = xcoord,
     ycoord = ycoord,
+    random = random,
     randcov_params = randcov_params,
     partition_factor = partition_factor,
     ordering = ordering, # change to ordering_list

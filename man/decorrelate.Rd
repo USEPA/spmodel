@@ -79,21 +79,27 @@ when evaluating test data performance.
 The following arguments detail this process:
 \itemize{
 \item \code{method}: The method used to evaluate test data performance.
-Currently, the only option is \code{"split"}, which splits \code{data} up
-into distinct training and test sets.
+\code{"split"} will split \code{data} up into distinct training and test sets
+proportionally based on \code{p}. \code{"cv"} will split \code{data} up
+via k-fold cross validation based on \code{folds}, the number of folds.
 \item \code{p}: The proportion (a numeric vector between zero and one) of observations in \code{data} that should
-be assigned to the training data. The default is 0.7, which means that
-70\% of the observations are assigned to the training data and 30\% to the
+be assigned to the training data. The default is 0.75, which means that
+75\% of the observations are assigned to the training data and 25\% to the
 test data. Ignored if \code{training_index} or \code{test_index} are provided.
+\item \code{replicate}: The number of times to replicate \code{"split"} with different random training and test assignments.
+\item \code{folds}: The number of folds to use in cross-validation. Requires \code{method = "cv"}. Ignored if \code{folds_index} is specified.
 \item \code{training_index}: A numeric vector that specifies which rows (i.e., indices)
 of \code{data} should be assigned to the training data. If omitted, defaults
 to the rows which are not already included in \code{test_index}.
 \item \code{test_index}: A numeric vector that specifies which rows (i.e., indices)
 of \code{data} should be assigned to the test data. If omitted, defaults
 to the rows which are not already included in \code{training_index}.
+\item \code{folds_index}: A numeric vector that specifies which rows
+of \code{data} are associated with each cross-validation fold. Requires
+\code{method = "cv"}.
 }
 If omitted, \code{training} is transformed into
-\code{list(method = "split", p = 0.70)}.}
+\code{list(method = "split", p = 0.75)}.}
 
 \item{evaluate_test}{A logical indicating whether a grid should be constructed
 and evaluated when spatial decorrelation parameters are known (i.e.,
@@ -198,12 +204,9 @@ A list with many elements that store information about the fitted model object:
 \item \code{grid}: If used, the grid of spatial decorrelation parameters evaluated and their corresponding
 metrics when applied to the test data.
 \item \code{newdata}: The rows of \code{data} that have \code{NA} response values and are stored as prediction data.
-\item \code{training_index}: If used, the observed rows (i.e., indices) in \code{data} that were assigned to the training data.
-\item \code{test_index}: If used, the observed rows (i.e., indices) in \code{data} that were assigned to the test data.
-\item \code{test_bias}: If used, the lowest (absolute) mean bias.
-\item \code{test_MSPE}: If used, the lowest test data mean-squared-prediction error.
-\item \code{test_RMSPE}: If used, the lowest test data root-mean-squared-prediction error.
-\item \code{test_cor2}: If used, the highest test data predictive R-squared.
+\item \code{training}: If used, the observations assigned to each training and test data set.
+\item \code{test}: If used, a list with the lowest (absolute) mean bias (bias), mean-squared-prediction error (MSPE),
+root-mean-squared-prediction error (RMSPE), and predictive R-squared (cor2).
 }
 }
 \description{
@@ -269,6 +272,10 @@ elements of \eqn{P} equal one for observations in the same level of the partitio
 factor and zero otherwise. The covariance matrix involving only the
 spatial and random effects components is then multiplied element-wise
 (Hadmard product) by \eqn{P}, yielding the final covariance matrix.
+
+\code{training} Details: When \code{replicate} or the number of cross validation folds is at
+least two, there are separate grids evaluated for each replication (or fold). Statistics in each grid are
+averaged across replications (or folds) to determine a final grid ranked by \code{statistic}.
 
 \code{local} Details: The big data approximation works by leveraging the
 conditional nature of the spatial decorrelation transformation via the

@@ -189,7 +189,7 @@ if (test_local) {
     # exdata_sf_geo <- sf::st_transform(exdata_sf, crs = 4326)
     # exdata_sf_NA <- sf::st_as_sf(exdata, coords = c("xcoord", "ycoord"), crs = NA)
     expect_error(decorrelate(y ~ x, exdata_sf, spcov_type = "exponential"), NA)
-    expect_warning(decorrelate(y ~ x, exdata_poly, spcov_type = "exponential"))
+    expect_warning(expect_warning(decorrelate(y ~ x, exdata_poly, spcov_type = "exponential")))
     preds <- predict(decorrelate(y ~ x, exdata_sf, spcov_type = "exponential"), newdata = newexdata_sf)
     expect_vector(preds)
   })
@@ -235,6 +235,7 @@ if (test_local) {
   })
 
   test_that("direct functions work", {
+    spcov_type <- "exponential"
     spcov_params_val <- spcov_params(spcov_type = spcov_type, de = 1, ie = 1, range = 1)
     mod <- decorrelate_data(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_params = spcov_params_val)
     expect_s3_class(mod, "decorrelate_data")
@@ -266,6 +267,7 @@ if (test_local) {
   })
 
   test_that("direct functions work (different coordinates)", {
+    spcov_type <- "exponential"
     exdata$xc <- exdata$xcoord
     exdata$yc <- exdata$ycoord
     newexdata$xc <- newexdata$xcoord
@@ -316,6 +318,69 @@ if (test_local) {
 
 
   })
+
+
+  # training list methods
+    test_that("the model runs for exponential", {
+      spcov_type <- "exponential"
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, training = list(method = "cv")), NA)
+      spcov_params_val <- spcov_params(spcov_type = spcov_type, de = 1, ie = 1, range = 1)
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_params = spcov_params_val, training = list(method = "cv")), NA)
+    })
+
+    test_that("the model runs for exponential (partition group)", {
+      spcov_type <- "exponential"
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, partition_factor = ~ group, training = list(method = "cv")), NA)
+      spcov_params_val <- spcov_params(spcov_type = spcov_type, de = 1, ie = 1, range = 1)
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_params = spcov_params_val, partition_factor = ~ group, training = list(method = "cv")), NA)
+    })
+
+    test_that("the model runs for exponential (random group)", {
+      spcov_type <- "exponential"
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, random = ~ group, training = list(method = "cv")), NA)
+      spcov_params_val <- spcov_params(spcov_type = spcov_type, de = 1, ie = 1, range = 1)
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_params = spcov_params_val, random = ~ group, training = list(method = "cv")), NA)
+      randcov_params_val <- randcov_params(group = 1)
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_params = spcov_params_val, randcov_params = randcov_params_val, training = list(method = "cv")), NA)
+    })
+
+    test_that("the model runs for matern and local", {
+      spcov_type <- "matern"
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, training = list(method = "cv"), local = TRUE), NA)
+      spcov_params_val <- spcov_params(spcov_type = spcov_type, de = 1, ie = 1, range = 1, extra = 1)
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_params = spcov_params_val, training = list(method = "cv"), local = TRUE), NA)
+    })
+
+    test_that("the model runs for matern and local (partition group)", {
+      spcov_type <- "matern"
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, partition_factor = ~ group, training = list(method = "cv"), local = TRUE), NA)
+      spcov_params_val <- spcov_params(spcov_type = spcov_type, de = 1, ie = 1, range = 1, extra = 1)
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_params = spcov_params_val, partition_factor = ~ group, training = list(method = "cv"), local = TRUE), NA)
+    })
+
+    test_that("the model runs for matern and local (random group)", {
+      spcov_type <- "matern"
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, random = ~ group, training = list(method = "cv"), local = TRUE), NA)
+      spcov_params_val <- spcov_params(spcov_type = spcov_type, de = 1, ie = 1, range = 1, extra = 1)
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_params = spcov_params_val, random = ~ group, training = list(method = "cv"), local = TRUE), NA)
+      randcov_params_val <- randcov_params(group = 1)
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_params = spcov_params_val, randcov_params = randcov_params_val, training = list(method = "cv"), local = TRUE), NA)
+    })
+
+    # dense grid methods
+    test_that("the model runs for exponential", {
+      spcov_type <- "exponential"
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, dense_grid = FALSE), NA)
+      spcov_params_val <- spcov_params(spcov_type = spcov_type, de = 1, ie = 1, range = 1)
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_params = spcov_params_val,  dense_grid = FALSE, training = list(method = "cv")), NA)
+    })
+
+    test_that("the model runs for variables and local", {
+      spcov_type <- "exponential"
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, random = ~ group, partition_factor = ~ group, anisotropy = TRUE, dense_grid = FALSE), NA)
+      spcov_params_val <- spcov_params(spcov_type = spcov_type, de = 1, ie = 1, range = 1)
+      expect_error(decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_params = spcov_params_val, random = ~ group, partition_factor = ~ group, dense_grid = FALSE, training = list(method = "cv")), NA)
+    })
 }
 
 

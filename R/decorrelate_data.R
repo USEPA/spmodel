@@ -197,7 +197,7 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
   new_output
 }
 
-decorrelate_data_internal_part1 <- function(formula, data, xcoord, ycoord, random, partition_factor, ordering, local, ...) {
+decorrelate_data_internal_part1 <- function(formula, data, spcov_type, xcoord, ycoord, random, partition_factor, ordering, local, ...) {
 
   if (missing(random)) {
     random <- NULL
@@ -216,7 +216,7 @@ decorrelate_data_internal_part1 <- function(formula, data, xcoord, ycoord, rando
   data_object <- get_data_object_splm(
     formula = formula,
     data = data,
-    spcov_initial = spcov_initial("exponential"), # default placeholder
+    spcov_initial = spcov_initial(spcov_type), # default placeholder
     xcoord = xcoord,
     ycoord = ycoord,
     estmethod = "reml",  # default placeholder
@@ -385,7 +385,7 @@ decorrelate_data_internal_part2 <- function(spcov_params, randcov_params, decorr
 # non standard evaluation for x and y coordinates
 # substitute only works when the function is the parent function, so commenting
 # out for use with decorrelate()
-decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering, local, ...) {
+decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoord, random, randcov_params, partition_factor, ordering, local, ...) {
 
   if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
     anisotropy <- TRUE
@@ -397,8 +397,6 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
   if (missing(randcov_params) || is.null(randcov_params)) {
     random <- NULL
     randcov_params <- NULL
-  } else {
-    random <- reformulate(names(randcov_params))
   }
 
   # set partition factor if necessary

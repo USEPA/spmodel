@@ -245,7 +245,7 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
 # substitute only works when the function is the parent function, so commenting
 # out for use with decorrelate()
 # also suppress POINT coerion warning
-decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, anisotropy = FALSE, random, randcov_params, dense_grid) {
+decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, anisotropy = FALSE, random, randcov_params, dense_grid, add_iid) {
 
 
 
@@ -447,13 +447,16 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
   }
 
   # create iid grid
-  iid_grid <- as.data.frame(matrix(0, nrow = 1, ncol = NCOL(cov_grid)))
-  names(iid_grid) <- names(cov_grid)
-  iid_grid$spcov_type <- "none"
-  iid_grid$ie <- 1
-  iid_grid$range <- Inf
-  iid_grid$scale <- 1
-  cov_grid <- rbind(cov_grid, iid_grid)
+  if (add_iid) {
+    iid_grid <- as.data.frame(matrix(0, nrow = 1, ncol = NCOL(cov_grid)))
+    names(iid_grid) <- names(cov_grid)
+    iid_grid$spcov_type <- "none"
+    iid_grid$ie <- 1
+    iid_grid$range <- Inf
+    iid_grid$scale <- 1
+    cov_grid <- rbind(cov_grid, iid_grid)
+  }
+
 
   # return cov grid
   cov_grid <- unique(cov_grid)

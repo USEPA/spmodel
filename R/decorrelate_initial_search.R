@@ -1,4 +1,4 @@
-decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm, statistic, training_list, anisotropy, random, randcov_params, partition_factor, ordering = "maxmin", local, grid, dense_grid, ...) {
+decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm, statistic, training_list, anisotropy, random, randcov_params, partition_factor, ordering = "maxmin", local, grid, dense_grid, add_iid, ...) {
 
 
   data_training <- data[training_list$training_index, , drop = FALSE]
@@ -16,7 +16,8 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
     anisotropy = anisotropy,
     random = random,
     randcov_params = randcov_params,
-    dense_grid = dense_grid
+    dense_grid = dense_grid,
+    add_iid = add_iid
   )
   if (is.null(grid)) {
     grid <- grid_compare
@@ -30,6 +31,7 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
   decorrelate_part1 <- decorrelate_data_internal_part1(
     formula = formula,
     data = data_training,
+    spcov_type = spcov_type,
     xcoord = xcoord,
     ycoord = ycoord,
     random = random,

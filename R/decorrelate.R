@@ -513,14 +513,14 @@ get_training_list <- function(training, data) {
       index <- seq(1, n)
       training_index <- training$training_index
       test_index <- index[-training$training_index]
-      training$training <- list(training_index = training_index, test_index = test_index)
+      training$training <- list(list(training_index = training_index, test_index = test_index))
       training$training_index <- NULL
     } else if (!"training_index" %in% names_training && "test_index" %in% names_training) {
       n <- NROW(data)
       index <- seq(1, n)
       test_index <- training$test_index
       training_index <- index[-training$test_index]
-      training$training <- list(training_index = training_index, test_index = test_index)
+      training$training <- list(list(training_index = training_index, test_index = test_index))
       training$test_index <- NULL
     }
 

@@ -159,8 +159,8 @@ rf_mod <- decorrelate(
 
 The decorrelated random forest has much lower RMSPE in the test data set.
 ```{r}
-decorr_mod$test_RMSPE
-rf_mod$test_RMSPE
+decorr_mod$test
+rf_mod$test
 ```
 
 ## Additional Features

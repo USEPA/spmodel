@@ -68,7 +68,7 @@
 #'      \code{method = "cv"}.
 #'   }
 #'   If omitted, \code{training} is transformed into
-#'   \code{list(method = "split", p = 0.75)}.
+#'   \code{list(method = "split", p = 0.75, replicate = 1)}.
 #' @param evaluate_test A logical indicating whether a grid should be constructed
 #'   and evaluated when spatial decorrelation parameters are known (i.e.,
 #'   \code{spcov_params} is specified, and, if random effects are included, \code{randcov_params} is specified).

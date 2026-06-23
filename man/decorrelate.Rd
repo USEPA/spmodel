@@ -99,7 +99,7 @@ of \code{data} are associated with each cross-validation fold. Requires
 \code{method = "cv"}.
 }
 If omitted, \code{training} is transformed into
-\code{list(method = "split", p = 0.75)}.}
+\code{list(method = "split", p = 0.75, replicate = 1)}.}
 
 \item{evaluate_test}{A logical indicating whether a grid should be constructed
 and evaluated when spatial decorrelation parameters are known (i.e.,

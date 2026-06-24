@@ -239,6 +239,8 @@
 #'       root-mean-squared-prediction error (RMSPE), and predictive R-squared (cor2).
 #'   }
 #'
+#' @name decorrelate
+#' @order 1
 #' @export
 #'
 #' @references Matthew J. Heaton, Andrew Millane, and Jake S. Rhodes. 2025. A Scalable
@@ -247,7 +249,7 @@
 #'
 #' @examples
 #' decorr <- decorrelate(log_cond ~ temp, data = lake, spcov_type = "exponential")
-#' decorr$grid
+#' tidy(decorr$grid)
 decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", statistic = "RMSPE", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering, local, grid, dense_grid, ...) {
 
   # set exponential as default if nothing specified
@@ -405,6 +407,10 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
   )
 
   fit <- fit_decorrelate_algorithm(decorr, algorithm, ...)
+
+  # set grid class for printing later
+  grid <- structure(grid, class = c("decorrelate_grid", class(grid)))
+
   obj <- list(
     algorithm = algorithm,
     call = match.call(),
@@ -418,6 +424,72 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
   new_obj <- structure(obj, class = "decorrelate")
   new_obj
 }
+
+#' @rdname decorrelate
+#' @param x An object from \code{object$grid}.
+#' @param sort_by Sort by a specific row in \code{x}. Fit statistics are
+#'   \code{"bias"}, \code{"MSPE"}, \code{"RMSPE"}, and \code{"cor2"}.
+#'   The default is \code{"MSPE"}.
+#' @param decreasing Whether \code{sort_by} should sort by decreasing order? If
+#' \code{sort_by = "cor2"}, the default is \code{TRUE}; otherwise it is \code{FALSE}.
+#' @method tidy decorrelate_grid
+#' @order 2
+#' @export
+tidy.decorrelate_grid <- function(x, sort_by = "MSPE", decreasing, ...) {
+
+  if (!sort_by %in% names(x)) {
+    stop("sort_by must be a variable in x.", call. = FALSE)
+  }
+
+  if (missing(decreasing)) {
+    decreasing <- ifelse(sort_by == "cor2", TRUE, FALSE)
+  } else {
+    if (!is.logical(decreasing)) {
+      stop("decreasing must be TRUE or FALSE.", call. = FALSE)
+    }
+  }
+
+
+  x <- x[order(x[[sort_by]], decreasing = decreasing), , drop = FALSE]
+
+
+  untransformed_index <- x$spcov_type == "none" & x$de == 0 & x$ie == 1 & x$range == Inf & x$rotate == 0 & x$scale == 1
+  if ("extra" %in% names(x)) {
+    untransformed_index <- untransformed_index & x$extra == 0
+  }
+  standard_names <- c("spcov_type", "de", "ie", "range", "extra", "rotate", "scale", "bias", "MSPE", "RMSPE", "cor2")
+  random_names <- names(x)[!names(x) %in% standard_names]
+  if (length(random_names) > 0) {
+    random_index <- apply(do.call(cbind, lapply(random_names, function(y) x[[y]] == 0)), 1, all)
+    untransformed_index <- untransformed_index & random_index
+  }
+
+  if (all(x$rotate == 0 & x$scale == 1)) {
+    x$rotate <- NULL
+    x$scale <- NULL
+  }
+
+  if (any(untransformed_index)) {
+    x[untransformed_index, "spcov_type"] <- "no transformation"
+    x[untransformed_index, "de"] <- NA
+    x[untransformed_index, "ie"] <- NA
+    x[untransformed_index, "range"] <- NA
+    if ("extra" %in% names(x)) {
+      x[untransformed_index, "extra"] <- NA
+    }
+    if (length(random_names) > 0) {
+      for (y in random_names) {
+        x[untransformed_index, y] <- NA
+      }
+    }
+    if (any(c("rotate", "scale") %in% names(x))) {
+      x[untransformed_index, "rotate"] <- NA
+      x[untransformed_index, "scale"] <- NA
+    }
+  }
+  tibble::tibble(x)
+}
+
 
 fit_decorrelate_algorithm <- function(decorrelate_data, algorithm, ...){
 

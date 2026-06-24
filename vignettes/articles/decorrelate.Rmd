@@ -106,7 +106,7 @@ decorr_mod <- decorrelate(
 
 If `data` is an `sf` [@pebesma2018sf] object, spatial information is stored in the object's geometry. If `data` is a `data.frame`, then the x-coordinates and y-coordinates must also be provided via the `xcoord` and `ycoord` arguments to `decorrelate()`.
 
-The `decorrelate()` estimates spatial decorrelation transformation parameters using a grid search approach [@heaton2025adjusting]. Observations in `data` are randomly assigned to a training or test set. By default, 75% of the observations are assigned to the training set and the remaining 25% to the test set. For each set of parameters in the grid search, the following steps are applied:
+The `decorrelate()` estimates spatial decorrelation transformation parameters using a grid search approach [@heaton2025adjusting]. By default, 75% of the observations in `data` are randomly assigned to a training set and the remaining 25% to a test set. For each set of parameters in the grid search, the following steps are applied:
 
 1. The spatial decorrelation transformation is applied to the training set 
 2. A machine learning algorithm (by default, a random forest) is fit to the transformed training data set
@@ -114,7 +114,12 @@ The `decorrelate()` estimates spatial decorrelation transformation parameters us
 4. The fitted machine learning algorithm is used to predict the response variable for the transformed test set
 5. The predictions are recorrelated back to the original (i.e., untransformed) scale
 
-The grid element whose parameters yield the lowest root-mean-squared-prediction error (RMSPE) in the test set are considered the "estimated" parameters. Using those estimated parameters, the spatial decorrelation transformation is applied to the entire data set (all observations in `data`) and stored in the `decorrelate_data` element of `decorrelate()`. Several other useful pieces of information are stored in the `decorrelate()` output, such as the evaluated grid and machine learning algorithm used.
+A tidied version of the grid of evaluated parameters is returned by 
+```{r}
+tidy(decorr_mod$grid)
+```
+
+The grid shows the spatial covariance type (`spcov_type`), the spatially dependent random error variance (`de`), the independent random error variance (`ie`), and the spatial range parameter (`range`) for each grid row. Also reported are mean bias (`bias`), mean-squared-prediction error (MSPE), root-mean-squared-prediction error (`RMSPE`), and (predictive) R-squared of the model applied to the test set. By default, the grid is sorted by `MSPE` -- the first row has the lowest (best) `MSPE`. The parameters for the top `MSPE` are treated as the "estimated" parameters. Using those estimated parameters, the spatial decorrelation transformation is applied to the entire data set (all observations in `data`) and stored in the `decorrelate_data` element of `decorrelate()`. Several other useful pieces of information are stored in the `decorrelate()` output, such as the evaluated grid and machine learning algorithm used.
 
 
 ## Prediction Using `predict()`

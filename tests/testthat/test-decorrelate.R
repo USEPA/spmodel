@@ -8,11 +8,13 @@ test_that("decorrelate works", {
   expect_type(decorr1, "list")
   preds1 <- predict(decorr1, newdata = newexdata)
   expect_vector(preds1)
+  expect_error(tidy(decorr1$grid), NA)
 
   spcov_type <- "spherical"
   decorr1 <- decorrelate(y ~ x, exdata, spcov_type = spcov_type, xcoord = xcoord, ycoord = "ycoord", local = TRUE)
   expect_type(decorr1, "list")
   preds1 <- predict(decorr1, newdata = newexdata)
   expect_vector(preds1)
+  expect_error(tidy(decorr1$grid), NA)
 
 })

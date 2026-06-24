@@ -2,6 +2,7 @@
 % Please edit documentation in R/decorrelate.R
 \name{decorrelate}
 \alias{decorrelate}
+\alias{tidy.decorrelate_grid}
 \title{Apply the Spatial Decorrelation Transformation for Machine Learning Models}
 \usage{
 decorrelate(
@@ -25,6 +26,8 @@ decorrelate(
   dense_grid,
   ...
 )
+
+\method{tidy}{decorrelate_grid}(x, sort_by = "MSPE", decreasing, ...)
 }
 \arguments{
 \item{formula}{A two-sided linear formula describing the fixed effect structure
@@ -194,6 +197,15 @@ is \code{FALSE} when the sample size is greater than 5,000 and \code{TRUE}
 otherwise.}
 
 \item{...}{Other arguments to the functions called by \code{algorithm}.}
+
+\item{x}{An object from \code{object$grid}.}
+
+\item{sort_by}{Sort by a specific row in \code{x}. Fit statistics are
+\code{"bias"}, \code{"MSPE"}, \code{"RMSPE"}, and \code{"cor2"}.
+The default is \code{"MSPE"}.}
+
+\item{decreasing}{Whether \code{sort_by} should sort by decreasing order? If
+\code{sort_by = "cor2"}, the default is \code{TRUE}; otherwise it is \code{FALSE}.}
 }
 \value{
 A list with many elements that store information about the fitted model object:
@@ -289,7 +301,7 @@ fitting, but their values can be predicted afterwards by running
 }
 \examples{
 decorr <- decorrelate(log_cond ~ temp, data = lake, spcov_type = "exponential")
-decorr$grid
+tidy(decorr$grid)
 }
 \references{
 Matthew J. Heaton, Andrew Millane, and Jake S. Rhodes. 2025. A Scalable

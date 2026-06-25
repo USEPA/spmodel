@@ -98,7 +98,7 @@ The `decorrelate()` function applies the spatial decorrelation transformation di
 
 ```{r}
 decorr_mod <- decorrelate(
-  formula = log_cond ~ temp,
+  formula = log_cond ~ temp + origin,
   data = lake,
   spcov_type = "exponential"
 )
@@ -106,21 +106,23 @@ decorr_mod <- decorrelate(
 
 If `data` is an `sf` [@pebesma2018sf] object, spatial information is stored in the object's geometry. If `data` is a `data.frame`, then the x-coordinates and y-coordinates must also be provided via the `xcoord` and `ycoord` arguments to `decorrelate()`.
 
-The `decorrelate()` estimates spatial decorrelation transformation parameters using a grid search approach [@heaton2025adjusting]. By default, 75% of the observations in `data` are randomly assigned to a training set and the remaining 25% to a test set. For each set of parameters in the grid search, the following steps are applied:
+The `decorrelate()` estimates spatial decorrelation transformation parameters using a grid search approach [@heaton2025adjusting]. By default, 75% of the observations in `data` are randomly assigned to a training set and the remaining 25% to a test set. Then for each set of parameters in the grid search, a random forest is fit to the training set and used to predict the test set data. More explicitly, we have
 
-1. The spatial decorrelation transformation is applied to the training set 
-2. A machine learning algorithm (by default, a random forest) is fit to the transformed training data set
-3. The spatial decorrelation transformation is applied to the test set
-4. The fitted machine learning algorithm is used to predict the response variable for the transformed test set
-5. The predictions are recorrelated back to the original (i.e., untransformed) scale
+1. The data are split into training and test sets (there can be multiple training and test splits -- more on this later).
+2. The spatial decorrelation transformation is applied to the training set.
+3. A machine learning model (here, a random forest) is fit to the transformed training data set.
+4. The spatial decorrelation transformation is applied to the test set.
+5. The fitted machine learning model is used to predict the transformed response variable in the test set.
+6. The predictions are recorrelated back to the original (i.e., untransformed) scale.
+7. Fit statistics like bias, mean-squared-prediction error, and predictive R-squared are computed for each grid element.
+8. Apply the spatial decorrelation transformation to the entire data set using the best parameter set from the grid search, fit the machine learning model and use it for prediction.....MORE ON THIS.
 
 A tidied version of the grid of evaluated parameters is returned by 
 ```{r}
 tidy(decorr_mod$grid)
 ```
 
-The grid shows the spatial covariance type (`spcov_type`), the spatially dependent random error variance (`de`), the independent random error variance (`ie`), and the spatial range parameter (`range`) for each grid row. Also reported are mean bias (`bias`), mean-squared-prediction error (MSPE), root-mean-squared-prediction error (`RMSPE`), and (predictive) R-squared of the model applied to the test set. By default, the grid is sorted by `MSPE` -- the first row has the lowest (best) `MSPE`. The parameters for the top `MSPE` are treated as the "estimated" parameters. Using those estimated parameters, the spatial decorrelation transformation is applied to the entire data set (all observations in `data`) and stored in the `decorrelate_data` element of `decorrelate()`. Several other useful pieces of information are stored in the `decorrelate()` output, such as the evaluated grid and machine learning algorithm used.
-
+The grid shows the spatial covariance type (`spcov_type`), the spatially dependent random error variance (`de`), the independent random error variance (`ie`), and the spatial range parameter (`range`) for each grid row. Also reported are mean bias (`bias`), mean-squared-prediction error (MSPE), root-mean-squared-prediction error (`RMSPE`), and (predictive) R-squared of the model applied to the test set. There is also a row added for data that are completely untransformed (i.e., the random forest was applied to the raw data). By default, the grid is sorted by `MSPE` -- the first row has the lowest (best) `MSPE`. The standard random forest has the highest (worst) RMSPE. The parameters for the best `MSPE` are treated as the "estimated" parameters and used to apply the spatial decorrelation transformation to the entire data set (all observations in `data`). This information is stored in the `decorrelate_data` element of `decorrelate()`. Several other useful pieces of information are stored in the `decorrelate()` output, such as the evaluated grid and machine learning algorithm used. Importantly, the fit of the machine learning algorithm applied to the transformed data is stored in the `fit` element.
 
 ## Prediction Using `predict()`
 
@@ -138,66 +140,62 @@ ggplot() +
   theme_bw(base_size = 14)
 ```
 
-## Comparing to a Standard (Independent) Random Forest
+## Additional `decorrelate()` Features
 
-We can evaluate performance of the spatial decorrelation transformation relative to an standard (i.e., independent) random forest. We refit `decorr_mod` using the first 60 rows as training data and the remaining 42 as test data:
+Like other `spmodel` functions, `decorrelate()` accepts various additional arguments, a few of which we describe below:
 
+* `algorithm`: The machine learning algorithm used. The default is `ranger` for random forests with the `ranger` **R** package [@wright2015ranger].
+* `statistic`: The statistic by which to rank models. The default is mean-squared-prediction error (`MSPE`) in the test set.
+* `training`: A list that controls the way observations are assigned to training and test sets. The default is to assign 75% of observations to the training set and 25% to the test set. Arguments to `training` allow for replicating the test/train split using different random assignments or for k-fold cross validation. When multiple test/training splits are generated (either via replication or cross validation), test set statistics are averaged over each split. For k-fold cross validation, the default is four folds (i.e., k = 4).
+* `ordering`: The approach used to order observations for the decorrelation transformation. The default is usually `"maxmin"` (for maxmin ordering; see @katzfuss2024GPvecchia) but can be `"grts"` (for spatially balanced ordering; see @dumelle2023spsurvey), depending on context.
+* `grid`: A grid by which to evaluate parameters. If ignored, `spmodel` generates a candidate grid.
+* `dense_grid`: Whether to generate a dense grid (with more parameter sets to evaluate) or a sparse grid (with fewer parameter sets to evaluate). The default is generaly `TRUE` for a dense grid, though for larger sample sizes the default is `FALSE`.
+* Other familiar `spmodel` arguments like `spcov_type`, `anisotropy` (for geometric anisotropy), `random` (for nonspatial random effects), `partition_factor` (for partition factors), and `local` (for large data sets) are also available. The `local` argument implements the Vecchia approximation framework described by @heaton2025adjusting. 
+* Additional arguments can be passed to the machine learning algorithm via `...`.
+* Please see the `decorrelate()` documentation (e.g., via `?decorrelate`) for explicit details regarding its full suite of capabilities.
+
+
+For example,
 ```{r}
 decorr_mod <- decorrelate(
-  formula = log_cond ~ temp,
+  formula = log_cond ~ temp + origin,
   data = lake,
-  spcov_type = "exponential",
-  training = list(training_index = seq(1, 60))
-)
-```
-
-
-Then we fit a standard random forest by specifying `spcov_type = "none"`:
-```{r}
-rf_mod <- decorrelate(
-  formula = log_cond ~ temp,
-  data = lake,
-  spcov_type = "none",
-  training = list(training_index = seq(1, 60))
-)
-```
-
-The decorrelated random forest has much lower RMSPE in the test data set.
-```{r}
-decorr_mod$test
-rf_mod$test
-```
-
-## Additional Features
-
-Like other `spmodel` functions, `decorrelate()` accepts various additional arguments (see `?decorrelate` for a list). Here, we fit an exponential spatial decorrelation transformation with a random effect for lake origin (human-made versus naturally occurring) using the xgboost algorithm [@chen2025xgboost] to fit the model and predictive R-squared (`cor2`) to evaluate the model.
-```{r}
-decorr_mod <- decorrelate(
-  formula = log_cond ~ temp,
-  data = lake,
-  spcov_type = "exponential",
-  algorithm = "xgboost",
+  spcov_type = "spherical",
+  algorithm = "randomForest",
   statistic = "cor2",
-  random = ~ origin
+  training = list(method = "cv"),
+  random = ~ year,
+  ordering = "grts",
+  local = TRUE,
+  dense_grid = FALSE,
+  importance = TRUE
 )
+tidy(decorr_mod$grid)
+decorr_mod$fit$importance
 ```
-
-The `local` argument is used to implement the big data approximation described by @heaton2025adjusting.
 
 # Building Your Own Spatial Decorrelation Transformation
+
+While the `decorrelate()` function is an all-purpose tool applicable for a variety of scenarios, it does not accommodate every possible way the spatial decorrelation transformation can be used. For example, you may desire to use a machine learning algorithm not avaiable via `decorrelate()`. `spmodel` also provides tools for each step of the spatial decorrelation transformation. Let's revisit these steps before proceeding:
+
+1. The spatial decorrelation transformation is applied to the training set.
+2. A machine learning algorithm (here, a random forest) is fit to the transformed training data set.
+3. The spatial decorrelation transformation is applied to the test set.
+4. The fitted machine learning algorithm is used to predict the response variable for the transformed test set.
+5. The predictions are recorrelated back to the original (i.e., untransformed) scale.
 
 ## Step 1: Split the Obsered Data Into Training and Test Sets
 
 Evaluating the effectiveness of a machine learning model is a multi-step process. First, we split the `lake` data into separate training and test sets. The goal is to fit a model to the training set and use it to predict the response variable for each datum in the test set. Because the test set contains the measured value of the response variable, the accuracy of the predictions generated using the test set can be directly evaluated using a metric like root-mean-squared-prediction error or predictive $R^2$ (i.e., the squared correlation between observations and predictions). 
 
-We proceed by randomly assigning 70% of the `lake` data to the training set and the remaining 30% to the test set:
+We proceed by randomly assigning 75% of the `lake` data to the training set and the remaining 25% to the test set:
 ```{r}
 # number of observations in the lake data
 n <- NROW(lake)
 # creating an index that corresponds with the row position of each datum
 index <- seq(from = 1, to = n)
 # setting the size of the training data
-n_train <- floor(0.7 * n)
+n_train <- floor(0.75 * n)
 # randomly generating the indices in lake that are assigned to the training data
 train_index <- sample(index, size = n_train)
 # creating the training data
@@ -396,7 +394,7 @@ NROW(grid)
 head(grid, n = 5)
 ```
 
-## Predicting at Unobserved Lakes 
+## Step 5: Predicting at Unobserved Lakes 
 
 A primary goal is to use the best machine learning model to make predictions of log conductivity at the lakes in `lake_preds`. We can visualize the lakes in `lake` alongside those in `lake_preds`:
 ```{r}

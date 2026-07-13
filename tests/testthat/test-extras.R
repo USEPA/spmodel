@@ -1643,6 +1643,28 @@ if (test_local) {
     expect_equal(as.vector(pred1$fit[, "upr"]), as.vector(pred2$fit[, "fit"] + tcrit * pred2$se.fit), tolerance = 0.01)
   })
 
+  test_that("prediction kriging weights works", {
+    spmod1 <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
+    pred1 <- predict(spmod1, newexdata, type = "weight") %*% exdata$y
+    pred2 <- predict(spmod1, newexdata)
+    expect_equal(as.vector(pred1), as.vector(pred2))
+
+    spgmod1 <- spglm(abs(y) ~ x, family = "Gamma", exdata, "exponential", xcoord, ycoord)
+    pred1 <- predict(spgmod1, newexdata, type = "weight") %*% fitted(spgmod1, type = "link")
+    pred2 <- predict(spgmod1, newexdata)
+    expect_equal(as.vector(pred1), as.vector(pred2))
+
+    spmod1 <- spautor(y ~ x, exdata_Mpoly, "car")
+    pred1 <- predict(spmod1, type = "weight") %*% exdata_Mpoly$y[!is.na(exdata_Mpoly$y)]
+    pred2 <- predict(spmod1)
+    expect_equal(as.vector(pred1), as.vector(pred2))
+
+    spgmod1 <- spgautor(abs(y) ~ x, family = "Gamma", exdata_Mpoly, "car")
+    pred1 <- predict(spgmod1, type = "weight") %*% fitted(spgmod1, type = "link")
+    pred2 <- predict(spgmod1)
+    expect_equal(as.vector(pred1), as.vector(pred2))
+  })
+
   ##############################################################################
   ############################ print (test-print.R)
   ##############################################################################

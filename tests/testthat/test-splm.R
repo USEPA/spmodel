@@ -117,6 +117,7 @@ test_that("generics work splm point data", {
   expect_true(inherits(predict(spmod1, newdata = newexdata, interval = "confidence", level = 0.9), "matrix"))
   expect_true(inherits(predict(spmod1, newdata = newexdata, type = "terms"), "matrix"))
   expect_type(predict(spmod1, newdata = newexdata, type = "terms", interval = "confidence"), "list")
+  expect_true(inherits(predict(spmod1, newdata = newexdata, type = "weight"), "matrix"))
 
   # block predict
   expect_vector(predict(spmod1, newdata = newexdata, block = TRUE))
@@ -282,6 +283,7 @@ test_that("generics work splm point data with missing", {
   expect_true(inherits(predict(spmod1, newdata = newexdata, interval = "confidence", level = 0.9), "matrix"))
   expect_true(inherits(predict(spmod1, newdata = newexdata, type = "terms"), "matrix"))
   expect_type(predict(spmod1, newdata = newexdata, type = "terms", interval = "confidence"), "list")
+  expect_true(inherits(predict(spmod1, newdata = newexdata, type = "weight"), "matrix"))
 
   # block predict
   expect_vector(predict(spmod1, newdata = newexdata, block = TRUE))

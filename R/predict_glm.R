@@ -22,13 +22,17 @@
 #' predict(spgmod, moose_preds, interval = "prediction")
 #' augment(spgmod, newdata = moose_preds, interval = "prediction")
 #' }
-predict.spglm <- function(object, newdata, type = c("link", "response", "terms"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
+predict.spglm <- function(object, newdata, type = c("link", "response", "terms", "weight"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
                           level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size, na.action = na.fail, ...) {
 
 
 
   # match type argument so the two display
   type <- match.arg(type)
+  if (type == "weight") {
+    se.fit <- FALSE
+    interval <- "none"
+  }
 
   # match interval argument so the three display
   interval <- match.arg(interval)
@@ -341,7 +345,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms")
         contrasts = object$contrasts,
         local = local_list, family = object$family, w = fitted(object, type = "link"), model_offset = model.offset(model.frame(object)), size = object$size,
         dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind,
-        xlevels = object$xlevels, diagtol = object$diagtol
+        xlevels = object$xlevels, diagtol = object$diagtol, type = type
       )
       cl <- parallel::stopCluster(cl)
     } else {
@@ -365,8 +369,17 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms")
         local = local_list, family = object$family,
         w = fitted(object, type = "link"), model_offset = model.offset(model.frame(object)), size = object$size,
         dispersion = dispersion_params_val, predvar_adjust_ind = predvar_adjust_ind,
-        xlevels = object$xlevels, diagtol = object$diagtol
+        xlevels = object$xlevels, diagtol = object$diagtol, type = type
       )
+    }
+
+    if (type == "weight") {
+      fit <- do.call("rbind", lapply(pred_spglm, function(x) x$fit))
+      if (add_newdata_rows) {
+        colnames(fit) <- object$observed_index
+        rownames(fit) <- object$missing_index
+      }
+      return(fit)
     }
 
     if (interval == "none") {
@@ -499,7 +512,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
                            Z_index_obdata_list, reform_bar1_list, Z_val_obdata_list, partition_factor,
                            reform_bar2, partition_index_obdata, cov_lowchol,
                            Xmat, y, betahat, cov_betahat, dim_coords, contrasts, local,
-                           family, w, model_offset, size, dispersion, predvar_adjust_ind, xlevels, diagtol) {
+                           family, w, model_offset, size, dispersion, predvar_adjust_ind, xlevels, diagtol, type) {
 
 
   # adjust w
@@ -598,18 +611,25 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
     Xmat <- model.matrix(formula, model_frame, contrasts = contrasts)
   }
 
-
-
   c0 <- as.numeric(cov_vector_val)
   SqrtSigInv_X <- forwardsolve(cov_lowchol, Xmat)
   SqrtSigInv_w <- forwardsolve(cov_lowchol, w)
-  residuals_pearson <- SqrtSigInv_w - SqrtSigInv_X %*% betahat
   SqrtSigInv_c0 <- forwardsolve(cov_lowchol, c0)
   x0 <- newdata_list$x0
 
-  fit <- as.numeric(x0 %*% betahat + Matrix::crossprod(SqrtSigInv_c0, residuals_pearson))
-  H <- x0 - Matrix::crossprod(SqrtSigInv_c0, SqrtSigInv_X)
+  if (type == "weight") {
+    Xt_SigInv <- t(backsolve(t(cov_lowchol), SqrtSigInv_X))
+    betahat_wt <- cov_betahat %*% Xt_SigInv
+    residuals_weight <- -1 * Xmat %*% betahat_wt # this is recomputed over and over when using all data consider making more efficient
+    diag(residuals_weight) <- diag(residuals_weight) + 1
+    fit <- x0 %*% betahat_wt + Matrix::crossprod(SqrtSigInv_c0, forwardsolve(cov_lowchol, residuals_weight))
+  } else {
+    residuals_pearson <- SqrtSigInv_w - SqrtSigInv_X %*% betahat
+    fit <- as.numeric(x0 %*% betahat + Matrix::crossprod(SqrtSigInv_c0, residuals_pearson))
+  }
+
   if (se.fit || interval == "prediction") {
+    H <- x0 - Matrix::crossprod(SqrtSigInv_c0, SqrtSigInv_X)
     total_var <- sum(spcov_params_val[["de"]], spcov_params_val[["ie"]], randcov_params_val)
     var <- as.numeric(total_var - Matrix::crossprod(SqrtSigInv_c0, SqrtSigInv_c0) + H %*% Matrix::tcrossprod(cov_betahat, H))
     if (predvar_adjust_ind) {
@@ -633,12 +653,16 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
 #' @method predict spgautor
 #' @order 10
 #' @export
-predict.spgautor <- function(object, newdata, type = c("link", "response", "terms"), se.fit = FALSE,
+predict.spgautor <- function(object, newdata, type = c("link", "response", "terms", "weight"), se.fit = FALSE,
                              interval = c("none", "confidence", "prediction"),
                              level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size, na.action = na.fail, ...) {
 
   # match type argument so the two display
   type <- match.arg(type)
+  if (type == "weight") {
+    se.fit <- FALSE
+    interval <- "none"
+  }
 
   # match interval argument so the three display
   interval <- match.arg(interval)
@@ -801,7 +825,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
         residuals_pearson_w,
         cov_betahat, SqrtSigInv_X,
         se.fit = se.fit,
-        interval = interval
+        interval = interval, type = type, Xmat = X
       )
       cl <- parallel::stopCluster(cl)
     } else {
@@ -815,10 +839,17 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
             residuals_pearson_w,
             cov_betahat, SqrtSigInv_X,
             se.fit = se.fit,
-            interval = interval
+            interval = interval, type = type, Xmat = X
           )
         }, SIMPLIFY = FALSE
       )
+    }
+
+    if (type == "weight") {
+      fit <- do.call("rbind", lapply(pred_spautor, function(x) x$fit))
+      colnames(fit) <- object$observed_index
+      rownames(fit) <- object$missing_index
+      return(fit)
     }
 
     if (interval == "none") {
@@ -931,9 +962,17 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
   }
 }
 
-get_pred_spgautor <- function(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson_w, cov_betahat, SqrtSigInv_X, se.fit, interval) {
+get_pred_spgautor <- function(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson_w, cov_betahat, SqrtSigInv_X, se.fit, interval, type, Xmat) {
   SqrtSigInv_c0 <- forwardsolve(cov_matrix_lowchol, c0)
-  fit <- as.numeric(x0 %*% betahat + crossprod(SqrtSigInv_c0, residuals_pearson_w))
+  if (type == "weight") {
+    Xt_SigInv <- t(backsolve(t(cov_matrix_lowchol), SqrtSigInv_X))
+    betahat_wt <- cov_betahat %*% Xt_SigInv
+    residuals_weight <- -1 * Xmat %*% betahat_wt # this is recomputed over and over when using all data consider making more efficient
+    diag(residuals_weight) <- diag(residuals_weight) + 1
+    fit <- x0 %*% betahat_wt + Matrix::crossprod(SqrtSigInv_c0, forwardsolve(cov_matrix_lowchol, residuals_weight))
+  } else {
+    fit <- as.numeric(x0 %*% betahat + crossprod(SqrtSigInv_c0, residuals_pearson_w))
+  }
   if (se.fit || interval == "prediction") {
     H <- x0 - crossprod(SqrtSigInv_c0, SqrtSigInv_X)
     var <- as.numeric(s0 - crossprod(SqrtSigInv_c0, SqrtSigInv_c0) + H %*% tcrossprod(cov_betahat, H))
@@ -944,11 +983,11 @@ get_pred_spgautor <- function(x0, c0, s0, cov_matrix_lowchol, betahat, residuals
   pred_list
 }
 
-get_pred_spgautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat, residuals_pearson_w, cov_betahat, SqrtSigInv_X, se.fit, interval) {
+get_pred_spgautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat, residuals_pearson_w, cov_betahat, SqrtSigInv_X, se.fit, interval, type, Xmat) {
   x0 <- cluster_list$x0
   c0 <- cluster_list$c0
   s0 <- cluster_list$s0
-  get_pred_spgautor(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson_w, cov_betahat, SqrtSigInv_X, se.fit, interval)
+  get_pred_spgautor(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson_w, cov_betahat, SqrtSigInv_X, se.fit, interval, type, Xmat)
 }
 
 #' @name predict.spmodel

@@ -24,7 +24,7 @@
   df = Inf,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
-  type = c("response", "terms"),
+  type = c("response", "terms", "weight"),
   block = FALSE,
   local,
   terms = NULL,
@@ -40,7 +40,7 @@
   df = Inf,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
-  type = c("response", "terms"),
+  type = c("response", "terms", "weight"),
   local,
   terms = NULL,
   na.action = na.fail,
@@ -88,7 +88,7 @@
 \method{predict}{spglm}(
   object,
   newdata,
-  type = c("link", "response", "terms"),
+  type = c("link", "response", "terms", "weight"),
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
@@ -104,7 +104,7 @@
 \method{predict}{spgautor}(
   object,
   newdata,
-  type = c("link", "response", "terms"),
+  type = c("link", "response", "terms", "weight"),
   se.fit = FALSE,
   interval = c("none", "confidence", "prediction"),
   level = 0.95,
@@ -185,7 +185,8 @@ uncertainties (in \code{.$se.fit}).}
 \item{level}{Tolerance/confidence level. The default is \code{0.95}.}
 
 \item{type}{The prediction type, either on the response scale, link scale (only for
-\code{spglm()} or \code{spgautor()} model objects), or terms scale.}
+\code{spglm()} or \code{spgautor()} model objects), terms scale,
+or prediction (i.e., Kriging) weight scale.}
 
 \item{block}{A logical indicating whether a block prediction over the entire region
 in \code{newdata} should be returned. When \code{block} is \code{TRUE},

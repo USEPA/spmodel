@@ -30,7 +30,8 @@
 #'   uncertainties (in \code{.$se.fit}).
 #' @param level Tolerance/confidence level. The default is \code{0.95}.
 #' @param type The prediction type, either on the response scale, link scale (only for
-#'   \code{spglm()} or \code{spgautor()} model objects), or terms scale.
+#'   \code{spglm()} or \code{spgautor()} model objects), terms scale,
+#'   or prediction (i.e., Kriging) weight scale.
 #' @param local A optional logical or list controlling the big data approximation. If omitted, \code{local}
 #'   is set to \code{TRUE} or \code{FALSE} based on the observed data sample size (i.e., sample size of the fitted
 #'   model object) -- if the sample size exceeds 10,000, \code{local} is
@@ -137,12 +138,16 @@
 #' predict(spmod, sulfate_preds, interval = "prediction")
 #' augment(spmod, newdata = sulfate_preds, interval = "prediction")
 predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf, interval = c("none", "confidence", "prediction"),
-                         level = 0.95, type = c("response", "terms"), block = FALSE, local, terms = NULL, na.action = na.fail, ...) {
+                         level = 0.95, type = c("response", "terms", "weight"), block = FALSE, local, terms = NULL, na.action = na.fail, ...) {
 
 
   # match interval argument so the three display
   interval <- match.arg(interval)
   type <- match.arg(type)
+  if (type == "weight") {
+    se.fit <- FALSE
+    interval <- "none"
+  }
 
   # deal with local
   if (missing(local)) {
@@ -453,7 +458,8 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
         offset = model.offset(model.frame(object)), dim_coords = object$dim_coords,
         betahat = coefficients(object), cov_betahat = vcov(object),
         contrasts = object$contrasts,
-        local = local_list, xlevels = object$xlevels, diagtol = object$diagtol
+        local = local_list, xlevels = object$xlevels, diagtol = object$diagtol,
+        type = type
       )
       cl <- parallel::stopCluster(cl)
     } else {
@@ -475,8 +481,18 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
         offset = model.offset(model.frame(object)), dim_coords = object$dim_coords,
         betahat = coefficients(object), cov_betahat = vcov(object),
         contrasts = object$contrasts,
-        local = local_list, xlevels = object$xlevels, diagtol = object$diagtol
+        local = local_list, xlevels = object$xlevels, diagtol = object$diagtol,
+        type = type
       )
+    }
+
+    if (type == "weight") {
+      fit <- do.call("rbind", lapply(pred_splm, function(x) x$fit))
+      if (add_newdata_rows) {
+        colnames(fit) <- object$observed_index
+        rownames(fit) <- object$missing_index
+      }
+      return(fit)
     }
 
     if (interval == "none") {
@@ -581,11 +597,15 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
 #' @order 2
 #' @export
 predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf, interval = c("none", "confidence", "prediction"),
-                            level = 0.95, type = c("response", "terms"), local, terms = NULL, na.action = na.fail, ...) {
+                            level = 0.95, type = c("response", "terms", "weight"), local, terms = NULL, na.action = na.fail, ...) {
 
   # match interval argument so the three display
   interval <- match.arg(interval)
   type <- match.arg(type)
+  if (type == "weight") {
+    se.fit <- FALSE
+    interval <- "none"
+  }
 
   # deal with local
   if (missing(local)) {
@@ -691,12 +711,14 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = 
 
     # find X observed
     X <- model.matrix(object)
+    y <- model.response(model.frame(object))
     SqrtSigInv_X <- forwardsolve(cov_matrix_lowchol, X)
+    SqrtSigInv_y <- forwardsolve(cov_matrix_lowchol, y)
 
     # beta hat
     betahat <- coef(object)
     # residuals pearson
-    residuals_pearson <- residuals(object, type = "pearson")
+    residuals_pearson <- SqrtSigInv_y - SqrtSigInv_X %*% betahat
     # cov beta hat
     cov_betahat <- vcov(object)
     # total var
@@ -721,7 +743,7 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = 
         residuals_pearson,
         cov_betahat, SqrtSigInv_X,
         se.fit = se.fit,
-        interval = interval
+        interval = interval, type = type, Xmat = X
       )
       cl <- parallel::stopCluster(cl)
     } else {
@@ -735,10 +757,17 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = 
             residuals_pearson,
             cov_betahat, SqrtSigInv_X,
             se.fit = se.fit,
-            interval = interval
+            interval = interval, type = type, Xmat = X
           )
         }, SIMPLIFY = FALSE
       )
+    }
+
+    if (type == "weight") {
+      fit <- do.call("rbind", lapply(pred_spautor, function(x) x$fit))
+      colnames(fit) <- object$observed_index
+      rownames(fit) <- object$missing_index
+      return(fit)
     }
 
     if (interval == "none") {
@@ -827,7 +856,7 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
                           spcov_params_val, random, randcov_params_val, reform_bar2_list,
                           Z_index_obdata_list, reform_bar1_list, Z_val_obdata_list, partition_factor,
                           reform_bar2, partition_index_obdata, cov_lowchol,
-                          Xmat, y, offset, betahat, cov_betahat, dim_coords, contrasts, local, xlevels, diagtol = diagtol) {
+                          Xmat, y, offset, betahat, cov_betahat, dim_coords, contrasts, local, xlevels, diagtol, type) {
 
 
 
@@ -917,13 +946,21 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
   c0 <- as.numeric(cov_vector_val)
   SqrtSigInv_X <- forwardsolve(cov_lowchol, Xmat)
   SqrtSigInv_y <- forwardsolve(cov_lowchol, y)
-  residuals_pearson <- SqrtSigInv_y - SqrtSigInv_X %*% betahat
   SqrtSigInv_c0 <- forwardsolve(cov_lowchol, c0)
   x0 <- newdata_list$x0
 
-  fit <- as.numeric(x0 %*% betahat + Matrix::crossprod(SqrtSigInv_c0, residuals_pearson))
-  H <- x0 - Matrix::crossprod(SqrtSigInv_c0, SqrtSigInv_X)
+  if (type == "weight") {
+    Xt_SigInv <- t(backsolve(t(cov_lowchol), SqrtSigInv_X))
+    betahat_wt <- cov_betahat %*% Xt_SigInv
+    residuals_weight <- -1 * Xmat %*% betahat_wt # this is recomputed over and over when using all data consider making more efficient
+    diag(residuals_weight) <- diag(residuals_weight) + 1
+    fit <- x0 %*% betahat_wt + Matrix::crossprod(SqrtSigInv_c0, forwardsolve(cov_lowchol, residuals_weight))
+  } else {
+    residuals_pearson <- SqrtSigInv_y - SqrtSigInv_X %*% betahat
+    fit <- as.numeric(x0 %*% betahat + Matrix::crossprod(SqrtSigInv_c0, residuals_pearson))
+  }
   if (se.fit || interval == "prediction") {
+    H <- x0 - Matrix::crossprod(SqrtSigInv_c0, SqrtSigInv_X)
     total_var <- sum(spcov_params_val[["de"]], spcov_params_val[["ie"]], randcov_params_val)
     var <- as.numeric(total_var - Matrix::crossprod(SqrtSigInv_c0, SqrtSigInv_c0) + H %*% Matrix::tcrossprod(cov_betahat, H))
     pred_list <- list(fit = fit, var = var)
@@ -933,9 +970,18 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
   pred_list
 }
 
-get_pred_spautor <- function(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson, cov_betahat, SqrtSigInv_X, se.fit, interval) {
+get_pred_spautor <- function(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson, cov_betahat, SqrtSigInv_X, se.fit, interval, type, Xmat) {
   SqrtSigInv_c0 <- forwardsolve(cov_matrix_lowchol, c0)
-  fit <- as.numeric(x0 %*% betahat + crossprod(SqrtSigInv_c0, residuals_pearson))
+  if (type == "weight") {
+    Xt_SigInv <- t(backsolve(t(cov_matrix_lowchol), SqrtSigInv_X))
+    betahat_wt <- cov_betahat %*% Xt_SigInv
+    residuals_weight <- -1 * Xmat %*% betahat_wt # this is recomputed over and over when using all data consider making more efficient
+    diag(residuals_weight) <- diag(residuals_weight) + 1
+    fit <- x0 %*% betahat_wt + Matrix::crossprod(SqrtSigInv_c0, forwardsolve(cov_matrix_lowchol, residuals_weight))
+  } else {
+    fit <- as.numeric(x0 %*% betahat + crossprod(SqrtSigInv_c0, residuals_pearson))
+  }
+
   if (se.fit || interval == "prediction") {
     H <- x0 - crossprod(SqrtSigInv_c0, SqrtSigInv_X)
     var <- as.numeric(s0 - crossprod(SqrtSigInv_c0, SqrtSigInv_c0) + H %*% tcrossprod(cov_betahat, H))
@@ -946,11 +992,11 @@ get_pred_spautor <- function(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_
   pred_list
 }
 
-get_pred_spautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat, residuals_pearson, cov_betahat, SqrtSigInv_X, se.fit, interval) {
+get_pred_spautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat, residuals_pearson, cov_betahat, SqrtSigInv_X, se.fit, interval, type, Xmat) {
   x0 <- cluster_list$x0
   c0 <- cluster_list$c0
   s0 <- cluster_list$s0
-  get_pred_spautor(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson, cov_betahat, SqrtSigInv_X, se.fit, interval)
+  get_pred_spautor(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson, cov_betahat, SqrtSigInv_X, se.fit, interval, type, Xmat)
 }
 
 

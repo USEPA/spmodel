@@ -1,9 +1,17 @@
-# spmodel 0.13.1
+# spmodel 0.14.0
+
+## Major Updates
+
+* Added a `"weight"` value to the `type` argument in `predict()`, which returns the prediction (i.e., Kriging) weights.
 
 ## Minor Updates
 
 * Added exponentiated versions of logged variables in `lake`, `moss`, `seal`, and `texas`.
 * Minor documentation updates.
+
+## Bug Fixes
+
+* Fixed a bug that could mix Cholesky and eigenvalue decompositions while predicting for autoregressive models fit using `spautor()` or `spgautor()`.
 
 # spmodel 0.13.0
 

@@ -302,10 +302,7 @@ or \code{spautorRF} objects,
 predictions are returned for each list element.
 }
 \examples{
-spmod <- splm(sulfate ~ 1,
-  data = sulfate,
-  spcov_type = "exponential", xcoord = x, ycoord = y
-)
+spmod <- splm(sulfate ~ 1, data = sulfate, spcov_type = "exponential")
 predict(spmod, sulfate_preds)
 predict(spmod, sulfate_preds, interval = "prediction")
 augment(spmod, newdata = sulfate_preds, interval = "prediction")

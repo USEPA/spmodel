@@ -130,10 +130,7 @@
 #' @export
 #'
 #' @examples
-#' spmod <- splm(sulfate ~ 1,
-#'   data = sulfate,
-#'   spcov_type = "exponential", xcoord = x, ycoord = y
-#' )
+#' spmod <- splm(sulfate ~ 1, data = sulfate, spcov_type = "exponential")
 #' predict(spmod, sulfate_preds)
 #' predict(spmod, sulfate_preds, interval = "prediction")
 #' augment(spmod, newdata = sulfate_preds, interval = "prediction")
@@ -286,10 +283,11 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
   }
 
   # storing newdata as a list
-  newdata_rows_list <- split(newdata, seq_len(NROW(newdata)))
+  npred <- NROW(newdata)
+  newdata_rows_list <- split(newdata, seq_len(npred))
 
   # storing newdata as a list
-  newdata_model_list <- split(newdata_model, seq_len(NROW(newdata)))
+  newdata_model_list <- split(newdata_model, seq_len(npred))
 
   # storing newdata as a list
   newdata_list <- mapply(x = newdata_rows_list, y = newdata_model_list, FUN = function(x, y) list(row = x, x0 = y), SIMPLIFY = FALSE)
@@ -951,10 +949,23 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
 
   if (type == "weight") {
     Xt_SigInv <- t(backsolve(t(cov_lowchol), SqrtSigInv_X))
-    betahat_wt <- cov_betahat %*% Xt_SigInv
+    betahat_wt <- cov_betahat %*% Xt_SigInv # for big data, for this to exactly equal wts %*% y = "fit" for
+    # type != weight, Xt_SigInv should use SigInv from the original fit, which would require recomputing cholprods.
+    # For now, these are approximate.
     residuals_weight <- -1 * Xmat %*% betahat_wt # this is recomputed over and over when using all data consider making more efficient
     diag(residuals_weight) <- diag(residuals_weight) + 1
     fit <- x0 %*% betahat_wt + Matrix::crossprod(SqrtSigInv_c0, forwardsolve(cov_lowchol, residuals_weight))
+    if (local$method %in% c("distance", "covariance")) {
+      wtfit <- fit
+      fit <- Matrix::Matrix(0, nrow = 1, ncol = n, sparse = TRUE)
+      if (local$method == "distance") {
+        fit[nn_index] <- wtfit
+      }
+      if (local$method == "covariance") {
+        fit[cov_index] <- wtfit
+      }
+    }
+
   } else {
     residuals_pearson <- SqrtSigInv_y - SqrtSigInv_X %*% betahat
     fit <- as.numeric(x0 %*% betahat + Matrix::crossprod(SqrtSigInv_c0, residuals_pearson))

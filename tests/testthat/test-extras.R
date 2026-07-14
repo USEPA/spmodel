@@ -1663,6 +1663,17 @@ if (test_local) {
     pred1 <- predict(spgmod1, type = "weight") %*% fitted(spgmod1, type = "link")
     pred2 <- predict(spgmod1)
     expect_equal(as.vector(pred1), as.vector(pred2))
+
+    # big data
+    spmod1 <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
+    pred1 <- predict(spmod1, newexdata, type = "weight", local = list(size = 70)) %*% exdata$y
+    pred2 <- predict(spmod1, newexdata, local = list(size = 70))
+    expect_true(all(abs(as.vector(pred1) - as.vector(pred2)) < .1))
+
+    spgmod1 <- spglm(abs(y) ~ x, family = "Gamma", exdata, "exponential", xcoord, ycoord)
+    pred1 <- predict(spgmod1, newexdata, type = "weight", local = list(method = "distance", size = 75)) %*% fitted(spgmod1, type = "link")
+    pred2 <- predict(spgmod1, newexdata, local = list(mtehod = "distance", size = 75))
+    expect_true(all(abs(as.vector(pred1) - as.vector(pred2)) < .1))
   })
 
   ##############################################################################

@@ -29,7 +29,7 @@ Authors:
 
 Other contributors:
 \itemize{
-  \item Matthew Heaton (\href{https://orcid.org/XXXX-XXXX-XXXX-XXXX}{ORCID}) [contributor]
+  \item Matthew Heaton (\href{https://orcid.org/0000-0003-4654-9827}{ORCID}) [contributor]
   \item Ryan A. Hill (\href{https://orcid.org/0000-0001-9583-0426}{ORCID}) [contributor]
   \item Michael Mahon (\href{https://orcid.org/0000-0002-9436-2998}{ORCID}) [contributor]
 }

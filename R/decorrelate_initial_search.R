@@ -22,6 +22,9 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
   if (is.null(grid)) {
     grid <- grid_compare
   } else {
+    check_grid_legal(grid, random)
+    if (!"rotate" %in% names(grid)) grid$rotate <- 0
+    if (!"scale" %in% names(grid)) grid$scale <- 1
     if (any(! names(grid_compare) %in% names(grid))) stop("Invalid grid column names. Column names in grid must contain all column names returned by decorrelate_grid(formula, data, ...).", call. = FALSE)
     grid <- grid[, names(grid) %in% names(grid_compare), drop = FALSE]
   }

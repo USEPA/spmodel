@@ -252,10 +252,35 @@
 #' tidy(decorr$grid)
 decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm = "ranger", statistic = "RMSPE", training, evaluate_test, anisotropy = FALSE, random, randcov_params, partition_factor, ordering, local, grid, dense_grid, ...) {
 
+  # check default grid
+  if (!missing(spcov_type) && !missing(grid) && missing(spcov_params)) {
+    message("Both spcov_type and grid provided. grid overriding spcov_type.")
+  }
+
+  if (missing(random)) random <- NULL
+  if (missing(randcov_params)) randcov_params <- NULL
+  if (!is.null(randcov_params) && is.null(random)) {
+    random <- reformulate(names(randcov_params))
+  }
+
   # set exponential as default if nothing specified
   if (missing(spcov_type) && missing(spcov_params)) {
-    spcov_type <- "exponential"
-    message("No spatial covariance type provided. Assuming \"exponential\".")
+    if (missing(grid)) {
+      spcov_type <- "exponential"
+      message("No spatial covariance type provided. Assuming \"exponential\".")
+    } else {
+      check_grid_legal(grid, random)
+      unq_spcov_type <- unique(grid$spcov_type)
+      if (length(unq_spcov_type) == 1) {
+        spcov_type <- unq_spcov_type
+      } else if (length(unq_spcov_type) == 2) {
+        grid$de[grid$spcov_type == "none"] <- 0
+        grid$range[grid$spcov_type == "none"] <- Inf
+        spcov_type <- unq_spcov_type[unq_spcov_type != "none"]
+      } else {
+        stop("No rows in grid.", call. = FALSE)
+      }
+    }
   }
 
   if (! statistic %in% c("bias", "MSPE", "RMSPE", "cor2")) stop("statistic must be \"bias\", \"MSPE\", \"RMSPE\" or \"cor2\".", call. = FALSE)
@@ -280,11 +305,11 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
     spcov_type <- class(spcov_params)
   }
   if (missing(spcov_params)) spcov_params <- NULL
-  if (missing(random)) random <- NULL
-  if (missing(randcov_params)) randcov_params <- NULL
-  if (!is.null(randcov_params) && is.null(random)) {
-    random <- reformulate(names(randcov_params))
-  }
+  # if (missing(random)) random <- NULL
+  # if (missing(randcov_params)) randcov_params <- NULL
+  # if (!is.null(randcov_params) && is.null(random)) {
+  #   random <- reformulate(names(randcov_params))
+  # }
   if (missing(partition_factor)) partition_factor <- NULL
   if (missing(ordering)) ordering <- NULL
   if (missing(local)) local <- NULL
@@ -409,7 +434,9 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
   fit <- fit_decorrelate_algorithm(decorr, algorithm, ...)
 
   # set grid class for printing later
-  grid <- structure(grid, class = c("decorrelate_grid", class(grid)))
+  if (!is.null(grid)) {
+    grid <- structure(grid, class = c("decorrelate_grid", class(grid)))
+  }
 
   obj <- list(
     algorithm = algorithm,
@@ -642,4 +669,11 @@ get_training_list <- function(training, data) {
 
   training
 
+}
+
+check_grid_legal <- function(grid, random) {
+  unq_spcov_type <- unique(grid$spcov_type)
+  if (length(unq_spcov_type) > 2 || (length(unq_spcov_type) == 2) && (!"none" %in% unq_spcov_type) || (length(unq_spcov_type) == 2) && ("none" %in% unq_spcov_type) && any(grid$ie[grid$spcov_type == "none"] != 1) && (is.null(random))) {
+    stop("All spatial covariance types must be the same. The single exception is \"none\" when ie = 1 without random effects, which indicates no transformation.", call. = FALSE)
+  }
 }

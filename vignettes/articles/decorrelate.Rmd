@@ -72,14 +72,13 @@ Ultimately, we will use our machine learning model to predict log conductivity a
 lake_preds
 ```
 
-We can also view the `lake_preds` locations (large triangles) alongside hte `lake` locations (small circles):
+We can also view the `lake_preds` locations (large triangles) alongside the `lake` locations (small circles):
 ```{r}
 ggplot() +
   geom_sf(data = lake) +
   geom_sf(data = lake_preds, pch = 17, size = 5) +
   theme_gray(base_size = 14)
 ```
-
 
 Fitting machine learning models often involves some random components (i.e., randomly subsampling variables), so we set a reproducible seed to reproduce results locally:
 ```{r}
@@ -108,14 +107,11 @@ If `data` is an `sf` [@pebesma2018sf] object, spatial information is stored in t
 
 The `decorrelate()` estimates spatial decorrelation transformation parameters using a grid search approach [@heaton2025adjusting]. By default, 75% of the observations in `data` are randomly assigned to a training set and the remaining 25% to a test set. Then for each set of parameters in the grid search, a random forest is fit to the training set and used to predict the test set data. More explicitly, we have
 
-1. The data are split into training and test sets (there can be multiple training and test splits -- more on this later).
-2. The spatial decorrelation transformation is applied to the training set.
-3. A machine learning model (here, a random forest) is fit to the transformed training data set.
-4. The spatial decorrelation transformation is applied to the test set.
-5. The fitted machine learning model is used to predict the transformed response variable in the test set.
-6. The predictions are recorrelated back to the original (i.e., untransformed) scale.
-7. Fit statistics like bias, mean-squared-prediction error, and predictive R-squared are computed for each grid element.
-8. Apply the spatial decorrelation transformation to the entire data set using the best parameter set from the grid search, fit the machine learning model and use it for prediction.....MORE ON THIS.
+1. A candidate grid of spatial deocorrelation parameters is proposed.
+2. The data are split into (possibly multiple) training and test sets.
+3. For the first grid element, apply the spatial decorrelation transformation to the training and test data, fit a machine learning model to the decorrelated training data, predict the decorrelated test data, recorrelate the test data predictions, and compute fit statistics (e.g., RMSPE).
+4. Repeat Step 3 for the remaining grid elements.
+5. Using the best parameter set from the grid search, apply the spatial decorrelation transformation to the entire data set, fit a machine learning model to the decorrelated data, and conduct inference (e.g., variable importance) and/or make predictions for new data.
 
 A tidied version of the grid of evaluated parameters is returned by 
 ```{r}
@@ -149,276 +145,255 @@ Like other `spmodel` functions, `decorrelate()` accepts various additional argum
 * `training`: A list that controls the way observations are assigned to training and test sets. The default is to assign 75% of observations to the training set and 25% to the test set. Arguments to `training` allow for replicating the test/train split using different random assignments or for k-fold cross validation. When multiple test/training splits are generated (either via replication or cross validation), test set statistics are averaged over each split. For k-fold cross validation, the default is four folds (i.e., k = 4).
 * `ordering`: The approach used to order observations for the decorrelation transformation. The default is usually `"maxmin"` (for maxmin ordering; see @katzfuss2024GPvecchia) but can be `"grts"` (for spatially balanced ordering; see @dumelle2023spsurvey), depending on context.
 * `grid`: A grid by which to evaluate parameters. If ignored, `spmodel` generates a candidate grid.
-* `dense_grid`: Whether to generate a dense grid (with more parameter sets to evaluate) or a sparse grid (with fewer parameter sets to evaluate). The default is generaly `TRUE` for a dense grid, though for larger sample sizes the default is `FALSE`.
+* `dense_grid`: Whether to generate a dense grid (with more parameter sets to evaluate) or a sparse grid (with fewer parameter sets to evaluate). The default is generally `TRUE` for a dense grid, though for larger sample sizes the default is `FALSE`.
 * Other familiar `spmodel` arguments like `spcov_type`, `anisotropy` (for geometric anisotropy), `random` (for nonspatial random effects), `partition_factor` (for partition factors), and `local` (for large data sets) are also available. The `local` argument implements the Vecchia approximation framework described by @heaton2025adjusting. 
 * Additional arguments can be passed to the machine learning algorithm via `...`.
 * Please see the `decorrelate()` documentation (e.g., via `?decorrelate`) for explicit details regarding its full suite of capabilities.
 
+Below we explore a few examples that leverage this additional functionality.
 
-For example,
+### Additional Example 1
+
+Suppose that we want to apply the spatial decorrelation transformation using a spherical spatial covariance function, rank test data by predictive R-squared (`cor2`), and generate importance metrics for the random forest applied to the decorrelated data. The `spcov_type` argument specifies the spatial covariance function, the `statistic` specifies the statistic used to rank models, and the `importance` argument is an argument passed to `ranger::ranger()` via `...`:
+
 ```{r}
-decorr_mod <- decorrelate(
+mod1 <- decorrelate(
   formula = log_cond ~ temp + origin,
   data = lake,
   spcov_type = "spherical",
-  algorithm = "randomForest",
   statistic = "cor2",
-  training = list(method = "cv"),
-  random = ~ year,
-  ordering = "grts",
-  local = TRUE,
-  dense_grid = FALSE,
-  importance = TRUE
+  importance = "impurity"
 )
-tidy(decorr_mod$grid)
-decorr_mod$fit$importance
+```
+
+We can then tidy the model grid:
+```{r}
+tidy(mod1$grid)
+```
+
+Recall that the best model (i.e., the first row of `mod1$grid`) is used to decorrelate all the observed data and fit a random forest. We can view the variable importance for each of the variables from this decorrelation transformation:
+```{r}
+mod1$fit$variable.importance
+```
+
+### Additional Example 2
+
+Suppose we want to apply the spatial decorrelation transformation that accommodates anisotropy (i.e., the covariance decays differently in different directions) and has a random effect that accommodates additional covariance that varies based on sampling year. The standard training grid has over 150 parameter combinations! While we could evaluate all these, a faster (albeit potentially less effective) option is to use a reduced (i.e., sparser) training grid, specified by setting `dense_grid` to `FALSE`.
+
+```{r}
+mod2 <- decorrelate(
+  formula = log_cond ~ temp + origin,
+  data = lake,
+  spcov_type = "exponential",
+  random = ~ year,
+  anisotropy = TRUE,
+  dense_grid = FALSE
+)
+tidy(mod2$grid)
+```
+
+
+### Additional Example 3
+
+Suppose we have a few parameter combinations we want to evaluate directly (i.e., we do not want to use the default candidate grid generated by `spmodel`). We can construct this grid directly:
+```{r}
+mod3_grid <- data.frame(
+  spcov_type = "exponential",
+  de = c(1, 0.5, 1.5),
+  ie = c(0.2, 0.8, 1),
+  range = c(1e6, 5e6, 1e7)
+)
+```
+
+We can pass this grid directly via the `grid` argument. We will also use the `algorithm` argument to use `xgboost::xgboost()` instead of the default `ranger::ranger()`), order the data via the GRTS algorithm, and use (four-fold) cross validation to evaluate grid elements (via `training`):
+
+```{r}
+mod3 <- decorrelate(
+  formula = log_cond ~ temp + origin,
+  data = lake,
+  algorithm = "xgboost",
+  ordering = "grts",
+  training = list(method = "cv"),
+  grid = mod3_grid
+)
+tidy(mod3$grid)
+```
+
+We can view each of the data assigned to training and test splits in each fold by inspecting the `training` list. Below are the folds from the first few observations in `lake`:
+```{r}
+head(mod3$training$folds_index)
 ```
 
 # Building Your Own Spatial Decorrelation Transformation
 
-While the `decorrelate()` function is an all-purpose tool applicable for a variety of scenarios, it does not accommodate every possible way the spatial decorrelation transformation can be used. For example, you may desire to use a machine learning algorithm not avaiable via `decorrelate()`. `spmodel` also provides tools for each step of the spatial decorrelation transformation. Let's revisit these steps before proceeding:
+While the `decorrelate()` function is an all-purpose tool applicable for a variety of scenarios, it does not accommodate every possible way the spatial decorrelation transformation can be used. For example, you may desire to use a machine learning algorithm not available via `decorrelate()`. `spmodel` also provides tools for each step of the spatial decorrelation transformation. Let's revisit these steps before proceeding:
 
-1. The spatial decorrelation transformation is applied to the training set.
-2. A machine learning algorithm (here, a random forest) is fit to the transformed training data set.
-3. The spatial decorrelation transformation is applied to the test set.
-4. The fitted machine learning algorithm is used to predict the response variable for the transformed test set.
-5. The predictions are recorrelated back to the original (i.e., untransformed) scale.
+1. A candidate grid of spatial deocorrelation parameters is proposed.
+2. The data are split into (possibly multiple) training and test sets.
+3. For the first grid element, apply the spatial decorrelation transformation to the training and test data, fit a machine learning model to the decorrelated training data, predict the decorrelated test data, recorrelate the test data predictions, and compute fit statistics (e.g., RMSPE).
+4. Repeat Step 3 for the remaining grid elements.
+5. Using the best parameter set from the grid search, apply the spatial decorrelation transformation to the entire data set, fit a machine learning model to the decorrelated data, and conduct inference (e.g., variable importance) and/or make predictions for new data.
 
-## Step 1: Split the Obsered Data Into Training and Test Sets
+We will use our own spatial decorrelation transformation to study the importance of the `temp` and `origin` variables (as they relate to `log_cond`) in `lake` and make predictions of `log_cond` at the lakes in `lake_preds`.
 
-Evaluating the effectiveness of a machine learning model is a multi-step process. First, we split the `lake` data into separate training and test sets. The goal is to fit a model to the training set and use it to predict the response variable for each datum in the test set. Because the test set contains the measured value of the response variable, the accuracy of the predictions generated using the test set can be directly evaluated using a metric like root-mean-squared-prediction error or predictive $R^2$ (i.e., the squared correlation between observations and predictions). 
+Step 1: Propose a candidate grid
 
-We proceed by randomly assigning 75% of the `lake` data to the training set and the remaining 25% to the test set:
+```{r}
+# choose parameters for the grid
+grid <- data.frame(
+  spcov_type = "gaussian",
+  de = c(0.4, 1.2, 1.6, 2, 1.5),
+  ie = c(0.1, 0.5, 0.8, 1, 0.1),
+  range = c(1e6, 5e6, 1e7, 2e6, 1e8)
+)
+
+# alternatively, let spmodel generate the grid
+decorrelate_grid(
+  formula = log_cond ~ temp + origin,
+  data = lake,
+  spcov_type = "gaussian"
+)
+```
+
+Step 2: Split the data into training and test sets
+
+Randomly assign 75% of the `lake` data to the training set and the remaining 25% to the test set:
 ```{r}
 # number of observations in the lake data
 n <- NROW(lake)
+
 # creating an index that corresponds with the row position of each datum
 index <- seq(from = 1, to = n)
+
 # setting the size of the training data
 n_train <- floor(0.75 * n)
+
 # randomly generating the indices in lake that are assigned to the training data
 train_index <- sample(index, size = n_train)
+
 # creating the training data
 lake_train <- lake[train_index, ]
+
 # creating the test data
 lake_test <- lake[-train_index, ]
-# number of rows in each?
+
+# number of rows in the training data
 NROW(lake_train)
+
+# number of rows in the test data
 NROW(lake_test)
 ```
 
-## Step 2: Apply The Spatial Decorrelation Transformation
+Step 3: For the first grid element, apply the spatial decorrelation transformation and make predictions 
 
-The spatial decorrelation works by first decorrelating the data by removing spatial covariance (i.e., correlation, dependence). These decorrelated data are used to fit a machine learning model and use it to make predictions of new observations. These predictions are then adjusted by recorrelating the data by adding back in the original spatial covariance. This approach is flexible and can accommodate any machine learning model, as the decorrelation and recorrelation steps happen separately from the machine learning modeling. We first explore how the spatial decorrelation transformation works for a fixed set of spatial covariance parameters. We then show how to relax this assumption and actually estimate unknown spatial covariance parameters using a grid search.
-
-Suppose we had some prior information which led us to assume the response variable's true spatial covariance was an exponential type with a spatially dependent variance of 1.2, a range of 200,000 meters (200km), and an independent variance of 0.2. Let's store this as an `spcov_params` object:
 ```{r}
+# store the first row of the grid
+grid1 <- grid[1, ]
+
+# create an spcov_params object with the grid row
 val <- spcov_params(
-  spcov_type = "exponential",
-  de = 1.2,
-  range = 2e5,
-  ie = 0.2
+  spcov_type = grid1$spcov_type,
+  de = grid1$de,
+  ie = grid1$ie,
+  range = grid1$range
 )
-```
 
-The data are spatially decorrelated using `decorrelate_data()`, which requires the following three arguments:
-
-* `formula`: a formula that describes the relationship between the response variable and the explanatory variables
-* `data`: a `data.frame` or `sf` object that contains the response variable, explanatory variables, and spatial information
-* `spcov_params`: the spatial covariance parameters as an `spcov_params()` object
-
-If `data` is an `sf` [@pebesma2018sf] object, spatial information is stored in the object's geometry. If `data` is a `data.frame`, then the x-coordinates and y-coordinates must also be provided via the `xcoord` and `ycoord` arguments to `decorrelate_data()`.
-
-The relationship between log conductivity (the response variable) and temperature (the explanatory variable) is captured using **R**'s formula object passed to `decorrelate_data()`:
-```{r}
-# create a formula argument
-form <- log_cond ~ temp
-# decorrelate
+# decorrelate the training data
 tlake_train <- decorrelate_data(
-  formula = form,
+  formula = log_cond ~ temp + origin,
   data = lake_train,
   spcov_params = val
 )
-```
 
-## Step 3: Fit a Machine Learning Model to the Decorrelated Data
-
-At this stage, we can fit a machine learning model to the decorrelated data. Here, we will fit a random forest using the `ranger` **R** package [@wright2015ranger]. We will pass to `ranger` the decorrelated explanatory variable matrix to the `x` argument and the decorrelated response variable to the `y` argument:
-```{r}
+# fit a random forest to the decorrelated training data
 rfmod <- ranger(x = tlake_train$tX, y = tlake_train$ty)
-```
 
-We could inspect the random forest using any of the standard functions that interact with `ranger` objects, such as `print()` or variable importance via `importance()`:
-```{r}
-print(rfmod)
-rfmod_imp <- update(rfmod, importance = "impurity")
-ranger::importance(rfmod_imp)
-```
-
-## Step 4: Use the Machine Learning Model to Evaluate Prediction Performance for the Test Data
-
-Before using `rfmod` to make predictions for the test data, we must decorrelate the explanatory variable in the test data using `decorrelate_newdata()` so they are on the same scale as the decorrelated training data:
-```{r}
+# decorrelate the test data
 tlake_test <- decorrelate_newdata(tlake_train, newdata = lake_test)
-```
 
-Then, we can use `predict()` to make predictions for the decorrelated test data and recorrelate them using `recorrelate_newdata()`:
-```{r}
+# make predictions for the decorrelated test data
 rf_tpreds <- predict(rfmod, data = tlake_test$tX_newdata)$predictions
+
+# recorrelate the decorrelated test data predictions
 sp_decorr_preds <- recorrelate_newdata(tlake_test, rf_tpreds)
+
+# compute RMSPE by comparing the recorrelated predictions to the true values
+rmspe <- sqrt(mean((sp_decorr_preds - lake_test$log_cond)^2))
 ```
 
-We can evaluate the accuracy of our predictions using metrics like root-mean-squared-prediction error (RMSPE), median absolute error, and predictive $R^2$:
+Step 4: Repeat for other grid elements
 ```{r}
-get_metrics <- function(y, preds) {
-  errors <- y - preds
-  c("bias" = mean(errors), "MSPE" = mean(errors^2), "RMSPE" = sqrt(mean(errors^2)), "cor2" = cor(y, preds)^2)
-}
-decorr_metrics <- get_metrics(lake_test$log_cond, sp_decorr_preds)
-print(decorr_metrics)
-```
-
-There is a noticeable positive correlation between the predictions of log conductivity and the observations themselves:
-```{r}
-lake_test$decorr_preds <- sp_decorr_preds
-ggplot(lake_test, aes(x = decorr_preds, y = log_cond)) +
-  geom_abline(intercept = 0, slope = 1, color = "orange", linewidth = 2) +
-  geom_point(size = 2) +
-  theme_gray(base_size = 14)
-```
-
-## Estimating Parameters Using a Grid Search
-
-In practice, it is rare that the decorrelations parameters are actually known. Hence, we must generally have methods to estimate these parameters. One method for estimating these parameters using a grid search. In a grid search, a test set metric (here, RMSPE) is evaluated using several different parameter combinations. The parameter combination yielding the best test set metric is taken as the estimtaed parameter set. Grid searches can also be used to find initial values in some sort of optimization algorithm.
-
-Parameter combinations can be created and evaluated using custom code, though the `decorrelate_grid()` function provides a grid which explores different, plausible parameter combinations:
-```{r}
-grid <- decorrelate_grid(
-  formula = form,
-  data = lake_train,
-  spcov_type = "exponential"
-)
-grid
-```
-
-The magnitudes of the `de` and `ie` variance parameters are based on the sample variance from an independent linear model fit using `lm()`, and the magnitude of the `range` parameters are based on whether or not spatial covariance decays to approximately zero in the spatial domain our outside the spatial domain. 
-
-We can then apply the spatial decorrelation transformation to each element of the grid and compute the test set metric, RMSPE. We will simultaneously compute predictive $R^2$:
-```{r}
-y <- lake_test$log_cond
-n_grid <- NROW(grid)
-grid$bias <- rep(0, n_grid)
-grid$MSPE <- rep(0, n_grid)
-grid$RMSPE <- rep(0, n_grid)
-grid$cor2 <- rep(0, n_grid)
-for (i in seq(1, n_grid)) {
-  grid_row <- grid[i, ]
-  spcov_params_row <- spcov_params(
-    spcov_type = grid_row[["spcov_type"]],
-    de = grid_row[["de"]],
-    ie = grid_row[["ie"]],
-    range = grid_row[["range"]]
+# use a for loop to repeat the Step 3 for all other grid elements
+for (i in 2:NROW(grid)) {
+  gridi <- grid[i, ]
+  val <- spcov_params(
+    spcov_type = gridi$spcov_type,
+    de = gridi$de,
+    ie = gridi$ie,
+    range = gridi$range
   )
-  tlake_train <- decorrelate_data(form, lake_train, spcov_params_row)
-  rfmod <- ranger(x = tlake_train$tX, y = tlake_train$ty)
+  tlake_train <- decorrelate_data(
+    formula = log_cond ~ temp + origin,
+    data = lake_train,
+    spcov_params = val
+  )
   tlake_test <- decorrelate_newdata(tlake_train, newdata = lake_test)
+  rfmod <- ranger(x = tlake_train$tX, y = tlake_train$ty)
+  
   rf_tpreds <- predict(rfmod, data = tlake_test$tX_newdata)$predictions
   sp_decorr_preds <- recorrelate_newdata(tlake_test, rf_tpreds)
-  errors <- y - sp_decorr_preds
-  grid$bias[i] <- mean(errors)
-  grid$MSPE[i] <- mean(errors^2)
-  grid$RMSPE[i] <-  sqrt(mean(errors^2))
-  grid$cor2[i] <- cor(sp_decorr_preds, y)^2
+  rmspe[i] <- sqrt(mean((sp_decorr_preds - lake_test$log_cond)^2))
 }
+
+# add an RMSPE column to the grid
+grid$rmspe <- rmspe
+
+# sort the grid by increasing (worse) RMSPE
+grid <- grid[order(grid$rmspe), ]
+
+# print the grid
 grid
 ```
 
-We estimate the parameters via the combination that yields the smallest RMSPE:
-```{r}
-best_RMSPE <- which.min(grid$RMSPE)
-best_RMSPE
-best_RMSPE_row <- grid[best_RMSPE, ]
-best_RMSPE_row
-```
 
-and store these parameters for future use with `decorrelate_data()`, `decorrelate_newdata()`, and `recorrelate_newdata()` to make predictions at the lakes in `lake_preds`:
+Step 5: Apply to all data
+
 ```{r}
+# select the "best" parameters for the spatial decorrelation transformation
+grid1 <- grid1[1, ]
+
+# create an spcov_params object with the grid's best row
 spcov_params_use <- spcov_params(
-  spcov_type = best_RMSPE_row[["spcov_type"]],
-  de = best_RMSPE_row[["de"]], 
-  ie = best_RMSPE_row[["ie"]],
-  range = best_RMSPE_row[["range"]]
+  spcov_type = grid1$spcov_type,
+  de = grid1$de, 
+  ie = grid1$ie, 
+  range = grid1$range, 
 )
-spcov_params_use
-```
 
-```{r}
-indrf_row <- grid[grid$spcov_type == "none", ]
-dat <- data.frame(
-  method = c("decorr", "indrf"),
-  bias = c(best_RMSPE_row[["bias"]], indrf_row[["bias"]]),
-  MSPE = c(best_RMSPE_row[["MSPE"]], indrf_row[["MSPE"]]),
-  RMSPE = c(best_RMSPE_row[["RMSPE"]], indrf_row[["RMSPE"]]),
-  cor2 = c(best_RMSPE_row[["cor2"]], indrf_row[["cor2"]])
-)
-dat
-```
-
-
-## Additional Grid Search Features
-
-Anisotropy and random effects can also be applied to the grid creation via the `anisotropy` and `random` arguments, whose values can be provided to `decorrelate_data()` using the `spcov_params` and `randcov_params` arguments:
-```{r}
-grid <- decorrelate_grid(
-  formula = form,
-  data = lake_train,
-  spcov_type = "exponential",
-  anisotropy = TRUE,
-  random = ~ year
-)
-NROW(grid)
-head(grid, n = 5)
-```
-
-
-```{r}
-grid <- decorrelate_grid(
-  formula = form,
-  data = lake_train,
-  spcov_type = "exponential",
-  anisotropy = TRUE,
-  random = ~ year,
-  dense_grid = FALSE
-)
-NROW(grid)
-head(grid, n = 5)
-```
-
-## Step 5: Predicting at Unobserved Lakes 
-
-A primary goal is to use the best machine learning model to make predictions of log conductivity at the lakes in `lake_preds`. We can visualize the lakes in `lake` alongside those in `lake_preds`:
-```{r}
-ggplot() +
-  geom_sf(data = lake, aes(color = log_cond)) +
-  geom_sf(data = lake_preds, shape = 17, size = 5) +
-  scale_color_viridis_c() +
-  theme_bw(base_size = 14)
-```
-
-Using the estimate decorrleation parameter, we decorrelate the `lake` data (according to `formula`):
-```{r}
-tlake <- decorrelate_data(form, lake, spcov_params = spcov_params_use)
+# decorrelate the lake data
+tlake <- decorrelate_data(log_cond ~ temp + origin, lake, spcov_params = spcov_params_use)
 ```
 
 Then, we fit a random forest model to the decorrelated data and make log conductivity predictions (on the decorrelated scale):
 ```{r}
-rfmod <- ranger(x = tlake$tX, y = tlake$ty)
+# fit a random forest to the decorrelated data
+rfmod <- ranger(x = tlake$tX, y = tlake$ty, importance = "impurity")
+
+# show the variable importance 
+rfmod$variable.importance
+```
+
+```{r}
+# decorrelate the lake_preds data
 tlake_preds <- decorrelate_newdata(tlake, newdata = lake_preds)
+
+# make predictions for the decorrelated lake_preds data
 rf_tpreds <- predict(rfmod, data = tlake_preds$tX_newdata)$predictions
 ```
 
 Finally, we recorrelate the log conductivity predictions back to the original scale and visualize them alongside the log conductivity values in `lake`:
 ```{r}
+# recorrelate the decorrelated lake_preds predictions
 lake_preds$preds <- recorrelate_newdata(tlake_preds, rf_tpreds)
 ggplot() +
   geom_sf(data = lake, aes(color = log_cond)) +

@@ -27,7 +27,7 @@ decorrelate(
   ...
 )
 
-\method{tidy}{decorrelate_grid}(x, sort_by = "MSPE", decreasing, ...)
+\method{tidy}{decorrelate_grid}(x, sort_by, decreasing, ...)
 }
 \arguments{
 \item{formula}{A two-sided linear formula describing the fixed effect structure

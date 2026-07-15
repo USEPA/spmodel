@@ -396,7 +396,8 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
       bias = grid$bias[best_val],
       MSPE = grid$MSPE[best_val],
       RMSPE = grid$RMSPE[best_val],
-      cor2 = grid$cor2[best_val]
+      cor2 = grid$cor2[best_val],
+      statistic = statistic
     )
 
     params_list <- get_params_list(grid, random, randcov_params)
@@ -435,7 +436,7 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
 
   # set grid class for printing later
   if (!is.null(grid)) {
-    grid <- structure(grid, class = c("decorrelate_grid", class(grid)))
+    grid <- structure(grid, class = c("decorrelate_grid", class(grid)), statistic = statistic)
   }
 
   obj <- list(
@@ -462,7 +463,11 @@ decorrelate <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord,
 #' @method tidy decorrelate_grid
 #' @order 2
 #' @export
-tidy.decorrelate_grid <- function(x, sort_by = "MSPE", decreasing, ...) {
+tidy.decorrelate_grid <- function(x, sort_by, decreasing, ...) {
+
+  if (missing(sort_by)) {
+    sort_by <- attr(x, "statistic")
+  }
 
   if (!sort_by %in% names(x)) {
     stop("sort_by must be a variable in x.", call. = FALSE)

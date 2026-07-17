@@ -65,13 +65,13 @@
 #' spcov_params_val <- spcov_params("exponential", de = 1, ie = 1, range = 1)
 #' sprnorm(spcov_params_val, data = caribou, xcoord = x, ycoord = y)
 #' sprnorm(spcov_params_val, mean = 1:30, samples = 5, data = caribou, xcoord = x, ycoord = y)
-sprnorm <- function(spcov_params, mean = 0, samples = 1, data, randcov_params, partition_factor, ...) {
+sprnorm <- function(spcov_params, mean = 0, samples = 1, data, randcov_params, partition_factor,  ...) {
   UseMethod("sprnorm", spcov_params)
 }
 #' @rdname sprnorm
 #' @method sprnorm exponential
 #' @export
-sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randcov_params, partition_factor, xcoord, ycoord, ...) {
+sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randcov_params, partition_factor, xcoord, ycoord, local, ...) {
   n <- NROW(data)
 
   if (length(mean) != n && length(mean) != 1) {
@@ -108,52 +108,85 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
   xcoord_val <- data[[xcoord]]
   ycoord_val <- data[[ycoord]]
 
-  # make distance matrix
-  # this should be a clockwise rotation as the anisotropy correction
-  # involves a clockwise rotation
-  if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
-    new_coords <- transform_anis(
-      data = data, xcoord = xcoord, ycoord = ycoord,
-      spcov_params[["rotate"]], spcov_params[["scale"]]
+  # provide warning for this
+  data$...response... <- seq(1, n)
+  data$...xcoord... <- xcoord_val
+  data$...ycoord... <- ycoord_val
+  if ("extra" %in% names(spcov_params)) {
+    spcov_init <- spcov_initial(
+      spcov_type = class(spcov_params),
+      de = spcov_params[["de"]],
+      ie = spcov_params[["ie"]],
+      range = spcov_params[["range"]],
+      extra = spcov_params[["extra"]],
+      rotate = spcov_params[["rotate"]],
+      scale = spcov_params[["scale"]],
+      known = "given"
     )
-    dist_matrix <- spdist(xcoord_val = new_coords$xcoord_val, ycoord_val = new_coords$ycoord_val)
   } else {
-    dist_matrix <- spdist(xcoord_val = xcoord_val, ycoord_val = ycoord_val)
+    spcov_init <- spcov_initial(
+      spcov_type = class(spcov_params),
+      de = spcov_params[["de"]],
+      ie = spcov_params[["ie"]],
+      range = spcov_params[["range"]],
+      rotate = spcov_params[["rotate"]],
+      scale = spcov_params[["scale"]],
+      known = "given"
+    )
   }
 
-  # compute the random effects covariance matrix
   if (missing(randcov_params)) {
     randcov_params <- NULL
-    randcov_Zs <- NULL
   } else {
-    names(randcov_params) <- get_randcov_names(reformulate(paste("(", names(randcov_params), ")", sep = "")))
-    randcov_Zs <- get_randcov_Zs(data = data, names(randcov_params))
+    randcov_init <- randcov_initial(randcov_params, known = "given")
   }
-
-  # partition matrix
   if (missing(partition_factor)) {
     partition_factor <- NULL
   }
-  partition_matrix_val <- partition_matrix(partition_factor, data)
 
-  # compute the covariance matrix
-  cov_matrix_val <- cov_matrix(
-    spcov_params, dist_matrix,
-    randcov_params, randcov_Zs, partition_matrix_val
-  )
+  if (missing(local)) local <- NULL
+  local_list <- get_local_list_simulation(local, n, data)
 
-  # transpose is lower triangular, needed for normal sim
-  cov_matrix_lowchol <- t(chol(cov_matrix_val))
-  # record sample sizes
-
-  # simulate n random normal vectors
-  sprnorm_val <- vapply(seq_len(samples), function(x) mean + as.numeric(cov_matrix_lowchol %*% rnorm(n)), numeric(n))
-
-  if (samples == 1) {
-    sprnorm_val <- as.vector(sprnorm_val)
+  if (local_list$method != "all") {
+    newdata <- lapply(local_list$index$new, function(x) data[x, , drop = FALSE])
+    data <- data[local_list$index$base, , drop = FALSE]
+    n <- NROW(data)
   }
 
-  sprnorm_val
+  object <- splm(
+    formula = ...response... ~ 1,
+    data = data,
+    spcov_initial = spcov_init,
+    randcov_initial = randcov_init,
+    partition_factor = partition_factor,
+    xcoord = "...xcoord...",
+    ycoord = "...ycoord...",
+    local = TRUE
+  )
+
+  cov_lowchol_base <- t(chol(covmatrix(object)))
+  base_val <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_base %*% rnorm(n)), numeric(n))
+
+  if (local_list$method != "all") {
+
+    if (local_list$parallel) {
+      cl <- parallel::makeCluster(local_list$ncores)
+      new_val <- parLapply(cl, newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
+      cl <- parallel::stopCluster(cl)
+    } else {
+      new_val <- lapply(newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
+    }
+    base_val <- rbind(base_val, do.call("rbind", new_val))
+    index <- c(local_list$index$base, do.call("c", local_list$index$new))
+    base_val <- base_val[order(index), , drop = FALSE]
+  }
+
+  base_val <- sweep(base_val, 1, mean, "+")
+
+  if (samples == 1) {
+    base_val <- as.vector(base_val)
+  }
+  base_val
 }
 
 #' @method sprnorm spherical
@@ -361,3 +394,22 @@ sprnorm.car <- function(spcov_params, mean = 0, samples = 1, data, randcov_param
 #' @method sprnorm sar
 #' @export
 sprnorm.sar <- sprnorm.car
+
+
+get_conditional_new_from_base <- function(newdata, object, base_val, cov_lowchol_base, samples) {
+
+  newdata_n <- NROW(newdata)
+  cov_base_new <- covmatrix(object, newdata, cov_type = "obs.pred")
+  cov_new <- covmatrix(object, newdata, cov_type = "pred.pred")
+
+
+  SqrtSigInv_c0 <- forwardsolve(cov_lowchol_base, cov_base_new)
+  SqrtSigInv_base_val <- forwardsolve(cov_lowchol_base, base_val)
+
+  cond_cov <- cov_new - crossprod(SqrtSigInv_c0, SqrtSigInv_c0)
+  chol_cond_cov <- t(chol(cond_cov))
+  new_val <- vapply(seq_len(samples), function(x) as.numeric(chol_cond_cov %*% rnorm(newdata_n)), numeric(newdata_n))
+
+  cond_mu <- crossprod(SqrtSigInv_c0, SqrtSigInv_base_val)
+  new_val <- new_val + cond_mu
+}

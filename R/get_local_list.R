@@ -206,3 +206,93 @@ get_local_list_prediction_block <- function(local) {
 
   local
 }
+
+get_local_list_simulation <- function(local, n, data) {
+
+  if (is.null(local)) {
+    if (n > 5000) {
+      local <- TRUE
+      message("Because the desired simulation size exceeds 5,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+    } else {
+      local <- FALSE
+    }
+  }
+
+  if (is.logical(local)) {
+    if (local) {
+      local <- list()
+    } else {
+      local <- list(method = "all")
+    }
+  }
+
+  names_local <- names(local)
+
+  if (!"method" %in% names_local) local$method <- "base"
+  if (!"size_base" %in% names_local) local$size_base <- 3000
+  if (!"size_new" %in% names_local) local$size_new <- 500
+  if (!"reorder" %in% names_local) local$reorder <- "grts"
+  if (!"kmeans" %in% names_local) local$kmeans <- TRUE
+  if (!local$reorder %in% c("none", "random", "grts")) {
+    stop("method must be \"random\", \"grts\", or \"none\".", call. = FALSE)
+  }
+
+
+  if (local$size_base >= n) {
+    local <- list(method = "all")
+  }
+
+  if (local$method != "all") {
+
+    index <- seq(1, n)
+
+    if (local$reorder == "random") {
+      index <- sample(index)
+    } else if (local$reorder == "grts") {
+      if (!requireNamespace("spsurvey", quietly = TRUE)) {
+        stop("Install the spsurvey package before using local method \"grts\".", call. = FALSE)
+      } else {
+        data_sf <- st_as_sf(data, coords = c("...xcoord...", "...ycoord..."), crs = NA)
+        data_sf$...index... <- index
+        samp <- spsurvey::grts(data_sf, n_base = n, projcrs_check = FALSE)
+        index <- samp$sites_base$...index...
+      }
+    }
+
+
+    index_base <- index[seq(1, local$size_base)]
+    index_new <- index[-seq(1, local$size_base)]
+    n_index_new <- length(index_new)
+    groups <- ceiling(n_index_new / local$size_new) # consider adding groups as an argument
+
+    if (local$kmeans) {
+      kmeans_args <- setdiff(names(local), c("method", "size_base", "size_new", "reorder", "kmeans"))
+      x <- cbind(data[index_new, "...xcoord..."], data[index_new, "...ycoord..."])
+      index_new <- split(index_new, do.call("kmeans", c(list(x = x, centers = groups, iter.max = 30), kmeans_args))$cluster)
+    } else {
+      index_new <- split(index_new, rep(seq(1, groups), times = c(rep(n_index_new %/% groups + 1, n_index_new %% groups), rep(n_index_new %/% groups, groups - n_index_new %% groups))))
+    }
+
+    local$index <- list(base = index_base, new = index_new)
+
+    if (!"parallel" %in% names_local) {
+      local$parallel <- FALSE
+      local$ncores <- NULL
+    }
+
+    if (local$parallel) {
+      n_index <- length(unique(local$index))
+      if ("ncores" %in% names_local) {
+        cores_available <- parallel::detectCores()
+        local$ncores <- min(n_index, local$ncores, cores_available)
+      } else {
+        local$ncores <- parallel::detectCores()
+        local$ncores <- min(n_index, local$ncores)
+      }
+    }
+  }
+
+
+  local
+
+}

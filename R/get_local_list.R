@@ -296,3 +296,118 @@ get_local_list_simulation <- function(local, n, data) {
   local
 
 }
+
+get_local_list_conditional <- function(local, object, newdata) {
+
+  n <- object$n
+  n_pred <- NROW(newdata)
+
+  if (is.null(local)) {
+    if (n > 5000 || n_pred > 5000) {
+      local <- TRUE
+      message("Because the data size or number of conditional simulations exceeds 5,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+    } else {
+      local <- FALSE
+    }
+  }
+
+  if (is.logical(local)) {
+    if (local) {
+      local <- list()
+    } else {
+      local <- list(method_base = "all", method_new = "all")
+    }
+  }
+
+  names_local <- names(local)
+
+  if (!"method_base" %in% names_local) local$method_base <- "base"
+  if (!"method_new" %in% names_local) local$method_new <- "base"
+  if (!"size_base" %in% names_local) local$size_base <- 3000
+  if (!"size_new" %in% names_local) local$size_new <- 500
+  if (!"reorder_base" %in% names_local) local$reorder_base <- "grts"
+  if (!"reorder_new" %in% names_local) local$reorder_new <- "random"
+  if (!"kmeans_new" %in% names_local) local$kmeans_new <- TRUE
+
+  if (!local$reorder_base %in% c("none", "random", "grts")) {
+    stop("method must be \"grts\", \"random\", or \"none\".", call. = FALSE)
+  }
+  if (!local$reorder_new %in% c("none", "random")) {
+    stop("method must be \"random\", or \"none\".", call. = FALSE)
+  }
+
+
+  if (local$size_base >= n) {
+    local$method_base <- "all"
+  }
+
+  if (local$size_new >= n_pred) {
+    local$method_new <- "all"
+  }
+
+  if (local$method_base != "all") {
+
+    index_base <- seq(1, n)
+
+    if (local$reorder_base == "random") {
+      index_base <- sample(index_base)
+    } else if (local$reorder_base == "grts") {
+      if (!requireNamespace("spsurvey", quietly = TRUE)) {
+        stop("Install the spsurvey package before using local method \"grts\".", call. = FALSE)
+      } else {
+        obdata_sf <- st_as_sf(object$obdata, coords = c(object$xcoord, object$ycoord), crs = NA)
+        obdata_sf$.index_base <- index_base
+        samp <- spsurvey::grts(obdata_sf, n_base = n, projcrs_check = FALSE)
+        index_base <- samp$sites_base$.index_base
+      }
+    }
+
+    index_base <- index_base[seq(1, local$size_base)]
+  }
+
+  if (local$method_new != "all") {
+
+    index_new <- seq(1, n_pred)
+
+    if (local$reorder_new == "random") {
+      index_new <- sample(index_new)
+    }
+
+    groups <- ceiling(n_pred / local$size_new) # consider adding groups as an argument
+
+    if (local$kmeans_new) {
+      kmeans_args <- setdiff(names(local), c("method_base", "method_new", "size_base", "size_new", "reorder_base", "reorder_new", "kmeans_new"))
+
+      if (inherits(newdata, "sf")) {
+        newdata <- suppressWarnings(sf::st_centroid(newdata))
+        newdata <- sf_to_df(newdata)
+        names(newdata)[[which(names(newdata) == ".xcoord")]] <- as.character(object$xcoord) # only relevant if newdata is sf data is not
+        names(newdata)[[which(names(newdata) == ".ycoord")]] <- as.character(object$ycoord) # only relevant if newdata is sf data is not
+      }
+      x <- cbind(newdata[[object$xcoord]], newdata[[object$ycoord]])[index_new, ]
+      index_new <- split(index_new, do.call("kmeans", c(list(x = x, centers = groups, iter.max = 30), kmeans_args))$cluster)
+    } else {
+      index_new <- split(index_new, rep(seq(1, groups), times = c(rep(n_pred %/% groups + 1, n_pred %% groups), rep(n_pred %/% groups, groups - n_pred %% groups))))
+    }
+    local$index <- list(base = index_base, new = index_new)
+  }
+
+  if (!"parallel" %in% names_local) {
+    local$parallel <- FALSE
+    local$ncores <- NULL
+  }
+
+  if (local$parallel) {
+    n_index <- length(unique(local$index))
+    if ("ncores" %in% names_local) {
+      cores_available <- parallel::detectCores()
+      local$ncores <- min(n_index, local$ncores, cores_available)
+    } else {
+      local$ncores <- parallel::detectCores()
+      local$ncores <- min(n_index, local$ncores)
+    }
+  }
+
+  local
+
+}

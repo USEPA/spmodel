@@ -389,6 +389,9 @@ get_local_list_conditional <- function(local, object, newdata) {
     } else {
       index_new <- split(index_new, rep(seq(1, groups), times = c(rep(n_pred %/% groups + 1, n_pred %% groups), rep(n_pred %/% groups, groups - n_pred %% groups))))
     }
+    if (local$method_base == "all") {
+      index_base <- seq(1, n)
+    }
     local$index <- list(base = index_base, new = index_new)
   }
 

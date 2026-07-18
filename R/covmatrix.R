@@ -84,8 +84,8 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
       }
     }
 
-    if (inherits(object$newdata, "sf")) {
-      object$obdata <- sf_to_df(object$newdata)
+    if (inherits(newdata, "sf")) {
+      object$obdata <- sf_to_df(newdata)
     } else {
       object$obdata <- newdata
     }

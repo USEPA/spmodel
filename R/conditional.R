@@ -134,7 +134,6 @@ conditional.spglm <- function(object, newdata, type = "newdata", samples = 1, lo
   betahat <- coef(object)
   X <- model.matrix(object)
 
-
   cov_betahat_lowchol <- t(chol(vcov(object)))
   new_betahat <- vapply(seq_len(samples), function(x) as.numeric(cov_betahat_lowchol %*% rnorm(length(betahat))), numeric(length(betahat)))
   # beta0 force to matrix
@@ -142,8 +141,8 @@ conditional.spglm <- function(object, newdata, type = "newdata", samples = 1, lo
     new_betahat <- matrix(new_betahat, nrow = 1)
   }
   new_betahat <- sweep(new_betahat, 1, betahat, "+")
-  new_fitted <- X %*% new_betahat
-  new_resid <- sweep(-1 * new_fitted, 1, w, "+")
+  # new_fitted <- X %*% new_betahat
+  # new_resid <- w - new_fitted
 
   # now simulate beta and add
   formula_newdata <- delete.response(terms(object))
@@ -176,15 +175,30 @@ conditional.spglm <- function(object, newdata, type = "newdata", samples = 1, lo
 
   if (local_list$method_base != "all") {
     object$obdata <- object$obdata[local_list$index$base, , drop = FALSE]
-    base_val <- new_resid[local_list$index$base, , drop = FALSE]
+    X <- X[local_list$index$base, , drop = FALSE]
     w <- w[local_list$index$base]
     y <- y[local_list$index$base]
     if (!is.null(size)) {
       size <- size[local_list$index$base]
     }
-  } else {
-    base_val <- new_resid
   }
+
+  cov_lowchol_base <- t(chol(covmatrix(object)))
+  SigInv <- chol2inv(t(cov_lowchol_base))
+  SqrtSigInv_X <- forwardsolve(cov_lowchol_base, X)
+  SigInv_X <- backsolve(t(cov_lowchol_base), SqrtSigInv_X)
+  cov_betahat <- vcov(object, var_correct = FALSE)
+  Ptheta <- SigInv - SigInv_X %*% tcrossprod(cov_betahat, SigInv_X)
+  D <- get_D(object$family, w, y, size, as.vector(object$coefficients$dispersion))
+  cov_lowchol_mH <- t(chol(Matrix::forceSymmetric(-1 * (D - Ptheta)))) # this is actually the inverse of covariance matrix of w
+  wts_beta <- tcrossprod(cov_betahat, SigInv_X)
+
+  cov_lowchol_w <- t(chol(chol2inv(t(cov_lowchol_mH)))) # make this more efficient
+  new_w <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_w %*% rnorm(length(w))), numeric(length(w)))
+  w <- sweep(new_w, 1, w, "+")
+
+  base_val <- w - X %*% new_betahat
+
   if (local_list$method_new != "all") {
     x0 <- lapply(local_list$index$new, function(x) newdata_model[x, , drop = FALSE])
     newdata <- lapply(local_list$index$new, function(x) newdata[x, , drop = FALSE])
@@ -193,15 +207,7 @@ conditional.spglm <- function(object, newdata, type = "newdata", samples = 1, lo
     newdata <- list(newdata)
   }
   newdata_list <- mapply(x = x0, y = newdata, FUN = function(x, y) list(x0 = x, newdata = y), SIMPLIFY = FALSE)
-  cov_lowchol_base <- t(chol(covmatrix(object)))
-  SigInv <- chol2inv(t(cov_lowchol_base))
-  SqrtSigInv_X <- forwardsolve(cov_lowchol_base, X)
-  SigInv_X <- backsolve(t(cov_lowchol_base), SqrtSigInv_X)
-  cov_betahat <- vcov(object, var_correct = FALSE)
-  Ptheta <- SigInv - SigInv_X %*% tcrossprod(cov_betahat, SigInv_X)
-  D <- get_D(object$family, w, y, size, as.vector(object$coefficients$dispersion))
-  cov_lowchol_mH <- t(chol(Matrix::forceSymmetric(-1 * (D - Ptheta))))
-  wts_beta <- tcrossprod(cov_betahat, SigInv_X)
+
   if (local_list$parallel) {
     cl <- parallel::makeCluster(local_list$ncores)
     new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust_glm, object, base_val, cov_lowchol_base, samples, SqrtSigInv_X, cov_betahat, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)

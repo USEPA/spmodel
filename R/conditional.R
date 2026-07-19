@@ -193,8 +193,15 @@ conditional.spglm <- function(object, newdata, type = "newdata", samples = 1, lo
   cov_lowchol_mH <- t(chol(Matrix::forceSymmetric(-1 * (D - Ptheta)))) # this is actually the inverse of covariance matrix of w
   wts_beta <- tcrossprod(cov_betahat, SigInv_X)
 
-  cov_lowchol_w <- t(chol(chol2inv(t(cov_lowchol_mH)))) # make this more efficient
-  new_w <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_w %*% rnorm(length(w))), numeric(length(w)))
+  # cov_lowchol_w <- t(chol(chol2inv(t(cov_lowchol_mH)))) # made this more efficient below but not as correct
+  # new_w <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_w %*% rnorm(length(w))), numeric(length(w)))
+
+  # increase efficiency by exploiting triangular cholesky relationships to reach
+  # above solution but with different rnorm() entries (which are then rearranged)
+  cov_lowchol_w <- t(forwardsolve(cov_lowchol_mH, Matrix::Diagonal(length(w))))
+  reshuffle <- seq(length(w), 1)
+  cov_lowchol_w <- cov_lowchol_w[reshuffle, reshuffle, drop = FALSE]
+  new_w <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_w %*% rnorm(length(w)))[reshuffle], numeric(length(w)))
   w <- sweep(new_w, 1, w, "+")
 
   base_val <- w - X %*% new_betahat

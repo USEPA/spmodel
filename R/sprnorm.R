@@ -19,6 +19,43 @@
 #' @param ycoord Name of the column in \code{data} representing the y-coordinate.
 #'   Can be quoted or unquoted. Not required if \code{data} are an \code{sf}
 #'   object.
+#' @param local An optional logical or list controlling the big data approximation.
+#'   If omitted, \code{local} is set
+#'   to \code{TRUE} or \code{FALSE} based on the desired sample size (the number of
+#'   non-missing observations in \code{data}) -- if the desired sample size exceeds 5,000,
+#'   \code{local} is set to \code{TRUE}. Otherwise it is set to \code{FALSE}.
+#'   \code{local} is also set to \code{FALSE} when \code{spcov_type} is \code{"none"}
+#'   and there are no random effects specified via \code{random}.
+#'   If \code{FALSE}, no big data approximation is implemented.
+#'   If a list is provided, the following arguments detail the big
+#'   data approximation:
+#'   \itemize{
+#'     \item \code{reorder: The data reordering approached used prior to splitting
+#'       into base and new sets. If \code{reorder = "none"}, no reordering
+#'       is applied to the data. If \code{reorder = "random"}, the data order is
+#'       randomly reshuffled. If \code{reorder = "grts"}, the data order is
+#'       randomly generated using the GRTS algorithm for spatially balanced
+#'       sampling via \code{spsurvey::grts()}. The default is \code{"grts"}.}
+#'     \item \code{size_base: The number of data observations used for the base sample.
+#'       The default is 3,000. See Details for more.}
+#'     \item \code{kmeans: For observations outside the base sample, whether
+#'       they should be assigned to blocks based on k-means clustering
+#'       on the coordinates, with clusters of size approximately equal to
+#'       \code{size_new}. The default is \code{FALSE} when \code{reorder = "none"}
+#'       and \code{TRUE} otherwise.}
+#'     \item \code{size_new: The (approximate) number of observations used
+#'       for each block. The default is 500. See Details for more.
+#'       The default is 500.}
+#'     \item \code{parallel}: If \code{TRUE}, parallel processing via the
+#'       parallel package is automatically used. The default is \code{FALSE}.
+#'     \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
+#'       parallelize over. The default is the number of available cores on your machine.
+#'   }
+#'   When \code{local} is a list, at least one list element must be provided to
+#'   initialize default arguments for the other list elements.
+#'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
+#'   that \code{local} is transformed into
+#'   \code{list(reoder = "grts", size_base = 3000, size_new = 500, kmeans = TRUE, parallel = FALSE)}.
 #' @param W Weight matrix specifying the neighboring structure used for car and
 #'   sar models. Not required if \code{data} are an \code{sf}
 #'   polygon object and \code{W} should be calculated internally (using queen contiguity).
@@ -53,6 +90,14 @@
 #'   \code{extra} parameter for car and sar models is ignored when all observations have
 #'   neighbors.
 #'
+#'   \code{local} Details: The big data approximation works by assigning \code{size_base}
+#'   observations to a base sample and then simulating data for the base sample.
+#'   The remaining observations are assigned to blocks. For each block, data
+#'   are simulated from the conditional distribution given the base sample.
+#'   Observations from the same block share conditional covariance while
+#'   observations from distinct blocks are assumed conditionally independent
+#'   (given the base sample). Parallelization generally further speeds up
+#'   computations.
 #'
 #' @return If \code{samples} is 1, a vector of random variables for each row of \code{data}
 #'   is returned. If \code{samples} is greater than one, a matrix of random variables
@@ -78,107 +123,111 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
     stop("mean vector must be length n or length 1 (recycled)")
   }
 
-  ## convert sp to data frame (point geometry)
-  attr_sp <- attr(class(data), "package")
-  if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
-    stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
-  }
-
-  ## convert sf to data frame (point geometry) (1d objects obsolete)
-  ### see if data has sf class
-  if (inherits(data, "sf")) {
-    data <- suppressWarnings(sf::st_centroid(data))
-    data <- sf_to_df(data)
-    ### name xcoord ".xcoord" to be used later
-    xcoord <- ".xcoord"
-    ### name ycoord ".ycoord" to be used later
-    ycoord <- ".ycoord"
-  }
-
-  # non standard evaluation for the x and y coordinates
-  xcoord <- substitute(xcoord)
-  # replace null if necessary
-  if (missing(ycoord)) {
-    ycoord <- ".ycoord"
-    data[[ycoord]] <- 0
-  }
-  ycoord <- substitute(ycoord)
-
-  # storing x and y coordinate values
-  xcoord_val <- data[[xcoord]]
-  ycoord_val <- data[[ycoord]]
-
-  # provide warning for this
-  data$...response... <- seq(1, n)
-  data$...xcoord... <- xcoord_val
-  data$...ycoord... <- ycoord_val
-  if ("extra" %in% names(spcov_params)) {
-    spcov_init <- spcov_initial(
-      spcov_type = class(spcov_params),
-      de = spcov_params[["de"]],
-      ie = spcov_params[["ie"]],
-      range = spcov_params[["range"]],
-      extra = spcov_params[["extra"]],
-      rotate = spcov_params[["rotate"]],
-      scale = spcov_params[["scale"]],
-      known = "given"
-    )
+  if (spcov_params[["de"]] == 0 && (missing(randcov_params) || is.null(randcov_params))) {
+    base_val <- replicate(samples, rnorm(n, sd = sqrt(spcov_params[["ie"]])))
   } else {
-    spcov_init <- spcov_initial(
-      spcov_type = class(spcov_params),
-      de = spcov_params[["de"]],
-      ie = spcov_params[["ie"]],
-      range = spcov_params[["range"]],
-      rotate = spcov_params[["rotate"]],
-      scale = spcov_params[["scale"]],
-      known = "given"
-    )
-  }
-
-  if (missing(randcov_params)) {
-    randcov_params <- NULL
-  } else {
-    randcov_init <- randcov_initial(randcov_params, known = "given")
-  }
-  if (missing(partition_factor)) {
-    partition_factor <- NULL
-  }
-
-  if (missing(local)) local <- NULL
-  local_list <- get_local_list_simulation(local, n, data)
-
-  if (local_list$method != "all") {
-    newdata <- lapply(local_list$index$new, function(x) data[x, , drop = FALSE])
-    data <- data[local_list$index$base, , drop = FALSE]
-    n <- NROW(data)
-  }
-
-  object <- splm(
-    formula = ...response... ~ 1,
-    data = data,
-    spcov_initial = spcov_init,
-    randcov_initial = randcov_init,
-    partition_factor = partition_factor,
-    xcoord = "...xcoord...",
-    ycoord = "...ycoord...",
-    local = TRUE
-  )
-
-  cov_lowchol_base <- t(chol(covmatrix(object)))
-  base_val <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_base %*% rnorm(n)), numeric(n))
-
-  if (local_list$method != "all") {
-
-    if (local_list$parallel) {
-      cl <- parallel::makeCluster(local_list$ncores)
-      new_val <- parLapply(cl, newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
-      cl <- parallel::stopCluster(cl)
-    } else {
-      new_val <- lapply(newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
+    ## convert sp to data frame (point geometry)
+    attr_sp <- attr(class(data), "package")
+    if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
+      stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
     }
-    base_val <- rbind(base_val, do.call("rbind", new_val))
-    index <- c(local_list$index$base, do.call("c", local_list$index$new))
-    base_val <- base_val[order(index), , drop = FALSE]
+
+    ## convert sf to data frame (point geometry) (1d objects obsolete)
+    ### see if data has sf class
+    if (inherits(data, "sf")) {
+      data <- suppressWarnings(sf::st_centroid(data))
+      data <- sf_to_df(data)
+      ### name xcoord ".xcoord" to be used later
+      xcoord <- ".xcoord"
+      ### name ycoord ".ycoord" to be used later
+      ycoord <- ".ycoord"
+    }
+
+    # non standard evaluation for the x and y coordinates
+    xcoord <- substitute(xcoord)
+    # replace null if necessary
+    if (missing(ycoord)) {
+      ycoord <- ".ycoord"
+      data[[ycoord]] <- 0
+    }
+    ycoord <- substitute(ycoord)
+
+    # storing x and y coordinate values
+    xcoord_val <- data[[xcoord]]
+    ycoord_val <- data[[ycoord]]
+
+    # provide warning for this
+    data$...response... <- seq(1, n)
+    data$...xcoord... <- xcoord_val
+    data$...ycoord... <- ycoord_val
+    if ("extra" %in% names(spcov_params)) {
+      spcov_init <- spcov_initial(
+        spcov_type = class(spcov_params),
+        de = spcov_params[["de"]],
+        ie = spcov_params[["ie"]],
+        range = spcov_params[["range"]],
+        extra = spcov_params[["extra"]],
+        rotate = spcov_params[["rotate"]],
+        scale = spcov_params[["scale"]],
+        known = "given"
+      )
+    } else {
+      spcov_init <- spcov_initial(
+        spcov_type = class(spcov_params),
+        de = spcov_params[["de"]],
+        ie = spcov_params[["ie"]],
+        range = spcov_params[["range"]],
+        rotate = spcov_params[["rotate"]],
+        scale = spcov_params[["scale"]],
+        known = "given"
+      )
+    }
+
+    if (missing(randcov_params)) {
+      randcov_params <- NULL
+    } else {
+      randcov_init <- randcov_initial(randcov_params, known = "given")
+    }
+    if (missing(partition_factor)) {
+      partition_factor <- NULL
+    }
+
+    if (missing(local)) local <- NULL
+    local_list <- get_local_list_simulation(local, n, data)
+
+    if (local_list$method != "all") {
+      newdata <- lapply(local_list$index$new, function(x) data[x, , drop = FALSE])
+      data <- data[local_list$index$base, , drop = FALSE]
+      n <- NROW(data)
+    }
+
+    object <- splm(
+      formula = ...response... ~ 1,
+      data = data,
+      spcov_initial = spcov_init,
+      randcov_initial = randcov_init,
+      partition_factor = partition_factor,
+      xcoord = "...xcoord...",
+      ycoord = "...ycoord...",
+      local = TRUE
+    )
+
+    cov_lowchol_base <- t(chol(covmatrix(object)))
+    base_val <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_base %*% rnorm(n)), numeric(n))
+
+    if (local_list$method != "all") {
+
+      if (local_list$parallel) {
+        cl <- parallel::makeCluster(local_list$ncores)
+        new_val <- parLapply(cl, newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
+        cl <- parallel::stopCluster(cl)
+      } else {
+        new_val <- lapply(newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
+      }
+      base_val <- rbind(base_val, do.call("rbind", new_val))
+      index <- c(local_list$index$base, do.call("c", local_list$index$new))
+      base_val <- base_val[order(index), , drop = FALSE]
+    }
   }
 
   base_val <- sweep(base_val, 1, mean, "+")
@@ -248,59 +297,11 @@ sprnorm.cauchy <- sprnorm.exponential
 #' @method sprnorm pexponential
 #' @export
 sprnorm.pexponential <- sprnorm.exponential
-#' @rdname sprnorm
+
 #' @method sprnorm none
 #' @export
-sprnorm.none <- function(spcov_params, mean = 0, samples = 1, data, randcov_params, partition_factor, ...) {
-  n <- NROW(data)
+sprnorm.none <- sprnorm.exponential
 
-  if (length(mean) != n && length(mean) != 1) {
-    stop("mean vector must be length n or length 1 (recycled)")
-  }
-
-  dist_matrix <- diag(n)
-
-  # compute the random effects covariance matrix
-  if (missing(randcov_params)) {
-    randcov_params <- NULL
-    randcov_Zs <- NULL
-  } else {
-    names(randcov_params) <- get_randcov_names(reformulate(paste("(", names(randcov_params), ")", sep = "")))
-    randcov_Zs <- get_randcov_Zs(data = data, names(randcov_params))
-  }
-
-  # partition matrix
-  if (missing(partition_factor)) {
-    partition_factor <- NULL
-  }
-  partition_matrix_val <- partition_matrix(partition_factor, data)
-
-  # compute the covariance matrix
-  cov_matrix_val <- cov_matrix(
-    spcov_params, dist_matrix,
-    randcov_params, randcov_Zs, partition_matrix_val
-  )
-
-  if (is.null(randcov_params)) {
-    sprnorm_val <- vapply(seq_len(samples), function(x) mean + rnorm(n, sd = sqrt(spcov_params[["ie"]])), numeric(n))
-  } else {
-
-    # transpose is lower triangular, needed for normal sim
-    cov_matrix_lowchol <- t(chol(cov_matrix_val))
-    # record sample sizes
-
-    # simulate n random normal vectors
-    sprnorm_val <- vapply(seq_len(samples), function(x) mean + as.numeric(cov_matrix_lowchol %*% rnorm(n)), numeric(n))
-  }
-
-  if (samples == 1) {
-    sprnorm_val <- as.vector(sprnorm_val)
-  }
-
-  sprnorm_val
-}
-
-#' @rdname sprnorm
 #' @method sprnorm ie
 #' @export
 sprnorm.ie <- sprnorm.none

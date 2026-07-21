@@ -1,0 +1,117 @@
+---
+title: "Simulating Large Spatial Data in spmodel"
+author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
+bibliography: '`r system.file("references.bib", package="spmodel")`'
+output:
+  html_document:
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+# # jss style
+# knitr::opts_chunk$set(prompt=TRUE, echo = TRUE, highlight = FALSE, continue = " + ", comment = "")
+# options(replace.assign=TRUE, width=90, prompt="R> ")
+
+# rmd style
+knitr::opts_chunk$set(collapse = FALSE, comment = "#>", warning = FALSE, message = FALSE)
+
+# loading
+library(spmodel)
+library(sf)
+library(ggplot2)
+```
+
+# Background
+
+# Base
+```{r}
+set.seed(2)
+```
+
+
+```{r}
+n <- 3000
+xc <- runif(n)
+yc <- runif(n)
+sim_dat <- data.frame(xc, yc)
+
+params <- spcov_params(
+  spcov_type = "exponential",
+  de = 2,
+  ie = 0.1,
+  range = 2
+)
+```
+
+```{r}
+sim_dat$val <- sprnorm(params, data = sim_dat, xcoord = xc, ycoord = yc)
+ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
+  geom_point(size = 1) +
+  scale_color_viridis_c() +
+  theme_bw(base_size = 14)
+```
+
+```{r}
+sim_dat$val <- sprnorm(params, data = sim_dat, xcoord = xc, ycoord = yc)
+ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
+  geom_point(size = 1) +
+  scale_color_viridis_c() +
+  theme_bw(base_size = 14)
+```
+
+```{r}
+n <- 20000
+xc <- runif(n)
+yc <- runif(n)
+sim_dat <- data.frame(xc, yc)
+```
+
+```{r}
+sim_dat$val <- sprnorm(params, data = sim_dat, xcoord = xc, ycoord = yc, local = TRUE)
+
+ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
+  geom_point(size = 1) +
+  scale_color_viridis_c() +
+  theme_bw(base_size = 14)
+```
+
+# Walking Through
+
+```{r}
+index <- sample(seq(1, n))
+sim_dat$in_base <- ifelse(index <= 3000, "Yes", "No")
+sim_dat$in_base <- factor(sim_dat$in_base, levels = c("Yes", "No"))
+ggplot(sim_dat, aes(x = xc, y = yc, color = in_base)) +
+  geom_point(size = 0.8) +
+  scale_color_manual(values = c("Yes" = "blue", "No" = "orange")) +
+  facet_wrap(~ in_base, ncol = 1) +
+  theme_bw(base_size = 14)
+```
+
+```{r}
+sim_dat_not_in_base <- sim_dat[sim_dat$in_base == "No", ]
+sim_dat_not_in_base$cluster <- as.factor(kmeans(sim_dat_not_in_base[, c("xc", "yc")], centers = 5)$cluster)
+
+ggplot(sim_dat_not_in_base, aes(x = xc, y = yc, color = cluster)) +
+  geom_point(size = 0.8) +
+  theme_bw(base_size = 14)
+```
+
+
+# Other Options
+```{r}
+sim_dat$val <- sprnorm(params, data = sim_dat, xcoord = xc, ycoord = yc, local = list(reorder = "none", parallel = TRUE, ncores = 2))
+
+ggplot(sim_dat[seq(1, 3000), ], aes(x = xc, y = yc, color = val)) +
+  geom_point(size = 1) +
+  scale_color_viridis_c() +
+  theme_bw(base_size = 14)
+```
+
+```{r}
+ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
+  geom_point(size = 1) +
+  scale_color_viridis_c() +
+  theme_bw(base_size = 14)
+```

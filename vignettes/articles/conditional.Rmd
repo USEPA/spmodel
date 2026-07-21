@@ -1,0 +1,23 @@
+---
+title: "Conditional Simulation in spmodel"
+author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
+bibliography: '`r system.file("references.bib", package="spmodel")`'
+output:
+  html_document:
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+# # jss style
+# knitr::opts_chunk$set(prompt=TRUE, echo = TRUE, highlight = FALSE, continue = " + ", comment = "")
+# options(replace.assign=TRUE, width=90, prompt="R> ")
+
+# rmd style
+knitr::opts_chunk$set(collapse = FALSE, comment = "#>", warning = FALSE, message = FALSE)
+
+# loading
+library(spmodel)
+library(sf)
+library(ggplot2)
+```

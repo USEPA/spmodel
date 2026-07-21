@@ -3,8 +3,6 @@
 \name{sprnorm}
 \alias{sprnorm}
 \alias{sprnorm.exponential}
-\alias{sprnorm.none}
-\alias{sprnorm.ie}
 \alias{sprnorm.car}
 \title{Simulate a spatial normal (Gaussian) random variable}
 \usage{
@@ -27,26 +25,7 @@ sprnorm(
   partition_factor,
   xcoord,
   ycoord,
-  ...
-)
-
-\method{sprnorm}{none}(
-  spcov_params,
-  mean = 0,
-  samples = 1,
-  data,
-  randcov_params,
-  partition_factor,
-  ...
-)
-
-\method{sprnorm}{ie}(
-  spcov_params,
-  mean = 0,
-  samples = 1,
-  data,
-  randcov_params,
-  partition_factor,
+  local,
   ...
 )
 
@@ -88,6 +67,44 @@ object.}
 \item{ycoord}{Name of the column in \code{data} representing the y-coordinate.
 Can be quoted or unquoted. Not required if \code{data} are an \code{sf}
 object.}
+
+\item{local}{An optional logical or list controlling the big data approximation.
+If omitted, \code{local} is set
+to \code{TRUE} or \code{FALSE} based on the desired sample size (the number of
+non-missing observations in \code{data}) -- if the desired sample size exceeds 5,000,
+\code{local} is set to \code{TRUE}. Otherwise it is set to \code{FALSE}.
+\code{local} is also set to \code{FALSE} when \code{spcov_type} is \code{"none"}
+and there are no random effects specified via \code{random}.
+If \code{FALSE}, no big data approximation is implemented.
+If a list is provided, the following arguments detail the big
+data approximation:
+\itemize{
+\item \code{reorder: The data reordering approached used prior to splitting
+      into base and new sets. If \code{reorder = "none"}, no reordering
+      is applied to the data. If \code{reorder = "random"}, the data order is
+      randomly reshuffled. If \code{reorder = "grts"}, the data order is
+      randomly generated using the GRTS algorithm for spatially balanced
+      sampling via \code{spsurvey::grts()}. The default is \code{"grts"}.}
+\item \code{size_base: The number of data observations used for the base sample.
+      The default is 3,000. See Details for more.}
+\item \code{kmeans: For observations outside the base sample, whether
+      they should be assigned to blocks based on k-means clustering
+      on the coordinates, with clusters of size approximately equal to
+      \code{size_new}. The default is \code{FALSE} when \code{reorder = "none"}
+      and \code{TRUE} otherwise.}
+\item \code{size_new: The (approximate) number of observations used
+      for each block. The default is 500. See Details for more.
+      The default is 500.}
+\item \code{parallel}: If \code{TRUE}, parallel processing via the
+parallel package is automatically used. The default is \code{FALSE}.
+\item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
+parallelize over. The default is the number of available cores on your machine.
+}
+When \code{local} is a list, at least one list element must be provided to
+initialize default arguments for the other list elements.
+If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
+that \code{local} is transformed into
+\code{list(reoder = "grts", size_base = 3000, size_new = 500, kmeans = TRUE, parallel = FALSE)}.}
 
 \item{W}{Weight matrix specifying the neighboring structure used for car and
 sar models. Not required if \code{data} are an \code{sf}
@@ -135,6 +152,15 @@ as syntax for \code{spherical}, \code{gaussian}, \code{triangular},
 the \code{car} method is the same as syntax for the \code{sar} method. The
 \code{extra} parameter for car and sar models is ignored when all observations have
 neighbors.
+
+\code{local} Details: The big data approximation works by assigning \code{size_base}
+observations to a base sample and then simulating data for the base sample.
+The remaining observations are assigned to blocks. For each block, data
+are simulated from the conditional distribution given the base sample.
+Observations from the same block share conditional covariance while
+observations from distinct blocks are assumed conditionally independent
+(given the base sample). Parallelization generally further speeds up
+computations.
 }
 \examples{
 spcov_params_val <- spcov_params("exponential", de = 1, ie = 1, range = 1)

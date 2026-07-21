@@ -1,8 +1,31 @@
+#' Conditionally simulate from a model
+#'
+#' @description Conditionally simulate prediction data from a model object.
+#'
+#' @param object  text
+#' @param newdata  text
+#' @param type  text
+#' @param samples  text
+#' @param local text
+#'
+#' @details text
+#' @return text
+#' @export
+#' @examples
+#' set.seed(0)
+#' spmod <- splm(sulfate ~ 1, data = sulfate, spcov_type = "exponential")
+#' cond <- conditional(spmod, newdata = sulfate_preds)
+#' predict(spmod, sulfate_preds[20, ], se.fit = TRUE)
+#' c("fit_cond" = mean(cond[20, ]), "se.fit_cond" = sd(cond[20, ]))
+#' hist(cond[20, ])
 conditional <- function(object, ...) {
   UseMethod("conditional", object)
 }
 
-conditional.splm <- function(object, newdata, type = "newdata", samples = 1, local) {
+#' @rdname conditional
+#' @method conditional splm
+#' @export
+conditional.splm <- function(object, newdata, type = "newdata", samples = 10000, local) {
 
   if (missing(local)) {
     local <- NULL
@@ -108,7 +131,10 @@ conditional.splm <- function(object, newdata, type = "newdata", samples = 1, loc
   }
 }
 
-conditional.spglm <- function(object, newdata, type = "newdata", samples = 1, local) {
+#' @rdname conditional
+#' @method conditional spglm
+#' @export
+conditional.spglm <- function(object, newdata, type = "newdata", samples = 10000, local) {
 
   if (missing(local)) {
     local <- NULL

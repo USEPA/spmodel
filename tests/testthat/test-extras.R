@@ -981,6 +981,7 @@ if (test_local) {
       expect_equal(length(loocv(spmod, cv_predict = TRUE, local = TRUE)), 2)
     }
     expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE)), 3)
+    expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE, type = "response", delta = TRUE)), 3)
     expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE, local = TRUE)), 3)
     if (test_local) { ##### local test
       expect_equal(length(loocv(spmod, se.fit = TRUE)), 2)
@@ -1013,6 +1014,7 @@ if (test_local) {
       expect_equal(length(loocv(spmod, cv_predict = TRUE)), 2)
     }
     expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE)), 3)
+    expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE, type = "response", delta = TRUE)), 3)
     if (test_local) { ##### local test
       expect_equal(length(loocv(spmod, se.fit = TRUE)), 2)
     }
@@ -1035,6 +1037,7 @@ if (test_local) {
       expect_equal(length(loocv(spmod, cv_predict = TRUE)), 2)
     }
     expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE)), 3)
+    expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE, type = "response", delta = TRUE)), 3)
     # cores 2 for cran check
     if (test_local) {
       expect_equal(length(loocv(spmod, cv_predict = TRUE, local = list(parallel = TRUE, ncores = 2))), 2)
@@ -1058,6 +1061,7 @@ if (test_local) {
       expect_equal(length(loocv(spmod, cv_predict = TRUE)), 2)
     }
     expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE)), 3)
+    expect_equal(length(loocv(spmod, cv_predict = TRUE, se.fit = TRUE, type = "response", delta = TRUE)), 3)
     # cores 2 for cran check
     if (test_local) {
       expect_equal(length(loocv(spmod, cv_predict = TRUE, local = list(parallel = TRUE, ncores = 2))), 2)

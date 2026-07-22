@@ -3,6 +3,8 @@
 #' @param var_correct A logical indicating whether to return the corrected prediction
 #'   variances when predicting via models fit using \code{spglm()} or \code{spgautor()}. The default is
 #'   \code{TRUE}.
+#' @param delta A logical indicating whether to return delta method standard errors
+#' on the response scale when \code{se.fit = TRUE} and \code{type = "response"}. The default is \code{FALSE}.
 #' @param dispersion The dispersion of assumed when computing the prediction standard errors
 #'   for \code{spglm()} or \code{spgautor()} model objects when \code{family}
 #'   is \code{"nbinomial"}, \code{"beta"}, \code{"Gamma"}, or \code{"inverse.gaussian"}.
@@ -23,8 +25,7 @@
 #' augment(spgmod, newdata = moose_preds, interval = "prediction")
 #' }
 predict.spglm <- function(object, newdata, type = c("link", "response", "terms", "weight"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                          level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size, na.action = na.fail, ...) {
-
+                          level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, delta = FALSE, newdata_size, na.action = na.fail, ...) {
 
 
   # match type argument so the two display
@@ -43,6 +44,10 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
   # deal with local
   if (missing(local)) {
     local <- NULL
+  }
+
+  if (!is.logical(delta)) {
+    stop("delta must be TRUE or FALSE", call. = FALSE) # consider making delta relevant default to match glm
   }
 
   # handle dispersion argument if provided
@@ -388,9 +393,6 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
       if (!is.null(offset)) {
         fit <- fit + offset
       }
-      if (type == "response") {
-        fit <- invlink(fit, object$family, newdata_size)
-      }
       if (se.fit) {
         vars <- vapply(pred_spglm, function(x) x$var, numeric(1))
         if (predvar_adjust_all) {
@@ -410,12 +412,21 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
           vars <- vars_adj + vars
         }
         se <- sqrt(vars)
+        if (type == "response" && se.fit && delta) {
+          se <- get_delta_se(fit, se, object$family)
+        }
+        if (type == "response") {
+          fit <- invlink(fit, object$family, newdata_size)
+        }
         if (add_newdata_rows) {
           names(fit) <- object$missing_index
           names(se) <- object$missing_index
         }
         return(list(fit = fit, se.fit = se))
       } else {
+        if (type == "response") {
+          fit <- invlink(fit, object$family, newdata_size)
+        }
         if (add_newdata_rows) {
           names(fit) <- object$missing_index
         }
@@ -445,6 +456,9 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
         vars <- vars_adj + vars
       }
       se <- sqrt(vars)
+      if (type == "response" && se.fit && delta) {
+        se <- get_delta_se(fit, se, object$family)
+      }
       # tstar <- qt(1 - (1 - level) / 2, df = object$n - object$p)
       tstar <- qnorm(1 - (1 - level) / 2)
       lwr <- fit - tstar * se
@@ -668,7 +682,7 @@ get_pred_spglm <- function(newdata_list, se.fit, interval, formula, obdata, xcoo
 #' @export
 predict.spgautor <- function(object, newdata, type = c("link", "response", "terms", "weight"), se.fit = FALSE,
                              interval = c("none", "confidence", "prediction"),
-                             level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, newdata_size, na.action = na.fail, ...) {
+                             level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, delta = FALSE, newdata_size, na.action = na.fail, ...) {
 
   # match type argument so the two display
   type <- match.arg(type)
@@ -687,6 +701,11 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
   if (missing(local)) {
     local <- NULL
   }
+
+  if (!is.logical(delta)) {
+    stop("delta must be TRUE or FALSE", call. = FALSE) # consider making delta relevant default to match glm
+  }
+
 
   # handle dispersion argument if provided
   if (!is.null(dispersion)) {
@@ -871,9 +890,6 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
       if (!is.null(offset)) {
         fit <- fit + offset
       }
-      if (type == "response") {
-        fit <- invlink(fit, object$family, newdata_size)
-      }
       if (se.fit) {
         vars <- vapply(pred_spautor, function(x) x$var, numeric(1))
         if (var_correct) {
@@ -891,10 +907,19 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
           vars <- vars_adj + vars
         }
         se <- sqrt(vars)
+        if (type == "response" && se.fit && delta) {
+          se <- get_delta_se(fit, se, object$family)
+        }
+        if (type == "response") {
+          fit <- invlink(fit, object$family, newdata_size)
+        }
         names(fit) <- object$missing_index
         names(se) <- object$missing_index
         return(list(fit = fit, se.fit = se))
       } else {
+        if (type == "response") {
+          fit <- invlink(fit, object$family, newdata_size)
+        }
         names(fit) <- object$missing_index
         return(fit)
       }
@@ -926,6 +951,9 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
       tstar <- qnorm(1 - (1 - level) / 2)
       lwr <- fit - tstar * se
       upr <- fit + tstar * se
+      if (type == "response" && se.fit && delta) {
+        se <- get_delta_se(fit, se, object$family)
+      }
       if (type == "response") {
         fit <- invlink(fit, object$family, newdata_size)
         lwr <- invlink(lwr, object$family, newdata_size)

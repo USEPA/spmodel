@@ -96,6 +96,7 @@
   terms = NULL,
   local,
   var_correct = TRUE,
+  delta = FALSE,
   newdata_size,
   na.action = na.fail,
   ...
@@ -112,6 +113,7 @@
   terms = NULL,
   local,
   var_correct = TRUE,
+  delta = FALSE,
   newdata_size,
   na.action = na.fail,
   ...
@@ -261,6 +263,9 @@ If omitted, the model object dispersion parameter is used.}
 \item{var_correct}{A logical indicating whether to return the corrected prediction
 variances when predicting via models fit using \code{spglm()} or \code{spgautor()}. The default is
 \code{TRUE}.}
+
+\item{delta}{A logical indicating whether to return delta method standard errors
+on the response scale when \code{se.fit = TRUE} and \code{type = "response"}. The default is \code{FALSE}.}
 
 \item{newdata_size}{The \code{size} value for each observation in \code{newdata}
 used when predicting for the binomial family.}

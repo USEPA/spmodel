@@ -88,6 +88,7 @@ test_that("generics work spgautor polygon data", {
   expect_vector(loocv(spmod1))
   expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
+  expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE, type = "response", delta = TRUE), "list")
 
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
@@ -237,6 +238,7 @@ test_that("generics work spgautor polygon data with missing", {
   expect_vector(loocv(spmod1))
   expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
+  expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE, type = "response", delta = TRUE), "list")
 
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
@@ -257,6 +259,7 @@ test_that("generics work spgautor polygon data with missing", {
   # predict
   expect_vector(predict(spmod1))
   expect_type(predict(spmod1, interval = "prediction", se.fit = TRUE, local = FALSE), "list")
+  expect_type(predict(spmod1, interval = "prediction", se.fit = TRUE, local = FALSE, type = "response", delta = TRUE), "list")
   expect_type(predict(spmod1, interval = "prediction", se.fit = TRUE, local = FALSE, var_correct = FALSE), "list")
   expect_true(inherits(predict(spmod1, interval = "confidence", level = 0.9), "matrix"))
   expect_true(inherits(predict(spmod1, type = "terms"), "matrix"))
@@ -386,6 +389,7 @@ test_that("generics work spgautor polygon data unconnected", {
   expect_vector(loocv(spmod1))
   expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
+  expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE, type = "response", delta = TRUE), "list")
 
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")

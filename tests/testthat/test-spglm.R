@@ -100,6 +100,7 @@ test_that("generics work spglm point data", {
   expect_vector(loocv(spmod1))
   expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
+  expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE, type = "response", delta = TRUE), "list")
 
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
@@ -121,6 +122,7 @@ test_that("generics work spglm point data", {
   # predict
   expect_vector(predict(spmod1, newdata = newexdata))
   expect_type(predict(spmod1, newdata = newexdata, interval = "prediction", se.fit = TRUE, local = TRUE), "list")
+  expect_type(predict(spmod1, newdata = newexdata, interval = "prediction", se.fit = TRUE, local = TRUE, type = "response", delta = TRUE), "list")
   expect_true(inherits(predict(spmod1, newdata = newexdata, interval = "confidence", level = 0.9), "matrix"))
   expect_vector(predict(spmod1, newdata = newexdata, type = "response"))
   expect_type(predict(spmod1, newdata = newexdata, type = "response", interval = "prediction", se.fit = TRUE, local = TRUE, var_correct = FALSE), "list")

@@ -7,6 +7,7 @@
 ## Minor Updates
 
 * Added exponentiated versions of logged variables in `lake`, `moss`, `seal`, and `texas`.
+* Added a `delta` argument to `predict()` and `loocv()` that optionally returns delta method standard errors when `type = "response"` and `object` is an `spglm()` or `spgautor()` model object.
 * Minor documentation updates.
 
 ## Bug Fixes

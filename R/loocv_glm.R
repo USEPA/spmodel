@@ -1,10 +1,12 @@
 #' @param type The scale (\code{response} or \code{link}) of predictions obtained
 #'   when \code{cv_predict = TRUE} and using \code{spglm()} or \code{spgautor} objects.
+#' @param delta A logical indicating whether to return delta method standard errors
+#' on the response scale when \code{se.fit = TRUE} and \code{type = "response"}. The default is \code{FALSE}.
 #' @rdname loocv
 #' @method loocv spglm
 #' @order 4
 #' @export
-loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, local, ...) {
+loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, ...) {
 
 
   # match type argument so the two display
@@ -129,6 +131,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
     loocv_out <- list()
     loocv_out$stats <- loocv_stats
 
+
     if (cv_predict) {
       if (type == "link") {
         loocv_out$cv_predict <- cv_predict_val
@@ -141,7 +144,11 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
 
     if (se.fit) {
       loocv_out$se.fit <- as.vector(cv_predict_se)
+      if (type == "response" && delta) {
+        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family)
+      }
     }
+
     return(loocv_out)
   }
 #
@@ -166,7 +173,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
 #' @method loocv spgautor
 #' @order 5
 #' @export
-loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, local, ...) {
+loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, ...) {
 
   # match type argument so the two display
   type <- match.arg(type)
@@ -263,7 +270,11 @@ loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "respons
 
     if (se.fit) {
       loocv_out$se.fit <- as.vector(cv_predict_se)
+      if (type == "response" && delta) {
+        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family)
+      }
     }
+
     return(loocv_out)
   }
 

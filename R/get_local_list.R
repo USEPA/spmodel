@@ -249,12 +249,18 @@ get_local_list_simulation <- function(local, n, data) {
     local <- list(method = "all")
   }
 
-  if (local$size_base > 10000) {
-    warning("size_base exceeds 10,000, which may result in exceedingly long computational times. Consider reducing size_base.", call. = FALSE)
+  if (local$method != "all") {
+
+    if (local$size_base > 10000) {
+      warning("size_base exceeds 10,000, which may result in exceedingly long computational times. Consider reducing size_base.", call. = FALSE)
+    }
+
+    if (local$size_new > 5000) {
+      warning("size_new exceeds 5,000, which may result in exceedingly long computational times. Consider reducing size_new.", call. = FALSE)
+    }
+
   }
-  if (local$size_new > 5000) {
-    warning("size_new exceeds 5,000, which may result in exceedingly long computational times. Consider reducing size_new.", call. = FALSE)
-  }
+
 
   if (local$method != "all") {
 
@@ -341,7 +347,14 @@ get_local_list_conditional <- function(local, object, newdata) {
   if (!"size_new" %in% names_local) local$size_new <- 500
   if (!"reorder_base" %in% names_local) local$reorder_base <- "grts"
   if (!"reorder_new" %in% names_local) local$reorder_new <- "random"
-  if (!"kmeans_new" %in% names_local) local$kmeans_new <- TRUE
+
+  if (!"kmeans_new" %in% names_local) {
+    if (local$reorder_new == "none") {
+      local$kmeans_new <- FALSE
+    } else {
+      local$kmeans_new <- TRUE
+    }
+  }
 
   if (!local$reorder_base %in% c("none", "random", "grts")) {
     stop("method must be \"grts\", \"random\", or \"none\".", call. = FALSE)

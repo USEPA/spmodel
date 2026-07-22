@@ -79,22 +79,22 @@ If \code{FALSE}, no big data approximation is implemented.
 If a list is provided, the following arguments detail the big
 data approximation:
 \itemize{
-\item \code{reorder: The data reordering approached used prior to splitting
-      into base and new sets. If \code{reorder = "none"}, no reordering
-      is applied to the data. If \code{reorder = "random"}, the data order is
-      randomly reshuffled. If \code{reorder = "grts"}, the data order is
-      randomly generated using the GRTS algorithm for spatially balanced
-      sampling via \code{spsurvey::grts()}. The default is \code{"grts"}.}
-\item \code{size_base: The number of data observations used for the base sample.
-      The default is 3,000. See Details for more.}
-\item \code{kmeans: For observations outside the base sample, whether
-      they should be assigned to blocks based on k-means clustering
-      on the coordinates, with clusters of size approximately equal to
-      \code{size_new}. The default is \code{FALSE} when \code{reorder = "none"}
-      and \code{TRUE} otherwise.}
-\item \code{size_new: The (approximate) number of observations used
-      for each block. The default is 500. See Details for more.
-      The default is 500.}
+\item \code{reorder}: The data reordering approached used prior to splitting
+into base and new sets. If \code{reorder = "none"}, no reordering
+is applied to the data. If \code{reorder = "random"}, the data order is
+randomly reshuffled. If \code{reorder = "grts"}, the data order is
+randomly generated using the GRTS algorithm for spatially balanced
+sampling via \code{spsurvey::grts()}. The default is \code{"grts"}.
+\item \code{size_base}: The number of data observations used for the base sample.
+The default is 3,000. See Details for more.
+\item \code{kmeans}: For observations outside the base sample, whether
+they should be assigned to blocks based on k-means clustering
+on the coordinates, with clusters of size approximately equal to
+\code{size_new}. The default is \code{FALSE} when \code{reorder = "none"}
+and \code{TRUE} otherwise.
+\item \code{size_new}: The (approximate) number of observations used
+for each block. The default is 500. See Details for more.
+The default is 500.
 \item \code{parallel}: If \code{TRUE}, parallel processing via the
 parallel package is automatically used. The default is \code{FALSE}.
 \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
@@ -141,11 +141,11 @@ Because this square root only needs to be computed once, however, it is
 nearly the sample computational cost to call \code{sprnorm()} for any value
 of \code{samples}.
 
-Only methods for the \code{exponential}, \code{none}, and \code{car}
+Only methods for the \code{exponential} and \code{car}
 covariance functions are documented here,
 but methods exist for all other spatial covariance functions defined in
 \code{\link[=spcov_initial]{spcov_initial()}}. Syntax for the \code{exponential} method is the same
-as syntax for \code{spherical}, \code{gaussian}, \code{triangular},
+as syntax for \code{ie}, \code{spherical}, \code{gaussian}, \code{triangular},
 \code{circular}, \code{cubic}, \code{pentaspherical}, \code{cosine}, \code{wave},
 \code{jbessel}, \code{gravity}, \code{rquad}, \code{magnetic}, \code{matern},
 \code{cauchy}, and \code{pexponential} methods. Syntax for

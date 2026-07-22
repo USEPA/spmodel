@@ -8,29 +8,131 @@
 \usage{
 conditional(object, ...)
 
-\method{conditional}{splm}(object, newdata, type = "newdata", samples = 10000, local)
+\method{conditional}{splm}(object, newdata, output = "newdata", samples = 10000, local, ...)
 
-\method{conditional}{spglm}(object, newdata, type = "newdata", samples = 10000, local)
+\method{conditional}{spglm}(
+  object,
+  newdata,
+  output = "newdata",
+  type = c("link", "response", "new"),
+  samples = 10000,
+  local,
+  ...
+)
 }
 \arguments{
-\item{object}{text}
+\item{object}{A fitted model object.}
 
-\item{newdata}{text}
+\item{...}{Other arguments. Not used (needed for generic consistency).}
 
-\item{type}{text}
+\item{newdata}{A data frame or \code{sf} object in which to
+look for variables with which to predict. If a data frame, \code{newdata}
+must contain all variables used by \code{formula(object)} and all variables
+representing coordinates. If an \code{sf} object, \code{newdata} must contain
+all variables used by \code{formula(object)} and coordinates are obtained
+from the geometry of \code{newdata}. If omitted, missing data from the
+fitted model object are used.}
 
-\item{samples}{text}
+\item{output}{The output type, which can be any subset of
+\code{c("newdata", "beta", "object")}. The default is \code{"newdata"}.
+See Details for more.}
 
-\item{local}{text}
+\item{samples}{The number of conditional simulations. The default is
+\code{10,000}.}
+
+\item{local}{An optional logical or list controlling the big data approximation.
+If omitted, \code{local} is set
+to \code{TRUE} or \code{FALSE} based on the whether the observed
+or prediction sample size (the number of
+non-missing observations in \code{data} or \code{newdata}) -- if either exceeds 5,000,
+\code{local} is set to \code{TRUE}. Otherwise it is set to \code{FALSE}.
+If \code{FALSE}, no big data approximation is implemented.
+If a list is provided, the following arguments detail the big
+data approximation:
+\itemize{
+\item \code{reorder_base}: The data reordering approached to reorder
+the observed data prior to subsetting to obtain a base sample. If \code{reorder = "none"}, no reordering
+is applied to the observed data. If \code{reorder = "random"}, the observed data order is
+randomly reshuffled. If \code{reorder = "grts"}, the observed data order is
+randomly generated using the GRTS algorithm for spatially balanced
+sampling via \code{spsurvey::grts()}. The default is \code{"grts"}.
+\item \code{size_base}: The number of observed data observations used for the base sample.
+The default is 3,000. See Details for more.
+\item \code{reorder_new}: The data reordering approached to reorder
+\code{newdata}. If \code{reorder = "none"}, no reordering
+is applied to \code{newdata}. If \code{reorder = "random"}, \code{newdata} is
+randomly reshuffled. If \code{reorder = "grts"}, \code{newdata} is
+randomly generated using the GRTS algorithm for spatially balanced
+sampling via \code{spsurvey::grts()}. The default is \code{"grts"}.
+\item \code{kmeans_new}: Whether \code{newdata} observations
+they should be assigned to blocks based on k-means clustering
+on the coordinates, with clusters of size approximately equal to
+\code{size_new}. The default is \code{FALSE} when \code{reorder_new = "none"}
+and \code{TRUE} otherwise.
+\item \code{size_new}: The (approximate) number of observations used
+for each block. The default is 500. See Details for more.
+The default is 500.
+\item \code{parallel}: If \code{TRUE}, parallel processing via the
+parallel package is automatically used. The default is \code{FALSE}.
+\item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
+parallelize over. The default is the number of available cores on your machine.
+}
+When \code{local} is a list, at least one list element must be provided to
+initialize default arguments for the other list elements.
+If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
+that \code{local} is transformed into
+\code{list(reoder_base = "grts", size_base = 3000, reorder_new = "grts",
+  size_new = 500, kmeans = TRUE, parallel = FALSE)}.}
+
+\item{type}{For \code{spglm()} model objects, the scale of the conditional
+simulations for \code{newdata}.
+When \code{type = "link"}, the predicted means on the
+link scale are returned. When \code{type = "response"}, the predicted means
+on the response scale are returned. When \code{type = "new"}, a new observation
+is simulated from the appropriate response distribution with mean equal to
+the mean on the response scale and dispersion equal to the dispersion parameter
+from \code{object}. The default is \code{"link"}.}
 }
 \value{
-text
+If \code{output = "newdata"}, an a x b matrix of conditional simulations
+for each row in \code{newdata}, where a is the
+number of rows in \code{newdata} and b is the number of samples.
+If \code{output = "beta"}, an p x b matrix of conditional simulations for each
+element in \code{coef(object)}, where p is the
+number of fixed effects and b is the number of samples.
+If \code{output = "object"}, an n x b matrix of observed data values, where n is the
+number of rows in \code{data} and b is the number of samples. This is useful
+when the goal is bind together observed data and conditional simulations for
+\code{newdata}, as they have the same column dimension.
+
+If \code{output} has more than one element, a list is returned with the
+respetive elements named according to the relevant \code{output}. For example
+\code{output = c("newdata", "beta")} returns a list with elements
+\code{"newdata"} and \code{"beta"}, each containing the relevant output
+for \code{output = "newdata"} and \code{output = "beta"}, respectively.
 }
 \description{
 Conditionally simulate prediction data from a model object.
 }
 \details{
-text
+If \code{"newdata"} is in \code{output},
+conditional simulations are returned for each row of \code{newdata}.
+If \code{"beta"} is in \code{output},
+conditional simulations are returned for each fixed effect
+(i.e., element of \code{coef(object)}. If \code{"object"} is in \code{output},
+the observed data from \code{object} is returned once for each row of
+\code{newdata}. For example, \code{c("newdata", "beta")} returns
+the conditional simulations both for \code{newdata} and for the
+fixed effects.
+
+\code{local} Details: The big data approximation works by assigning \code{size_base}
+observations to a base sample and then simulating data for the base sample.
+The remaining observations are assigned to blocks. For each block, data
+are simulated from the conditional distribution given the base sample.
+Observations from the same block share conditional covariance while
+observations from distinct blocks are assumed conditionally independent
+(given the base sample). Parallelization generally further speeds up
+computations.
 }
 \examples{
 set.seed(0)

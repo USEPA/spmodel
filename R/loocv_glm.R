@@ -145,7 +145,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
     if (se.fit) {
       loocv_out$se.fit <- as.vector(cv_predict_se)
       if (type == "response" && delta) {
-        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family)
+        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family, size)
       }
     }
 
@@ -271,7 +271,7 @@ loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "respons
     if (se.fit) {
       loocv_out$se.fit <- as.vector(cv_predict_se)
       if (type == "response" && delta) {
-        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family)
+        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family, size)
       }
     }
 

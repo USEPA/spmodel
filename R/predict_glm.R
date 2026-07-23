@@ -413,7 +413,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
         }
         se <- sqrt(vars)
         if (type == "response" && se.fit && delta) {
-          se <- get_delta_se(fit, se, object$family)
+          se <- get_delta_se(fit, se, object$family, newdata_size)
         }
         if (type == "response") {
           fit <- invlink(fit, object$family, newdata_size)
@@ -457,7 +457,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
       }
       se <- sqrt(vars)
       if (type == "response" && se.fit && delta) {
-        se <- get_delta_se(fit, se, object$family)
+        se <- get_delta_se(fit, se, object$family, newdata_size)
       }
       # tstar <- qt(1 - (1 - level) / 2, df = object$n - object$p)
       tstar <- qnorm(1 - (1 - level) / 2)
@@ -908,7 +908,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
         }
         se <- sqrt(vars)
         if (type == "response" && se.fit && delta) {
-          se <- get_delta_se(fit, se, object$family)
+          se <- get_delta_se(fit, se, object$family, newdata_size)
         }
         if (type == "response") {
           fit <- invlink(fit, object$family, newdata_size)
@@ -952,7 +952,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
       lwr <- fit - tstar * se
       upr <- fit + tstar * se
       if (type == "response" && se.fit && delta) {
-        se <- get_delta_se(fit, se, object$family)
+        se <- get_delta_se(fit, se, object$family, newdata_size)
       }
       if (type == "response") {
         fit <- invlink(fit, object$family, newdata_size)

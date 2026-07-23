@@ -68,6 +68,8 @@
 #'   size_new = 500, kmeans = TRUE, parallel = FALSE)}.
 #
 #' @param ... Other arguments. Not used (needed for generic consistency).
+#' @param newdata_size The \code{size} value for each observation in \code{newdata}
+#'   used when predicting for the binomial family.
 #'
 #' @details
 #'
@@ -149,6 +151,11 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   base_val_y <- matrix(rep(y, times = samples), ncol = samples)
   if (length(output) == 1 && output == "object") {
     return(base_val_y)
+  }
+  # handle offset
+  offset_obdata <- model.offset(model.frame(object))
+  if (!is.null(offset_obdata)) {
+    y <- y - offset_obdata
   }
 
   local_list <- get_local_list_conditional(local, object, newdata)
@@ -235,6 +242,10 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
 
   new_val <- newdata_model %*% new_betahat + new_val
 
+  if (!is.null(offset)) {
+    new_val <- sweep(new_val, 1, offset, "+")
+  }
+
   val <- list(newdata = new_val, beta = new_betahat, object = base_val_y)
   if (length(output) == 1) {
     return(val[[output]])
@@ -246,7 +257,7 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
 #' @rdname conditional
 #' @method conditional spglm
 #' @export
-conditional.spglm <- function(object, newdata, output = "newdata", type = c("link", "response", "new"), samples = 10000, local, ...) {
+conditional.spglm <- function(object, newdata, output = "newdata", type = c("link", "response", "new"), samples = 10000, local, newdata_size, ...) {
 
   if (missing(local)) {
     local <- NULL
@@ -261,6 +272,13 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
 
   type <- match.arg(type)
 
+  # deal with newdata_size
+  if (missing(newdata_size)) newdata_size <- NULL
+  # set newdata_size if needed
+  if (is.null(newdata_size) && object$family == "binomial") {
+    newdata_size <- rep(1, NROW(newdata))
+  }
+
   w <- fitted(object, type = "link")
   y <- object$y
   size <- object$size
@@ -268,6 +286,12 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   if (length(output) == 1 && output == "object") {
     return(base_val_w)
   }
+  # handle offset
+  offset_obdata <- model.offset(model.frame(object))
+  if (!is.null(offset_obdata)) {
+    w <- w - offset_obdata
+  }
+
 
   local_list <- get_local_list_conditional(local, object, newdata)
 
@@ -372,8 +396,12 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
 
   new_val <- newdata_model %*% new_betahat + new_val
 
+  if (!is.null(offset)) {
+    new_val <- sweep(new_val, 1, offset, "+")
+  }
+
   if (type != "link") {
-    new_val <- invlink_conditional(new_val, type, dispersion = as.vector(coef(object, type = "dispersion")), family = object$family)
+    new_val <- invlink_conditional(new_val, type, dispersion = as.vector(coef(object, type = "dispersion")), family = object$family, newdata_size)
   }
 
   val <- list(newdata = new_val, beta = new_betahat, object = base_val_w)
@@ -384,13 +412,13 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   }
 }
 
-invlink_conditional <- function(mu_link, type, dispersion, family, size = 1) {
+invlink_conditional <- function(mu_link, type, dispersion, family, newdata_size) {
 
   # compare to delta method?
   n_newdata <- NROW(mu_link)
   n_sim <- NCOL(mu_link)
   len_sim <- seq(1, n_sim)
-  mu <- invlink(mu_link, family)
+  mu <- invlink(mu_link, family, size = 1)
   rm("mu_link")
 
   if (type == "response") {
@@ -422,7 +450,7 @@ invlink_conditional <- function(mu_link, type, dispersion, family, size = 1) {
 
     if (family == "binomial") {
       mu_list <- split(t(mu), len_sim)
-      val <- vapply(mu_list, function(x) rbinom(n_newdata, size, x), numeric(n_newdata))
+      val <- vapply(mu_list, function(x) rbinom(n_newdata, newdata_size, x), numeric(n_newdata))
     }
 
     if (family == "beta") {
@@ -435,6 +463,10 @@ invlink_conditional <- function(mu_link, type, dispersion, family, size = 1) {
         val <- pmin(1 - 1e-4, val)
       }, numeric(n_newdata))
     }
+  }
+
+  if (type == "response" && family == "binomial") {
+    val <- sweep(val, 1, newdata_size, "*")
   }
 
   val

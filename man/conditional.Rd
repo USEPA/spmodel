@@ -17,6 +17,7 @@ conditional(object, ...)
   type = c("link", "response", "new"),
   samples = 10000,
   local,
+  newdata_size,
   ...
 )
 }
@@ -92,6 +93,9 @@ on the response scale are returned. When \code{type = "new"}, a new observation
 is simulated from the appropriate response distribution with mean equal to
 the mean on the response scale and dispersion equal to the dispersion parameter
 from \code{object}. The default is \code{"link"}.}
+
+\item{newdata_size}{The \code{size} value for each observation in \code{newdata}
+used when predicting for the binomial family.}
 }
 \value{
 If \code{output = "newdata"}, an a x b matrix of conditional simulations

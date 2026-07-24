@@ -2,7 +2,7 @@ test_that("blank test", {
   expect_null(NULL)
 })
 
-test_local <- TRUE # FALSE for CRAN
+test_local <- FALSE # FALSE for CRAN
 
 if (test_local) {
   test_that("exact output match", {

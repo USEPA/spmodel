@@ -6,6 +6,9 @@
 #'
 #' @noRd
 get_initial_extra <- function(spcov_type) {
+  # only covariance types with a fourth ("extra"/smoothness) parameter get a
+  # starting value here; these defaults are reasonable general-purpose choices
+  # for the Matern smoothness, Cauchy shape, and powered-exponential exponent
   if (spcov_type == "matern") {
     initial_extra <- 2
   } else if (spcov_type == "cauchy") {

@@ -10,7 +10,9 @@
 #'
 #' @noRd
 cov_vector <- function(spcov_params, dist_vector, randcov_vector = NULL, partition_vector = NULL) {
-
+  # Vector analogue of cov_matrix(): used for kriging/prediction, where only the
+  # covariance between each prediction location and the observed data (not a full
+  # observed-by-observed matrix) is needed
   # spatial
   spcov_vector_val <- spcov_vector(spcov_params, dist_vector)
 
@@ -21,7 +23,8 @@ cov_vector <- function(spcov_params, dist_vector, randcov_vector = NULL, partiti
     cov_vector_val <- spcov_vector_val
   }
 
-  # partitioning
+  # partitioning: zero out covariance for prediction/observation pairs that fall in
+  # different partitions, matching cov_matrix()'s partitioning behavior
   if (!is.null(partition_vector)) {
     cov_vector_val <- cov_vector_val * partition_vector
   }

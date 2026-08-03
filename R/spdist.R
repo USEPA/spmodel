@@ -8,7 +8,10 @@
 #'
 #' @noRd
 spdist <- function(data, xcoord, ycoord, xcoord_val, ycoord_val, sparse = TRUE) {
+  # two calling conventions are supported: pass raw coordinate vectors
+  # (xcoord_val/ycoord_val) directly, or pass a data frame plus column names
   if (missing(data)) {
+    # missing ycoord_val means only one coordinate dimension was supplied
     if (missing(ycoord_val)) {
       spdist_val <- as.matrix(dist(xcoord_val))
     } else {

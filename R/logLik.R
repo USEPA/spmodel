@@ -21,10 +21,16 @@
 #' )
 #' logLik(spmod)
 logLik.splm <- function(object, ...) {
+  # only defined for likelihood-based fits; other estmethods (e.g. method of
+  # moments) don't optimize a likelihood so there is no minus2loglik to convert
   if (object$estmethod %in% c("reml", "ml")) {
+    # optim minimizes -2*loglik, so recover loglik by undoing that transform
     minus2loglik <- object$optim$value
     loglik <- -1 / 2 * minus2loglik
     # number of estimated parameters
+    # reml profiles out the fixed effects, so its likelihood is a function of
+    # only the npar covariance parameters; ml's likelihood also depends on
+    # the p fixed effects, so those are counted too
     if (object$estmethod == "ml") {
       n_est_param <- object$npar + object$p
     } else {

@@ -41,6 +41,8 @@
 #' residuals(spmod, type = "standardized")
 #' rstandard(spmod)
 residuals.splm <- function(object, type = "response", ...) {
+  # the requested residual type is precomputed and stored on the fitted
+  # object at fit time, so this just looks it up rather than recomputing it
   if (type == "response") {
     return(object$residuals$response)
   } else if (type == "pearson") {
@@ -74,6 +76,8 @@ resid.spautor <- residuals.spautor
 #' @order 3
 #' @export
 rstandard.splm <- function(model, ...) {
+  # rstandard() is just residuals(type = "standardized") under a different,
+  # more discoverable, generic name
   residuals.splm(model, type = "standardized")
 }
 

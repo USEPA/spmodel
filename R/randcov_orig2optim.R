@@ -11,22 +11,32 @@ randcov_orig2optim <- function(randcov_initial, randcov_profiled = NULL, spcov_i
   } else {
     if (!is.null(randcov_profiled) && randcov_profiled) {
       # only done if all random effects unknown
+      # s2r: random effect variances; s2: total variance (de + ie + all random
+      # effects); v_r: share of total variance due to random effects overall
       s2r <- randcov_initial$initial
       s2 <- sum(spcov_initial$initial[["de"]], spcov_initial$initial[["ie"]], s2r)
       v_r <- sum(s2r) / s2
       randcov_orig2optim_val <- c(v_r = v_r)
       n_randcov <- length(s2r)
       if (n_randcov > 1) {
+        # stick-breaking: v_i is the fraction of the variance still remaining
+        # (after allocating to effects 1..i-1) that effect i through the last
+        # effect take up together -- this reparameterizes n_randcov positive
+        # values summing to a fixed total into n_randcov - 1 free ratios in (0, 1)
         for (i in seq(2, n_randcov)) {
           randcov_orig2optim_val[i] <- sum(s2r[seq(i, n_randcov)]) / sum(s2r[seq(i - 1, n_randcov)])
           names(randcov_orig2optim_val)[i] <- paste("v", i, sep = "_")
         }
       }
+      # logit transform so each ratio (constrained to (0, 1)) becomes an
+      # unconstrained optim parameter
       randcov_orig2optim_val <- log(randcov_orig2optim_val / (1 - randcov_orig2optim_val))
       randcov_orig2optim_is_known <- rep(FALSE, length(randcov_orig2optim_val))
       names(randcov_orig2optim_is_known) <- names(randcov_initial$is_known) # non profiled to keep for later
 
       # return random effect parameter vector
+      # clamp to +/-50 on the logit scale (already extremely close to 0/1 on
+      # the original scale) so optim() never sees +/-Inf from values at the boundary
       randcov_orig2optim_val <- ifelse(randcov_orig2optim_val > 50 & !randcov_orig2optim_is_known, 50, randcov_orig2optim_val)
       randcov_orig2optim_val <- ifelse(randcov_orig2optim_val < -50 & !randcov_orig2optim_is_known, -50, randcov_orig2optim_val)
 
@@ -36,12 +46,15 @@ randcov_orig2optim <- function(randcov_initial, randcov_profiled = NULL, spcov_i
         n_est = sum(!randcov_orig2optim_is_known)
       )
     } else {
+      # variances must stay positive, so optimize on the log scale
       randcov_orig2optim_val <- log(randcov_initial$initial)
       names(randcov_orig2optim_val) <- paste(names(randcov_initial$initial), "log", sep = "_")
       randcov_orig2optim_is_known <- randcov_initial$is_known
       names(randcov_orig2optim_is_known) <- paste(names(randcov_initial$is_known), "log", sep = "_")
 
       # return random effect parameter vector
+      # clamp extreme log-scale values (i.e., variances near 0 or huge) so
+      # optim() never receives +/-Inf
       randcov_orig2optim_val <- ifelse(randcov_orig2optim_val > 50 & !randcov_orig2optim_is_known, 50, randcov_orig2optim_val)
       randcov_orig2optim_val <- ifelse(randcov_orig2optim_val < -50 & !randcov_orig2optim_is_known, -50, randcov_orig2optim_val)
 

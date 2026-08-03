@@ -64,6 +64,14 @@
 #'       are spread out over multiple cores. The default is \code{FALSE}.
 #'     \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
 #'       parallelize over. The default is the number of available cores on your machine.
+#'     \item \code{byrow_threshold}: Only relevant when a random effect or partition
+#'       factor is used and \code{method} is \code{"distance"} or \code{"covariance"}.
+#'       In this scenario, when the observed sample size times the number of predictions
+#'       is less than \code{byrow_threshold}, computations are performed once for
+#'       all predictions simultaneously (which is generally faster but uses more memory).
+#'       Otherwise, computations are performed separately for each prediction, one row
+#'       at a time (which is generally slower but uses less memory). The default is
+#'       \code{10000^2}. Only used with models fit using [splm()] or [spglm()].
 #'   }
 #'   When \code{local} is a list, at least one list element must be provided to
 #'   initialize default arguments for the other list elements.
@@ -136,8 +144,6 @@
 #' augment(spmod, newdata = sulfate_preds, interval = "prediction")
 predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf, interval = c("none", "confidence", "prediction"),
                          level = 0.95, type = c("response", "terms", "weight"), block = FALSE, local, terms = NULL, na.action = na.fail, ...) {
-
-
   # match interval argument so the three display
   interval <- match.arg(interval)
   type <- match.arg(type)
@@ -147,135 +153,28 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
   }
 
   # deal with local
-  if (missing(local)) {
-    local <- NULL
-  }
+  if (missing(local)) local <- NULL
 
   if (block) {
     object <- predict_block_splm(object, newdata, se.fit, scale, df, interval, level, type, local, terms, na.action, ...)
     return(object)
   }
 
-  # check scale is numeric (if specified)
-  if (!is.null(scale) && !is.numeric(scale)) {
-    stop("scale must be numeric.", call. = FALSE)
-  }
-
-  # handle na action -- this is an inefficient workaround that should be fixed later
-  # placeholder as a reminder to consider adding na.action argument at a later date
-  # na_action <- as.character(substitute(na.action))
-
-  # error if newdata missing from arguments and object
-  if (missing(newdata) && is.null(object$newdata)) {
-    stop("No missing data to predict. newdata must be specified in the newdata argument or object$newdata must be non-NULL.", call. = FALSE)
-  }
-
-  # rename relevant quantities
-  obdata <- object$obdata
-  xcoord <- object$xcoord
-  ycoord <- object$ycoord
-
-  # write newdata if predicting missing data
-  if (missing(newdata)) {
-    add_newdata_rows <- TRUE
-    newdata <- object$newdata
-  } else {
-    add_newdata_rows <- FALSE
-  }
-
-  # edit newdata if random effect or partition factor levels are new
-  if (!is.null(object$random) || !is.null(object$partition_factor)) {
-    random_names <- all.vars(object$random)
-    partition_names <- all.vars(object$partition_factor)
-    varnames <- unique(c(random_names, partition_names))
-    newdata <- replace_newdata(varnames, obdata, newdata)
-  }
-
-  # deal with local
-  if (is.null(local)) {
-    if (object$n > 10000) {
-    # if (object$n > 5000 || NROW(newdata) > 5000) {
-      local <- TRUE
-      message("Because the sample size of the fitted model object exceeds 10,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun predict() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
-    } else {
-      local <- FALSE
-    }
-  }
-
-  # save spcov param vector
-  spcov_params_val <- coef(object, type = "spcov")
-
-  # save randcov param vector
-  randcov_params_val <- coef(object, type = "randcov")
-
-
-  attr_sp <- attr(class(newdata), "package")
-  if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
-    stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
-  }
-
-  if (inherits(newdata, "sf")) {
-    newdata <- suppressWarnings(sf::st_centroid(newdata))
-
-    newdata <- sf_to_df(newdata)
-    names(newdata)[[which(names(newdata) == ".xcoord")]] <- as.character(xcoord) # only relevant if newdata is sf data is not
-    names(newdata)[[which(names(newdata) == ".ycoord")]] <- as.character(ycoord) # only relevant if newdata is sf data is not
-  }
-
-  # add back in zero column to cover anisotropy (should make anisotropy only available 1-d)
-  if (object$dim_coords == 1) {
-    obdata[[ycoord]] <- 0
-    newdata[[ycoord]] <- 0
-  }
-
-  if (object$anisotropy) { # could just do rotate != 0 || scale != 1
-    obdata_aniscoords <- transform_anis(obdata, xcoord, ycoord,
-      rotate = spcov_params_val[["rotate"]],
-      scale = spcov_params_val[["scale"]]
-    )
-    obdata[[xcoord]] <- obdata_aniscoords$xcoord_val
-    obdata[[ycoord]] <- obdata_aniscoords$ycoord_val
-    newdata_aniscoords <- transform_anis(newdata, xcoord, ycoord,
-      rotate = spcov_params_val[["rotate"]],
-      scale = spcov_params_val[["scale"]]
-    )
-    newdata[[xcoord]] <- newdata_aniscoords$xcoord_val
-    newdata[[ycoord]] <- newdata_aniscoords$ycoord_val
-  }
-
-  formula_newdata <- delete.response(terms(object))
-  # fix model frame bug with degree 2 basic polynomial and one prediction row
-  # e.g. poly(x, y, degree = 2) and newdata has one row
-  if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses, fixed = TRUE)) && NROW(newdata) == 1) {
-    newdata <- newdata[c(1, 1), , drop = FALSE]
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
-    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
-    newdata_model <- newdata_model[1, , drop = FALSE]
-    # find offset
-    offset <- model.offset(newdata_model_frame)
-    if (!is.null(offset)) {
-      offset <- offset[1]
-    }
-    newdata <- newdata[1, , drop = FALSE]
-  } else {
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
-    # assumes that predicted observations are not outside the factor levels
-    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
-    # find offset
-    offset <- model.offset(newdata_model_frame)
-  }
-  attr_assign <- attr(newdata_model, "assign")
-  attr_contrasts <- attr(newdata_model, "contrasts")
-  keep_cols <- which(colnames(newdata_model) %in% colnames(model.matrix(object)))
-  newdata_model <- newdata_model[, keep_cols, drop = FALSE]
-  attr(newdata_model, "assign") <- attr_assign[keep_cols]
-  attr(newdata_model, "contrasts") <- attr_contrasts
-
-  # finding rows w/out NA
-  ob_predictors <- complete.cases(newdata_model)
-  if (any(!ob_predictors)) {
-    stop("Cannot have NA values in predictors.", call. = FALSE)
-  }
+  # build the prediction setup object and pull its elements into named local
+  # variables (explicit assignment, not list2env(), so static analysis --
+  # R CMD check's codetools-based check and RStudio's diagnostics -- can see
+  # where obdata/xcoord/ycoord/newdata/etc. below come from)
+  prediction_object <- get_prediction_object_splm(object, newdata, scale, local)
+  local <- prediction_object$local
+  obdata <- prediction_object$obdata
+  xcoord <- prediction_object$xcoord
+  ycoord <- prediction_object$ycoord
+  newdata <- prediction_object$newdata
+  add_newdata_rows <- prediction_object$add_newdata_rows
+  spcov_params_val <- prediction_object$spcov_params_val
+  randcov_params_val <- prediction_object$randcov_params_val
+  newdata_model <- prediction_object$newdata_model
+  offset <- prediction_object$offset
 
   # call terms if needed
   if (type == "terms") {
@@ -289,141 +188,33 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
   # storing newdata as a list
   newdata_model_list <- split(newdata_model, seq_len(npred))
 
-  # storing newdata as a list
-  newdata_list <- mapply(x = newdata_rows_list, y = newdata_model_list, FUN = function(x, y) list(row = x, x0 = y), SIMPLIFY = FALSE)
+  # storing newdata as a list (row_index lets get_pred_splm() slice its row
+  # out of the medium-sized-data matrices built below, when applicable)
+  newdata_list <- mapply(
+    x = newdata_rows_list, y = newdata_model_list, i = seq_len(npred),
+    FUN = function(x, y, i) list(row = x, x0 = y, row_index = i), SIMPLIFY = FALSE
+  )
 
   if (interval %in% c("none", "prediction")) {
-
     # local prediction list
     local_list <- get_local_list_prediction(local)
 
-    # hardcoding none covariance (commented out 0.5.1 for efficiency's sake in use with local)
-    # if (inherits(spcov_params_val, "none") && is.null(randcov_params_val)) {
-    #   local_list$method <- "all"
-    # }
-
     dotlist <- list(...)
-    dotlist_names <- names(dotlist)
+    extra_randcov_partition_lists <- get_extra_randcov_partition_lists(object, obdata, newdata, dotlist)
+    randcov_terms <- extra_randcov_partition_lists$randcov_terms
+    reform_bar2 <- extra_randcov_partition_lists$reform_bar2
+    partition_index_obdata <- extra_randcov_partition_lists$partition_index_obdata
 
-    if ("extra_randcov_list" %in% dotlist_names && !is.null(dotlist[["extra_randcov_list"]])) {
-      extra_randcov_list <- dotlist$extra_randcov_list
-    } else {
-      extra_randcov_list <- get_extra_randcov_list(object, obdata, newdata)
-    }
-    reform_bar2_list <- extra_randcov_list$reform_bar2_list
-    Z_index_obdata_list <- extra_randcov_list$Z_index_obdata_list
-    reform_bar1_list <- extra_randcov_list$reform_bar1_list
-    Z_val_obdata_list <- extra_randcov_list$Z_val_obdata_list
-
-    if ("extra_partition_list" %in% dotlist_names && !is.null(dotlist[["extra_partition_list"]])) {
-      extra_partition_list <- dotlist$extra_partition_list
-    } else {
-      extra_partition_list <- get_extra_partition_list(object, obdata, newdata)
-    }
-    reform_bar2 <- extra_partition_list$reform_bar2
-    partition_index_obdata <- extra_partition_list$partition_index_obdata
-
-    # # random stuff
-    # if (!is.null(object$random)) {
-    #   randcov_names <- get_randcov_names(object$random)
-    #   # this causes a memory leak and was not even needed
-    #   # randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
-    #   # comment out here for simple
-    #   reform_bar_list <- lapply(randcov_names, function(randcov_name) {
-    #     bar_split <- unlist(strsplit(randcov_name, " | ", fixed = TRUE))
-    #     reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
-    #     if (bar_split[[1]] != "1") {
-    #       reform_bar1 <- reformulate(bar_split[[1]], intercept = FALSE)
-    #     } else {
-    #       reform_bar1 <- NULL
-    #     }
-    #     list(reform_bar2 = reform_bar2, reform_bar1 = reform_bar1)
-    #   })
-    #   reform_bar2_list <- lapply(reform_bar_list, function(x) x$reform_bar2)
-    #   names(reform_bar2_list) <- randcov_names
-    #   reform_bar1_list <- lapply(reform_bar_list, function(x) x$reform_bar1)
-    #   names(reform_bar1_list) <- randcov_names
-    #   Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) {
-    #
-    #     reform_bar2_mf <- model.frame(reform_bar2, obdata)
-    #     reform_bar2_terms <- terms(reform_bar2_mf)
-    #     reform_bar2_xlev <- .getXlevels(reform_bar2_terms, reform_bar2_mf)
-    #     reform_bar2_mx <- model.matrix(reform_bar2, obdata)
-    #     reform_bar2_names <- colnames(reform_bar2_mx)
-    #     reform_bar2_split <- split(reform_bar2_mx, seq_len(NROW(reform_bar2_mx)))
-    #     reform_bar2_vals <- reform_bar2_names[vapply(reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
-    #
-    #     # adding dummy levels if newdata observations of random effects are not in original data
-    #     # terms object is unchanged if levels change
-    #     # reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
-    #     # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
-    #     # reform_bar2_terms_full <- terms(rbind(reform_bar2_mf, reform_bar2_mf_new))
-    #     reform_bar2_xlev_full <- .getXlevels(reform_bar2_terms, rbind(reform_bar2_mf, model.frame(reform_bar2, newdata)))
-    #     if (!identical(reform_bar2_xlev, reform_bar2_xlev_full)) {
-    #       reform_bar2_xlev <- reform_bar2_xlev_full
-    #     }
-    #
-    #     list(reform_bar2_vals = reform_bar2_vals, reform_bar2_xlev = reform_bar2_xlev)
-    #   })
-    #   # Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) as.vector(model.matrix(reform_bar2, obdata)))
-    #   names(Z_index_obdata_list) <- randcov_names
-    #   Z_val_obdata_list <- lapply(reform_bar1_list, function(reform_bar1) {
-    #     if (is.null(reform_bar1)) {
-    #       return(NULL)
-    #     } else {
-    #       return(as.vector(model.matrix(reform_bar1, obdata)))
-    #     }
-    #   })
-    #   names(Z_val_obdata_list) <- randcov_names
-    # } else {
-    #   reform_bar2_list <- NULL
-    #   Z_index_obdata_list <- NULL
-    #   reform_bar1_list <- NULL
-    #   Z_val_obdata_list <- NULL
-    # }
-    #
-    # # partition factor stuff
-    # if (!is.null(object$partition_factor)) {
-    #   partition_factor_val <- get_partition_name(labels(terms(object$partition_factor)))
-    #   bar_split <- unlist(strsplit(partition_factor_val, " | ", fixed = TRUE))
-    #   reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
-    #   p_reform_bar2_mf <- model.frame(reform_bar2, obdata)
-    #   p_reform_bar2_terms <- terms(p_reform_bar2_mf)
-    #   p_reform_bar2_xlev <- .getXlevels(p_reform_bar2_terms, p_reform_bar2_mf)
-    #   p_reform_bar2_mx <- model.matrix(reform_bar2, obdata)
-    #   p_reform_bar2_names <- colnames(p_reform_bar2_mx)
-    #   p_reform_bar2_split <- split(p_reform_bar2_mx, seq_len(NROW(p_reform_bar2_mx)))
-    #   p_reform_bar2_vals <- p_reform_bar2_names[vapply(p_reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
-    #
-    #
-    #   # adding dummy levels if newdata observations of random effects are not in original data
-    #   # terms object is unchanged if levels change
-    #   # p_reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
-    #   # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
-    #   # p_reform_bar2_terms_full <- terms(rbind(p_reform_bar2_mf, p_reform_bar2_mf_new))
-    #   p_reform_bar2_xlev_full <- .getXlevels(p_reform_bar2_terms, rbind(p_reform_bar2_mf, model.frame(reform_bar2, newdata)))
-    #   if (!identical(p_reform_bar2_xlev, p_reform_bar2_xlev_full)) {
-    #     p_reform_bar2_xlev <- p_reform_bar2_xlev_full
-    #   }
-    #
-    #   partition_index_obdata <- list(reform_bar2_vals = p_reform_bar2_vals, reform_bar2_xlev = p_reform_bar2_xlev)
-    #   # partition_index_obdata <- as.vector(model.matrix(reform_bar2, obdata))
-    # } else {
-    #   reform_bar2 <- NULL
-    #   partition_index_obdata <- NULL
-    # }
+    medium_precompute <- get_medium_precompute(
+      object, newdata, obdata, xcoord, ycoord, npred, local_list,
+      randcov_params_val, randcov_terms, spcov_params_val, reform_bar2, partition_index_obdata
+    )
+    dist_matrix_full <- medium_precompute$dist_matrix_full
+    partition_vector_full <- medium_precompute$partition_vector_full
+    cov_vector_full <- medium_precompute$cov_vector_full
 
     # matrix cholesky
     if (local_list$method == "all") {
-      # if (!is.null(object$random)) {
-      #   randcov_names <- get_randcov_names(object$random)
-      #   randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
-      # }
-      # partition_matrix_val <- partition_matrix(object$partition_factor, obdata)
-      # cov_matrix_val <- cov_matrix(
-      #   spcov_params_val, spdist(obdata, xcoord, ycoord), randcov_params_val,
-      #   randcov_Zs, partition_matrix_val
-      # )
       cov_matrix_val <- covmatrix(object)
       # handling closed form of none covariance
       if (inherits(spcov_params_val, c("none", "ie")) && is.null(randcov_params_val)) {
@@ -436,53 +227,28 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
       cov_lowchol <- NULL
     }
 
-    if (local_list$parallel) {
-      cl <- parallel::makeCluster(local_list$ncores)
-      pred_splm <- parallel::parLapply(cl, newdata_list, get_pred_splm,
-        se.fit = se.fit,
-        interval = interval, formula = object$terms,
-        obdata = obdata, xcoord = xcoord, ycoord = ycoord,
-        spcov_params_val = spcov_params_val, random = object$random,
-        randcov_params_val = randcov_params_val,
-        reform_bar2_list = reform_bar2_list,
-        Z_index_obdata_list = Z_index_obdata_list,
-        reform_bar1_list = reform_bar1_list,
-        Z_val_obdata_list = Z_val_obdata_list,
-        partition_factor = object$partition_factor,
-        reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
-        cov_lowchol = cov_lowchol,
-        Xmat = model.matrix(object),
-        y = model.response(model.frame(object)),
-        offset = model.offset(model.frame(object)), dim_coords = object$dim_coords,
-        betahat = coefficients(object), cov_betahat = vcov(object),
-        contrasts = object$contrasts,
-        local = local_list, xlevels = object$xlevels, diagtol = object$diagtol,
-        type = type
-      )
-      cl <- parallel::stopCluster(cl)
-    } else {
-      pred_splm <- lapply(newdata_list, get_pred_splm,
-        se.fit = se.fit,
-        interval = interval, formula = object$terms,
-        obdata = obdata, xcoord = xcoord, ycoord = ycoord,
-        spcov_params_val = spcov_params_val, random = object$random,
-        randcov_params_val = randcov_params_val,
-        reform_bar2_list = reform_bar2_list,
-        Z_index_obdata_list = Z_index_obdata_list,
-        reform_bar1_list = reform_bar1_list,
-        Z_val_obdata_list = Z_val_obdata_list,
-        partition_factor = object$partition_factor,
-        reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata,
-        cov_lowchol = cov_lowchol,
-        Xmat = model.matrix(object),
-        y = model.response(model.frame(object)),
-        offset = model.offset(model.frame(object)), dim_coords = object$dim_coords,
-        betahat = coefficients(object), cov_betahat = vcov(object),
-        contrasts = object$contrasts,
-        local = local_list, xlevels = object$xlevels, diagtol = object$diagtol,
-        type = type
-      )
-    }
+    # extend the prediction object with everything get_pred_splm() needs that
+    # is constant across prediction rows, so it can rely on a single object
+    # argument instead of two dozen individually named ones. assignment must
+    # go through `[names(.)] <-` rather than `$<-`/`[[<-`,
+    # since those delete a key entirely when its value is NULL (e.g. random,
+    # partition_factor) instead of storing the NULL
+    pred_row_context <- list(
+      se.fit = se.fit, interval = interval, formula = object$terms,
+      random = object$random, randcov_terms = randcov_terms,
+      partition_factor = object$partition_factor, reform_bar2 = reform_bar2,
+      partition_index_obdata = partition_index_obdata, cov_lowchol = cov_lowchol,
+      Xmat = model.matrix(object), y = model.response(model.frame(object)),
+      offset = model.offset(model.frame(object)), dim_coords = object$dim_coords,
+      betahat = coefficients(object), cov_betahat = vcov(object),
+      contrasts = object$contrasts, local = local_list, xlevels = object$xlevels,
+      diagtol = object$diagtol, type = type,
+      dist_matrix_full = dist_matrix_full, partition_vector_full = partition_vector_full,
+      cov_vector_full = cov_vector_full
+    )
+    prediction_object[names(pred_row_context)] <- pred_row_context
+
+    pred_splm <- run_pred_dispatch(get_pred_splm, newdata_list, prediction_object, local_list)
 
     if (type == "weight") {
       fit <- do.call("rbind", lapply(pred_splm, function(x) x$fit))
@@ -505,17 +271,10 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
         if (!is.null(scale)) {
           se <- se * scale
         }
-        if (add_newdata_rows) {
-          names(fit) <- object$missing_index
-          names(se) <- object$missing_index
-        }
-        return(list(fit = fit, se.fit = se))
       } else {
-        if (add_newdata_rows) {
-          names(fit) <- object$missing_index
-        }
-        return(fit)
+        se <- NULL
       }
+      return(finalize_interval_none(fit, se, add_newdata_rows, object$missing_index))
     }
 
     if (interval == "prediction") {
@@ -533,24 +292,9 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
         df <- Inf
       }
       tstar <- qt(1 - (1 - level) / 2, df = df)
-      # tstar <- qt(1 - (1 - level) / 2, df = object$n - object$p)
-      # tstar <- qnorm(1 - (1 - level) / 2)
       lwr <- fit - tstar * se
       upr <- fit + tstar * se
-      fit <- cbind(fit, lwr, upr)
-      row.names(fit) <- 1:NROW(fit)
-      if (se.fit) {
-        if (add_newdata_rows) {
-          row.names(fit) <- object$missing_index
-          names(se) <- object$missing_index
-        }
-        return(list(fit = fit, se.fit = se))
-      } else {
-        if (add_newdata_rows) {
-          row.names(fit) <- object$missing_index
-        }
-        return(fit)
-      }
+      return(finalize_interval_bounds(fit, lwr, upr, se, se.fit, add_newdata_rows, object$missing_index))
     }
   } else if (interval == "confidence") {
     # finding fitted values of the mean parameters
@@ -571,20 +315,7 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
     tstar <- qt(1 - (1 - level) / 2, df = df)
     lwr <- fit - tstar * se
     upr <- fit + tstar * se
-    fit <- cbind(fit, lwr, upr)
-    row.names(fit) <- 1:NROW(fit)
-    if (se.fit) {
-      if (add_newdata_rows) {
-        row.names(fit) <- object$missing_index
-        names(se) <- object$missing_index
-      }
-      return(list(fit = fit, se.fit = se))
-    } else {
-      if (add_newdata_rows) {
-        row.names(fit) <- object$missing_index
-      }
-      return(fit)
-    }
+    return(finalize_interval_bounds(fit, lwr, upr, se, se.fit, add_newdata_rows, object$missing_index))
   } else {
     stop("Interval must be none, confidence, or prediction")
   }
@@ -596,7 +327,6 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
 #' @export
 predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf, interval = c("none", "confidence", "prediction"),
                             level = 0.95, type = c("response", "terms", "weight"), local, terms = NULL, na.action = na.fail, ...) {
-
   # match interval argument so the three display
   interval <- match.arg(interval)
   type <- match.arg(type)
@@ -606,72 +336,19 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = 
   }
 
   # deal with local
-  if (missing(local)) {
-    local <- NULL
-  }
+  if (missing(local)) local <- NULL
 
-  # deal with local
-  if (is.null(local)) {
-    local <- FALSE
-  }
-
-  # check scale is numeric (if specified)
-  if (!is.null(scale) && !is.numeric(scale)) {
-    stop("scale must be numeric.", call. = FALSE)
-  }
-
-  # error if newdata missing from arguments and object
-  if (missing(newdata) && is.null(object$newdata)) {
-    stop("No missing data to predict. newdata must be specified in the newdata argument or object$newdata must be non-NULL.", call. = FALSE)
-  }
-
-  # write newdata if predicting missing data
-  newdata <- object$data[object$missing_index, , drop = FALSE]
-
-  # save spcov param vector
-  spcov_params_val <- coef(object, type = "spcov")
-
-  # save randcov param vector
-  randcov_params_val <- coef(object, type = "randcov")
-
-
-
-  formula_newdata <- delete.response(terms(object))
-  # fix model frame bug with degree 2 basic polynomial and one prediction row
-  # e.g. poly(x, y, degree = 2) and newdata has one row
-  if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses, fixed = TRUE)) && NROW(newdata) == 1) {
-    newdata <- newdata[c(1, 1), , drop = FALSE]
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
-    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
-    newdata_model <- newdata_model[1, , drop = FALSE]
-    # find offset
-    offset <- model.offset(newdata_model_frame)
-    if (!is.null(offset)) {
-      offset <- offset[1]
-    }
-    newdata <- newdata[1, , drop = FALSE]
-  } else {
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
-    # assumes that predicted observations are not outside the factor levels
-    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
-    # find offset
-    offset <- model.offset(newdata_model_frame)
-  }
-  attr_assign <- attr(newdata_model, "assign")
-  attr_contrasts <- attr(newdata_model, "contrasts")
-  keep_cols <- which(colnames(newdata_model) %in% colnames(model.matrix(object)))
-  newdata_model <- newdata_model[, keep_cols, drop = FALSE]
-  attr(newdata_model, "assign") <- attr_assign[keep_cols]
-  attr(newdata_model, "contrasts") <- attr_contrasts
-
-  # finding rows w/out NA
-  # this isn't really needed, because the error should come on model building
-  # but someone could accidentally write over their newdata object after fitting
-  # so it is good to keep for completeness
-  ob_predictors <- complete.cases(newdata_model)
-  if (any(!ob_predictors)) {
-    stop("Cannot have NA values in predictors.", call. = FALSE)
-  }
+  # build the prediction setup object and pull its elements into named local
+  # variables (explicit assignment, not list2env(), so static analysis --
+  # R CMD check's codetools-based check and RStudio's diagnostics -- can see
+  # where newdata/spcov_params_val/newdata_model/etc. below come from)
+  prediction_object <- get_prediction_object_spautor(object, newdata, scale, local)
+  local <- prediction_object$local
+  newdata <- prediction_object$newdata
+  spcov_params_val <- prediction_object$spcov_params_val
+  randcov_params_val <- prediction_object$randcov_params_val
+  newdata_model <- prediction_object$newdata_model
+  offset <- prediction_object$offset
 
   # call terms if needed
   if (type == "terms") {
@@ -687,25 +364,28 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = 
   newdata_model_list <- split(newdata_model, seq_len(NROW(newdata)))
 
   if (interval %in% c("none", "prediction")) {
-
-    # # randcov
+    # unlike splm(), spautor() models don't offer a big-data local
+    # approximation here: the neighbor structure (object$W) already fixes a
+    # joint covariance matrix over all sites (observed and missing), so it is
+    # built once for everyone and then sliced by row/column index below,
+    # rather than recomputed per prediction row
+    # randcov
     randcov_Zs_val <- get_randcov_Zs(randcov_names = names(randcov_params_val), data = object$data)
     # making the partition matrix
     partition_matrix_val <- partition_matrix(object$partition_factor, object$data)
     # making the covariance matrix
     cov_matrix_val <- cov_matrix(spcov_params_val, object$W, randcov_params_val, randcov_Zs_val, partition_matrix_val, object$M)
-    # cov_matrix_val_obs <- covmatrix(object)
 
-    # making the covariance vector
+    # making the covariance vector: the missing-by-observed block of the
+    # joint covariance matrix gives each prediction row's covariance with
+    # every observed row in one slice
     cov_vector_val <- cov_matrix_val[object$missing_index, object$observed_index, drop = FALSE]
-    # cov_vector_val <- covmatrix(object, newdata = object$newdata)
 
     # splitting the covariance vector
     cov_vector_val_list <- split(cov_vector_val, seq_len(NROW(cov_vector_val)))
 
     # lower triangular cholesky
     cov_matrix_lowchol <- t(chol(cov_matrix_val[object$observed_index, object$observed_index, drop = FALSE]))
-    # cov_matrix_lowchol <- t(chol(cov_matrix_val_obs))
 
     # find X observed
     X <- model.matrix(object)
@@ -726,40 +406,26 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = 
     # local prediction list (only for parallel)
     local_list <- get_local_list_prediction(local)
 
-    # local stuff for parallel
-    if (local_list$parallel) {
-      cl <- parallel::makeCluster(local_list$ncores)
-      cluster_list <- lapply(seq_along(newdata_model_list), function(l) {
-        cluster_list_element <- list(
-          x0 = newdata_model_list[[l]],
-          c0 = cov_vector_val_list[[l]],
-          s0 = total_var_list[[l]]
-        )
-      })
-      pred_spautor <- parallel::parLapply(cl, cluster_list, get_pred_spautor_parallel,
-        cov_matrix_lowchol, betahat,
-        residuals_pearson,
-        cov_betahat, SqrtSigInv_X,
-        se.fit = se.fit,
-        interval = interval, type = type, Xmat = X
-      )
-      cl <- parallel::stopCluster(cl)
-    } else {
-      # make predictions
-      pred_spautor <- mapply(
-        x0 = newdata_model_list, c0 = cov_vector_val_list, s0 = total_var_list,
-        FUN = function(x0, c0, s0) {
-          get_pred_spautor(
-            x0 = x0, c0 = c0, s0 = s0,
-            cov_matrix_lowchol, betahat,
-            residuals_pearson,
-            cov_betahat, SqrtSigInv_X,
-            se.fit = se.fit,
-            interval = interval, type = type, Xmat = X
-          )
-        }, SIMPLIFY = FALSE
-      )
-    }
+    # storing each new observation's row-specific quantities as a list
+    cluster_list <- mapply(
+      x0 = newdata_model_list, c0 = cov_vector_val_list, s0 = total_var_list,
+      FUN = function(x0, c0, s0) list(x0 = x0, c0 = c0, s0 = s0), SIMPLIFY = FALSE
+    )
+
+    # extend the prediction object with everything get_pred_spautor() needs
+    # that is constant across prediction rows, so it can rely on a single
+    # object argument instead of many individually named ones. assignment
+    # must go through `[names(.)] <-` rather than `$<-`/`[[<-`, since those
+    # delete a key entirely when its value is NULL instead of storing the NULL
+    pred_row_context <- list(
+      cov_matrix_lowchol = cov_matrix_lowchol, betahat = betahat,
+      residuals_pearson = residuals_pearson, cov_betahat = cov_betahat,
+      SqrtSigInv_X = SqrtSigInv_X, se.fit = se.fit, interval = interval,
+      type = type, Xmat = X
+    )
+    prediction_object[names(pred_row_context)] <- pred_row_context
+
+    pred_spautor <- run_pred_dispatch(get_pred_spautor, cluster_list, prediction_object, local_list)
 
     if (type == "weight") {
       fit <- do.call("rbind", lapply(pred_spautor, function(x) x$fit))
@@ -780,13 +446,10 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = 
         if (!is.null(scale)) {
           se <- se * scale
         }
-        names(fit) <- object$missing_index
-        names(se) <- object$missing_index
-        return(list(fit = fit, se.fit = se))
       } else {
-        names(fit) <- object$missing_index
-        return(fit)
+        se <- NULL
       }
+      return(finalize_interval_none(fit, se, add_newdata_rows = TRUE, object$missing_index))
     }
 
     if (interval == "prediction") {
@@ -806,16 +469,7 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = 
       tstar <- qt(1 - (1 - level) / 2, df = df)
       lwr <- fit - tstar * se
       upr <- fit + tstar * se
-      fit <- cbind(fit, lwr, upr)
-      row.names(fit) <- 1:NROW(fit)
-      if (se.fit) {
-        row.names(fit) <- object$missing_index
-        names(se) <- object$missing_index
-        return(list(fit = fit, se.fit = se))
-      } else {
-        row.names(fit) <- object$missing_index
-        return(fit)
-      }
+      return(finalize_interval_bounds(fit, lwr, upr, se, se.fit, add_newdata_rows = TRUE, object$missing_index))
     }
   } else if (interval == "confidence") {
     # finding fitted values of the mean parameters
@@ -835,69 +489,97 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = 
     tstar <- qt(1 - (1 - level) / 2, df = df)
     lwr <- fit - tstar * se
     upr <- fit + tstar * se
-    fit <- cbind(fit, lwr, upr)
-    row.names(fit) <- 1:NROW(fit)
-    if (se.fit) {
-      row.names(fit) <- object$missing_index
-      names(se) <- object$missing_index
-      return(list(fit = fit, se.fit = se))
-    } else {
-      row.names(fit) <- object$missing_index
-      return(fit)
-    }
+    return(finalize_interval_bounds(fit, lwr, upr, se, se.fit, add_newdata_rows = TRUE, object$missing_index))
   } else {
     stop("Interval must be none, confidence, or prediction")
   }
 }
 
-get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoord, ycoord,
-                          spcov_params_val, random, randcov_params_val, reform_bar2_list,
-                          Z_index_obdata_list, reform_bar1_list, Z_val_obdata_list, partition_factor,
-                          reform_bar2, partition_index_obdata, cov_lowchol,
-                          Xmat, y, offset, betahat, cov_betahat, dim_coords, contrasts, local, xlevels, diagtol, type) {
+#' Predict a single new observation for an \code{splm()} model
+#'
+#' @param newdata_list A list with elements \code{row} (a single-row data frame
+#'   for the new observation), \code{x0} (its design matrix row), and
+#'   \code{row_index} (its row number within \code{newdata}, used to slice
+#'   \code{dist_matrix_full}/\code{partition_vector_full}/\code{cov_vector_full}
+#'   when those are supplied)
+#' @param prediction_object A list of values constant across prediction rows
+#'   (built by \code{predict.splm()}), assigned into named local variables at
+#'   the top of this function: \code{se.fit}, \code{interval}, \code{formula},
+#'   \code{obdata} (the observed data, or, for the big-data local methods, the
+#'   full observed data before neighbor subsetting), \code{xcoord}, \code{ycoord},
+#'   \code{spcov_params_val}, \code{random} (a random effect formula, or
+#'   \code{NULL}), \code{randcov_params_val} (a \code{randcov_params} object,
+#'   or \code{NULL}), \code{randcov_terms} (see \code{get_extra_randcov_list()}),
+#'   \code{partition_factor} (a partition factor formula, or \code{NULL}),
+#'   \code{reform_bar2} (the partition factor's grouping formula, or
+#'   \code{NULL}), \code{partition_index_obdata} (see
+#'   \code{get_extra_partition_list()}), \code{cov_lowchol} (the lower Cholesky
+#'   factor of the observed-data covariance matrix, ignored and recomputed
+#'   from the local neighborhood when \code{local$method} is \code{"distance"}
+#'   or \code{"covariance"}), \code{Xmat} (the observed-data design matrix),
+#'   \code{y} (the observed response vector), \code{offset} (the observed-data
+#'   offset, or \code{NULL}), \code{betahat}, \code{cov_betahat}, \code{dim_coords},
+#'   \code{contrasts}, \code{local} (a fully-specified big-data \code{local}
+#'   list), \code{xlevels}, \code{diagtol}, \code{type} (\code{"response"}
+#'   or \code{"weight"}), and, for medium-sized data (see \code{predict.splm()}),
+#'   \code{dist_matrix_full}, \code{partition_vector_full}, and
+#'   \code{cov_vector_full} -- the observed-by-prediction distance, partition,
+#'   and covariance matrices, precomputed once (vectorized across every
+#'   prediction row) so this row's values can be sliced out of them instead of
+#'   reconstructed from scratch; \code{NULL} for big data, where reconstructing
+#'   them one row at a time instead of all at once avoids ever holding an
+#'   observed-by-prediction matrix in memory
+#'
+#' @return A list with element \code{fit} (and, if \code{se.fit} or
+#'   \code{interval == "prediction"}, element \code{var}) for the new observation
+#'
+#' @noRd
+get_pred_splm <- function(newdata_list, prediction_object) {
+  # explicit assignment, not list2env(), so static analysis (R CMD check's
+  # codetools-based check and RStudio's diagnostics) can see where each name
+  # below comes from
+  se.fit <- prediction_object$se.fit
+  interval <- prediction_object$interval
+  formula <- prediction_object$formula
+  obdata <- prediction_object$obdata
+  xcoord <- prediction_object$xcoord
+  ycoord <- prediction_object$ycoord
+  spcov_params_val <- prediction_object$spcov_params_val
+  random <- prediction_object$random
+  randcov_params_val <- prediction_object$randcov_params_val
+  randcov_terms <- prediction_object$randcov_terms
+  partition_factor <- prediction_object$partition_factor
+  reform_bar2 <- prediction_object$reform_bar2
+  partition_index_obdata <- prediction_object$partition_index_obdata
+  cov_lowchol <- prediction_object$cov_lowchol
+  Xmat <- prediction_object$Xmat
+  y <- prediction_object$y
+  offset <- prediction_object$offset
+  betahat <- prediction_object$betahat
+  cov_betahat <- prediction_object$cov_betahat
+  dim_coords <- prediction_object$dim_coords
+  contrasts <- prediction_object$contrasts
+  local <- prediction_object$local
+  xlevels <- prediction_object$xlevels
+  diagtol <- prediction_object$diagtol
+  type <- prediction_object$type
+  dist_matrix_full <- prediction_object$dist_matrix_full
+  partition_vector_full <- prediction_object$partition_vector_full
+  cov_vector_full <- prediction_object$cov_vector_full
 
-
-
-
-  # storing partition vector
-  partition_vector <- partition_vector(partition_factor,
-    data = obdata,
-    newdata = newdata_list$row, reform_bar2 = reform_bar2,
-    partition_index_data = partition_index_obdata
+  # medium-mode reuse, partition-index subsetting, and dense-mode recompute
+  # of the local distance/covariance vector -- see get_pred_local_setup() in
+  # R/predict_helpers.R
+  local_setup <- get_pred_local_setup(
+    newdata_list, obdata, xcoord, ycoord, dim_coords,
+    spcov_params_val, randcov_params_val, randcov_terms,
+    partition_factor, reform_bar2, partition_index_obdata,
+    random, local, dist_matrix_full, partition_vector_full, cov_vector_full
   )
-
-  # subsetting partition vector (efficient but causes problems later with
-  # random effect subsetting)
-  if (!is.null(partition_vector) && local$method %in% c("distance", "covariance") &&
-    (is.null(random) || !labels(terms(partition_factor)) %in% labels(terms(random)))) {
-    partition_index <- as.vector(partition_vector) == 1
-    Z_index_obdata_list <- lapply(Z_index_obdata_list, function(x) {
-      x$reform_bar2_vals <- x$reform_bar2_vals[partition_index]
-      x
-    })
-    obdata <- obdata[partition_index, , drop = FALSE]
-    partition_vector <- Matrix(1, nrow = 1, ncol = NROW(obdata))
-  }
-
-  dist_vector <- spdist_vectors(newdata_list$row, obdata, xcoord, ycoord, dim_coords)
-
-  # # subsetting data if method distance
-  # if (local$method == "distance") {
-  #   n <- length(dist_vector)
-  #   nn_index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
-  #   obdata <- obdata[nn_index, , drop = FALSE]
-  #   dist_vector <- dist_vector[, nn_index]
-  # }
-
-  # making random vector if necessary
-  if (!is.null(randcov_params_val)) {
-    randcov_vector_val <- randcov_vector(randcov_params_val, obdata, newdata_list$row, reform_bar2_list, Z_index_obdata_list)
-  } else {
-    randcov_vector_val <- NULL
-  }
-
-  # making the covariance vector
-  cov_vector_val <- cov_vector(spcov_params_val, dist_vector, randcov_vector_val, partition_vector)
+  obdata <- local_setup$obdata
+  randcov_terms <- local_setup$randcov_terms
+  dist_vector <- local_setup$dist_vector
+  cov_vector_val <- local_setup$cov_vector_val
 
   # subsetting data if method distance
   if (local$method == "distance") {
@@ -917,18 +599,24 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
   }
 
   if (local$method %in% c("distance", "covariance")) {
-    if (!is.null(random)) {
-      randcov_names <- get_randcov_names(random)
-      xlev_list <- lapply(Z_index_obdata_list, function(x) x$reform_bar2_xlev)
-      randcov_Zs <- get_randcov_Zs(obdata, randcov_names, xlev_list = xlev_list)
-    }
-    partition_matrix_val <- partition_matrix(partition_factor, obdata)
-    cov_matrix_val <- cov_matrix(
-      spcov_params_val, spdist(obdata, xcoord, ycoord), randcov_params_val,
-      randcov_Zs, partition_matrix_val,
-      diagtol = diagtol
+    # this is the observed-by-observed covariance among just the retained
+    # local neighborhood, which is never part of the medium-mode precomputed
+    # matrices (those are observed-by-prediction only), so it must always be
+    # built fresh here regardless of medium_mode
+    xlev_list <- if (is.null(random)) NULL else lapply(randcov_terms, function(x) x$xlev)
+    dist_matrix <- spdist(obdata, xcoord, ycoord, sparse = FALSE)
+    cov_matrix_val <- get_obs_cov_matrix(
+      dist_matrix, obdata, spcov_params_val, randcov_params_val,
+      random, partition_factor,
+      diagtol = diagtol, xlev_list = xlev_list
     )
-    cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(cov_matrix_val)))
+    # the local neighborhood is small (local$size) and effectively dense (a
+    # spatial covariance has no exact zeros), so factoring it as a plain base
+    # matrix instead of a sparse Matrix-class object avoids paying repeated
+    # S4 dispatch/validity-check overhead for a matrix with no sparsity to
+    # exploit -- this branch runs once per prediction row, so that overhead
+    # is what dominated profiling at scale
+    cov_lowchol <- t(base::chol(as.matrix(cov_matrix_val)))
     model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.pass, xlev = xlevels)
     Xmat <- model.matrix(formula, model_frame, contrasts = contrasts)
     y <- model.response(model_frame)
@@ -941,20 +629,24 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
     y <- y - offset
   }
 
+  # "whiten" X, y, and c0 by left-multiplying by Sigma^{-1/2} -- implemented
+  # as forward substitution against the lower Cholesky factor rather than
+  # explicitly forming Sigma^{-1}, which is both cheaper and more numerically
+  # stable
   c0 <- as.numeric(cov_vector_val)
-  SqrtSigInv_X <- forwardsolve(cov_lowchol, Xmat)
-  SqrtSigInv_y <- forwardsolve(cov_lowchol, y)
-  SqrtSigInv_c0 <- forwardsolve(cov_lowchol, c0)
+  SqrtSigInv_X <- base::forwardsolve(cov_lowchol, Xmat)
+  SqrtSigInv_y <- base::forwardsolve(cov_lowchol, y)
+  SqrtSigInv_c0 <- base::forwardsolve(cov_lowchol, c0)
   x0 <- newdata_list$x0
 
   if (type == "weight") {
-    Xt_SigInv <- t(backsolve(t(cov_lowchol), SqrtSigInv_X))
+    Xt_SigInv <- base::t(base::backsolve(base::t(cov_lowchol), SqrtSigInv_X))
     betahat_wt <- cov_betahat %*% Xt_SigInv # for big data, for this to exactly equal wts %*% y = "fit" for
     # type != weight, Xt_SigInv should use SigInv from the original fit, which would require recomputing cholprods.
     # For now, these are approximate.
     residuals_weight <- -1 * Xmat %*% betahat_wt # this is recomputed over and over when using all data consider making more efficient
     diag(residuals_weight) <- diag(residuals_weight) + 1
-    fit <- x0 %*% betahat_wt + Matrix::crossprod(SqrtSigInv_c0, forwardsolve(cov_lowchol, residuals_weight))
+    fit <- x0 %*% betahat_wt + base::crossprod(SqrtSigInv_c0, base::forwardsolve(cov_lowchol, residuals_weight))
     if (local$method %in% c("distance", "covariance")) {
       wtfit <- fit
       fit <- Matrix::Matrix(0, nrow = 1, ncol = n, sparse = TRUE)
@@ -965,15 +657,28 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
         fit[cov_index] <- wtfit
       }
     }
-
   } else {
+    # universal kriging BLUP: the trend x0 %*% betahat plus a covariance-
+    # weighted combination of the observed (whitened) residuals -- the
+    # closer/more correlated an observation is with the new location (larger
+    # entries of c0), the more its residual pulls the prediction away from
+    # the trend line
     residuals_pearson <- SqrtSigInv_y - SqrtSigInv_X %*% betahat
-    fit <- as.numeric(x0 %*% betahat + Matrix::crossprod(SqrtSigInv_c0, residuals_pearson))
+    fit <- as.numeric(x0 %*% betahat + base::crossprod(SqrtSigInv_c0, residuals_pearson))
   }
   if (se.fit || interval == "prediction") {
-    H <- x0 - Matrix::crossprod(SqrtSigInv_c0, SqrtSigInv_X)
-    total_var <- sum(spcov_params_val[["de"]], spcov_params_val[["ie"]], randcov_params_val)
-    var <- as.numeric(total_var - Matrix::crossprod(SqrtSigInv_c0, SqrtSigInv_c0) + H %*% Matrix::tcrossprod(cov_betahat, H))
+    # kriging prediction variance = marginal variance of the new observation,
+    # minus the variance explained by conditioning on the observed data
+    # (crossprod(SqrtSigInv_c0, SqrtSigInv_c0)), plus an inflation term
+    # (H %*% cov_betahat %*% t(H)) accounting for betahat itself being
+    # estimated rather than known
+    H <- x0 - base::crossprod(SqrtSigInv_c0, SqrtSigInv_X)
+    # a random slope's contribution to Var(Y0) is sigma^2 * x0^2, not sigma^2
+    # (as it would be for a random intercept), so it must be computed for this
+    # specific newdata row rather than summed directly from randcov_params_val
+    total_var <- spcov_params_val[["de"]] + spcov_params_val[["ie"]] +
+      randcov_newvar(randcov_params_val, newdata_list$row, randcov_terms)
+    var <- as.numeric(total_var - base::crossprod(SqrtSigInv_c0, SqrtSigInv_c0) + H %*% base::tcrossprod(cov_betahat, H))
     pred_list <- list(fit = fit, var = var)
   } else {
     pred_list <- list(fit = fit)
@@ -981,35 +686,44 @@ get_pred_splm <- function(newdata_list, se.fit, interval, formula, obdata, xcoor
   pred_list
 }
 
-get_pred_spautor <- function(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson, cov_betahat, SqrtSigInv_X, se.fit, interval, type, Xmat) {
-  SqrtSigInv_c0 <- forwardsolve(cov_matrix_lowchol, c0)
-  if (type == "weight") {
-    Xt_SigInv <- t(backsolve(t(cov_matrix_lowchol), SqrtSigInv_X))
-    betahat_wt <- cov_betahat %*% Xt_SigInv
-    residuals_weight <- -1 * Xmat %*% betahat_wt # this is recomputed over and over when using all data consider making more efficient
-    diag(residuals_weight) <- diag(residuals_weight) + 1
-    fit <- x0 %*% betahat_wt + Matrix::crossprod(SqrtSigInv_c0, forwardsolve(cov_matrix_lowchol, residuals_weight))
-  } else {
-    fit <- as.numeric(x0 %*% betahat + crossprod(SqrtSigInv_c0, residuals_pearson))
-  }
+#' Predict a single new observation for an \code{spautor()} model
+#'
+#' @param cluster_list A list with elements \code{x0} (the design matrix row
+#'   for the new observation), \code{c0} (the covariance vector between the
+#'   new observation and the observed data), and \code{s0} (the marginal
+#'   variance of the new observation)
+#' @param prediction_object A list of values constant across prediction rows
+#'   (built by \code{predict.spautor()}), assigned into named local variables
+#'   at the top of this function: \code{cov_matrix_lowchol} (the lower Cholesky factor of
+#'   the observed-data covariance matrix), \code{betahat}, \code{residuals_pearson}
+#'   (Pearson residuals for the observed data), \code{cov_betahat}, \code{SqrtSigInv_X}
+#'   (\code{cov_matrix_lowchol^{-1} \%*\% Xmat}), \code{se.fit}, \code{interval}
+#'   (\code{"none"}, \code{"confidence"}, or \code{"prediction"}), \code{type}
+#'   (\code{"response"} or \code{"weight"}), and \code{Xmat} (the observed-data
+#'   design matrix)
+#'
+#' @return A list with element \code{fit} (and, if \code{se.fit} or
+#'   \code{interval == "prediction"}, element \code{var}) for the new observation
+#'
+#' @noRd
+get_pred_spautor <- function(cluster_list, prediction_object) {
+  # explicit assignment, not list2env(), so static analysis (R CMD check's
+  # codetools-based check and RStudio's diagnostics) can see where each name
+  # below comes from
+  cov_matrix_lowchol <- prediction_object$cov_matrix_lowchol
+  betahat <- prediction_object$betahat
+  residuals_pearson <- prediction_object$residuals_pearson
+  cov_betahat <- prediction_object$cov_betahat
+  SqrtSigInv_X <- prediction_object$SqrtSigInv_X
+  se.fit <- prediction_object$se.fit
+  interval <- prediction_object$interval
+  type <- prediction_object$type
+  Xmat <- prediction_object$Xmat
 
-  if (se.fit || interval == "prediction") {
-    H <- x0 - crossprod(SqrtSigInv_c0, SqrtSigInv_X)
-    var <- as.numeric(s0 - crossprod(SqrtSigInv_c0, SqrtSigInv_c0) + H %*% tcrossprod(cov_betahat, H))
-    pred_list <- list(fit = fit, var = var)
-  } else {
-    pred_list <- list(fit = fit)
-  }
-  pred_list
+  # shared with get_pred_spgautor() -- see get_areal_pred() in
+  # R/predict_helpers.R
+  get_areal_pred(cluster_list, cov_matrix_lowchol, betahat, residuals_pearson, cov_betahat, SqrtSigInv_X, se.fit, interval, type, Xmat)
 }
-
-get_pred_spautor_parallel <- function(cluster_list, cov_matrix_lowchol, betahat, residuals_pearson, cov_betahat, SqrtSigInv_X, se.fit, interval, type, Xmat) {
-  x0 <- cluster_list$x0
-  c0 <- cluster_list$c0
-  s0 <- cluster_list$s0
-  get_pred_spautor(x0, c0, s0, cov_matrix_lowchol, betahat, residuals_pearson, cov_betahat, SqrtSigInv_X, se.fit, interval, type, Xmat)
-}
-
 
 #' @name predict.spmodel
 #' @method predict splm_list
@@ -1023,9 +737,7 @@ predict.splm_list <- function(object, newdata, se.fit = FALSE, scale = NULL,
   interval <- match.arg(interval)
 
   # deal with local
-  if (missing(local)) {
-    local <- NULL
-  }
+  if (missing(local)) local <- NULL
 
   if (missing(newdata)) {
     preds <- lapply(object, function(x) {
@@ -1070,8 +782,6 @@ predict.splm_list <- function(object, newdata, se.fit = FALSE, scale = NULL,
 predict.spautor_list <- predict.splm_list
 
 
-
-
 #' @rdname predict.spmodel
 #' @method predict splmRF
 #' @order 5
@@ -1090,12 +800,10 @@ predict.spautor_list <- predict.splm_list
 #' predict(sprfmod, sulfate_preds)
 #' }
 predict.splmRF <- function(object, newdata, local, ...) {
-
   # check to see if ranger installed
   if (!requireNamespace("ranger", quietly = TRUE)) {
     stop("Install the ranger package before using predict with an splmRF or spautorRF object", call. = FALSE)
   } else {
-
     # find newdata if required
     if ((missing(newdata) && !is.null(object$newdata))) {
       newdata <- object$newdata
@@ -1113,9 +821,7 @@ predict.splmRF <- function(object, newdata, local, ...) {
     ranger_pred <- do.call(predict, c(list(object = object$ranger, data = as.data.frame(newdata), type = "response"), ranger_args))
 
     # set local if missing
-    if (missing(local)) {
-      local <- NULL
-    }
+    if (missing(local)) local <- NULL
     # do splm prediction
     splm_pred <- do.call(predict, list(object = object$splm, newdata = newdata, local = local))
   }
@@ -1128,12 +834,10 @@ predict.splmRF <- function(object, newdata, local, ...) {
 #' @order 6
 #' @export
 predict.spautorRF <- function(object, newdata, local, ...) {
-
   # check to see if ranger installed
   if (!requireNamespace("ranger", quietly = TRUE)) {
     stop("Install the ranger package before using predict with an splmRF or spautorRF object", call. = FALSE)
   } else {
-
     # find newdata
     newdata <- object$newdata
 
@@ -1150,9 +854,7 @@ predict.spautorRF <- function(object, newdata, local, ...) {
     ranger_pred <- do.call(predict, c(list(object = object$ranger, data = as.data.frame(newdata), type = "response"), ranger_args))
 
     # set local if missing
-    if (missing(local)) {
-      local <- NULL
-    }
+    if (missing(local)) local <- NULL
     # do spautor prediction
     spautor_pred <- do.call(predict, list(object = object$spautor, newdata = newdata, local = local))
   }
@@ -1169,7 +871,6 @@ predict.splmRF_list <- function(object, newdata, local, ...) {
   if (!requireNamespace("ranger", quietly = TRUE)) {
     stop("Install the ranger package before using predict with an splmRF_list object", call. = FALSE)
   } else {
-
     # find newdata if required
     if ((missing(newdata) && !is.null(object$newdata))) {
       newdata <- object$newdata
@@ -1187,9 +888,7 @@ predict.splmRF_list <- function(object, newdata, local, ...) {
     ranger_pred <- do.call(predict, c(list(object = object$ranger, data = as.data.frame(newdata), type = "response"), ranger_args))
 
     # set local if missing
-    if (missing(local)) {
-      local <- NULL
-    }
+    if (missing(local)) local <- NULL
     # do splm prediction
     splm_pred <- lapply(object$splm_list, function(x) {
       do.call(predict, list(object = x, newdata = newdata, local = local))
@@ -1210,7 +909,6 @@ predict.spautorRF_list <- function(object, newdata, local, ...) {
   if (!requireNamespace("ranger", quietly = TRUE)) {
     stop("Install the ranger package before using predict with an splmRF_list object", call. = FALSE)
   } else {
-
     # find newdata
     newdata <- object$newdata
 
@@ -1226,9 +924,7 @@ predict.spautorRF_list <- function(object, newdata, local, ...) {
     ranger_pred <- do.call(predict, c(list(object = object$ranger, data = as.data.frame(newdata), type = "response"), ranger_args))
 
     # set local if missing
-    if (missing(local)) {
-      local <- NULL
-    }
+    if (missing(local)) local <- NULL
     # do spautor prediction
     spautor_pred <- lapply(object$spautor_list, function(x) {
       do.call(predict, list(object = x, newdata = newdata, local = local))
@@ -1241,109 +937,129 @@ predict.spautorRF_list <- function(object, newdata, local, ...) {
 }
 
 
-# extra lists for use with loocv (do nothing but clean with predict)
+#' Precompute per-term random effect context for prediction/loocv
+#'
+#' @param object A fitted model object from [splm()] or [spglm()]
+#' @param obdata The observed data
+#' @param newdata The data requiring prediction
+#'
+#' @return A list with element \code{randcov_terms}: \code{NULL} if there are
+#'   no random effects, otherwise a named list (one element per random effect
+#'   term) with \code{reform_bar2}, \code{reform_bar1}, \code{group_label},
+#'   \code{xlev}, \code{level_index_map}, and \code{slope_val}, computed once
+#'   per \code{predict()}/\code{loocv()} call so downstream code (e.g.
+#'   \code{get_randcov_vectors()}) can look up matches in O(1) instead of
+#'   rescanning \code{obdata} for every prediction row
+#'
+#' @noRd
 get_extra_randcov_list <- function(object, obdata, newdata) {
-  # random stuff
-  if (!is.null(object$random)) {
-    randcov_names <- get_randcov_names(object$random)
-    # this causes a memory leak and was not even needed
-    # randcov_Zs <- get_randcov_Zs(obdata, randcov_names)
-    # comment out here for simple
-    reform_bar_list <- lapply(randcov_names, function(randcov_name) {
-      bar_split <- unlist(strsplit(randcov_name, " | ", fixed = TRUE))
-      reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
-      if (bar_split[[1]] != "1") {
-        reform_bar1 <- reformulate(bar_split[[1]], intercept = FALSE)
-      } else {
-        reform_bar1 <- NULL
-      }
-      list(reform_bar2 = reform_bar2, reform_bar1 = reform_bar1)
-    })
-    reform_bar2_list <- lapply(reform_bar_list, function(x) x$reform_bar2)
-    names(reform_bar2_list) <- randcov_names
-    reform_bar1_list <- lapply(reform_bar_list, function(x) x$reform_bar1)
-    names(reform_bar1_list) <- randcov_names
-    Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) {
-
-      reform_bar2_mf <- model.frame(reform_bar2, obdata)
-      reform_bar2_terms <- terms(reform_bar2_mf)
-      reform_bar2_xlev <- .getXlevels(reform_bar2_terms, reform_bar2_mf)
-      reform_bar2_mx <- model.matrix(reform_bar2, obdata)
-      reform_bar2_names <- colnames(reform_bar2_mx)
-      reform_bar2_split <- split(reform_bar2_mx, seq_len(NROW(reform_bar2_mx)))
-      reform_bar2_vals <- reform_bar2_names[vapply(reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
-
-      # adding dummy levels if newdata observations of random effects are not in original data
-      # terms object is unchanged if levels change
-      # reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
-      # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
-      # reform_bar2_terms_full <- terms(rbind(reform_bar2_mf, reform_bar2_mf_new))
-      reform_bar2_xlev_full <- .getXlevels(reform_bar2_terms, rbind(reform_bar2_mf, model.frame(reform_bar2, newdata)))
-      if (!identical(reform_bar2_xlev, reform_bar2_xlev_full)) {
-        reform_bar2_xlev <- reform_bar2_xlev_full
-      }
-
-      list(reform_bar2_vals = reform_bar2_vals, reform_bar2_xlev = reform_bar2_xlev)
-    })
-    # Z_index_obdata_list <- lapply(reform_bar2_list, function(reform_bar2) as.vector(model.matrix(reform_bar2, obdata)))
-    names(Z_index_obdata_list) <- randcov_names
-    Z_val_obdata_list <- lapply(reform_bar1_list, function(reform_bar1) {
-      if (is.null(reform_bar1)) {
-        return(NULL)
-      } else {
-        return(as.vector(model.matrix(reform_bar1, obdata)))
-      }
-    })
-    names(Z_val_obdata_list) <- randcov_names
-  } else {
-    reform_bar2_list <- NULL
-    Z_index_obdata_list <- NULL
-    reform_bar1_list <- NULL
-    Z_val_obdata_list <- NULL
+  # random stuff: one context object per random effect term (reform_bar2,
+  # reform_bar1, group_label, xlev, level_index_map, slope_val) instead of
+  # four separate same-keyed lists threaded through every downstream call
+  if (is.null(object$random)) {
+    return(list(randcov_terms = NULL))
   }
-  list(reform_bar1_list = reform_bar1_list, reform_bar2_list = reform_bar2_list,
-       Z_val_obdata_list = Z_val_obdata_list, Z_index_obdata_list = Z_index_obdata_list)
-}
-
-get_extra_partition_list <- function(object, obdata, newdata) {
-  # partition factor stuff
-  if (!is.null(object$partition_factor)) {
-    partition_factor_val <- get_partition_name(labels(terms(object$partition_factor)))
-    bar_split <- unlist(strsplit(partition_factor_val, " | ", fixed = TRUE))
+  randcov_names <- get_randcov_names(object$random)
+  randcov_terms <- lapply(randcov_names, function(randcov_name) {
+    bar_split <- unlist(strsplit(randcov_name, " | ", fixed = TRUE))
     reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
-    p_reform_bar2_mf <- model.frame(reform_bar2, obdata)
-    p_reform_bar2_terms <- terms(p_reform_bar2_mf)
-    p_reform_bar2_xlev <- .getXlevels(p_reform_bar2_terms, p_reform_bar2_mf)
-    p_reform_bar2_mx <- model.matrix(reform_bar2, obdata)
-    p_reform_bar2_names <- colnames(p_reform_bar2_mx)
-    p_reform_bar2_split <- split(p_reform_bar2_mx, seq_len(NROW(p_reform_bar2_mx)))
-    p_reform_bar2_vals <- p_reform_bar2_names[vapply(p_reform_bar2_split, function(y) which(as.logical(y)), numeric(1))]
 
+    reform_bar2_mf <- model.frame(reform_bar2, obdata)
+    reform_bar2_terms <- terms(reform_bar2_mf)
+    xlev <- .getXlevels(reform_bar2_terms, reform_bar2_mf)
+    group_label <- model_matrix_group_labels(reform_bar2, obdata)
 
     # adding dummy levels if newdata observations of random effects are not in original data
     # terms object is unchanged if levels change
-    # p_reform_bar2_mf_new <- model.frame(reform_bar2, newdata)
-    # reform_bar2_mf_full <- model.frame(reform_bar2, merge(obdata, newdata, all = TRUE))
-    # p_reform_bar2_terms_full <- terms(rbind(p_reform_bar2_mf, p_reform_bar2_mf_new))
-    p_reform_bar2_xlev_full <- .getXlevels(p_reform_bar2_terms, rbind(p_reform_bar2_mf, model.frame(reform_bar2, newdata)))
-    if (!identical(p_reform_bar2_xlev, p_reform_bar2_xlev_full)) {
-      p_reform_bar2_xlev <- p_reform_bar2_xlev_full
+    xlev_full <- .getXlevels(reform_bar2_terms, rbind(reform_bar2_mf, model.frame(reform_bar2, newdata)))
+    if (!identical(xlev, xlev_full)) {
+      xlev <- xlev_full
     }
 
-    partition_index_obdata <- list(reform_bar2_vals = p_reform_bar2_vals, reform_bar2_xlev = p_reform_bar2_xlev)
-    # partition_index_obdata <- as.vector(model.matrix(reform_bar2, obdata))
-  } else {
-    reform_bar2 <- NULL
-    partition_index_obdata <- NULL
+    # precomputed once per predict() call (not once per prediction row): maps
+    # each observed group label to the obdata row indices that carry it, so
+    # get_randcov_vectors() can look up matches in O(1) instead of scanning
+    # all of obdata for every prediction row
+    level_index_map <- split(seq_along(group_label), group_label)
+
+    if (bar_split[[1]] != "1") {
+      reform_bar1 <- reformulate(bar_split[[1]], intercept = FALSE)
+      slope_val <- as.vector(model.matrix(reform_bar1, obdata))
+    } else {
+      reform_bar1 <- NULL
+      slope_val <- NULL
+    }
+
+    list(
+      reform_bar2 = reform_bar2, reform_bar1 = reform_bar1, group_label = group_label,
+      xlev = xlev, level_index_map = level_index_map, slope_val = slope_val
+    )
+  })
+  names(randcov_terms) <- randcov_names
+  list(randcov_terms = randcov_terms)
+}
+
+#' Precompute partition factor context for prediction/loocv
+#'
+#' @param object A fitted model object from [splm()] or [spglm()]
+#' @param obdata The observed data
+#' @param newdata The data requiring prediction
+#'
+#' @return A list with elements \code{reform_bar2} (the partition factor's
+#'   grouping formula, or \code{NULL} if there is no partition factor) and
+#'   \code{partition_index_obdata} (a list with \code{group_label}, \code{xlev},
+#'   and \code{level_index_map} for \code{obdata}, mirroring the random effect
+#'   context built by \code{get_extra_randcov_list()})
+#'
+#' @noRd
+get_extra_partition_list <- function(object, obdata, newdata) {
+  # partition factor context: group_label, xlev, and a precomputed
+  # level_index_map (mirrors the random effect context in
+  # get_extra_randcov_list(), built once per predict() call rather than
+  # rescanning all of obdata for every prediction row)
+  if (is.null(object$partition_factor)) {
+    return(list(reform_bar2 = NULL, partition_index_obdata = NULL))
   }
+  partition_factor_val <- get_partition_name(labels(terms(object$partition_factor)))
+  bar_split <- unlist(strsplit(partition_factor_val, " | ", fixed = TRUE))
+  reform_bar2 <- reformulate(bar_split[[2]], intercept = FALSE)
+
+  p_reform_bar2_mf <- model.frame(reform_bar2, obdata)
+  p_reform_bar2_terms <- terms(p_reform_bar2_mf)
+  xlev <- .getXlevels(p_reform_bar2_terms, p_reform_bar2_mf)
+  group_label <- model_matrix_group_labels(reform_bar2, obdata)
+
+  # adding dummy levels if newdata observations of the partition factor are not in original data
+  # terms object is unchanged if levels change
+  xlev_full <- .getXlevels(p_reform_bar2_terms, rbind(p_reform_bar2_mf, model.frame(reform_bar2, newdata)))
+  if (!identical(xlev, xlev_full)) {
+    xlev <- xlev_full
+  }
+
+  level_index_map <- split(seq_along(group_label), group_label)
+
+  partition_index_obdata <- list(group_label = group_label, xlev = xlev, level_index_map = level_index_map)
   list(reform_bar2 = reform_bar2, partition_index_obdata = partition_index_obdata)
 }
 
+#' Replace unseen factor/character levels in \code{newdata} with a placeholder
+#'
+#' @param varnames Names of variables to check
+#' @param obdata The observed data
+#' @param newdata The data requiring prediction
+#'
+#' @return \code{newdata} with any factor or character values in \code{varnames}
+#'   not present in \code{obdata} replaced by a placeholder level, so that
+#'   downstream code building a design matrix does not error on an unseen
+#'   level (numeric/integer variables, e.g. a continuous random slope, are left
+#'   unchanged since there is no notion of an "unseen level" for them)
+#'
+#' @noRd
 replace_newdata <- function(varnames, obdata, newdata) {
   newdata_vec <- lapply(varnames, function(x) {
     obdata_vec <- obdata[[x]]
     newdata_vec <- newdata[[x]]
-    index_vec <- ! newdata_vec %in% obdata_vec
+    index_vec <- !newdata_vec %in% obdata_vec
     if (any(index_vec)) {
       if (is.factor(newdata_vec)) {
         newdata_vec <- as.character(newdata_vec)

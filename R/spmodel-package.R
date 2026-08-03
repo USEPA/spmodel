@@ -1,6 +1,8 @@
 #' @keywords internal
 "_PACKAGE"
 
+# package-level NAMESPACE directives: no code lives here, just the roxygen
+# tags that generate import/export statements for all functions below
 #' @import Matrix
 #' @importFrom generics tidy glance augment
 #' @importFrom graphics abline par points title

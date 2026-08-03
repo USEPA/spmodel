@@ -13,6 +13,8 @@ randcov_matrix <- function(randcov_params = NULL, randcov_Zs = NULL) {
     randcov_names <- names(randcov_params)
     # var times ZZt
     randcov_matrices <- lapply(randcov_names, function(x) randcov_params[[x]] * randcov_Zs[[x]][["ZZt"]])
+    # random effects are assumed independent of one another, so their
+    # covariance contributions simply sum to give the total covariance matrix
     randcov_matrix_val <- Reduce("+", randcov_matrices)
   }
   randcov_matrix_val

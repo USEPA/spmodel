@@ -7,6 +7,9 @@
 #'
 #' @noRd
 sf_to_df <- function(data) {
+  # internal fitting/prediction code works with plain data frames and
+  # explicit coordinate columns, not sf geometry columns, so sf input must be
+  # converted before it can be used
   ### find the sf geometry column location
   geometry_column <- which(colnames(data) == attr(data, "sf_column"))
   ### see if the geometry column has sfc_point class (a point geometry)

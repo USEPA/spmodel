@@ -3,15 +3,20 @@
 #' @order 3
 #' @export
 summary.spglm <- function(object, ...) {
+  # standard errors come from the square root of the diagonal of the fixed
+  # effect covariance matrix
   summary_coefficients_fixed <- data.frame(
     estimates = coef(object, type = "fixed"),
     Std_Error = sqrt(diag(vcov(object, type = "fixed")))
   )
 
+  # Wald z-test on the link scale for each fixed effect
   summary_coefficients_fixed$z_value <- summary_coefficients_fixed$estimates / summary_coefficients_fixed$Std_Error
   summary_coefficients_fixed$p <- 2 * (1 - pnorm(abs(summary_coefficients_fixed$z_value)))
 
   spcov_params_val <- coef(object, type = "spcov")
+  # GLMs (unlike splm's Gaussian models) have an additional dispersion
+  # parameter governing the mean-variance relationship of the response family
   dispersion_params_val <- coef(object, type = "dispersion")
   randcov_params_val <- coef(object, type = "randcov")
   coefficients <- list(

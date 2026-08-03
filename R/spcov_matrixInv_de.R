@@ -20,6 +20,9 @@ spcov_matrixInv_de.car <- function(spcov_params, dist_matrix, M, ...) {
   } # done for invertibility issues arising with cov_initial_search
 
   # compute row sums of W
+  # a zero row sum means an observation has no neighbors ("unconnected"); the
+  # CAR structure only applies to connected observations, so the two groups
+  # are handled separately below
   dist_matrix_rowsums <- rowSums(dist_matrix)
 
   index <- dist_matrix_rowsums == 0
@@ -39,14 +42,18 @@ spcov_matrixInv_de.car <- function(spcov_params, dist_matrix, M, ...) {
     cor_matrixInv_CC <- cor_matrixInv_CC * 1 / M[C_index]
     spcov_matrixInv_CC <- 1 / spcov_params[["de"]] * cor_matrixInv_CC
 
+    # unconnected observations get an independent variance (extra) instead of
+    # the CAR structure, with no cross-covariance to connected observations --
+    # hence a separate identity-scaled block rather than folding into cor_matrixInv_CC
     cor_matrixInv_UU <- Matrix(diag(length(U_index)), sparse = TRUE)
     spcov_matrixInv_UU <- 1 / spcov_params[["extra"]] * cor_matrixInv_UU # no M multiplication here
 
+    # assemble the two independent blocks into one sparse block-diagonal
+    # precision matrix (off-diagonal C-U blocks stay zero)
     spcov_matrixInv_de <- Matrix::Matrix(0, nrow = length(index), ncol = length(index), sparse = TRUE)
     spcov_matrixInv_de[C_index, C_index] <- spcov_matrixInv_CC
     spcov_matrixInv_de[U_index, U_index] <- spcov_matrixInv_UU
   } else {
-
     # compute - rho * W
     cor_matrixInv_de <- -spcov_params[["range"]] * dist_matrix
     # compute (I - rho * W)
@@ -65,6 +72,8 @@ spcov_matrixInv_de.sar <- function(spcov_params, dist_matrix, M, ...) { # M is n
   if (spcov_params[["de"]] < 0.01) {
     spcov_params[["de"]] < 0.01
   } # done for invertibility issues arising with cov_initial_search
+  # SAR's precision is [(I - rho W)(I - rho W)']^-1 / de, so (I - rho W) is
+  # built first below and combined with its transpose via tcrossprod
 
   # compute row sums of W
   dist_matrix_rowsums <- rowSums(dist_matrix)
@@ -87,6 +96,8 @@ spcov_matrixInv_de.sar <- function(spcov_params, dist_matrix, M, ...) { # M is n
     cor_matrixInv_CC <- tcrossprod(cor_matrixInv_CC_left, cor_matrixInv_CC_left)
     spcov_matrixInv_CC <- 1 / spcov_params[["de"]] * cor_matrixInv_CC
 
+    # unconnected observations get an independent variance (extra) block,
+    # just as in the CAR case above
     cor_matrixInv_UU <- Matrix(diag(length(U_index)), sparse = TRUE)
     spcov_matrixInv_UU <- 1 / spcov_params[["extra"]] * cor_matrixInv_UU
 
@@ -94,7 +105,6 @@ spcov_matrixInv_de.sar <- function(spcov_params, dist_matrix, M, ...) { # M is n
     spcov_matrixInv_de[C_index, C_index] <- spcov_matrixInv_CC
     spcov_matrixInv_de[U_index, U_index] <- spcov_matrixInv_UU
   } else {
-
     # compute - rho * W
     cor_matrixInv_de_left <- -spcov_params[["range"]] * dist_matrix
     # compute (I - rho * W)^{-1}

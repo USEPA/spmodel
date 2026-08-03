@@ -8,21 +8,7 @@
 #'
 #' @noRd
 spautor_checks <- function(spcov_type, W_given, data, estmethod) {
-  if (spcov_type %in% c(
-    "exponential", "spherical", "gaussian", "triangular",
-    "circular", "cubic", "pentaspherical", "cosine", "wave",
-    "jbessel", "gravity", "rquad", "magnetic",
-    "matern", "cauchy", "pexponential", "none", "ie"
-  )) {
-    stop("Invalid spatial covariance type for spautor(). To fit models for point-referenced data, use splm().", call. = FALSE)
-  }
-
-  # return an error if data are not the correct spcov_type
-  if (!W_given && !inherits(data, c("SpatialPolygonsDataFrame", "sf"))) {
-    stop("Data must be a SpatialPolygonsDataFrame (sp object) or an sf object", call. = FALSE)
-  }
-
-  if (!estmethod %in% c("reml", "ml")) {
-    stop("Estimation method must be \"reml\", or \"ml\".", call. = FALSE)
-  }
+  check_not_point_referenced_type(spcov_type)
+  check_W_given_data_class(W_given, data)
+  check_estmethod_reml_ml(estmethod, "Estimation method must be \"reml\", or \"ml\".")
 }

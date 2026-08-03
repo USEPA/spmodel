@@ -40,8 +40,8 @@
 #' @references
 #' McCullagh P. and Nelder, J. A. (1989) \emph{Generalized Linear Models}. London: Chapman and Hall.
 dispersion_params <- function(family, dispersion) {
-
   # fix family
+  # allow family to be given unquoted (e.g. poisson instead of "poisson")
   if (is.symbol(substitute(family))) { # or is.language
     family <- deparse1(substitute(family))
   }
@@ -52,6 +52,7 @@ dispersion_params <- function(family, dispersion) {
     stop(paste(family, " is not a valid glm family for this function.", sep = ""), call. = FALSE)
   }
 
+  # class is set to family so this object dispatches correctly in downstream generics
   object <- c(dispersion = unname(dispersion))
   new_object <- structure(object, class = family)
   new_object

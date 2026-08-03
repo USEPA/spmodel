@@ -27,11 +27,13 @@
 #' confint(spmod)
 #' confint(spmod, parm = "waterY", level = 0.90)
 confint.splm <- function(object, parm, level = 0.95, ...) {
-  # if (type == "fixed") ## may add spcov and randcov confidence intervals later
+  # equal-tailed Wald interval using the normal (infinite t) quantile, since
+  # spatial covariance parameters are estimated via GLS-type asymptotics
   alpha <- 1 - level
-  # tstar <- qt(1 - alpha / 2, df = object$n - object$p)
   tstar <- qnorm(1 - alpha / 2)
   estimates <- coef(object, type = "fixed")
+  # standard errors come from the diagonal of the fixed-effect covariance
+  # matrix; off-diagonal covariances are ignored for these marginal intervals
   variances <- diag(vcov(object, type = "fixed"))
   lower <- estimates - tstar * sqrt(variances)
   upper <- estimates + tstar * sqrt(variances)
@@ -41,6 +43,7 @@ confint.splm <- function(object, parm, level = 0.95, ...) {
   if (missing(parm)) {
     return(confints)
   } else {
+    # subset to only the requested coefficient(s) by name
     return(confints[row.names(confints) %in% parm, , drop = FALSE])
   }
 }

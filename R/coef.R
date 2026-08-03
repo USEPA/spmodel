@@ -27,6 +27,9 @@
 #' coefficients(spmod)
 #' coef(spmod, type = "spcov")
 coef.splm <- function(object, type = "fixed", ...) {
+  # coefficients are stored in three separate groups on the fitted object:
+  # fixed effects, spatial covariance parameters, and random effect variances
+  # the spatial covariance parameters and random effect variances are BLUPs
   if (type == "fixed") {
     return(object$coefficients$fixed)
   } else if (type == "spcov") {

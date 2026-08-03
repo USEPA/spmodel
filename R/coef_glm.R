@@ -3,6 +3,8 @@
 #' @order 5
 #' @export
 coef.spglm <- function(object, type = "fixed", ...) {
+  # GLM coefficients add a "dispersion" group (e.g. overdispersion parameter)
+  # not present in the Gaussian splm/spautor coefficient sets
   if (type == "fixed") {
     return(object$coefficients$fixed)
   } else if (type == "spcov") {

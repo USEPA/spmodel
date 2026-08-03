@@ -10,10 +10,16 @@
 #' @return svlw-s loss
 #'
 #' @noRd
+# objective function minimized by optim() for weighted-least-squares
+# semivariogram fitting: given optim-scale parameters, transform them back
+# to the original covariance parameterization and compare the resulting
+# theoretical semivariogram to the empirical semivariogram (esv)
 svloss <- function(par, spcov_orig2optim, esv, weights, data_object) {
   # transforming to original scale
-  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim, par, spcov_profiled = FALSE,
-                                     data_object = data_object)
+  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim, par,
+    spcov_profiled = FALSE,
+    data_object = data_object
+  )
   # making a covariance parameter vector
   spcov_params_val <- get_spcov_params(spcov_type = class(spcov_orig2optim), spcov_orig_val = spcov_orig_val)
   svloss_val <- get_svloss(spcov_params_val, esv, weights)

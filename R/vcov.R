@@ -23,6 +23,9 @@
 #' )
 #' vcov(spmod)
 vcov.splm <- function(object, ...) {
+  # type is hard-coded (not a user argument) because only the fixed-effects
+  # vcov is currently supported; the if-branch is a placeholder for
+  # potentially exposing other vcov types (e.g., covariance parameters) later
   type <- "fixed"
   if (type == "fixed") {
     return(object$vcov$fixed)

@@ -8,6 +8,10 @@
 #'
 #' @noRd
 check_optim_method <- function(optim_par, optim_dotlist) {
+  # optim()'s default multi-parameter methods (e.g. Nelder-Mead) are not
+  # well-suited to 1-dimensional optimization; Brent's method is designed for
+  # a single parameter but requires finite bounds, hence -50/50 on the
+  # (unbounded) optimization scale
   if (length(optim_par) == 1) {
     optim_dotlist$method <- "Brent"
     optim_dotlist$lower <- -50

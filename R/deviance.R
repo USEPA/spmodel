@@ -24,6 +24,9 @@
 #' )
 #' deviance(spmod)
 deviance.splm <- function(object, ...) {
+  # deviance (twice the saturated-vs-fitted log-likelihood difference) is only
+  # meaningful when the model was fit by (RE)ML, since other estimation methods
+  # (e.g., sv-wls) don't optimize a likelihood the deviance can be compared against
   if (object$estmethod %in% c("reml", "ml")) {
     deviance <- object$deviance
     return(deviance)

@@ -1,20 +1,31 @@
+#' Predict a block average for an \code{splm()} model
+#'
+#' @param object A fitted model object from [splm()]
+#' @param newdata The data (points within the block) requiring prediction
+#' @param se.fit Whether to compute the prediction standard error
+#' @param scale A scale multiplier for the standard error (or \code{NULL})
+#' @param df Degrees of freedom used for interval quantiles
+#' @param interval The type of interval (\code{"none"}, \code{"confidence"}, or \code{"prediction"})
+#' @param level The confidence/prediction interval level
+#' @param type The prediction type (only \code{"response"} and \code{"terms"} are relevant here)
+#' @param local A list or logical controlling the big data approximation
+#' @param terms Terms to use when \code{type} is \code{"terms"}
+#' @param na.action Not currently used (kept for a consistent signature with [predict.splm()])
+#' @param ... Additional arguments (unused)
+#'
+#' @return The block-average prediction (the average of the point predictions
+#'   over the rows of \code{newdata}), with a standard error and/or interval
+#'   if requested
+#'
+#' @noRd
 predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, level, type, local, terms, na.action, ...) {
-
-
-
   # deal with local
-  if (missing(local)) {
-    local <- NULL
-  }
+  if (missing(local)) local <- NULL
 
   # check scale is numeric (if specified)
   if (!is.null(scale) && !is.numeric(scale)) {
     stop("scale must be numeric.", call. = FALSE)
   }
-
-  # handle na action -- this is an inefficient workaround that should be fixed later
-  # placeholder as a reminder to consider adding na.action argument at a later date
-  # na_action <- as.character(substitute(na.action))
 
   # error if newdata missing from arguments and object
   if (missing(newdata) && is.null(object$newdata)) {
@@ -37,7 +48,6 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
   # deal with local
   if (is.null(local)) {
     if (object$n > 10000) {
-      # if (object$n > 5000 || NROW(newdata) > 5000) {
       local <- TRUE
       message("Because the sample size of the fitted model object exceeds 10,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun predict() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
     } else {
@@ -73,14 +83,14 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
 
   if (object$anisotropy) { # could just do rotate != 0 || scale != 1
     obdata_aniscoords <- transform_anis(obdata, xcoord, ycoord,
-                                        rotate = spcov_params_val[["rotate"]],
-                                        scale = spcov_params_val[["scale"]]
+      rotate = spcov_params_val[["rotate"]],
+      scale = spcov_params_val[["scale"]]
     )
     obdata[[xcoord]] <- obdata_aniscoords$xcoord_val
     obdata[[ycoord]] <- obdata_aniscoords$ycoord_val
     newdata_aniscoords <- transform_anis(newdata, xcoord, ycoord,
-                                         rotate = spcov_params_val[["rotate"]],
-                                         scale = spcov_params_val[["scale"]]
+      rotate = spcov_params_val[["rotate"]],
+      scale = spcov_params_val[["scale"]]
     )
     newdata[[xcoord]] <- newdata_aniscoords$xcoord_val
     newdata[[ycoord]] <- newdata_aniscoords$ycoord_val
@@ -120,6 +130,11 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
     stop("Cannot have NA values in predictors.", call. = FALSE)
   }
 
+  # a block prediction is the average of the point predictions over every row
+  # of newdata, and because the model is linear in the fixed effects, that
+  # average can be computed by first averaging the design matrix rows into a
+  # single x0 (below) rather than predicting each point separately and
+  # averaging afterward
   newdata_model_attr <- attributes(newdata_model)
   newdata_model <- matrix(colMeans(newdata_model), nrow = 1) # gives matrix, array class
   attr(newdata_model, "assign") <- newdata_model_attr$assign
@@ -137,15 +152,23 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
 
 
   if (interval %in% c("none", "prediction")) {
-
     # local prediction list
     local <- get_local_list_prediction_block(local)
 
+    # c0: each observed site's average covariance with the block (row-mean
+    # of the newdata-rows-by-observed-sites covariance matrix), since the
+    # block's covariance with an observed site is the average of that site's
+    # covariance with every point in the block
     c0 <- colMeans(covmatrix(object, newdata = newdata, cov_type = "pred.obs"))
     Sig <- covmatrix(object)
     if (NROW(newdata) > 1e4) {
+      # too many block points to form the dense NROW(newdata)^2 pred.pred
+      # covariance matrix below, so compute the average pairwise covariance
+      # row-by-row instead (see get_bk_var())
       s0 <- get_bk_var(object, newdata, local)
     } else {
+      # s0: Var(block average) = average of all pairwise covariances among
+      # block points (including each point's covariance with itself)
       s0 <- mean(covmatrix(object, newdata = newdata, cov_type = "pred.pred"))
     }
     Xmat <- model.matrix(object)
@@ -153,12 +176,16 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
     if (local$method == "all") {
       cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(Sig)))
     } else {
+      # restrict to the local$size observed sites closest (on average) to the
+      # block, either by average distance or by average covariance with the
+      # block, mirroring the point-prediction neighbor search in
+      # get_pred_splm() but ranking against the whole block instead of a
+      # single new location
       n <- length(c0)
       if (local$method == "distance") {
         dist_vector <- spdist_vectors(newdata, obdata, xcoord, ycoord, object$dim_coords)
         dist_vector <- colMeans(dist_vector)
         index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
-        # index <- order(as.numeric(c0))[seq(from = n, to = max(1, n - local$size + 1))] # covariance method for now
       } else if (local$method == "covariance") {
         index <- order(as.numeric(c0))[seq(from = n, to = max(1, n - local$size + 1))]
       }
@@ -239,6 +266,18 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
   }
 }
 
+#' Compute the block-average marginal variance for a large block (big data)
+#'
+#' @param object A fitted model object from [splm()]
+#' @param newdata The data (points within the block) requiring prediction
+#' @param local A fully-specified big-data \code{local} list
+#'
+#' @return The average pairwise covariance among the rows of \code{newdata}
+#'   (i.e. \eqn{Var(\bar{Y})} for the block), computed row-by-row (optionally
+#'   in parallel) rather than forming the full \code{NROW(newdata)}-by-\code{NROW(newdata)}
+#'   covariance matrix, which would be too large for a big block
+#'
+#' @noRd
 get_bk_var <- function(object, newdata, local) {
   index <- seq(1, NROW(newdata))
   object$obdata <- newdata
@@ -252,6 +291,18 @@ get_bk_var <- function(object, newdata, local) {
   mean(unlist(val))
 }
 
+#' Compute one row's average covariance with the rest of a prediction block
+#'
+#' @param index The row of \code{newdata} to compute the covariance row for
+#' @param object A fitted model object from [splm()]
+#' @param newdata The data (points within the block) requiring prediction
+#'
+#' @return The average of row \code{index}'s covariance with every row of
+#'   \code{newdata} (including itself, with the independent error variance
+#'   added back in, since \code{covmatrix()}'s \code{"obs.pred"} type omits it
+#'   for a point predicted against itself)
+#'
+#' @noRd
 get_each_bk_meancov <- function(index, object, newdata) {
   newdata <- newdata[index, , drop = FALSE]
   val <- as.vector(spmodel::covmatrix(object, newdata = newdata, cov_type = "obs.pred"))

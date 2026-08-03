@@ -2,6 +2,10 @@
 #' @method fitted spglm
 #' @export
 fitted.spglm <- function(object, type = "response", ...) {
+  # these fitted values were already computed and stored on the model object
+  # during fitting, so this is a lookup rather than a fresh computation
+  # unlike the linear (splm) case, glm models also expose "link"-scale fitted
+  # values (i.e., before the inverse link is applied to reach the response scale)
   if (type == "link") {
     fitted_val <- object$fitted$link
   } else if (type == "response") {

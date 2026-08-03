@@ -35,6 +35,8 @@
 #' fitted.values(spmod)
 #' fitted(spmod, type = "spcov")
 fitted.splm <- function(object, type = "response", ...) {
+  # these fitted values were already computed and stored on the model object
+  # during fitting, so this is a lookup rather than a fresh computation
   if (type == "response") {
     fitted_val <- object$fitted$response
   } else if (type == "spcov") {

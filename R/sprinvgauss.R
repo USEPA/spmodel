@@ -36,6 +36,9 @@ sprinvgauss <- function(spcov_params, dispersion = 1, mean = 0, samples = 1, dat
     stop("Install the statmod package before using sprinvgauss", call. = FALSE)
   } else {
     n <- NROW(data)
+    # re-dispatch this call to sprnorm() (dropping the "dispersion" argument,
+    # which sprnorm() does not accept) to simulate the shared latent Gaussian
+    # process, then transform it below into the target distribution
     call_val <- match.call()
     call_val[[1]] <- as.symbol("sprnorm")
     call_list <- as.list(call_val)
@@ -49,6 +52,8 @@ sprinvgauss <- function(spcov_params, dispersion = 1, mean = 0, samples = 1, dat
     if (is.matrix(mu)) {
       mu_list <- split(t(mu), seq_len(NCOL(mu)))
       sprinvgauss_val <- vapply(mu_list, function(x) {
+        # statmod::rinvgauss() parameterizes dispersion as 1/(mean * dispersion),
+        # the reciprocal of this package's dispersion convention
         dispersion_true <- 1 / (x * dispersion)
         statmod::rinvgauss(n, mean = x, dispersion = dispersion_true)
       }, numeric(n))

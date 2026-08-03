@@ -1,7 +1,20 @@
+#' Back-transform a dispersion parameter from the optimization (log) scale
+#'
+#' @param dispersion_orig2optim A dispersion value on the optimization scale,
+#'   as returned by \code{dispersion_orig2optim()}
+#' @param par The full optimization parameter vector
+#'
+#' @return A list with \code{fill_orig_val}, the dispersion parameter on its
+#'   original (positive) scale, and \code{new_par}, \code{par} with the
+#'   dispersion element removed (if it was being estimated)
+#'
+#' @noRd
 dispersion_optim2orig <- function(dispersion_orig2optim, par) {
   dispersion_is_known <- dispersion_orig2optim$is_known
 
   # don't actually use fill_optim_par function
+  # if dispersion is known/fixed, it was never appended to the optim parameter
+  # vector, so just exponentiate its stored (log-scale) value directly
   if (dispersion_is_known) {
     fill_optim_par_val <- dispersion_orig2optim$value
     fill_orig_val <- exp(fill_optim_par_val)
@@ -9,6 +22,8 @@ dispersion_optim2orig <- function(dispersion_orig2optim, par) {
     new_par <- par # don't need to remove anything
   } else {
     fill_optim_par_val <- par[length(par)] # dispersion is the last element
+    # exponentiate to move from the unconstrained optimization scale back to
+    # the original (strictly positive) dispersion scale
     fill_orig_val <- exp(fill_optim_par_val)
     # cap lower and upper dispersion values for numeric stability
     fill_orig_val <- pmax(1e-8, fill_orig_val)

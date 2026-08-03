@@ -9,14 +9,13 @@
 #' @noRd
 get_optim_dotlist <- function(...) {
   # storing dotlist and setting defaults for optim
+  # any optim() arguments the user passed via ... take precedence; only
+  # fill in a default when the user did not already supply that argument
   dotlist <- list(...)
 
-  ## l-bfgs-b deafult
-  # if (!("method" %in% names(dotlist))) {
-  #   dotlist$method <- "L-BFGS-B"
-  # }
-
   # nelder-mead default with lower relative tolerance
+  # derivative-free, so it works for arbitrary covariance functions without
+  # requiring an analytic gradient of the (Laplace) log-likelihood
   if (!("method" %in% names(dotlist))) {
     dotlist$method <- "Nelder-Mead"
   }
@@ -34,6 +33,10 @@ get_optim_dotlist <- function(...) {
     dotlist$control$reltol <- 1e-6
   }
 
+  # lower/upper are unbounded here because covariance parameters are
+  # optimized on a transformed ("optim") scale (see spcov_orig2optim /
+  # dispersion_orig2optim) that maps constrained parameters (e.g. positive
+  # variances) onto the whole real line, so optim() itself needs no bounds
   dotlist$lower <- -Inf
   dotlist$upper <- Inf
 

@@ -26,4 +26,6 @@ formula.splm <- function(x, ...) {
 #' @method formula spautor
 #' @order 2
 #' @export
+# spautor objects store formula the same way splm objects do, so the splm
+# method is reused directly instead of writing a near-identical duplicate
 formula.spautor <- formula.splm

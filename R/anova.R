@@ -80,16 +80,21 @@
 #' )
 #' tidy(anova(spmod, lmod))
 anova.splm <- function(object, ..., test = TRUE, Terms, L) {
-
   # see if one or two models
   object2_list <- list(...)
 
   # one model stuff
+  # build a hypothesis matrix L (or list of them) and run a general linear
+  # hypothesis test (GLHT) L*beta = 0 for each set of terms
   if (length(object2_list) == 0) {
     if (missing(L)) {
+      # "assign" attribute maps each column of the model matrix to the model
+      # term that generated it (0 = intercept), used to group coefficients
+      # belonging to the same term (e.g. all dummy columns of a factor)
       assign_indices <- attr(model.matrix(object), "assign") + 1
       # attr(model.matrix(object), "assign") if centering at zero
       if (missing(Terms)) {
+        # default: test each term separately (type III / marginal tests)
         assign_index <- unique(assign_indices)
         L <- lapply(assign_index, get_L_list, assign_indices)
         label <- labels(object)
@@ -98,6 +103,7 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L) {
         }
         names(L) <- label
       } else {
+        # Terms specified: build one L testing the listed terms jointly
         if (is.character(Terms)) {
           Terms <- which(c("(Intercept)", labels(object)) %in% Terms) # - 1 if centering at zero
         }
@@ -107,11 +113,13 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L) {
         names(L) <- paste(label, collapse = ", ")
       }
     } else {
+      # user supplied custom contrast matrix/matrices directly
       if (!is.list(L)) {
         L <- list(L)
       }
       names(L) <- paste("contrast", seq_along(L), sep = "")
     }
+    # run the Wald chi-squared test for each hypothesis matrix and stack results
     anova_val <- do.call(rbind, lapply(L, get_marginal_Chi2, object))
 
     if (!test) {
@@ -121,12 +129,16 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L) {
   }
 
   # two model stuff
+  # likelihood ratio test between a nested pair of models
   else {
     object2 <- object2_list[[1]]
     if (!object$estmethod %in% c("ml", "reml") || !object2$estmethod %in% c("ml", "reml")) {
       stop("LRT only defined for ml or reml", call. = FALSE)
     }
 
+    # reml log-likelihoods are only comparable when the fixed effects are
+    # identical (reml profiles out fixed effects, so mixing estmethods or
+    # varying fixed effects under reml makes the likelihoods non-comparable)
     if (all(c("ml", "reml") %in% c(object$estmethod, object2$estmethod))) {
       stop("Both fitted model objects must have the same estimation method", call. = FALSE)
     }
@@ -137,15 +149,21 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L) {
     ) {
       stop("The fixed effect coefficients must be the same when performing a likeihood ratio test using the reml estimation method. To perform the likelihood ratio tests for different fixed effect and covariance coefficients simultaneously, refit the models using the ml estimation method.", call. = FALSE)
     }
+    # LRT statistic: -2 * (loglik of reduced model - loglik of full model),
+    # asymptotically chi-squared under the null that the reduced model holds
     Chi2_stat <- abs(-2 * (logLik(object2) - logLik(object)))
 
     # df for ml vs reml
+    # ml estimates fixed effects + covariance params, reml estimates only
+    # covariance params (see AICc.R for the same distinction)
     df1 <- object$npar
     df2 <- object2$npar
     if (object$estmethod == "ml") df1 <- df1 + object$p
     if (object2$estmethod == "ml") df2 <- df2 + object2$p
     df_diff <- abs(df1 - df2)
     p_value <- pchisq(Chi2_stat, df_diff, lower.tail = FALSE)
+    # the model with more estimated parameters (npar) is the "full" model;
+    # the other is "reduced" -- used only for labeling the output
     if (object2$npar < object$npar) {
       full_name <- deparse(substitute(object)) # replace as.character with deparse
       reduced_name <- as.character(as.list(substitute(list(...)))[-1])
@@ -163,15 +181,6 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L) {
     rownames(anova_val) <- paste(full_name, "vs", reduced_name)
     attr(anova_val, "full") <- full_name
     attr(anova_val, "reduced") <- reduced_name
-
-    # if (object2$npar < object$npar) {
-    #   red <- "1"
-    #   full <- "2"
-    # } else {
-    #   red <- "2"
-    #   full <- "1"
-    # }
-    # rownames(anova_val) <- paste(red, "vs", full)
     anova_val <- structure(anova_val, heading = c("Likelihood Ratio Test\n", paste("Response:", deparse(object$formula[[2L]]))))
   }
   structure(anova_val, class = c(paste("anova", class(object), sep = "."), "data.frame"))
@@ -183,6 +192,15 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L) {
 #' @export
 anova.spautor <- anova.splm
 
+#' Compute a marginal Wald chi-squared test from a general linear hypothesis matrix
+#'
+#' @param L A hypothesis matrix (or vector, coerced to a single-row matrix)
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()]
+#'
+#' @return A data frame with columns \code{Df}, \code{Chi2}, and \code{Pr(>Chi2)}
+#'   for the general linear hypothesis test \eqn{L\beta = 0}
+#'
+#' @noRd
 get_marginal_Chi2 <- function(L, object) {
   # make matrix if a numeric vector
   if (!is.matrix(L)) {
@@ -191,10 +209,14 @@ get_marginal_Chi2 <- function(L, object) {
   # find the number of rows
   Df <- NROW(L)
   # find product2 of the GLHT
+  # inverse of the sampling covariance of L %*% beta_hat, via Cholesky for
+  # numerical stability/efficiency rather than a direct matrix inverse
   part2 <- chol2inv(chol(forceSymmetric(L %*% vcov(object) %*% t(L))))
   # find product3 of the GLHT
   part3 <- L %*% coefficients(object)
   # compute the chi-squared statistic
+  # Wald statistic (L*beta_hat)' [L*Var(beta_hat)*L']^-1 (L*beta_hat), which
+  # is asymptotically chi-squared with Df degrees of freedom under H0: L*beta = 0
   Chi2 <- as.numeric(crossprod(part3, part2) %*% part3)
   # find the p-value
   p.value <- pchisq(Chi2, Df, lower.tail = FALSE)

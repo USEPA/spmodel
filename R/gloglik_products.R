@@ -6,14 +6,16 @@
 #' @return The relevant Gaussian log-likelihood products
 #'
 #' @noRd
+# dispatches on the covariance function class (exponential, matern, car, ...)
+# since geostatistical covariances (dense/partitioned, handled below) and
+# areal car/sar covariances (sparse precision matrix) need different linear
+# algebra to reach the same l1/l2/l3 likelihood pieces
 gloglik_products <- function(spcov_params_val, ...) {
   UseMethod("gloglik_products", spcov_params_val)
 }
 #' @export
 gloglik_products.exponential <- function(spcov_params_val, data_object, estmethod,
                                          dist_matrix_list, randcov_params_val, ...) {
-
-
   # making a covariance matrix
   cov_matrix_list <- get_cov_matrix_list(spcov_params_val, dist_matrix_list, randcov_params_val,
     data_object$randcov_list, data_object$partition_list,
@@ -22,6 +24,10 @@ gloglik_products.exponential <- function(spcov_params_val, data_object, estmetho
 
 
   # cholesky products
+  # cov_matrix_list/X_list/y_list hold one block per big-data partition (a
+  # single block when there is no partitioning); each block's Cholesky
+  # factorization is independent, so it is parallelized across a cluster when
+  # requested and otherwise done with a plain mapply loop
   if (data_object$parallel) {
     cluster_list <- lapply(seq_along(cov_matrix_list), function(l) {
       cluster_list_element <- list(
@@ -41,6 +47,9 @@ gloglik_products.exponential <- function(spcov_params_val, data_object, estmetho
   }
 
   # storing relevant products
+  # stacking the per-partition Cholesky-whitened X and y back into single
+  # matrices is valid because the partitions are treated as block-diagonal
+  # (mutually independent) in the covariance structure
   ## lower chol %*% X
   SqrtSigInv_X <- do.call("rbind", lapply(cholprods_list, function(x) x$SqrtSigInv_X))
   ## lower chol %*% y
@@ -60,7 +69,11 @@ gloglik_products.exponential <- function(spcov_params_val, data_object, estmetho
   ## residual %*% sigma_inverse %*% residual
   rt_SigInv_r <- crossprod(SqrtSigInv_r, SqrtSigInv_r)
 
-  # using wolfinger notation
+  # using wolfinger notation (Wolfinger, Tobias, and Sall 1994): l1 is the log
+  # determinant of Sigma, l2 is the (generalized) residual sum of squares,
+  # and l3 (reml only) is the log determinant of X'SigInv X -- these three
+  # pieces are combined downstream (get_minustwologlik) into -2 times the
+  # (restricted) log-likelihood
   l1 <- sum(unlist(lapply(cholprods_list, function(x) 2 * sum(log(diag(x$Sig_lowchol))))))
   l2 <- as.numeric(rt_SigInv_r)
 
@@ -113,6 +126,9 @@ gloglik_products.pexponential <- gloglik_products.exponential
 #' @export
 gloglik_products.car <- function(spcov_params_val, data_object, estmethod,
                                  dist_matrix_list, randcov_params_val, ...) {
+  # car/sar models parameterize the *precision* (inverse covariance) matrix
+  # directly and sparsely, so SigInv and its log determinant come from a
+  # dedicated helper rather than from Cholesky-factoring a dense Sigma
   spautor_cov_matrixInv_val <- spautor_cov_matrixInv(
     spcov_params_val, data_object,
     dist_matrix_list, randcov_params_val

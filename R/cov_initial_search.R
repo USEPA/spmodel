@@ -10,10 +10,19 @@ cov_initial_search <- function(spcov_initial_NA, ...) {
 cov_initial_search.exponential <- function(spcov_initial_NA, estmethod, data_object,
                                            dist_matrix_list, weights,
                                            randcov_initial_NA = NULL, esv_dotlist, ...) {
-
-
+  # Rather than starting REML/ML/sv-wls/sv-cl optimization from one arbitrary
+  # starting point (which risks a poor local optimum), this builds a small grid of
+  # plausible starting values -- combinations of "de" (dependent/partial-sill
+  # variance, the spatially structured variance) and "ie" (independent-error/nugget
+  # variance) that sum to a fixed variance budget, crossed with candidate ranges
+  # (and rotate/scale under anisotropy) -- evaluates the objective at each grid
+  # point (see eval_grid()), and returns the best one as the optimizer's start.
   # find ols sample variance
   s2 <- data_object$s2
+  # inflate the OLS variance slightly (by 20%) as a rough total-variance budget to
+  # split across the de/ie (and, further below, random effect) components, since
+  # OLS residual variance tends to understate the true total variance once spatial
+  # dependence is accounted for
   ns2 <- 1.2 * s2
 
   # find sets of starting values
@@ -21,9 +30,9 @@ cov_initial_search.exponential <- function(spcov_initial_NA, estmethod, data_obj
   # de <- ns2 * c(0.1, 0.5, 0.9)
   # ## ie
   # ie <- ns2 * c(0.1, 0.5, 0.9)
-  # de
+  # de: proportions of ns2 attributed to spatially structured variance
   de <- c(0.1, 0.5, 0.9)
-  # ie
+  # ie: proportions of ns2 attributed to the nugget/independent error
   ie <- c(0.1, 0.5, 0.9)
   ## range
   range <- get_initial_range(class(spcov_initial_NA), data_object$max_halfdist) * c(0.5, 1.5)
@@ -38,117 +47,52 @@ cov_initial_search.exponential <- function(spcov_initial_NA, estmethod, data_obj
   }
 
 
-  # find starting spatial grid
-  spcov_grid <- expand.grid(de = de, ie = ie, range = range, rotate = rotate, scale = scale)
-  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
-  spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
-  # spcov_grid <- spcov_grid[abs(spcov_grid$de + spcov_grid$ie - ns2) < sqrt(.Machine$double.eps), , drop = FALSE]
+  # find starting spatial grid (keeping only combinations where de + ie
+  # proportions sum to 1, i.e. de and ie together exhaust the full variance
+  # budget with no double counting)
+  spcov_grid <- build_de_ie_grid(de, ie, ns2, range = range, rotate = rotate, scale = scale)
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid
 
-  # replace with initial values
+  # any parameter the user fixed (not NA in spcov_initial_NA) overrides the grid
+  # value in every row, since there's no point searching over a value that's fixed
   for (x in names(spcov_grid)) {
     if (!is.na(spcov_initial_NA$initial[[x]])) {
       spcov_grid[, x] <- spcov_initial_NA$initial[[x]]
     }
   }
 
-  # take unique rows
+  # take unique rows (fixing parameters above can collapse several grid rows to duplicates)
   spcov_grid <- unique(spcov_grid)
-  # compute empirical semivariogram
-  if (estmethod == "sv-wls") {
-    if (data_object$anisotropy) {
-      new_coords_list <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-        rotate = spcov_initial_NA$initial[["rotate"]],
-        scale = spcov_initial_NA$initial[["scale"]]
-      )
-      dist_matrix_list <- lapply(new_coords_list, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-    }
-    # compute empirical semivariogram
-    esv_vals <- mapply(d = data_object$obdata_list, m = dist_matrix_list, function(d, m) {
-      do.call("esv", c(
-        list(
-          formula = data_object$formula,
-          data = d,
-          dist_matrix = m,
-          partition_factor = data_object$partition_factor
-        ),
-        esv_dotlist
-      ))
-    }, SIMPLIFY = FALSE)
-    esv_vals <- do.call("rbind", esv_vals)
-    esv_vals <- esv_vals[esv_vals$np > 0, , drop = FALSE]
-    esv_vals$bins <- droplevels(esv_vals$bins)
-    esv_val <- data.frame(
-      bins = levels(esv_vals$bins),
-      dist = tapply(esv_vals$dist, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),
-      gamma = tapply(esv_vals$gamma, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),
-      np = tapply(esv_vals$np, esv_vals$bins, function(x) mean(x))
-    )
-  } else {
-    esv_val <- NULL
-  }
+  # for sv-wls, the objective (evaluated per grid point in eval_grid()) is a
+  # weighted least-squares fit to this empirical semivariogram, so it only needs to
+  # be computed once, up front, rather than inside the grid loop
+  sv_wls_result <- precompute_sv_wls(estmethod, data_object, spcov_initial_NA, dist_matrix_list, esv_dotlist)
+  esv_val <- sv_wls_result$esv_val
+  dist_matrix_list <- sv_wls_result$dist_matrix_list
 
-  # find relevant quantities for composite likelihood
-  if (estmethod == "sv-cl") {
-    if (data_object$anisotropy) {
-      new_coords_list <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-        rotate = spcov_initial_NA$initial[["rotate"]],
-        scale = spcov_initial_NA$initial[["scale"]]
-      )
-      dist_matrix_list <- lapply(new_coords_list, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-    }
-    # dist_vector_list <- lapply(dist_matrix_list, function(x) triu(x, k = 1))
-    dist_vector_list <- lapply(dist_matrix_list, function(x) {
-      x <- as.matrix(x)
-      x <- x[upper.tri(x)]
-    })
-    residual_list <- lapply(data_object$obdata_list, function(d) residuals(lm(data_object$formula, data = d)))
-    residual_matrix_list <- lapply(residual_list, function(x) spdist(xcoord_val = x))
-    residual_vector_list <- lapply(residual_matrix_list, function(x) {
-      x <- as.matrix(x)
-      x <- x[upper.tri(x)]
-    })
-    residual_vector <- unlist(residual_vector_list)
-    if (!is.null(data_object$partition_list)) {
-      partition_vector_list <- lapply(data_object$partition_list, function(x) {
-        x <- as.matrix(x)
-        x <- x[upper.tri(x)]
-      })
-      dist_vector_list <- mapply(d = dist_vector_list, p = partition_vector_list, function(d, p) d * p, SIMPLIFY = FALSE)
-      residual_vector_list <- mapply(r = residual_vector_list, p = partition_vector_list, function(r, p) r * p, SIMPLIFY = FALSE)
-    }
-
-    dist_vector <- unlist(dist_vector_list)
-    dist_index <- dist_vector > 0
-    dist_vector <- dist_vector[dist_index]
-    residual_vector <- unlist(residual_vector_list)
-    residual_vector <- residual_vector[dist_index]
-    residual_vector2 <- residual_vector^2
-  } else {
-    dist_vector <- NULL
-    residual_vector2 <- NULL
-  }
-
+  # for sv-cl (composite likelihood via pairwise squared differences, Curriero &
+  # Lele 1999), precompute the vector of pairwise distances and squared OLS-residual
+  # differences once, up front, since the composite-likelihood objective in
+  # eval_grid() is a function of these fixed vectors, not of the grid point itself
+  sv_cl_result <- precompute_sv_cl(estmethod, data_object, spcov_initial_NA, dist_matrix_list)
+  dist_vector <- sv_cl_result$dist_vector
+  residual_vector2 <- sv_cl_result$residual_vector2
+  dist_matrix_list <- sv_cl_result$dist_matrix_list
 
 
   # perform search if no random effects
   if (is.null(randcov_initial_NA)) {
-    # split
-    cov_grid_splits <- split(spcov_grid, seq_len(NROW(spcov_grid)))
-    # apply
-    objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+    # evaluate the objective function at every grid point, keeping the
+    # combination that minimizes it as the optimizer's starting point
+    min_params <- select_best_grid_point(spcov_grid, eval_grid,
       data_object = data_object, spcov_type = class(spcov_initial_NA),
       estmethod = estmethod, dist_matrix_list = dist_matrix_list,
       weights = weights, esv = esv_val,
       dist_vector = dist_vector,
       residual_vector2 = residual_vector2
     )
-
-    # find minimum value and record parameters
-    min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "rotate", "scale")]
     spcov_initial_NA$initial <- spcov_params
 
@@ -158,115 +102,24 @@ cov_initial_search.exponential <- function(spcov_initial_NA, estmethod, data_obj
       dist_vector = dist_vector, residual_vector2 = residual_vector2
     )
   } else {
-    # randcov names
+    # With random effects present, the total variance can plausibly be split many
+    # ways between spatial dependence, nugget, and each random effect. Rather than
+    # crossing every combination (a computational burden), three
+    # representative grids are built below -- one where spatial variance dominates,
+    # one where variance is spread evenly, and one where the random effect(s)
+    # dominate -- and unioned together as the candidate starting points.
     randcov_names <- data_object$randcov_names
-    # find number of random effects
-    nvar_randcov <- length(randcov_names)
+    cov_grid <- add_randcov_grids(spcov_grid, spcov_grid_init, ns2, spcov_initial_NA, randcov_initial_NA,
+      nvar_spcov = 2
+    )
 
-    # spatially dominant grid
-    ## spatial components 90% of variance
-    spcov_grid[, c("de", "ie")] <- 0.9 * spcov_grid[, c("de", "ie")]
-
-    # replace with initial
-    for (x in names(spcov_grid)) {
-      if (!is.na(spcov_initial_NA$initial[[x]])) {
-        spcov_grid[, x] <- spcov_initial_NA$initial[[x]]
-      }
-    }
-    ## random effects 10% of variance and evenly spread
-    for (x in randcov_names) {
-      if (!is.na(randcov_initial_NA$initial[[x]])) {
-        spcov_grid[, x] <- randcov_initial_NA$initial[[x]]
-      } else {
-        spcov_grid[, x] <- 0.1 * ns2 / nvar_randcov
-      }
-    }
-
-    # Evenly dominated grid
-    ## find number of spatial variance parameters
-    nvar_spcov <- 2
-    ## find all variance parameters
-    nvar_cov <- nvar_spcov + nvar_randcov
-    ## keep only spatial cases with variance spread out
-    evencov_grid <- spcov_grid_init[spcov_grid_init$de == spcov_grid_init$ie, , drop = FALSE]
-    ## scale to incorporate overall variance
-    evencov_grid[, c("de", "ie")] <- nvar_spcov / nvar_cov * evencov_grid[, c("de", "ie")]
-
-    # replace with initial values
-    ## spatial
-    for (x in names(evencov_grid)) {
-      if (!is.na(spcov_initial_NA$initial[[x]])) {
-        evencov_grid[, x] <- spcov_initial_NA$initial[[x]]
-      }
-    }
-    ## random
-    for (x in randcov_names) {
-      if (!is.na(randcov_initial_NA$initial[[x]])) {
-        evencov_grid[, x] <- randcov_initial_NA$initial[[x]]
-      } else {
-        evencov_grid[, x] <- 1 / nvar_cov * ns2
-      }
-    }
-    # find unique combinations
-    evencov_grid <- unique(evencov_grid)
-
-    # random dominated grid
-    ## spatial component 10%
-    randcov_grid_spcov <- spcov_grid_init[spcov_grid_init$de == spcov_grid_init$ie & spcov_grid_init$range == min(spcov_grid_init$range), , drop = FALSE]
-    randcov_grid_spcov[, c("de", "ie")] <- 0.1 * randcov_grid_spcov[, c("de", "ie")]
-
-    # replace spatial initial values
-    for (x in names(randcov_grid_spcov)) {
-      if (!is.na(spcov_initial_NA$initial[[x]])) {
-        randcov_grid_spcov[, x] <- spcov_initial_NA$initial[[x]]
-      }
-    }
-    # find unique values
-    randcov_grid_spcov <- unique(randcov_grid_spcov)
-
-    # random dominant grid
-    randcov_grid_randcov <- as.data.frame(as.list(rep(1 / nvar_randcov, nvar_randcov)))
-    names(randcov_grid_randcov) <- randcov_names
-    ## if there is more than one random effect, split it up into relevant scenarios
-    if (nvar_randcov > 1) {
-      ## set 0.1 for all proportions
-      extra_grid_randcov <- lapply(seq_len(nvar_randcov), function(x) rep(0.1 * 1 / (nvar_randcov - 1), nvar_randcov))
-      extra_grid_randcov <- do.call("rbind", extra_grid_randcov)
-      ## fill in 0.9 for one proportion in each row
-      diag(extra_grid_randcov) <- 0.9
-      extra_grid_randcov <- as.data.frame(extra_grid_randcov)
-      names(extra_grid_randcov) <- randcov_names
-    } else {
-      extra_grid_randcov <- NULL
-    }
-    ## give the random effects 90% of the variance
-    randcov_grid_randcov <- 0.9 * ns2 * rbind(randcov_grid_randcov, extra_grid_randcov)
-    for (x in randcov_names) {
-      if (!is.na(randcov_initial_NA$initial[[x]])) {
-        randcov_grid_randcov[, x] <- randcov_initial_NA$initial[[x]]
-      }
-    }
-
-    ## bind together and replicate
-    randcov_grid_spcov_rep <- do.call("rbind", replicate(NROW(randcov_grid_randcov), randcov_grid_spcov, simplify = FALSE))
-    randcov_grid_randcov_rep <- do.call("rbind", replicate(NROW(randcov_grid_spcov), randcov_grid_randcov, simplify = FALSE))
-    randcov_grid <- cbind(randcov_grid_spcov_rep, randcov_grid_randcov_rep)
-
-    # bind together all grids
-    cov_grid <- rbind(spcov_grid, evencov_grid, randcov_grid)
-    cov_grid <- unique(cov_grid)
-    cov_grid_splits <- split(cov_grid, seq_len(NROW(cov_grid)))
-    # apply
-    objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+    min_params <- select_best_grid_point(cov_grid, eval_grid,
       data_object = data_object, spcov_type = class(spcov_initial_NA),
       estmethod = estmethod, dist_matrix_list = dist_matrix_list,
       weights = weights, esv = esv_val,
       dist_vector = dist_vector,
       residual_vector2 = residual_vector2
     )
-    # find minimum value and record parameters
-    min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "rotate", "scale")]
     # return the spatial parameters
     spcov_initial_NA$initial <- spcov_params
@@ -311,6 +164,10 @@ cov_initial_search.magnetic <- cov_initial_search.exponential
 cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
                                     dist_matrix_list, weights,
                                     randcov_initial_NA = NULL, esv_dotlist, ...) {
+  # "none" (and "ie", aliased below) means no spatial covariance structure at all --
+  # the only variance component is the nugget/independent error (plus any random
+  # effects). With no random effects there's nothing to grid-search over: the OLS
+  # sample variance is directly the ie estimate, so this returns immediately.
   # find ols sample variance
   s2 <- data_object$s2
 
@@ -341,9 +198,7 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
 
 
   # find starting spatial grid
-  spcov_grid <- expand.grid(de = de, ie = ie, range = range, rotate = rotate, scale = scale)
-  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
-  spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
+  spcov_grid <- build_de_ie_grid(de, ie, ns2, range = range, rotate = rotate, scale = scale)
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid
@@ -359,98 +214,27 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
   spcov_grid <- unique(spcov_grid)
 
   # compute empirical semivariogram
-  if (estmethod == "sv-wls") {
-    if (data_object$anisotropy) {
-      new_coords_list <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-        rotate = spcov_initial_NA$initial[["rotate"]],
-        scale = spcov_initial_NA$initial[["scale"]]
-      )
-      dist_matrix_list <- lapply(new_coords_list, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-    }
-    # compute empirical semivariogram
-    esv_vals <- mapply(d = data_object$obdata_list, m = dist_matrix_list, function(d, m) {
-      do.call("esv", c(
-        list(
-          formula = data_object$formula,
-          data = d,
-          dist_matrix = m,
-          partition_factor = data_object$partition_factor
-        ),
-        esv_dotlist
-      ))
-    }, SIMPLIFY = FALSE)
-    esv_vals <- do.call("rbind", esv_vals)
-    esv_vals <- esv_vals[esv_vals$np > 0, , drop = FALSE]
-    esv_vals$bins <- droplevels(esv_vals$bins)
-    esv_val <- data.frame(
-      bins = levels(esv_vals$bins),
-      dist = tapply(esv_vals$dist, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),
-      gamma = tapply(esv_vals$gamma, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),
-      np = tapply(esv_vals$np, esv_vals$bins, function(x) mean(x))
-    )
-  } else {
-    esv_val <- NULL
-  }
+  sv_wls_result <- precompute_sv_wls(estmethod, data_object, spcov_initial_NA, dist_matrix_list, esv_dotlist)
+  esv_val <- sv_wls_result$esv_val
+  dist_matrix_list <- sv_wls_result$dist_matrix_list
 
   # find relevant quantities for composite likelihood
-  if (estmethod == "sv-cl") {
-    if (data_object$anisotropy) {
-      new_coords_list <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-        rotate = spcov_initial_NA$initial[["rotate"]],
-        scale = spcov_initial_NA$initial[["scale"]]
-      )
-      dist_matrix_list <- lapply(new_coords_list, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-    }
-    # dist_vector_list <- lapply(dist_matrix_list, function(x) triu(x, k = 1))
-    dist_vector_list <- lapply(dist_matrix_list, function(x) {
-      x <- as.matrix(x)
-      x <- x[upper.tri(x)]
-    })
-    residual_list <- lapply(data_object$obdata_list, function(d) residuals(lm(data_object$formula, data = d)))
-    residual_matrix_list <- lapply(residual_list, function(x) spdist(xcoord_val = x))
-    residual_vector_list <- lapply(residual_matrix_list, function(x) {
-      x <- as.matrix(x)
-      x <- x[upper.tri(x)]
-    })
-    residual_vector <- unlist(residual_vector_list)
-    if (!is.null(data_object$partition_list)) {
-      partition_vector_list <- lapply(data_object$partition_list, function(x) {
-        x <- as.matrix(x)
-        x <- x[upper.tri(x)]
-      })
-      dist_vector_list <- mapply(d = dist_vector_list, p = partition_vector_list, function(d, p) d * p, SIMPLIFY = FALSE)
-      residual_vector_list <- mapply(r = residual_vector_list, p = partition_vector_list, function(r, p) r * p, SIMPLIFY = FALSE)
-    }
-
-    dist_vector <- unlist(dist_vector_list)
-    dist_index <- dist_vector > 0
-    dist_vector <- dist_vector[dist_index]
-    residual_vector <- unlist(residual_vector_list)
-    residual_vector <- residual_vector[dist_index]
-    residual_vector2 <- residual_vector^2
-  } else {
-    dist_vector <- NULL
-    residual_vector2 <- NULL
-  }
-
+  sv_cl_result <- precompute_sv_cl(estmethod, data_object, spcov_initial_NA, dist_matrix_list)
+  dist_vector <- sv_cl_result$dist_vector
+  residual_vector2 <- sv_cl_result$residual_vector2
+  dist_matrix_list <- sv_cl_result$dist_matrix_list
 
 
   # perform search if no random effects
   if (is.null(randcov_initial_NA)) {
     # split
-    cov_grid_splits <- split(spcov_grid, seq_len(NROW(spcov_grid)))
-    # apply
-    objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+    min_params <- select_best_grid_point(spcov_grid, eval_grid,
       data_object = data_object, spcov_type = class(spcov_initial_NA),
       estmethod = estmethod, dist_matrix_list = dist_matrix_list,
       weights = weights, esv = esv_val,
       dist_vector = dist_vector,
       residual_vector2 = residual_vector2
     )
-
-    # find minimum value and record parameters
-    min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "rotate", "scale")]
     spcov_initial_NA$initial <- spcov_params
     # return the best parameters
@@ -459,117 +243,22 @@ cov_initial_search.none <- function(spcov_initial_NA, estmethod, data_object,
       dist_vector = dist_vector, residual_vector2 = residual_vector2
     )
   } else {
-
     # randcov vars names
     randcov_names <- data_object$randcov_names
-    # find number of random effects
-    nvar_randcov <- length(randcov_names)
+    # none/ie has no meaningful de/ie spread to filter the evenly-dominated or
+    # random-dominated grids on (de is always 0), so every row is kept
+    all_rows <- rep(TRUE, NROW(spcov_grid_init))
+    cov_grid <- add_randcov_grids(spcov_grid, spcov_grid_init, ns2, spcov_initial_NA, randcov_initial_NA,
+      nvar_spcov = 1, evencov_filter = all_rows, randcov_filter = all_rows
+    )
 
-    # spatially dominant grid
-    ## spatial components 90% of variance
-    spcov_grid[, c("de", "ie")] <- 0.9 * spcov_grid[, c("de", "ie")]
-
-    # replace with initial
-    for (x in names(spcov_grid)) {
-      if (!is.na(spcov_initial_NA$initial[[x]])) {
-        spcov_grid[, x] <- spcov_initial_NA$initial[[x]]
-      }
-    }
-
-    ## random effects 10% of variance and evenly spread
-    for (x in randcov_names) {
-      if (!is.na(randcov_initial_NA$initial[[x]])) {
-        spcov_grid[, x] <- randcov_initial_NA$initial[[x]]
-      } else {
-        spcov_grid[, x] <- 0.1 * ns2 / nvar_randcov
-      }
-    }
-
-    # Evenly dominated grid
-    ## find number of spatial variance parameters
-    nvar_spcov <- 1
-    ## find all variance parameters
-    nvar_cov <- nvar_spcov + nvar_randcov
-    ## keep only spatial cases with variance spread out
-    evencov_grid <- spcov_grid_init
-    ## scale to incorporate overall variance
-    evencov_grid[, c("de", "ie")] <- nvar_spcov / nvar_cov * evencov_grid[, c("de", "ie")]
-
-    # replace with initial values
-    ## spatial
-    for (x in names(evencov_grid)) {
-      if (!is.na(spcov_initial_NA$initial[[x]])) {
-        evencov_grid[, x] <- spcov_initial_NA$initial[[x]]
-      }
-    }
-    ## random
-    for (x in randcov_names) {
-      if (!is.na(randcov_initial_NA$initial[[x]])) {
-        evencov_grid[, x] <- randcov_initial_NA$initial[[x]]
-      } else {
-        evencov_grid[, x] <- 1 / nvar_cov * ns2
-      }
-    }
-    # find unique combinations
-    evencov_grid <- unique(evencov_grid)
-
-    # random dominated grid
-    ## spatial component 10%
-    randcov_grid_spcov <- spcov_grid_init
-    randcov_grid_spcov[, c("de", "ie")] <- 0.1 * randcov_grid_spcov[, c("de", "ie")]
-
-    # replace spatial initial values
-    for (x in names(randcov_grid_spcov)) {
-      if (!is.na(spcov_initial_NA$initial[[x]])) {
-        randcov_grid_spcov[, x] <- spcov_initial_NA$initial[[x]]
-      }
-    }
-    # find unique values
-    randcov_grid_spcov <- unique(randcov_grid_spcov)
-
-    # random dominant grid
-    randcov_grid_randcov <- as.data.frame(as.list(rep(1 / nvar_randcov, nvar_randcov)))
-    names(randcov_grid_randcov) <- randcov_names
-    ## if there is more than one random effect, split it up into relevant scenarios
-    if (nvar_randcov > 1) {
-      ## set 0.1 for all proportions
-      extra_grid_randcov <- lapply(seq_len(nvar_randcov), function(x) rep(0.1 * 1 / (nvar_randcov - 1), nvar_randcov))
-      extra_grid_randcov <- do.call("rbind", extra_grid_randcov)
-      ## fill in 0.9 for one proportion in each row
-      diag(extra_grid_randcov) <- 0.9
-      extra_grid_randcov <- as.data.frame(extra_grid_randcov)
-      names(extra_grid_randcov) <- randcov_names
-    } else {
-      extra_grid_randcov <- NULL
-    }
-    ## give the random effects 90% of the variance
-    randcov_grid_randcov <- 0.9 * ns2 * rbind(randcov_grid_randcov, extra_grid_randcov)
-    for (x in randcov_names) {
-      if (!is.na(randcov_initial_NA$initial[[x]])) {
-        randcov_grid_randcov[, x] <- randcov_initial_NA$initial[[x]]
-      }
-    }
-
-    ## bind together and replicate
-    randcov_grid_spcov_rep <- do.call("rbind", replicate(NROW(randcov_grid_randcov), randcov_grid_spcov, simplify = FALSE))
-    randcov_grid_randcov_rep <- do.call("rbind", replicate(NROW(randcov_grid_spcov), randcov_grid_randcov, simplify = FALSE))
-    randcov_grid <- cbind(randcov_grid_spcov_rep, randcov_grid_randcov_rep)
-
-    # bind together all grids
-    cov_grid <- rbind(spcov_grid, evencov_grid, randcov_grid)
-    cov_grid <- unique(cov_grid)
-    cov_grid_splits <- split(cov_grid, seq_len(NROW(cov_grid)))
-    # apply
-    objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+    min_params <- select_best_grid_point(cov_grid, eval_grid,
       data_object = data_object, spcov_type = class(spcov_initial_NA),
       estmethod = estmethod, dist_matrix_list = dist_matrix_list,
       weights = weights, esv = esv_val,
       dist_vector = dist_vector,
       residual_vector2 = residual_vector2
     )
-    # find minimum value and record parameters
-    min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "rotate", "scale")]
     # return the spatial parameters
     spcov_initial_NA$initial <- spcov_params
@@ -592,10 +281,13 @@ cov_initial_search.ie <- cov_initial_search.none
 cov_initial_search.matern <- function(spcov_initial_NA, estmethod, data_object,
                                       dist_matrix_list, weights,
                                       randcov_initial_NA = NULL, esv_dotlist, ...) {
+  # Same grid-search strategy as cov_initial_search.exponential() (see comments
+  # there), extended with a starting grid for the extra shape/smoothness parameter
+  # that matern-family correlation functions (matern, cauchy, pexponential) have in
+  # addition to de/ie/range/rotate/scale
   # find ols sample variance
   s2 <- data_object$s2
   ns2 <- 1.2 * s2
-
 
 
   # find sets of starting values
@@ -618,9 +310,7 @@ cov_initial_search.matern <- function(spcov_initial_NA, estmethod, data_object,
 
 
   # find starting spatial grid
-  spcov_grid <- expand.grid(de = de, ie = ie, range = range, extra = extra, rotate = rotate, scale = scale)
-  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
-  spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
+  spcov_grid <- build_de_ie_grid(de, ie, ns2, range = range, extra = extra, rotate = rotate, scale = scale)
 
   # save initial state (used with random effects)
   spcov_grid_init <- spcov_grid
@@ -636,98 +326,27 @@ cov_initial_search.matern <- function(spcov_initial_NA, estmethod, data_object,
   spcov_grid <- unique(spcov_grid)
 
   # compute empirical semivariogram
-  if (estmethod == "sv-wls") {
-    if (data_object$anisotropy) {
-      new_coords_list <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-        rotate = spcov_initial_NA$initial[["rotate"]],
-        scale = spcov_initial_NA$initial[["scale"]]
-      )
-      dist_matrix_list <- lapply(new_coords_list, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-    }
-    # compute empirical semivariogram
-    esv_vals <- mapply(d = data_object$obdata_list, m = dist_matrix_list, function(d, m) {
-      do.call("esv", c(
-        list(
-          formula = data_object$formula,
-          data = d,
-          dist_matrix = m,
-          partition_factor = data_object$partition_factor
-        ),
-        esv_dotlist
-      ))
-    }, SIMPLIFY = FALSE)
-    esv_vals <- do.call("rbind", esv_vals)
-    esv_vals <- esv_vals[esv_vals$np > 0, , drop = FALSE]
-    esv_vals$bins <- droplevels(esv_vals$bins)
-    esv_val <- data.frame(
-      bins = levels(esv_vals$bins),
-      dist = tapply(esv_vals$dist, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),
-      gamma = tapply(esv_vals$gamma, esv_vals$bins, function(x) mean(x, na.rm = TRUE)),
-      np = tapply(esv_vals$np, esv_vals$bins, function(x) mean(x))
-    )
-  } else {
-    esv_val <- NULL
-  }
+  sv_wls_result <- precompute_sv_wls(estmethod, data_object, spcov_initial_NA, dist_matrix_list, esv_dotlist)
+  esv_val <- sv_wls_result$esv_val
+  dist_matrix_list <- sv_wls_result$dist_matrix_list
 
   # find relevant quantities for composite likelihood
-  if (estmethod == "sv-cl") {
-    if (data_object$anisotropy) {
-      new_coords_list <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-        rotate = spcov_initial_NA$initial[["rotate"]],
-        scale = spcov_initial_NA$initial[["scale"]]
-      )
-      dist_matrix_list <- lapply(new_coords_list, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-    }
-    # dist_vector_list <- lapply(dist_matrix_list, function(x) triu(x, k = 1))
-    dist_vector_list <- lapply(dist_matrix_list, function(x) {
-      x <- as.matrix(x)
-      x <- x[upper.tri(x)]
-    })
-    residual_list <- lapply(data_object$obdata_list, function(d) residuals(lm(data_object$formula, data = d)))
-    residual_matrix_list <- lapply(residual_list, function(x) spdist(xcoord_val = x))
-    residual_vector_list <- lapply(residual_matrix_list, function(x) {
-      x <- as.matrix(x)
-      x <- x[upper.tri(x)]
-    })
-    residual_vector <- unlist(residual_vector_list)
-    if (!is.null(data_object$partition_list)) {
-      partition_vector_list <- lapply(data_object$partition_list, function(x) {
-        x <- as.matrix(x)
-        x <- x[upper.tri(x)]
-      })
-      dist_vector_list <- mapply(d = dist_vector_list, p = partition_vector_list, function(d, p) d * p, SIMPLIFY = FALSE)
-      residual_vector_list <- mapply(r = residual_vector_list, p = partition_vector_list, function(r, p) r * p, SIMPLIFY = FALSE)
-    }
-
-    dist_vector <- unlist(dist_vector_list)
-    dist_index <- dist_vector > 0
-    dist_vector <- dist_vector[dist_index]
-    residual_vector <- unlist(residual_vector_list)
-    residual_vector <- residual_vector[dist_index]
-    residual_vector2 <- residual_vector^2
-  } else {
-    dist_vector <- NULL
-    residual_vector2 <- NULL
-  }
-
+  sv_cl_result <- precompute_sv_cl(estmethod, data_object, spcov_initial_NA, dist_matrix_list)
+  dist_vector <- sv_cl_result$dist_vector
+  residual_vector2 <- sv_cl_result$residual_vector2
+  dist_matrix_list <- sv_cl_result$dist_matrix_list
 
 
   # perform search if no random effects
   if (is.null(randcov_initial_NA)) {
     # split
-    cov_grid_splits <- split(spcov_grid, seq_len(NROW(spcov_grid)))
-    # apply
-    objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+    min_params <- select_best_grid_point(spcov_grid, eval_grid,
       data_object = data_object, spcov_type = class(spcov_initial_NA),
       estmethod = estmethod, dist_matrix_list = dist_matrix_list,
       weights = weights, esv = esv_val,
       dist_vector = dist_vector,
       residual_vector2 = residual_vector2
     )
-
-    # find minimum value and record parameters
-    min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "extra", "rotate", "scale")]
     spcov_initial_NA$initial <- spcov_params
     # return the best parameters
@@ -738,116 +357,20 @@ cov_initial_search.matern <- function(spcov_initial_NA, estmethod, data_object,
   } else {
     # randcov names
     randcov_names <- data_object$randcov_names
-    # find number of random effects
-    nvar_randcov <- length(randcov_names)
+    cov_grid <- add_randcov_grids(spcov_grid, spcov_grid_init, ns2, spcov_initial_NA, randcov_initial_NA,
+      nvar_spcov = 2,
+      randcov_filter = spcov_grid_init$de == spcov_grid_init$ie &
+        spcov_grid_init$range == min(spcov_grid_init$range) &
+        spcov_grid_init$extra == min(spcov_grid_init$extra)
+    )
 
-    # spatially dominant grid
-    ## spatial components 90% of variance
-    spcov_grid[, c("de", "ie")] <- 0.9 * spcov_grid[, c("de", "ie")]
-
-    # replace with initial
-    for (x in names(spcov_grid)) {
-      if (!is.na(spcov_initial_NA$initial[[x]])) {
-        spcov_grid[, x] <- spcov_initial_NA$initial[[x]]
-      }
-    }
-
-    ## random effects 10% of variance and evenly spread
-    for (x in randcov_names) {
-      if (!is.na(randcov_initial_NA$initial[[x]])) {
-        spcov_grid[, x] <- randcov_initial_NA$initial[[x]]
-      } else {
-        spcov_grid[, x] <- 0.1 * ns2 / nvar_randcov
-      }
-    }
-
-
-
-    # Evenly dominated grid
-    ## find number of spatial variance parameters
-    nvar_spcov <- 2
-    ## find all variance parameters
-    nvar_cov <- nvar_spcov + nvar_randcov
-    ## keep only spatial cases with variance spread out
-    evencov_grid <- spcov_grid_init[spcov_grid_init$de == spcov_grid_init$ie, , drop = FALSE]
-    ## scale to incorporate overall variance
-    evencov_grid[, c("de", "ie")] <- nvar_spcov / nvar_cov * evencov_grid[, c("de", "ie")]
-
-    # replace with initial values
-    ## spatial
-    for (x in names(evencov_grid)) {
-      if (!is.na(spcov_initial_NA$initial[[x]])) {
-        evencov_grid[, x] <- spcov_initial_NA$initial[[x]]
-      }
-    }
-    ## random
-    for (x in randcov_names) {
-      if (!is.na(randcov_initial_NA$initial[[x]])) {
-        evencov_grid[, x] <- randcov_initial_NA$initial[[x]]
-      } else {
-        evencov_grid[, x] <- 1 / nvar_cov * ns2
-      }
-    }
-    # find unique combinations
-    evencov_grid <- unique(evencov_grid)
-
-    # random dominated grid
-    ## spatial component 10%
-    randcov_grid_spcov <- spcov_grid_init[spcov_grid_init$de == spcov_grid_init$ie & spcov_grid_init$range == min(spcov_grid_init$range) & spcov_grid_init$extra == min(spcov_grid_init$extra), , drop = FALSE]
-    randcov_grid_spcov[, c("de", "ie")] <- 0.1 * randcov_grid_spcov[, c("de", "ie")]
-
-    # replace spatial initial values
-    for (x in names(randcov_grid_spcov)) {
-      if (!is.na(spcov_initial_NA$initial[[x]])) {
-        randcov_grid_spcov[, x] <- spcov_initial_NA$initial[[x]]
-      }
-    }
-    # find unique values
-    randcov_grid_spcov <- unique(randcov_grid_spcov)
-
-    # random dominant grid
-    randcov_grid_randcov <- as.data.frame(as.list(rep(1 / nvar_randcov, nvar_randcov)))
-    names(randcov_grid_randcov) <- randcov_names
-    ## if there is more than one random effect, split it up into relevant scenarios
-    if (nvar_randcov > 1) {
-      ## set 0.1 for all proportions
-      extra_grid_randcov <- lapply(seq_len(nvar_randcov), function(x) rep(0.1 * 1 / (nvar_randcov - 1), nvar_randcov))
-      extra_grid_randcov <- do.call("rbind", extra_grid_randcov)
-      ## fill in 0.9 for one proportion in each row
-      diag(extra_grid_randcov) <- 0.9
-      extra_grid_randcov <- as.data.frame(extra_grid_randcov)
-      names(extra_grid_randcov) <- randcov_names
-    } else {
-      extra_grid_randcov <- NULL
-    }
-    ## give the random effects 90% of the variance
-    randcov_grid_randcov <- 0.9 * ns2 * rbind(randcov_grid_randcov, extra_grid_randcov)
-    for (x in randcov_names) {
-      if (!is.na(randcov_initial_NA$initial[[x]])) {
-        randcov_grid_randcov[, x] <- randcov_initial_NA$initial[[x]]
-      }
-    }
-
-    ## bind together and replicate
-    randcov_grid_spcov_rep <- do.call("rbind", replicate(NROW(randcov_grid_randcov), randcov_grid_spcov, simplify = FALSE))
-    randcov_grid_randcov_rep <- do.call("rbind", replicate(NROW(randcov_grid_spcov), randcov_grid_randcov, simplify = FALSE))
-    randcov_grid <- cbind(randcov_grid_spcov_rep, randcov_grid_randcov_rep)
-
-    # bind together all grids
-    cov_grid <- rbind(spcov_grid, evencov_grid, randcov_grid)
-    cov_grid <- unique(cov_grid)
-    cov_grid_splits <- split(cov_grid, seq_len(NROW(cov_grid)))
-    # apply
-    objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+    min_params <- select_best_grid_point(cov_grid, eval_grid,
       data_object = data_object, spcov_type = class(spcov_initial_NA),
       estmethod = estmethod, dist_matrix_list = dist_matrix_list,
       weights = weights, esv = esv_val,
       dist_vector = dist_vector,
       residual_vector2 = residual_vector2
     )
-    # find minimum value and record parameters
-    min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "extra", "rotate", "scale")]
     # return the spatial parameters
     spcov_initial_NA$initial <- spcov_params
@@ -871,7 +394,12 @@ cov_initial_search.pexponential <- cov_initial_search.matern
 #' @export
 cov_initial_search.car <- function(spcov_initial_NA, estmethod, data_object,
                                    dist_matrix_list, randcov_initial_NA = NULL, ...) {
-
+  # Areal (CAR, and SAR aliased below) autoregressive analogue of the geostatistical
+  # grid search above: "range" here is really the autocorrelation parameter rho, so
+  # its candidate values are spread across rho's valid range (rho_lb, rho_ub) --
+  # the bounds within which the CAR/SAR precision matrix stays positive definite --
+  # rather than across spatial distances, and there is no empirical-semivariogram
+  # (sv-wls/sv-cl) branch since those aren't defined for areal data.
   # find ols sample variance
   # obdata <- data_object$data[data_object$observed_index, , drop = FALSE]
   # s2 <- summary(lm(data_object$formula, obdata))$sigma^2
@@ -887,7 +415,7 @@ cov_initial_search.car <- function(spcov_initial_NA, estmethod, data_object,
   de <- c(0.1, 0.5, 0.9)
   ## ie
   ie <- c(0.1, 0.5, 0.9)
-  ## range
+  ## range: candidate autocorrelation (rho) values, kept strictly inside (rho_lb, rho_ub)
   rho_length <- data_object$rho_ub - data_object$rho_lb
   range <- c(
     data_object$rho_lb + 0.01 * rho_length,
@@ -896,9 +424,7 @@ cov_initial_search.car <- function(spcov_initial_NA, estmethod, data_object,
   )
 
   # find starting spatial grid
-  spcov_grid <- expand.grid(de = de, ie = ie, range = range)
-  spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
-  spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
+  spcov_grid <- build_de_ie_grid(de, ie, ns2, range = range)
   spcov_grid$extra <- spcov_grid$de
 
   # save initial state (used with random effects)
@@ -917,129 +443,25 @@ cov_initial_search.car <- function(spcov_initial_NA, estmethod, data_object,
   # perform search if no random effects
   if (is.null(randcov_initial_NA)) {
     # split
-    cov_grid_splits <- split(spcov_grid, seq_len(NROW(spcov_grid)))
-    # apply
-    objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+    min_params <- select_best_grid_point(spcov_grid, eval_grid,
       data_object = data_object, spcov_type = class(spcov_initial_NA),
       estmethod = estmethod, dist_matrix_list = W
     )
-
-    # find minimum value and record parameters
-    min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "extra")]
     spcov_initial_NA$initial <- spcov_params
     # return the best parameters
     best_params <- list(spcov_initial_val = spcov_initial_NA, randcov_initial_val = NULL)
   } else {
-
     # randcov vars names
     randcov_names <- data_object$randcov_names
-    # find number of random effects
-    nvar_randcov <- length(randcov_names)
+    cov_grid <- add_randcov_grids(spcov_grid, spcov_grid_init, ns2, spcov_initial_NA, randcov_initial_NA,
+      nvar_spcov = 2, scale_cols = c("de", "ie", "extra")
+    )
 
-    # spatially dominant grid
-    ## spatial components 90% of variance
-    spcov_grid[, c("de", "ie", "extra")] <- 0.9 * spcov_grid[, c("de", "ie", "extra")]
-
-    # replace with initial
-    for (x in names(spcov_grid)) {
-      if (!is.na(spcov_initial_NA$initial[[x]])) {
-        spcov_grid[, x] <- spcov_initial_NA$initial[[x]]
-      }
-    }
-
-    ## random effects 10% of variance and evenly spread
-    for (x in randcov_names) {
-      if (!is.na(randcov_initial_NA$initial[[x]])) {
-        spcov_grid[, x] <- randcov_initial_NA$initial[[x]]
-      } else {
-        spcov_grid[, x] <- 0.1 * ns2 / nvar_randcov
-      }
-    }
-
-    # Evenly dominated grid
-    ## find number of spatial variance parameters
-    nvar_spcov <- 2
-    ## find all variance parameters
-    nvar_cov <- nvar_spcov + nvar_randcov
-    ## keep only spatial cases with variance spread out
-    evencov_grid <- spcov_grid_init[spcov_grid_init$de == spcov_grid_init$ie, , drop = FALSE]
-    ## scale to incorporate overall variance
-    evencov_grid[, c("de", "ie", "extra")] <- nvar_spcov / nvar_cov * evencov_grid[, c("de", "ie", "extra")]
-
-    # replace with initial values
-    ## spatial
-    for (x in names(evencov_grid)) {
-      if (!is.na(spcov_initial_NA$initial[[x]])) {
-        evencov_grid[, x] <- spcov_initial_NA$initial[[x]]
-      }
-    }
-    ## random
-    for (x in randcov_names) {
-      if (!is.na(randcov_initial_NA$initial[[x]])) {
-        evencov_grid[, x] <- randcov_initial_NA$initial[[x]]
-      } else {
-        evencov_grid[, x] <- 1 / nvar_cov * ns2
-      }
-    }
-    # find unique combinations
-    evencov_grid <- unique(evencov_grid)
-
-    # random dominated grid
-    ## spatial component 10%
-    randcov_grid_spcov <- spcov_grid_init[spcov_grid_init$de == spcov_grid_init$ie & spcov_grid_init$range == min(spcov_grid_init$range), , drop = FALSE]
-    randcov_grid_spcov[, c("de", "ie", "extra")] <- 0.1 * randcov_grid_spcov[, c("de", "ie", "extra")]
-
-    # replace spatial initial values
-    for (x in names(randcov_grid_spcov)) {
-      if (!is.na(spcov_initial_NA$initial[[x]])) {
-        randcov_grid_spcov[, x] <- spcov_initial_NA$initial[[x]]
-      }
-    }
-    # find unique values
-    randcov_grid_spcov <- unique(randcov_grid_spcov)
-
-    # random dominant grid
-    randcov_grid_randcov <- as.data.frame(as.list(rep(1 / nvar_randcov, nvar_randcov)))
-    names(randcov_grid_randcov) <- randcov_names
-    ## if there is more than one random effect, split it up into relevant scenarios
-    if (nvar_randcov > 1) {
-      ## set 0.1 for all proportions
-      extra_grid_randcov <- lapply(seq_len(nvar_randcov), function(x) rep(0.1 * 1 / (nvar_randcov - 1), nvar_randcov))
-      extra_grid_randcov <- do.call("rbind", extra_grid_randcov)
-      ## fill in 0.9 for one proportion in each row
-      diag(extra_grid_randcov) <- 0.9
-      extra_grid_randcov <- as.data.frame(extra_grid_randcov)
-      names(extra_grid_randcov) <- randcov_names
-    } else {
-      extra_grid_randcov <- NULL
-    }
-    ## give the random effects 90% of the variance
-    randcov_grid_randcov <- 0.9 * ns2 * rbind(randcov_grid_randcov, extra_grid_randcov)
-    for (x in randcov_names) {
-      if (!is.na(randcov_initial_NA$initial[[x]])) {
-        randcov_grid_randcov[, x] <- randcov_initial_NA$initial[[x]]
-      }
-    }
-
-    ## bind together and replicate
-    randcov_grid_spcov_rep <- do.call("rbind", replicate(NROW(randcov_grid_randcov), randcov_grid_spcov, simplify = FALSE))
-    randcov_grid_randcov_rep <- do.call("rbind", replicate(NROW(randcov_grid_spcov), randcov_grid_randcov, simplify = FALSE))
-    randcov_grid <- cbind(randcov_grid_spcov_rep, randcov_grid_randcov_rep)
-
-    # bind together all grids
-    cov_grid <- rbind(spcov_grid, evencov_grid, randcov_grid)
-    cov_grid <- unique(cov_grid)
-    cov_grid_splits <- split(cov_grid, seq_len(NROW(cov_grid)))
-    # apply
-    objvals <- vapply(
-      X = cov_grid_splits, FUN = eval_grid, FUN.VALUE = numeric(1),
+    min_params <- select_best_grid_point(cov_grid, eval_grid,
       data_object = data_object, spcov_type = class(spcov_initial_NA),
       estmethod = estmethod, dist_matrix_list = W
     )
-    # find minimum value and record parameters
-    min_params <- unlist(cov_grid_splits[[which.min(objvals)]])
     spcov_params <- min_params[c("de", "ie", "range", "extra")]
     # return the spatial parameters
     spcov_initial_NA$initial <- spcov_params
@@ -1055,10 +477,26 @@ cov_initial_search.car <- function(spcov_initial_NA, estmethod, data_object,
 #' @export
 cov_initial_search.sar <- cov_initial_search.car
 
+#' Evaluate the grid-search objective for one grid point
+#'
+#' @param cov_grid_split A one-row split of the covariance parameter grid
+#' @param data_object The data object
+#' @param spcov_type The spatial covariance type
+#' @param estmethod The estimation method
+#' @param dist_matrix_list A list of distance matrices
+#' @param weights Semivariogram weights (used when \code{estmethod} is \code{"sv-wls"})
+#' @param esv An empirical semivariogram object (used when \code{estmethod} is \code{"sv-wls"})
+#' @param dist_vector A distance vector (used when \code{estmethod} is \code{"sv-cl"})
+#' @param residual_vector2 A vector of squared residuals (used when \code{estmethod} is \code{"sv-cl"})
+#'
+#' @return The (REML/ML/sv-wls/sv-cl, as determined by \code{estmethod}) objective
+#'   function value at this grid point, used by \code{cov_initial_search()}
+#'   methods to choose starting values
+#'
+#' @noRd
 eval_grid <- function(cov_grid_split, data_object, spcov_type,
                       estmethod, dist_matrix_list,
                       weights, esv, dist_vector, residual_vector2) {
-
   # convert list structure to a vector
   cov_grid <- unlist(cov_grid_split)
 
@@ -1067,9 +505,11 @@ eval_grid <- function(cov_grid_split, data_object, spcov_type,
   spcov_grid <- spcov_grid[!is.na(spcov_grid)]
   spcov_params_val <- do.call("spcov_params", c(list(spcov_type = spcov_type), as.list(spcov_grid)))
 
+  # dispatch to the objective matching the requested estimation method: -2 times
+  # the (restricted) Gaussian log-likelihood for reml/ml, or the sv-wls/sv-cl loss
+  # otherwise -- lower is better in every case, so the caller just takes which.min()
   # find REML or ML objective function value
   if (estmethod %in% c("reml", "ml")) {
-
     # incorporate random effects if necessary
     if (is.null(data_object$randcov_initial)) {
       randcov_params_val <- NULL
@@ -1078,43 +518,12 @@ eval_grid <- function(cov_grid_split, data_object, spcov_type,
       randcov_params_val <- randcov_params(cov_grid[randcov_names], nm = randcov_names)
     }
 
-    # incorporate anisotropy if necessary
+    # incorporate anisotropy if necessary: the likelihood is evaluated at both
+    # candidate angles (rotate and abs(pi - rotate))
+    # and the better one is kept
     if (data_object$anisotropy) {
-      new_coords_list_q1 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-        rotate = spcov_params_val[["rotate"]], scale = spcov_params_val[["scale"]]
-      )
-      dist_matrix_list_q1 <- lapply(new_coords_list_q1, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-
-      # compute relevant products
-      gll_prods_q1 <- gloglik_products(
-        spcov_params_val, data_object, estmethod,
-        dist_matrix_list_q1, randcov_params_val
-      )
-
-      # find -2loglik
-      objval_q1 <- get_minustwologlik(gll_prods_q1, estmethod, data_object$n, data_object$p, spcov_profiled = FALSE, randcov_profiled = FALSE)
-
-
-      new_coords_list_q2 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-        rotate = abs(pi - spcov_params_val[["rotate"]]), scale = spcov_params_val[["scale"]]
-      )
-      dist_matrix_list_q2 <- lapply(new_coords_list_q2, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-
-      # compute relevant products
-      gll_prods_q2 <- gloglik_products(
-        spcov_params_val, data_object, estmethod,
-        dist_matrix_list_q2, randcov_params_val
-      )
-
-      # find -2loglik
-      objval_q2 <- get_minustwologlik(gll_prods_q2, estmethod, data_object$n,
-        data_object$p,
-        spcov_profiled = FALSE, randcov_profiled = FALSE
-      )
-
-      objval <- min(objval_q1, objval_q2)
+      objval <- resolve_rotation_ambiguity(spcov_params_val, randcov_params_val, data_object, estmethod)
     } else {
-
       # compute relevant products
       gll_prods <- gloglik_products(
         spcov_params_val, data_object, estmethod,

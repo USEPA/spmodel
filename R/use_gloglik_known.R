@@ -1,3 +1,11 @@
+# use_gloglik* family overview: these functions evaluate/optimize the Gaussian
+# log-likelihood for spatial linear models (splm/spautor). Variants differ along
+# two axes -- anisotropy (plain vs "_anis") and whether covariance parameters are
+# already known (plain vs "_known"). This file: isotropic + known parameters, so
+# no optim() search is run -- the fixed parameters are simply plugged in and the
+# resulting -2*loglik is returned. Compare with use_gloglik.R (isotropic, estimated),
+# use_gloglik_anis.R (anisotropic, estimated), and use_gloglik_known_anis.R
+# (anisotropic, known).
 #' Use Gaussian log-likelihood estimation when covariance parameters are known
 #'
 #' @param spcov_initial A \code{spcov_initial} object
@@ -27,11 +35,9 @@ use_gloglik_known <- function(spcov_initial, data_object, estmethod, dist_matrix
   ## compute -2ll
   minustwologlik <- get_minustwologlik(gll_prods, estmethod, data_object$n, data_object$p, spcov_profiled = FALSE)
   # return parameter values and optim output
-  optim_output <- list(
-    method = NA, control = NA, value = minustwologlik,
-    counts = NA, convergence = NA,
-    message = NA, hessian = NA
-  )
+  # optim() was never called (parameters are fixed), so its diagnostic fields
+  # are filled with NA -- only value (the -2ll) is meaningful here
+  optim_output <- known_optim_output_stub(minustwologlik)
 
   # return list
   list(

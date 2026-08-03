@@ -3,13 +3,14 @@
 #' @order 3
 #' @export
 influence.spglm <- function(model, ...) {
-  tibble::tibble( # used to be data.frame
+  tibble::tibble(
     # allow ... so type.residuals can be passed to residuals()
     .resid = residuals(model, ...),
     .hat = hatvalues(model),
     .cooksd = cooks.distance(model),
-    .std.resid = residuals(model, type = "standardized") # ,
-    # .sigma = abs(model$model$y - loocv(model, cv_fitted = TRUE)$cv_fitted)
+    # standardized residuals always use their own default type regardless of
+    # any type passed above, since standardization needs a specific residual definition
+    .std.resid = residuals(model, type = "standardized")
   )
 }
 

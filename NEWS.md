@@ -3,7 +3,6 @@
 ## Major Updates
 
 * Added a `"weight"` value to the `type` argument in `predict()`, which returns the prediction (i.e., Kriging) weights.
-* Major internal documentation, code clarity, and code efficiency updates.
 
 ## Minor Updates
 
@@ -13,6 +12,7 @@
 * Added a warning for `spglm()` and `spgautor()` model objects fit using `estmethod = "ml"` when `de` and `ie` are at or near a numerical boundary (e.g., for `spcov_type = "none"`), as likelihood-based comparisons (e.g., `AIC()`, `AICc()`, `BIC()`) may be unreliable in this context.
 * Added a warning for `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects when the covariance-parameter optimizer (`optim()`) does not converge.
 * Added a warning for `spglm()` and `spgautor()` model objects fit using `family = "binomial"` when nearly all fitted probabilities are arbitrarily close to 0 or 1, indicating evidence of perfect separation.
+* Minor (internal) documentation, code clarity, and code efficiency updates.
 * Minor (external) documentation updates.
 
 ## Bug Fixes

@@ -506,3 +506,12 @@ test_that("generics work spglm polygon data with missing", {
   expect_true(inherits(vcov(spmod1), "matrix"))
   expect_true(inherits(vcov(spmod1, var_correct = FALSE), "matrix"))
 })
+
+test_that("AUROC works for spglm binomial", {
+  skip_if_not_installed("pROC")
+
+  spgmod <- spglm(presence ~ elev, family = "binomial", data = moose, spcov_type = "exponential")
+  auroc_val <- AUROC(spgmod)
+  expect_true(is.numeric(auroc_val))
+  expect_true(auroc_val >= 0 && auroc_val <= 1)
+})

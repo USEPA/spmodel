@@ -1,3 +1,17 @@
+#' Compute the cross-distance matrix between two sets of coordinates
+#'
+#' @param data A data frame with coordinate columns
+#' @param data2 A second data frame with coordinate columns
+#' @param xcoord The x-coordinate name
+#' @param ycoord The y-coordinate name
+#' @param dim_coords The number of coordinate dimensions (1 or 2; any other
+#'   value is treated as having no meaningful distance, used for the \code{"none"} covariance type)
+#' @param sparse Whether to return the result as a sparse \code{Matrix}
+#'
+#' @return A \code{NROW(data)} by \code{NROW(data2)} matrix of Euclidean
+#'   distances between each row of \code{data} and each row of \code{data2}
+#'
+#' @noRd
 spdist_vectors <- function(data, data2, xcoord, ycoord, dim_coords, sparse = TRUE) {
   # storing distances
   if (dim_coords == 1) {

@@ -244,9 +244,6 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
                  estmethod = "reml", weights = "cressie", anisotropy = FALSE,
                  random, randcov_initial, partition_factor, local,
                  range_constrain, ...) {
-
-
-
   # set exponential as default if nothing specified
   if (missing(spcov_type) && missing(spcov_initial)) {
     spcov_type <- "exponential"
@@ -258,6 +255,10 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
   }
 
   # iterate if needed
+  # a list of spcov_initial objects (or a character vector of multiple
+  # spcov_type values) means the caller wants several models fit at once --
+  # recurse once per element by re-dispatching to splm() with that single
+  # element substituted in, then collect the results into an splm_list
   if (!missing(spcov_initial) && is.list(spcov_initial[[1]])) {
     call_list <- as.list(match.call())[-1]
     penv <- parent.frame()
@@ -289,37 +290,35 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
   splm_checks(spcov_initial, !missing(xcoord), !missing(ycoord), estmethod, anisotropy, !missing(random))
 
   # set random NULL if necessary
-  if (missing(random)) {
-    random <- NULL
-  }
+  if (missing(random)) random <- NULL
 
   # set rancov_initial NULL if necessary
-  if (missing(randcov_initial)) {
-    randcov_initial <- NULL
-  }
+  if (missing(randcov_initial)) randcov_initial <- NULL
 
   # set partition factor if necessary
-  if (missing(partition_factor)) {
-    partition_factor <- NULL
-  }
+  if (missing(partition_factor)) partition_factor <- NULL
 
   # set local explicitly to FALSE if iid
+  # with no spatial dependence (none/ie) and no random effects, the
+  # covariance is diagonal already, so the big data approximation buys
+  # nothing and is skipped
   if (inherits(spcov_initial, c("none", "ie")) && is.null(random)) {
     local <- FALSE
   }
 
-  if (missing(local)) {
-    local <- NULL
-  }
+  if (missing(local)) local <- NULL
 
-  if (missing(range_constrain)) {
-    range_constrain <- FALSE
-  }
+  if (missing(range_constrain)) range_constrain <- FALSE
   # make this default of TRUE later
 
-  # non standard evaluation for x and y coordinates
-  xcoord <- substitute(xcoord)
-  ycoord <- substitute(ycoord)
+  # non standard evaluation for x and y coordinates -- missing() is checked
+  # here, on the original (not yet substituted) argument, since that's the
+  # one place missing() can answer this reliably; as.character(substitute())
+  # then normalizes both quoted ("x") and unquoted (x) column-name
+  # references into a plain string. Downstream code checks is.null(xcoord)
+  # (not missing()) to see whether the argument was supplied.
+  xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
+  ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
 
   # get data object
   data_object <- get_data_object_splm(
@@ -335,6 +334,9 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
     # invisible(clusterEvalQ(data_object$cl, library(Matrix)))
   }
 
+  # dispatch to the estimator matching estmethod: reml/ml maximize a
+  # (restricted) Gaussian log-likelihood, while sv-wls/sv-cl instead fit the
+  # empirical semivariogram via weighted least squares or composite likelihood
   # estimating covariance parameters
   cov_est_object <- switch(estmethod,
     "reml" = cov_estimate_gloglik_splm(data_object, formula, spcov_initial, estmethod,
@@ -353,8 +355,11 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
     )
   )
 
+  warn_optim_convergence(cov_est_object$optim_output$convergence)
 
-
+  # the iid special case (no spatial dependence, no random effects) has a
+  # diagonal covariance matrix, so model_stats can be computed with cheaper,
+  # non-spatial formulas instead of the general dense/sparse matrix code path
   if (inherits(cov_est_object$spcov_params_val, c("none", "ie")) && is.null(random)) {
     model_stats <- get_model_stats_splm_iid(cov_est_object, data_object, estmethod)
   } else {
@@ -374,6 +379,9 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
     local_index <- data_object$local_index
   }
 
+  # triangular and circular covariances are only valid in one dimension, so
+  # coordinates were collapsed to 1D for estimation; restore/relabel the
+  # stored data object accordingly for downstream use (e.g., prediction)
   if (inherits(spcov_initial, c("triangular", "circular"))) {
     data_object <- replace_data_object_dimcoords1(data_object)
   }

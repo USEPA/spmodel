@@ -1,3 +1,5 @@
+# see use_svloss.R for an overview of the use_svloss* family; this file
+# just evaluates the WLS loss at fixed, known parameters (no optim() search).
 #' Use semivariogram-weighted-least-squares for estimation with known covariance parameters
 #'
 #' @param spcov_initial A \code{spcov_initial} object
@@ -11,8 +13,6 @@
 #'
 #' @noRd
 use_svloss_known <- function(spcov_initial, dist_matrix_list, esv, weights) {
-
-
   # get covariance parameters
   spcov_params_val <- get_spcov_params(class(spcov_initial), spcov_initial$initial)
   # get sv loss

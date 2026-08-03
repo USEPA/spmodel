@@ -228,6 +228,14 @@ approximation is used), as predictions
 are spread out over multiple cores. The default is \code{FALSE}.
 \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
 parallelize over. The default is the number of available cores on your machine.
+\item \code{byrow_threshold}: Only relevant when a random effect or partition
+factor is used and \code{method} is \code{"distance"} or \code{"covariance"}.
+In this scenario, when the observed sample size times the number of predictions
+is less than \code{byrow_threshold}, computations are performed once for
+all predictions simultaneously (which is generally faster but uses more memory).
+Otherwise, computations are performed separately for each prediction, one row
+at a time (which is generally slower but uses less memory). The default is
+\code{10000^2}. Only used with models fit using \code{\link[=splm]{splm()}} or \code{\link[=spglm]{spglm()}}.
 }
 When \code{local} is a list, at least one list element must be provided to
 initialize default arguments for the other list elements.

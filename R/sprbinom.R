@@ -34,6 +34,9 @@
 #' sprbinom(spcov_params_val, samples = 5, data = caribou, xcoord = x, ycoord = y)
 sprbinom <- function(spcov_params, mean = 0, size = 1, samples = 1, data, randcov_params, partition_factor, ...) {
   n <- NROW(data)
+  # re-dispatch this call to sprnorm() (dropping the "size" argument, which
+  # sprnorm() does not accept) to simulate the shared latent Gaussian
+  # process, then transform it below into the target distribution
   call_val <- match.call()
   call_val[[1]] <- as.symbol("sprnorm")
   call_list <- as.list(call_val)

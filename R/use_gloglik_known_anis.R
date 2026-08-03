@@ -1,3 +1,9 @@
+# use_gloglik* family overview: see use_gloglik_known.R for the two axes that
+# distinguish these sibling files (anisotropy, known-vs-estimated parameters).
+# This file: anisotropic + known parameters. Like use_gloglik_known.R, no
+# optim() search happens -- but unlike it, the distance matrix must still be
+# built here (rather than passed in) because it depends on the fixed
+# rotate/scale anisotropy parameters.
 #' Use Gaussian log-likelihood estimation with anisotropy and known covariance parameters
 #'
 #' @param spcov_initial A \code{spcov_initial} object
@@ -20,11 +26,10 @@ use_gloglik_known_anis <- function(spcov_initial, data_object, estmethod, randco
   spcov_params_val <- get_spcov_params(class(spcov_initial), spcov_initial$initial)
   randcov_params_val <- randcov_params(randcov_initial$initial)
 
-  new_coords_list <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-    rotate = spcov_params_val[["rotate"]], scale = spcov_params_val[["scale"]]
-  )
-
-  dist_matrix_list <- lapply(new_coords_list, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
+  # rotate/rescale coordinates by the fixed anisotropy parameters before
+  # computing distances, since anisotropic covariance is isotropic in this
+  # transformed coordinate space
+  dist_matrix_list <- build_anis_dist_matrix_list(spcov_params_val, data_object)
   ## find relevant products
   gll_prods <- gloglik_products(
     spcov_params_val, data_object, estmethod,
@@ -34,11 +39,7 @@ use_gloglik_known_anis <- function(spcov_initial, data_object, estmethod, randco
   minustwologlik <- get_minustwologlik(gll_prods, estmethod, data_object$n, data_object$p, spcov_profiled = FALSE)
 
   # return parameter values and optim output
-  optim_output <- list(
-    method = NA, control = NA, value = minustwologlik,
-    counts = NA, convergence = NA,
-    message = NA, hessian = NA
-  )
+  optim_output <- known_optim_output_stub(minustwologlik)
 
   # return list
   list(

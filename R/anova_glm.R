@@ -2,6 +2,9 @@
 #' @method anova spglm
 #' @order 3
 #' @export
+# spglm/spgautor reuse the splm/spautor anova() and tidy() logic directly,
+# since the GLHT and LRT computations only rely on generics (vcov, logLik,
+# coefficients, model.matrix) that are defined for all model classes
 anova.spglm <- anova.splm
 
 #' @rdname anova.spmodel

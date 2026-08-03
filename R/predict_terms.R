@@ -1,5 +1,23 @@
+#' Predict each model term's contribution to the linear predictor
+#'
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()]
+#' @param X_newdata The design matrix for the data requiring prediction
+#' @param se.fit Whether to compute standard errors for each term
+#' @param scale A scale multiplier for the standard errors (or \code{NULL})
+#' @param df Degrees of freedom used for interval quantiles
+#' @param interval The type of interval (\code{"none"} or \code{"confidence"}; \code{"prediction"} is not supported)
+#' @param level The confidence interval level
+#' @param add_newdata_rows Whether to name output rows using \code{object$missing_index}
+#'   rather than \code{rownames(X_newdata)}
+#' @param terms Optional subset of terms to return
+#' @param ... Additional arguments passed to \code{vcov()}
+#'
+#' @return A matrix (or list of matrices, if \code{se.fit} or \code{interval == "confidence"})
+#'   with one column per model term (collapsing over factor levels within a
+#'   term) and one row per prediction, mirroring \code{predict.lm(type = "terms")}
+#'
+#' @noRd
 predict_terms <- function(object, X_newdata, se.fit, scale, df, interval, level, add_newdata_rows, terms, ...) {
-
   if (interval == "prediction") {
     stop('If type = "terms", interval must be "none" or "confidence".', call. = FALSE)
   }
@@ -20,9 +38,6 @@ predict_terms <- function(object, X_newdata, se.fit, scale, df, interval, level,
     X_newdata_cent <- sweep(X_newdata, 2L, avx)
     # the intercept needs to be adjusted due to centering of covariates
     constant <- as.numeric(crossprod(avx, beta))
-    # if (!is.null(offset)) {
-    #   # somehow, this code all accounts for offset
-    # }
   } else {
     X_newdata_cent <- X_newdata
     constant <- 0
@@ -34,12 +49,6 @@ predict_terms <- function(object, X_newdata, se.fit, scale, df, interval, level,
   # for the no intercept case
   fit <- matrix(numeric(0), nrow = NROW(X_newdata), ncol = nterms)
   colnames(fit) <- attr(terms(object), "term.labels")
-  # colnames(fit) <- colnames(X_newdata)[assign != 0]
-  # base appears to only add rownames if models are non-intercept;
-  # we won't do that
-  # if (nterms > 0) {
-  #   rownames(fit) <- rownames(X)
-  # }
   if (add_newdata_rows) {
     rownames(fit) <- object$missing_index
   } else {
@@ -55,13 +64,13 @@ predict_terms <- function(object, X_newdata, se.fit, scale, df, interval, level,
     X_index <- attr(X, "assign") == i
     # the fits per row are just the centered x-values for each term
     # times the regression coefficients, and then summed if these are factors
-    fit[, i] = X_newdata_cent[, X_index, drop = FALSE] %*% beta[X_index, , drop = FALSE]
+    fit[, i] <- X_newdata_cent[, X_index, drop = FALSE] %*% beta[X_index, , drop = FALSE]
     # get standard errors
     if (se.fit || interval == "confidence") {
       X_newdata_cent_sub <- X_newdata_cent[, X_index, drop = FALSE]
       vc_sub <- vc[X_index, X_index, drop = FALSE]
       # the fits are just linear combinations, so standard variance rules apply
-      se[, i] = sqrt(diag(X_newdata_cent_sub %*% tcrossprod(vc_sub, X_newdata_cent_sub)))
+      se[, i] <- sqrt(diag(X_newdata_cent_sub %*% tcrossprod(vc_sub, X_newdata_cent_sub)))
     }
   }
 
@@ -80,7 +89,6 @@ predict_terms <- function(object, X_newdata, se.fit, scale, df, interval, level,
     }
   }
   if (interval == "confidence") {
-
     tstar <- qt(1 - (1 - level) / 2, df = df)
     out$lwr <- out$fit - tstar * se
     out$upr <- out$fit + tstar * se

@@ -1,3 +1,5 @@
+# This file only contains roxygen documentation for the package's built-in example
+# data sets; each object below is documented and then can be referenced by its name
 #' Heavy metals in mosses near a mining road in Alaska, USA
 #'
 #' @description Heavy metals in mosses near a mining road in Alaska, USA.
@@ -36,7 +38,6 @@
 #'   on National Park Service Lands in the Vicinity of Red Dog Mine, Alaska.
 #'   Science of the Total Environment 348: 211-230.
 "moss"
-
 
 
 #' A caribou forage experiment

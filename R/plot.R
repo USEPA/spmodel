@@ -45,9 +45,7 @@
 #' plot(spmod)
 #' plot(spmod, which = c(1, 2, 4, 6))
 plot.splm <- function(x, which, ...) {
-  if (missing(which)) {
-    which <- c(1, 2, 7)
-  }
+  if (missing(which)) which <- c(1, 2, 7)
 
   if (any(!(which %in% 1:8))) {
     stop("Values of which can only take on 1, 2, 3, 4, 5, 6, 7, or 8.", call. = FALSE)
@@ -63,6 +61,9 @@ plot.splm <- function(x, which, ...) {
   }
 
 
+  # build a short caption from the original model call (keeping just the
+  # formula argument) to print under each plot, truncating with "..." if the
+  # deparsed call is too long/wraps multiple lines to display cleanly
   cal <- x$call
   if (!is.na(m.f <- match("formula", names(cal)))) {
     cal <- cal[c(1, m.f)]
@@ -78,7 +79,8 @@ plot.splm <- function(x, which, ...) {
   }
 
 
-  # plot 1
+  # plot 1: standardized residuals should show no pattern vs fitted values
+  # for a well-specified model
   if (1 %in% which) {
     plot(
       x = fitted(x),
@@ -112,8 +114,6 @@ plot.splm <- function(x, which, ...) {
     )
     title(sub = sub.caption)
   }
-
-
 
 
   # plot 4
@@ -159,7 +159,11 @@ plot.splm <- function(x, which, ...) {
   }
 
 
-  # plot 7
+  # plot 7: covariance as a function of distance, evaluated over a fine grid
+  # from 0 to the maximum observed pairwise distance; the point at distance 0
+  # is plotted separately (via points()) because it includes the nugget/
+  # independent error variance (de + ie) as a discontinuity, while the line
+  # itself (h[-1]) shows the continuous spatially-dependent part
   if (7 %in% which) {
     h <- seq(0, x$max_dist, length.out = 1000)
     spcoef <- coefficients(x, type = "spcov")
@@ -178,6 +182,12 @@ plot.splm <- function(x, which, ...) {
     title(sub = sub.caption)
   }
 
+  # plot 8: draws the level curve of equal correlation at a fixed radius,
+  # i.e. the shape an isotropic circle of correlation gets stretched/rotated
+  # into under the fitted anisotropy parameters -- start from a unit circle
+  # in "distorted" space and map it back to the original x/y-distance space
+  # via the inverse anisotropy transform, so a circular curve indicates no
+  # anisotropy and an ellipse indicates directional dependence
   if (8 %in% which) {
     r <- 1
     theta_seq <- seq(0, 2 * pi, length.out = 1000)
@@ -205,7 +215,7 @@ plot.splm <- function(x, which, ...) {
       y = y_new,
       xlab = "x-distance",
       ylab = "y-distance",
-      main =  main_new,
+      main = main_new,
       type = "l",
       xlim = c(-1, 1),
       ylim = c(-1, 1),
@@ -223,9 +233,7 @@ plot.splm <- function(x, which, ...) {
 #' @order 2
 #' @export
 plot.spautor <- function(x, which, ...) {
-  if (missing(which)) {
-    which <- c(1, 2)
-  }
+  if (missing(which)) which <- c(1, 2)
 
   if (any(!(which %in% 1:6))) {
     stop("Values of which can only take on 1, 2, 3, 4, 5, or 6.", call. = FALSE)
@@ -290,8 +298,6 @@ plot.spautor <- function(x, which, ...) {
     )
     title(sub = sub.caption)
   }
-
-
 
 
   # plot 4

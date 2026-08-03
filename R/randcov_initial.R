@@ -28,11 +28,14 @@
 randcov_initial <- function(..., known) {
   randcov_params_given <- randcov_params(...)
   if (missing(known)) {
+    # nothing marked known -> all supplied values treated as starting values to optimize
     is_known <- rep(FALSE, length(randcov_params_given))
   } else {
     if (identical(known, "given")) {
+      # "given" is shorthand for "every value the user supplied is fixed"
       is_known <- rep(TRUE, length(randcov_params_given))
     } else {
+      # otherwise known names a subset of the random effects to fix
       is_known <- names(randcov_params_given) %in% known
     }
   }

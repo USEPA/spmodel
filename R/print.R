@@ -40,14 +40,7 @@ print.splm <- function(x, digits = max(3L, getOption("digits") - 3L),
 
   cat("\n")
 
-  spcoef <- coef(x, type = "spcov")
-
-  if (!x$anisotropy) {
-    spcoef <- spcoef[-which(names(spcoef) %in% c("rotate", "scale"))]
-  }
-  if (inherits(coef(x, type = "spcov"), c("none", "ie"))) {
-    spcoef <- spcoef["ie"]
-  }
+  spcoef <- select_print_spcoef_pointref(coef(x, type = "spcov"), x$anisotropy)
 
   cat(paste("\nCoefficients (", class(coef(x, type = "spcov")), " spatial covariance):\n", sep = ""))
   print.default(format(spcoef, digits = digits),
@@ -90,19 +83,7 @@ print.spautor <- function(x, digits = max(3L, getOption("digits") - 3L),
 
   cat("\n")
 
-  spcoef <- coef(x, type = "spcov")
-
-  no_ie <- spcoef[["ie"]] == 0 && x$is_known$spcov[["ie"]]
-  no_extra <- spcoef[["extra"]] == 0 && x$is_known$spcov[["extra"]]
-  if (no_ie && no_extra) {
-    spcoef <- spcoef[c("de", "range")]
-  } else if (no_ie && !no_extra) {
-    spcoef <- spcoef[c("de", "range", "extra")]
-  } else if (!no_ie && no_extra) {
-    spcoef <- spcoef[c("de", "ie", "range")]
-  } else {
-    spcoef <- spcoef[c("de", "ie", "range", "extra")]
-  }
+  spcoef <- select_print_spcoef_areal(coef(x, type = "spcov"), x$is_known$spcov)
 
   cat(paste("\nCoefficients (", class(coef(x, type = "spcov")), " spatial covariance):\n", sep = ""))
   print.default(format(spcoef, digits = digits),
@@ -136,18 +117,11 @@ print.summary.splm <- function(x,
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
 
   # pasting the residual summary
-  cat("\nResiduals:\n")
-  resQ <- c(
-    min(x$residuals$response), quantile(x$residuals$response, p = c(0.25, 0.5, 0.75), na.rm = TRUE),
-    max(x$residuals$response)
-  )
-  names(resQ) <- c("Min", "1Q", "Median", "3Q", "Max")
-  print(resQ, digits = digits)
+  print_residual_summary(x$residuals, digits, field = "response")
 
   # pasting the fixed coefficient summary
   cat("\nCoefficients (fixed):\n")
   coefs_fixed <- x$coefficients$fixed
-  # colnames(coefs_fixed) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
   colnames(coefs_fixed) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
   printCoefmat(coefs_fixed, digits = digits, signif.stars = signif.stars, na.print = "NA", ...)
 
@@ -159,16 +133,7 @@ print.summary.splm <- function(x,
   }
 
   # pasting the covariance coefficient summary
-  spcoef <- x$coefficients$spcov
-
-
-  if (!x$anisotropy) {
-    spcoef <- spcoef[-which(names(spcoef) %in% c("rotate", "scale"))]
-  }
-  if (inherits(x$coefficients$spcov, c("none", "ie"))) {
-    spcoef <- spcoef["ie"]
-  }
-
+  spcoef <- select_print_spcoef_pointref(x$coefficients$spcov, x$anisotropy)
 
   cat(paste("\nCoefficients (", class(x$coefficients$spcov), " spatial covariance):\n", sep = ""))
   print(spcoef, digits = digits)
@@ -194,18 +159,11 @@ print.summary.spautor <- function(x,
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
 
   # pasting the residual summary
-  cat("\nResiduals:\n")
-  resQ <- c(
-    min(x$residuals$response), quantile(x$residuals$response, p = c(0.25, 0.5, 0.75), na.rm = TRUE),
-    max(x$residuals$response)
-  )
-  names(resQ) <- c("Min", "1Q", "Median", "3Q", "Max")
-  print(resQ, digits = digits)
+  print_residual_summary(x$residuals, digits, field = "response")
 
   # pasting the fixed coefficient summary
   cat("\nCoefficients (fixed):\n")
   coefs_fixed <- x$coefficients$fixed
-  # colnames(coefs_fixed) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
   colnames(coefs_fixed) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
   printCoefmat(coefs_fixed, digits = digits, signif.stars = signif.stars, na.print = "NA", ...)
 
@@ -217,21 +175,7 @@ print.summary.spautor <- function(x,
   }
 
   # pasting the covariance coefficient summary
-  spcoef <- x$coefficients$spcov
-
-
-  no_ie <- spcoef[["ie"]] == 0 && x$is_known$spcov[["ie"]]
-  no_extra <- spcoef[["extra"]] == 0 && x$is_known$spcov[["extra"]]
-  if (no_ie && no_extra) {
-    spcoef <- spcoef[c("de", "range")]
-  } else if (no_ie && !no_extra) {
-    spcoef <- spcoef[c("de", "range", "extra")]
-  } else if (!no_ie && no_extra) {
-    spcoef <- spcoef[c("de", "ie", "range")]
-  } else {
-    spcoef <- spcoef[c("de", "ie", "range", "extra")]
-  }
-
+  spcoef <- select_print_spcoef_areal(x$coefficients$spcov, x$is_known$spcov)
 
   cat(paste("\nCoefficients (", class(x$coefficients$spcov), " spatial covariance):\n", sep = ""))
   print(spcoef, digits = digits)
@@ -255,6 +199,8 @@ print.anova.splm <- function(x, digits = max(getOption("digits") - 2L, 3L),
   cat("\n")
   cat(attr(x, "heading")[2])
   cat("\n")
+  # a Pr(>Chi2) column is only present when the anova table compares nested
+  # models via a likelihood ratio test, as opposed to a single-model Wald table
   if ("Pr(>Chi2)" %in% colnames(x)) {
     P.values <- TRUE
     has.Pvalue <- TRUE

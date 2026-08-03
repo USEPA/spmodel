@@ -5,3 +5,6 @@
 inst/doc
 /doc/
 /Meta/
+.claude/
+CLAUDE.md
+.positai

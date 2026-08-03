@@ -50,10 +50,10 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     stop(paste(spcov_type), "is not a valid spatial covariance function.")
   }
 
-  if (missing(spcov_type)) {
-    stop("spcov_type must be specified.", call. = FALSE)
-  }
+  if (missing(spcov_type)) stop("spcov_type must be specified.", call. = FALSE)
 
+  # "none"/"ie" have no spatial dependence structure: de (partial sill) is
+  # fixed at 0 and range is irrelevant, so it's set to Inf as a placeholder
   if (spcov_type %in% c("none", "ie")) {
     de <- 0
     range <- Inf
@@ -63,9 +63,7 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     if (missing(extra)) {
       stop("extra must be specified. If there are no unconnected sites in the data, set extra = 0.", call. = FALSE)
     }
-    if (missing(ie)) {
-      ie <- 0
-    }
+    if (missing(ie)) ie <- 0
   }
 
   # some parameter specification checks
@@ -117,6 +115,9 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
     stop("extra must be positive and no larger than 2.", call. = FALSE)
   }
 
+  # drop parameters that don't apply to this spcov_type so the returned
+  # vector only contains meaningful parameters (extra is geo/car/sar-only;
+  # rotate/scale are anisotropy parameters, not used for car/sar)
   if (spcov_type %in% c("exponential", "spherical", "gaussian", "triangular", "circular", "none", "ie", "cubic", "pentaspherical", "cosine", "wave", "jbessel", "gravity", "rquad", "magnetic")) {
     extra <- NULL
   }
@@ -133,6 +134,8 @@ spcov_params <- function(spcov_type, de, ie, range, extra, rotate = 0, scale = 1
   )
 
   # the constructor giving the class
+  # class = spcov_type enables S3 dispatch (e.g., spcov_matrix.exponential())
+  # to pick the right covariance formula elsewhere in the package
   new_spcov_params <- structure(spcov_params_val, class = spcov_type)
   new_spcov_params
 }

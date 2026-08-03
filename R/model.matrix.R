@@ -23,6 +23,9 @@
 #' model.matrix(spmod)
 model.matrix.splm <- function(object, ...) {
   # model.matrix(formula(object, ...), model.frame(object, ...), ...) too much customization
+  # passing object$contrasts explicitly (rather than letting model.matrix()
+  # pick fresh defaults) ensures factor columns are coded exactly as they
+  # were when the model was originally fit
   model.matrix(object$formula, model.frame(object), contrasts = object$contrasts)
 }
 
@@ -30,4 +33,6 @@ model.matrix.splm <- function(object, ...) {
 #' @method model.matrix spautor
 #' @order 2
 #' @export
+# spautor's model.frame() method already restricts to observed rows, so the
+# same construction logic as splm applies unchanged
 model.matrix.spautor <- model.matrix.splm

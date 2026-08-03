@@ -486,3 +486,33 @@ test_that("generics work splm polygon data with missing", {
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
 })
+
+test_that("emmeans works for splm", {
+  skip_if_not_installed("emmeans")
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+
+  spmod1 <- splm(y ~ group, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
+  em <- emmeans::emmeans(spmod1, ~group)
+  expect_s4_class(em, "emmGrid")
+  expect_equal(nrow(as.data.frame(em)), nlevels(exdata$group))
+})
+
+test_that("splmRF runs", {
+  skip_if_not_installed("ranger")
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+
+  spmod1 <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", num.trees = 100)
+  expect_s3_class(spmod1, "splmRF")
+  expect_vector(predict(spmod1, newdata = exdata))
+})
+
+test_that("splmRF_list runs", {
+  skip_if_not_installed("ranger")
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+
+  spmod_list <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = c("exponential", "matern"), estmethod = "reml", num.trees = 100)
+  expect_s3_class(spmod_list, "splmRF_list")
+  preds <- predict(spmod_list, newdata = exdata)
+  expect_type(preds, "list")
+  expect_length(preds, 2)
+})

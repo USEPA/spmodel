@@ -5,6 +5,8 @@
 ^doc$
 ^Meta$
 ^\.github$
+^\.claude$
+^CLAUDE\.md$
 ^cran-comments.md$
 ^CRAN-RELEASE$
 ^_pkgdown\.yml$
@@ -12,3 +14,5 @@
 ^pkgdown$
 ^vignettes/articles$
 ^CRAN-SUBMISSION$
+^tests/testthat/deprecated$
+^\.positai$

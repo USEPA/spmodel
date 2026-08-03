@@ -35,6 +35,8 @@ randcov_params <- function(..., nm) {
       if (length(dotlist[[x]]) > 1) {
         stop("Each random effect must have only one variance parameter.", call. = FALSE)
       }
+      # if this ... argument was passed with a name (e.g. group = 1), (re)apply
+      # that name as the element's own name so it survives the unlist() below
       if (!is.null(names_dotlist[[x]]) && names_dotlist[[x]] != "") {
         unname(dotlist[[x]])
         names(dotlist[[x]]) <- names_dotlist[[x]]
@@ -42,8 +44,12 @@ randcov_params <- function(..., nm) {
       dotlist[[x]]
     })
   }
+  # unlist() collapses the list into a single named numeric vector, one entry
+  # per random effect, using whichever names were set above
   randcov_params_val <- unlist(dotlist)
   if (!missing(nm)) {
+    # nm lets unnamed ... values (e.g. randcov_params(1, 2, nm = c("group", "subgroup")))
+    # be named after the fact instead of using "group = 1" syntax
     names(randcov_params_val) <- nm
   }
   randcov_params_val

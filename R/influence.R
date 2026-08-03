@@ -27,12 +27,14 @@
 #' )
 #' influence(spmod)
 influence.splm <- function(model, ...) {
-  tibble::tibble( # used to be data.frame
+  # standardized residuals are requested via a separate residuals() call
+  # (rather than derived here from .resid and .hat) since the standardization
+  # accounts for the full model covariance, not just leverage
+  tibble::tibble(
     .resid = residuals(model),
     .hat = hatvalues(model),
     .cooksd = cooks.distance(model),
-    .std.resid = residuals(model, type = "standardized") # ,
-    # .sigma = abs(model$model$y - loocv(model, cv_fitted = TRUE)$cv_fitted)
+    .std.resid = residuals(model, type = "standardized")
   )
 }
 

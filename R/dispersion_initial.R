@@ -52,8 +52,8 @@
 #' @references
 #' McCullagh P. and Nelder, J. A. (1989) \emph{Generalized Linear Models}. London: Chapman and Hall.
 dispersion_initial <- function(family, dispersion, known) {
-
   # fix family
+  # allow family to be given unquoted (e.g. poisson instead of "poisson")
   if (is.symbol(substitute(family))) { # or is.language
     family <- deparse1(substitute(family))
   }
@@ -68,6 +68,7 @@ dispersion_initial <- function(family, dispersion, known) {
   if (missing(known)) {
     is_known <- rep(FALSE, length(dispersion_params_given))
   } else {
+    # known = "given" is shorthand for "treat every value supplied here as known"
     if (identical(known, "given")) {
       is_known <- rep(TRUE, length(dispersion_params_given))
     } else {
@@ -77,11 +78,13 @@ dispersion_initial <- function(family, dispersion, known) {
   names(is_known) <- names(dispersion_params_given)
 
   # error if NA and known
+  # a parameter marked known must have an actual value to fix it at, not NA
   dispersion_NA <- which(is.na(dispersion_params_given))
   if (any(is_known[dispersion_NA])) {
     stop("dispersion_initial values cannot be NA and known.", call. = FALSE)
   }
 
+  # class is set to family so downstream generics can dispatch on the glm family
   new_dispersion_initial <- structure(list(initial = dispersion_params_given, is_known = is_known),
     class = family
   )

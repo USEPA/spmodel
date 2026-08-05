@@ -217,6 +217,9 @@ get_marginal_Chi2 <- function(L, object) {
   # compute the chi-squared statistic
   # Wald statistic (L*beta_hat)' [L*Var(beta_hat)*L']^-1 (L*beta_hat), which
   # is asymptotically chi-squared with Df degrees of freedom under H0: L*beta = 0
+  # Chi2/rank(L) is an F(rank(L), Inf) distribution, which equals a scaled chi-squared
+  # multiply the F value Chi2/rank(L) by rank(L) yields the original chi-squared
+  # with rank(L) df
   Chi2 <- as.numeric(crossprod(part3, part2) %*% part3)
   # find the p-value
   p.value <- pchisq(Chi2, Df, lower.tail = FALSE)

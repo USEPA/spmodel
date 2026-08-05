@@ -35,7 +35,7 @@ satterthwaite.splm <- function(object, method, ...) {
   colnames(L) <- names(betahat)
   rownames(L) <- names(betahat)
 
-  ddf <- lapply(seq_len(length(betahat)), function(i) {
+  ddf <- lapply(seq_len(p), function(i) {
     Li <- L[i, ]
     g <- as.numeric(crossprod(Li, vcov(object)) %*% Li)
     grad_g <- get_grad_g(Li, method, context, object)

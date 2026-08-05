@@ -1,5 +1,5 @@
 #' @param newdata_size The \code{size} value for each observation in \code{newdata}
-#'   used when predicting for the binomial family.
+#'   used when predicting for the binomial family, with a default value of 1.
 #' @param var_correct A logical indicating whether to return the corrected prediction
 #'   variances when predicting via models fit using \code{spglm()} or \code{spgautor()}. The default is
 #'   \code{TRUE}.

@@ -95,7 +95,7 @@ the mean on the response scale and dispersion equal to the dispersion parameter
 from \code{object}. The default is \code{"link"}.}
 
 \item{newdata_size}{The \code{size} value for each observation in \code{newdata}
-used when predicting for the binomial family.}
+used when predicting for the binomial family, with a default value of 1.}
 }
 \value{
 If \code{output = "newdata"}, an a x b matrix of conditional simulations

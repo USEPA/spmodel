@@ -262,7 +262,7 @@ variances when predicting via models fit using \code{spglm()} or \code{spgautor(
 \code{TRUE}.}
 
 \item{newdata_size}{The \code{size} value for each observation in \code{newdata}
-used when predicting for the binomial family.}
+used when predicting for the binomial family, with a default value of 1.}
 }
 \value{
 For \code{splm} or \code{spautor} objects, if \code{se.fit} is \code{FALSE}, \code{predict()} returns

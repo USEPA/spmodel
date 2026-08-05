@@ -1,3 +1,6 @@
+* Fixed a bug that could cause an error for `covmatrix(object, newdata, cov_type = "pred.pred", ...)` when `newdata` was an `sf` object.
+* Minor documentation updates.
+
 # spmodel 0.13.0
 
 ## Major Updates

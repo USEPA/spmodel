@@ -85,6 +85,7 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
     }
 
     if (inherits(newdata, "sf")) {
+      newdata <- suppressWarnings(sf::st_centroid(newdata))
       object$obdata <- sf_to_df(newdata)
     } else {
       object$obdata <- newdata

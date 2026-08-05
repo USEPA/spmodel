@@ -69,7 +69,7 @@
 #
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #' @param newdata_size The \code{size} value for each observation in \code{newdata}
-#'   used when predicting for the binomial family.
+#'   used when predicting for the binomial family, with a default value of 1.
 #'
 #' @details
 #'
@@ -219,7 +219,7 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   newdata_list <- mapply(x = x0, y = newdata, FUN = function(x, y) list(x0 = x, newdata = y), SIMPLIFY = FALSE)
   spcov_val <- coef(object, type = "spcov")
   if (spcov_val[["de"]] == 0 && is.null(coef(object, type = "randcov"))) {
-    cov_lowchol_base <- Matrix::Diagonal(rep(sqrt(spcov_val[["ie"]]), object$n))
+    cov_lowchol_base <- Matrix::Diagonal(n = object$n, x = sqrt(spcov_val[["ie"]]))
   } else {
     cov_lowchol_base <- t(chol(covmatrix(object)))
   }
@@ -271,6 +271,15 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   }
 
   type <- match.arg(type)
+
+  # error if newdata missing from arguments and object
+  if (missing(newdata)) {
+    if (is.null(object$newdata)) {
+      stop("No missing data to predict. newdata must be specified in the newdata argument or object$newdata must be non-NULL.", call. = FALSE)
+    } else {
+      newdata <- object$newdata
+    }
+  }
 
   # deal with newdata_size
   if (missing(newdata_size)) newdata_size <- NULL

@@ -83,42 +83,12 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L) {
   # see if one or two models
   object2_list <- list(...)
 
+  if (missing(Terms)) Terms <- NULL
+  if (missing(L)) L <- NULL
+
   # one model stuff
-  # build a hypothesis matrix L (or list of them) and run a general linear
-  # hypothesis test (GLHT) L*beta = 0 for each set of terms
   if (length(object2_list) == 0) {
-    if (missing(L)) {
-      # "assign" attribute maps each column of the model matrix to the model
-      # term that generated it (0 = intercept), used to group coefficients
-      # belonging to the same term (e.g. all dummy columns of a factor)
-      assign_indices <- attr(model.matrix(object), "assign") + 1
-      # attr(model.matrix(object), "assign") if centering at zero
-      if (missing(Terms)) {
-        # default: test each term separately (type III / marginal tests)
-        assign_index <- unique(assign_indices)
-        L <- lapply(assign_index, get_L_list, assign_indices)
-        label <- labels(object)
-        if (attr(terms(object), "intercept") == 1) {
-          label <- c("(Intercept)", label)
-        }
-        names(L) <- label
-      } else {
-        # Terms specified: build one L testing the listed terms jointly
-        if (is.character(Terms)) {
-          Terms <- which(c("(Intercept)", labels(object)) %in% Terms) # - 1 if centering at zero
-        }
-        L <- list(do.call(rbind, lapply(Terms, get_L_list, assign_indices)))
-        label <- c("(Intercept)", labels(object))
-        label <- label[Terms] # label[Terms + 1] if centering at zero
-        names(L) <- paste(label, collapse = ", ")
-      }
-    } else {
-      # user supplied custom contrast matrix/matrices directly
-      if (!is.list(L)) {
-        L <- list(L)
-      }
-      names(L) <- paste("contrast", seq_along(L), sep = "")
-    }
+    L <- get_L(L, Terms, object)
     # run the Wald chi-squared test for each hypothesis matrix and stack results
     anova_val <- do.call(rbind, lapply(L, get_marginal_Chi2, object))
 

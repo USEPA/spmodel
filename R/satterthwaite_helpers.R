@@ -85,7 +85,13 @@ get_vcov_theta <- function(method, context, object) {
   vcov_theta
 }
 
-validate_satterthwaite_scope <- function(object) {
+validate_satterthwaite_scope <- function(object, method) {
+
+    if (method == "numeric" && !requireNamespace("numDeriv", quietly = TRUE)) {
+    stop("Install the numDeriv package before using satterthwaite(method = \"numeric\").", call. = FALSE)
+  }
+  if (!method %in% c("closed", "numeric")) stop("method must be \"closed\" or \"numeric\".", call. = FALSE)
+  
   if (!object$estmethod %in% c("reml", "ml")) {
     stop("Satterthwaite df are only defined for estmethod \"reml\" or \"ml\".", call. = FALSE)
   }

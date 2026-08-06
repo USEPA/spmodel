@@ -1,4 +1,4 @@
-get_satterthwaite_context_splm <- function(object) {
+get_cov_gradients_context_splm <- function(object) {
 
   spcov_params_val <- coef(object, type = "spcov")
   spcov_type <- class(spcov_params_val)

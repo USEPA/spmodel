@@ -17,13 +17,8 @@ satterthwaite.splm <- function(object, method, ...) {
   if (missing(method)) method <- NULL
   method <- get_satterthwaite_method(object, method)
 
-  if (method == "numeric" && !requireNamespace("numDeriv", quietly = TRUE)) {
-    stop("Install the numDeriv package before using satterthwaite(method = \"numeric\").", call. = FALSE)
-  }
-  if (!method %in% c("closed", "numeric")) stop("method must be \"closed\" or \"numeric\".", call. = FALSE)
-
-  validate_satterthwaite_scope(object)
-  context <- get_satterthwaite_context_splm(object)
+  validate_satterthwaite_scope(object, method)
+  context <- get_cov_gradients_context_splm(object)
 
   vcov_theta <- get_vcov_theta(method, context, object)
 
@@ -39,7 +34,7 @@ satterthwaite.splm <- function(object, method, ...) {
     Li <- L[i, ]
     g <- as.numeric(crossprod(Li, vcov(object)) %*% Li)
     grad_g <- get_grad_g(Li, method, context, object)
-    satterthwaite_ddf <- as.numeric(2 * g^2 / (crossprod(grad_g, vcov_theta) %*% grad_g))
+    satterthwaite_df <- get_satterthwaite_df(g, grad_g, vcov_theta)
   })
 
   ddf <- unlist(ddf)
@@ -62,4 +57,8 @@ get_satterthwaite_method <- function(object, method) {
     warning("Closed form not available for this model. Using method = \"numeric\".", call. = FALSE)
   }
   method
+}
+
+get_satterthwaite_df <- function(g, grad_g, vcov_theta) {
+  as.numeric(2 * g^2 / (crossprod(grad_g, vcov_theta) %*% grad_g))
 }

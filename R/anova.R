@@ -27,6 +27,11 @@
 #'   If \code{L} is a list, each list element is a numeric matrix specified as above.
 #'   Then separate hypothesis tests are conducted. The easiest
 #'   way to obtain all possible coefficients is to run \code{tidy(object)$term}.
+#' @param ddf The denominator degrees of freedom used. \code{"asymptotic"}
+#'   implements an asymptotic chi-squared test. 
+#'   \code{"satterthwaite"} impelments a Satterthwaite/Fai-Cornelius
+#'   F-test. The default is \code{"satterthwaite"} when the sample size is 
+#'   less than or equal to 500 and \code{"asymptotic"} otherwise.
 #'
 #' @details When one fitted model object is present, \code{anova()}
 #'   performs a general linear hypothesis test corresponding to some hypothesis
@@ -40,11 +45,15 @@
 #'   When two fitted model objects are present, one must be a "reduced"
 #'   model nested in a "full" model. Then \code{anova()} performs a likelihood ratio test.
 #'
-#' @return When one fitted model object is present, \code{anova()}
+#' @return When \code{ddf} is \code{"asymptotic"}, \code{anova()}
 #'   returns a data frame with degrees of
 #'   freedom (\code{Df}), test statistics (\code{Chi2}), and p-values
 #'   (\code{Pr(>Chi2)} if \code{test = TRUE}) corresponding
-#'   to asymptotic Chi-squared hypothesis tests for each model term.
+#'   to asymptotic Chi-squared hypothesis tests for each model term. When
+#'   \code{ddf} is \code{"satterthwaite"}, \code{anova()} instead
+#'   numerator degrees of freedom (\code{NumDF}), denominator
+#'   degrees of freedom (\code{DenDF}), \eqn{F} statistics (\code{F value}),
+#'   and p-values (\code{Pr(>F)} if \code{test = TRUE}) for each model term.
 #'
 #'   When two fitted model objects are present, \code{anova()} returns a data frame
 #'   with the difference in degrees of freedom between the full and reduced model (\code{Df}), a test
@@ -54,6 +63,8 @@
 #'   Whether one or two fitted model objects are provided,
 #'   \code{tidy()} can be used
 #'   to obtain tidy tibbles of the \code{anova(object)} output.
+#'
+#' @seealso [satterthwaite()]
 #'
 #' @name anova.spmodel
 #' @method anova splm
@@ -79,23 +90,49 @@
 #'   spcov_type = "none"
 #' )
 #' tidy(anova(spmod, lmod))
-anova.splm <- function(object, ..., test = TRUE, Terms, L) {
+anova.splm <- function(object, ..., test = TRUE, Terms, L, ddf) {
   # see if one or two models
   object2_list <- list(...)
 
   if (missing(Terms)) Terms <- NULL
   if (missing(L)) L <- NULL
+  if (missing(ddf)) ddf <- NULL
 
   # one model stuff
   if (length(object2_list) == 0) {
-    L <- get_L(L, Terms, object)
-    # run the Wald chi-squared test for each hypothesis matrix and stack results
-    anova_val <- do.call(rbind, lapply(L, get_marginal_Chi2, object))
 
-    if (!test) {
-      anova_val <- anova_val[-which(colnames(anova_val) == "Pr(>Chi2)")]
+    ddf <- determine_ddf(ddf, object$n)
+
+    anova_val <- NULL
+
+    if (ddf == "satterthwaite") {
+      # satterthwaite_anova() is not exported -- called internally the same
+      # way satterthwaite() itself is used by splm()/spautor()'s own ddf
+      # argument. An automatic (ddf missing) attempt fails silently, falling
+      # back to the asymptotic table below; an explicit request lets the
+      # error surface, since the user asked for it directly.
+      anova_val <- tryCatch(satterthwaite_anova(object, test = test, Terms = Terms, L = L), error = function(e) NULL)
+      
+      if (!is.null(anova_val)) {
+        if (!test && "Pr(>F)" %in% colnames(anova_val)) {
+          anova_val <- anova_val[, colnames(anova_val) != "Pr(>F)", drop = FALSE]
+        }
+        anova_val <- structure(anova_val, heading = c("Analysis of Variance Table\n", paste("Response:", deparse(object$formula[[2L]]))))
+      } else {
+        ddf <- "asymptotic"
+      }
     }
-    anova_val <- structure(anova_val, heading = c("Analysis of Variance Table\n", paste("Response:", deparse(object$formula[[2L]]))))
+
+    if (ddf == "asymptotic") {
+      L <- get_L(L, Terms, object)
+      # run the Wald chi-squared test for each hypothesis matrix and stack results
+      anova_val <- do.call(rbind, lapply(L, get_marginal_Chi2, object))
+
+      if (!test) {
+        anova_val <- anova_val[-which(colnames(anova_val) == "Pr(>Chi2)")]
+      }
+      anova_val <- structure(anova_val, heading = c("Analysis of Variance Table\n", paste("Response:", deparse(object$formula[[2L]]))))
+    }
   }
 
   # two model stuff
@@ -209,12 +246,26 @@ get_marginal_Chi2 <- function(L, object) {
 #' @export
 tidy.anova.splm <- function(x, ...) {
   if (!is.null(attr(x, "full")) && !is.null(attr(x, "reduced"))) {
+    # likelihood ratio test (two models) -- always a Chi2 test, never
+    # Satterthwaite, regardless of ddf
     result <- tibble::tibble(full = attr(x, "full"), reduced = attr(x, "reduced"), df = x$Df, statistic = x$Chi2)
+    if ("Pr(>Chi2)" %in% colnames(x)) {
+      result$p.value <- x[["Pr(>Chi2)"]]
+    }
+  } else if ("NumDF" %in% colnames(x)) {
+    # one model, ddf = "satterthwaite" -- an F table (NumDF/DenDF/F value/
+    # Pr(>F)) instead of the asymptotic Chi2 table below
+    result <- tibble::tibble(
+      effects = rownames(x), num_df = x$NumDF, den_df = x$DenDF, statistic = x[["F value"]]
+    )
+    if ("Pr(>F)" %in% colnames(x)) {
+      result$p.value <- x[["Pr(>F)"]]
+    }
   } else {
     result <- tibble::tibble(effects = rownames(x), df = x$Df, statistic = x$Chi2)
-  }
-  if ("Pr(>Chi2)" %in% colnames(x)) {
-    result$p.value <- x[["Pr(>Chi2)"]]
+    if ("Pr(>Chi2)" %in% colnames(x)) {
+      result$p.value <- x[["Pr(>Chi2)"]]
+    }
   }
   result
 }

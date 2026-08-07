@@ -449,7 +449,7 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
   }
 
   # store index if necessary
-  if (is.null(local)) { # local was stored as NULL in previous function call
+  if (is.null(local) || !local) { # local was stored as NULL in previous function call
     local_index <- NULL
   } else {
     local_index <- data_object$local_index

@@ -34,11 +34,11 @@
       -0.41321 -0.20784 -0.11238  0.02915  0.45415 
       
       Coefficients (fixed):
-                  Estimate Std. Error z value Pr(>|z|)    
-      (Intercept)  2.05021    0.30373   6.750 1.48e-11 ***
-      waterY      -0.08336    0.06443  -1.294 0.195745    
-      tarpnone     0.08006    0.07750   1.033 0.301564    
-      tarpshade    0.28663    0.07657   3.743 0.000181 ***
+                  Estimate Std. Error       df t value Pr(>|t|)   
+      (Intercept)  2.05021    0.30373  0.01152   6.750   0.9459   
+      waterY      -0.08336    0.06443 22.39570  -1.294   0.2089   
+      tarpnone     0.08006    0.07750 20.25968   1.033   0.3137   
+      tarpshade    0.28663    0.07657 18.75092   3.743   0.0014 **
       ---
       Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
       
@@ -125,9 +125,9 @@
       -1.5263 -0.7825 -0.0775  0.6407  2.2922 
       
       Coefficients (fixed):
-                  Estimate Std. Error z value Pr(>|z|)
-      (Intercept)  -0.1579     0.1459  -1.082    0.279
-      x            -0.1314     0.1237  -1.062    0.288
+                  Estimate Std. Error      df t value Pr(>|t|)
+      (Intercept)  -0.1579     0.1459  5.9965  -1.082    0.321
+      x            -0.1314     0.1237 46.6492  -1.062    0.294
       
       Pseudo R-squared: 0.02343
       
@@ -171,9 +171,9 @@
       -1.57759 -0.85906  0.02955  0.63673  2.21781 
       
       Coefficients (fixed):
-                  Estimate Std. Error z value Pr(>|z|)
-      (Intercept)  -0.0900     0.1746  -0.515    0.606
-      x            -0.1035     0.1375  -0.752    0.452
+                  Estimate Std. Error      df t value Pr(>|t|)
+      (Intercept)  -0.0900     0.1746  6.7387  -0.515    0.623
+      x            -0.1035     0.1375 41.3908  -0.752    0.456
       
       Pseudo R-squared: 0.01316
       

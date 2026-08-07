@@ -70,11 +70,18 @@ emm_basis.splm <- function(object, trms, xlev, grid, ...) {
   bhat <- as.numeric(bhat)
   V <- emmeans::.my.vcov(object, ...)
   nbasis <- estimability::all.estble # returns a 1x1 NA which says all functions estimable
-  dfargs <- misc <- list()
-  # spmodel estimates are based on asymptotic (normal) inference rather than a
-  # finite-sample t distribution, so degrees of freedom are treated as infinite
-  dffun <- function(k, dfargs) Inf
-  attr(dffun, "mesg") <- "asymptotic"
+  misc <- list()
+  # splm/spautor fits use Satterthwaite denominator df (matching object$ddf,
+  # see get_emmeans_dffun()) when available; spglm/spgautor (and splm/spautor
+  # fits without ddf) fall back to the original asymptotic (Inf) df
+  if (inherits(object, c("splm", "spautor"))) {
+    dfspec <- get_emmeans_dffun(object)
+  } else {
+    dfspec <- list(dffun = function(k, dfargs) Inf, dfargs = list(), mesg = "asymptotic")
+  }
+  dffun <- dfspec$dffun
+  dfargs <- dfspec$dfargs
+  attr(dffun, "mesg") <- dfspec$mesg
   mm <- model.matrix(object)
   mm <- emmeans::.cmpMM(mm, assign = attr(mm, "assign"))
   if (inherits(object, c("spglm", "spgautor"))) {

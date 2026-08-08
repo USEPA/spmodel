@@ -95,12 +95,14 @@ The `decorrelate()` function applies the spatial decorrelation transformation di
 * `formula`: a formula that describes the relationship between the response variable ($\mathbf{y}$) and explanatory variables ($\mathbf{X}$)
 * `data`: a `data.frame` or `sf` object that contains the response variable, explanatory variables, and spatial information
 * `spcov_type`: the spatial covariance type (`"exponential"`, `"matern"`, `"spherical"`, etc)
+* `algorithm`: the machine learning algorithm to apply; the default is the random forest algorithm from the **R** package [@wright2015ranger].
 
 ```{r}
 decorr_mod <- decorrelate(
   formula = log_cond ~ temp + origin,
   data = lake,
-  spcov_type = "exponential"
+  spcov_type = "exponential",
+  algorithm = "ranger"
 )
 ```
 
@@ -141,7 +143,6 @@ ggplot() +
 
 Like other `spmodel` functions, `decorrelate()` accepts various additional arguments, a few of which we describe below:
 
-* `algorithm`: The machine learning algorithm used. The default is `ranger` for random forests with the `ranger` **R** package [@wright2015ranger].
 * `statistic`: The statistic by which to rank models. The default is mean-squared-prediction error (`MSPE`) in the test set.
 * `training`: A list that controls the way observations are assigned to training and test sets. The default is to assign 75% of observations to the training set and 25% to the test set. Arguments to `training` allow for replicating the test/train split using different random assignments or for k-fold cross validation. When multiple test/training splits are generated (either via replication or cross validation), test set statistics are averaged over each split. For k-fold cross validation, the default is four folds (i.e., k = 4).
 * `ordering`: The approach used to order observations for the decorrelation transformation. The default is usually `"maxmin"` (for maxmin ordering; see @katzfuss2024GPvecchia) but can be `"grts"` (for spatially balanced ordering; see @dumelle2023spsurvey), depending on context.

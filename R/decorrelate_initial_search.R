@@ -17,7 +17,8 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
     random = random,
     randcov_params = randcov_params,
     dense_grid = dense_grid,
-    add_iid = add_iid
+    add_iid = add_iid,
+    warn = FALSE
   )
   if (is.null(grid)) {
     grid <- grid_compare

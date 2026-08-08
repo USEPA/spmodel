@@ -292,7 +292,10 @@ get_decorrelate_newdata <- function(newdata_list, object, cor_lowchol_list, extr
   if (object$local$method == "covariance") {
     n <- length(cov_vector_val)
     # want the largest covariance here and order goes from smallest first to largest last (keep last values which are largest covariance)
-    cov_index <- order(as.numeric(cov_vector_val))[seq(from = n, to = max(1, n - object$local$size + 1))] # use abs() here?
+    # TODO: see matching note in decorrelate_data.R get_decorrelated_value() -- ranks by raw
+    # covariance, not |covariance|, which can be suboptimal for spcov_types with negative lobes
+    # (wave, cosine, jbessel).
+    cov_index <- order(as.numeric(cov_vector_val))[seq(from = n, to = max(1, n - object$local$size + 1))]
     obdata <- obdata[cov_index, , drop = FALSE]
     X <- X[cov_index, , drop = FALSE]
     y <- y[cov_index]

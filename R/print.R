@@ -235,3 +235,56 @@ print.anova.splm <- function(x, digits = max(getOption("digits") - 2L, 3L),
 #' @order 6
 #' @export
 print.anova.spautor <- print.anova.splm
+
+#' @rdname print.spmodel
+#' @method print decorrelate
+#' @order 7
+#' @export
+print.decorrelate <- function(x, digits = max(3L, getOption("digits") - 3L),
+                       ...) {
+  cat("\nCall:\n", paste(deparse(x$call),
+                         sep = "\n",
+                         collapse = "\n"
+  ), "\n\n", sep = "")
+
+  cat("\n")
+
+  stats <- c("bias" = x$test$bias, "MSPE" = x$test$MSPE,
+             "RMSPE" = x$test$RMSPE, "cor2" = x$test$cor2)
+  cat("stats:\n")
+  print.default(format(stats, digits = digits),
+                print.gap = 2L,
+                quote = FALSE
+  )
+
+  cat("\n")
+
+  spcoef <- x$decorrelate_data$coefficients$spcov
+  class_spcoef <- class(spcoef)
+
+  if (!x$decorrelate_data$anisotropy) {
+    spcoef <- spcoef[-which(names(spcoef) %in% c("rotate", "scale"))]
+  }
+  if (inherits(spcoef, c("none", "ie"))) {
+    spcoef <- spcoef["ie"]
+  }
+
+  cat(paste("\nCoefficients (", class_spcoef, " spatial covariance):\n", sep = ""))
+  print.default(format(spcoef, digits = digits),
+                print.gap = 2L,
+                quote = FALSE
+  )
+
+  cat("\n")
+
+  if (length(x$decorrelate_data$coefficients$randcov)) {
+    cat("Coefficients (random effects):\n")
+    print.default(format(x$decorrelate_data$coefficients$randcov, digits = digits),
+                  print.gap = 2L,
+                  quote = FALSE
+    )
+
+    cat("\n")
+  }
+  invisible(x)
+}

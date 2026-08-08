@@ -42,7 +42,21 @@ get_vcov_theta.splm <- function(method, context, object) {
     # its Hessian is -2 * Hessian(log-lik); dividing by 2 converts that into
     # the observed Fisher information (the negative log-lik Hessian), whose
     # inverse is the usual MLE asymptotic covariance estimate
-    H_eta <- numDeriv::hessian(obj_eta, context$eta)
+    #
+    # numDeriv perturbs the covariance parameters at many nearby points to
+    # build this Hessian via finite differences, and those perturbations
+    # routinely wander into numerically awkward (but perfectly legitimate)
+    # regions -- e.g. matern's smoothness parameter pushing base R's
+    # besselK() to warn "value out of range in 'bessel_k'", or a near-zero
+    # variance component briefly going slightly negative. These warnings are
+    # incidental to the finite-differencing process itself, not a sign that
+    # the resulting Cov(theta_hat) is wrong (spmodel already checks that
+    # separately via the positive-definiteness check just below), and a
+    # single splm()/spautor() fit can otherwise emit thousands of them.
+    # Genuine failures still surface: this suppression only affects
+    # warning(), not error(), and stop()'d likelihood evaluations propagate
+    # normally.
+    H_eta <- suppressWarnings(numDeriv::hessian(obj_eta, context$eta))
 
     H_eta <- forceSymmetric(H_eta)
     vcov_eta <- tryCatch(chol2inv(chol(H_eta / 2)), error = function(e) NULL)
@@ -69,7 +83,10 @@ get_vcov_theta.splm <- function(method, context, object) {
     # transform evaluated at the fitted value -- maps the Hessian-based
     # covariance above off of the unconstrained optimizer scale and onto the
     # original, interpretable covariance parameter scale used everywhere else
-    J <- numDeriv::jacobian(delta_transform_eta, context$eta)
+    #
+    # suppressWarnings(): see the H_eta call above -- same finite-difference
+    # perturbation, same incidental warnings
+    J <- suppressWarnings(numDeriv::jacobian(delta_transform_eta, context$eta))
     vcov_theta <- J %*% base::tcrossprod(vcov_eta, J)
     dimnames(vcov_theta) <- list(context$cov_names_free, context$cov_names_free)
   } else if (method == "closed") {
@@ -136,7 +153,14 @@ get_vcov_theta.spautor <- function(method, context, object) {
       )
     }
 
-    H_eta <- numDeriv::hessian(obj_eta, context$eta)
+    # suppressWarnings(): numDeriv's finite-difference perturbations of the
+    # covariance parameters routinely wander into numerically awkward (but
+    # legitimate) regions -- e.g. besselK() range warnings for matern-family
+    # covariances -- that are incidental to the differencing process itself,
+    # not evidence the resulting Cov(theta_hat) is wrong (checked separately
+    # via the positive-definiteness check just below); a single fit can
+    # otherwise emit thousands of these. error()s still propagate normally.
+    H_eta <- suppressWarnings(numDeriv::hessian(obj_eta, context$eta))
 
     H_eta <- forceSymmetric(H_eta)
     vcov_eta <- tryCatch(chol2inv(chol(H_eta / 2)), error = function(e) NULL)
@@ -158,7 +182,9 @@ get_vcov_theta.spautor <- function(method, context, object) {
       full[context$cov_names_free]
     }
 
-    J <- numDeriv::jacobian(delta_transform_eta, context$eta)
+    # suppressWarnings(): see the H_eta call above -- same finite-difference
+    # perturbation, same incidental warnings
+    J <- suppressWarnings(numDeriv::jacobian(delta_transform_eta, context$eta))
     vcov_theta <- J %*% base::tcrossprod(vcov_eta, J)
     dimnames(vcov_theta) <- list(context$cov_names_free, context$cov_names_free)
   } else if (method == "closed") {
@@ -228,7 +254,7 @@ validate_satterthwaite_scope <- function(object, method) {
     stop("Satterthwaite df can only be used for models fit without local.", call. = FALSE)
   }
   if (object$n >= 500) {
-    warning("For sample sizes larger than 500, Satterthwaite ddf may result in exceedingly long computational times. Consider using the asymptotic ddf instead, which should be similar given the sample size.", call. = FALSE)
+    warning("For sample size n >= 500, Satterthwaite ddf may result in exceedingly long computational times. Consider using the asymptotic ddf instead, which should be similar given the sample size.", call. = FALSE)
   }
   invisible(TRUE)
 }

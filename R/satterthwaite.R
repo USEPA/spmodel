@@ -153,7 +153,12 @@ get_satterthwaite_method <- function(object, method) {
 
   satterthwaite_closed_form_types <- c("exponential", "gaussian", "spherical")
 
-  has_closed_form <- inherits(coef(object, type = "spcov"), satterthwaite_closed_form_types)
+  # anisotropy makes the distance matrix itself a function of theta (rotate/
+  # scale), which the closed-form dSig_dtheta_spcov.<type>() derivatives do
+  # not account for -- so anisotropic fits must fall back to "numeric" even
+  # when the covariance type itself has a closed form
+  has_closed_form <- inherits(coef(object, type = "spcov"), satterthwaite_closed_form_types) &&
+    !isTRUE(object$anisotropy)
   if (is.null(method)) {
     if (has_closed_form) method <-"closed" else method <-"numeric" 
   }

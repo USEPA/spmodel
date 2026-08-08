@@ -382,7 +382,10 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
   }
 
   # store index if necessary
-  if (is.null(local) || !local) { # local was stored as NULL in previous function call
+  # local can be NULL, TRUE/FALSE, or a list -- is.logical() guards the
+  # negation below so an explicit local = FALSE still clears local_index
+  # without erroring on the (much more common) local = TRUE/list case
+  if (is.null(local) || (is.logical(local) && !local)) { # local was stored as NULL in previous function call
     local_index <- NULL
   } else {
     local_index <- data_object$local_index

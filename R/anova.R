@@ -97,6 +97,9 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L, ddf) {
   if (missing(Terms)) Terms <- NULL
   if (missing(L)) L <- NULL
   if (missing(ddf)) ddf <- NULL
+  # captured before determine_ddf() resolves a missing ddf to a sample-size-
+  # based default, so the two cases below can be told apart
+  ddf_explicit <- !is.null(ddf)
 
   # one model stuff
   if (length(object2_list) == 0) {
@@ -111,8 +114,12 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L, ddf) {
       # argument. An automatic (ddf missing) attempt fails silently, falling
       # back to the asymptotic table below; an explicit request lets the
       # error surface, since the user asked for it directly.
-      anova_val <- tryCatch(satterthwaite_anova(object, test = test, Terms = Terms, L = L), error = function(e) NULL)
-      
+      anova_val <- if (ddf_explicit) {
+        satterthwaite_anova(object, test = test, Terms = Terms, L = L)
+      } else {
+        tryCatch(satterthwaite_anova(object, test = test, Terms = Terms, L = L), error = function(e) NULL)
+      }
+
       if (!is.null(anova_val)) {
         if (!test && "Pr(>F)" %in% colnames(anova_val)) {
           anova_val <- anova_val[, colnames(anova_val) != "Pr(>F)", drop = FALSE]

@@ -22,7 +22,14 @@ get_grad_g.splm <- function(Li, method, context, object) {
     obj_grad <- function(cov_val_free) {
       get_grad_gi(cov_val_free, Li, context, object)
     }
-    grad_g <- numDeriv::grad(obj_grad, context$cov_val_free)
+    # suppressWarnings(): numDeriv perturbs the free covariance parameters at
+    # many nearby points to build this finite-difference gradient, and those
+    # perturbations routinely wander into numerically awkward (but
+    # legitimate) regions -- e.g. besselK() range warnings for matern-family
+    # covariances -- that are incidental to the differencing process itself,
+    # not a sign grad_g is wrong. A single fit can otherwise emit thousands
+    # of these. error()s still propagate normally; only warning() is muted.
+    grad_g <- suppressWarnings(numDeriv::grad(obj_grad, context$cov_val_free))
   } else if (method == "closed") {
     # d/dtheta_k[(X'Sigma^-1X)^-1] = -(X'Sigma^-1X)^-1 X'Sigma^-1 (dSigma/dtheta_k)
     # Sigma^-1 X (X'Sigma^-1X)^-1 (the standard derivative of a matrix
@@ -53,7 +60,9 @@ get_grad_g.spautor <- function(Li, method, context, object) {
     obj_grad <- function(cov_val_free) {
       get_grad_gi(cov_val_free, Li, context, object)
     }
-    grad_g <- numDeriv::grad(obj_grad, context$cov_val_free)
+    # suppressWarnings(): see get_grad_g.splm()'s "numeric" branch above --
+    # same finite-difference perturbation, same incidental warnings
+    grad_g <- suppressWarnings(numDeriv::grad(obj_grad, context$cov_val_free))
   } else if (method == "closed") {
     # placeholder: see get_vcov_theta.spautor()'s "closed" branch -- not
     # currently used for car/sar because closed-form derivitaves are not yet

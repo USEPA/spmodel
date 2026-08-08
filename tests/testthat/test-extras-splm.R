@@ -59,14 +59,23 @@ test_that("the model runs for exponential (random and subgroup)", {
 
 test_that("the model runs for exponential (random nested subgroup)", {
   spcov_type <- "exponential"
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~ group / subgroup), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", random = ~ group / subgroup), NA)
+  # a nested subgroup random effect leaves little information to estimate
+  # its own covariance parameter, which regularly makes the automatic
+  # (n <= 500) Satterthwaite ddf computation's covariance-parameter Hessian
+  # non-positive-definite -- spmodel already warns and falls back to NULL
+  # ddf gracefully, so the warning is expected/tolerated. The Hessian's
+  # positive-definiteness is borderline for every call in this block (not
+  # just some), so whether a given call warns can flip between runs/
+  # machines (BLAS-level floating-point nondeterminism) -- suppress across
+  # the board rather than pin to whichever calls happened to warn once
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~ group / subgroup)), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", random = ~ group / subgroup)), NA)
   spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~ group / subgroup), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~ group / subgroup), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~ group / subgroup)), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~ group / subgroup)), NA)
   spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
   randcov_initial_val <- randcov_initial(group = 1)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~ group / subgroup, randcov_initial = randcov_initial_val), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~ group / subgroup, randcov_initial = randcov_initial_val)), NA)
 })
 
 test_that("the model runs for exponential (random and partitioning)", {
@@ -89,35 +98,46 @@ test_that("the model runs for anisotropy", {
     spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE
   ), NA)
   spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata,
+  # de known at a fixed value leaves the automatic Satterthwaite ddf
+  # computation with less information than usual about the remaining
+  # covariance parameters, which regularly makes its covariance-parameter
+  # Hessian non-positive-definite -- spmodel already warns and falls back to
+  # NULL ddf gracefully, so the warning is expected/tolerated here
+  expect_error(suppressWarnings(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_initial = spcov_initial_val, estmethod = "reml", anisotropy = TRUE
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
+  )), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_initial = spcov_initial_val, estmethod = "ml", anisotropy = TRUE
-  ), NA)
+  )), NA)
 })
 
 test_that("the model runs for and random effects", {
   spcov_type <- "exponential"
-  expect_error(splm(y ~ x, exdata,
+  # anisotropy + a random effect leaves the automatic Satterthwaite ddf
+  # computation with a lot of covariance parameters to estimate relative to
+  # this small fixture, which regularly makes its covariance-parameter
+  # Hessian non-positive-definite -- spmodel already warns and falls back to
+  # NULL ddf gracefully, so the warning is expected/tolerated for every call
+  # in this block
+  expect_error(suppressWarnings(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "reml", anisotropy = TRUE, random = ~group
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
+  )), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE, random = ~group
-  ), NA)
+  )), NA)
   spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata,
+  expect_error(suppressWarnings(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_initial = spcov_initial_val, estmethod = "reml", anisotropy = TRUE, random = ~group
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
+  )), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_initial = spcov_initial_val, estmethod = "ml", anisotropy = TRUE, random = ~group
-  ), NA)
+  )), NA)
 })
 
 test_that("the model runs for and partitioning", {
@@ -131,14 +151,19 @@ test_that("the model runs for and partitioning", {
     spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE, partition_factor = ~group
   ), NA)
   spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata,
+  # de known at a fixed value leaves the automatic Satterthwaite ddf
+  # computation with less information than usual about the remaining
+  # covariance parameters, which regularly makes its covariance-parameter
+  # Hessian non-positive-definite -- spmodel already warns and falls back to
+  # NULL ddf gracefully, so the warning is expected/tolerated here
+  expect_error(suppressWarnings(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_initial = spcov_initial_val, estmethod = "reml", anisotropy = TRUE, partition_factor = ~group
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
+  )), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_initial = spcov_initial_val, estmethod = "ml", anisotropy = TRUE, partition_factor = ~group
-  ), NA)
+  )), NA)
 })
 
 test_that("the model runs for and random effects and partitioning", {
@@ -153,16 +178,22 @@ test_that("the model runs for and random effects and partitioning", {
     spcov_type = spcov_type, estmethod = "ml", anisotropy = TRUE, random = ~group, partition_factor = ~group
   ), NA)
   spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata,
+  # de known plus anisotropy, a random effect, and partitioning leaves the
+  # automatic Satterthwaite ddf computation with a lot of covariance
+  # parameters to estimate relative to this small fixture, which regularly
+  # makes its covariance-parameter Hessian non-positive-definite -- spmodel
+  # already warns and falls back to NULL ddf gracefully, so the warning is
+  # expected/tolerated here
+  expect_error(suppressWarnings(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_initial = spcov_initial_val, estmethod = "reml",
     anisotropy = TRUE, random = ~group, partition_factor = ~group
-  ), NA)
-  expect_error(splm(y ~ x, exdata,
+  )), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata,
     xcoord = xcoord, ycoord = ycoord,
     spcov_initial = spcov_initial_val, estmethod = "ml",
     anisotropy = TRUE, random = ~group, partition_factor = ~group
-  ), NA)
+  )), NA)
 })
 
 test_that("the model runs for exponential and missing data", {
@@ -460,8 +491,17 @@ test_that("the model runs for triangular", {
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, spcov_initial = spcov_initial_val, estmethod = "sv-cl"), NA)
 
   # try giving y coordinate
-  expect_warning(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"))
-  expect_warning(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"))
+  # ddf = "asymptotic": these calls are already under test for a specific,
+  # unrelated warning (providing ycoord for a 1D-only covariance);
+  # expect_warning() only consumes the first warning it sees and lets any
+  # other warning from the same call leak through unmuffled, and this small
+  # fixture's automatic (n <= 500) Satterthwaite ddf computation regularly
+  # emits a second, incidental "not positive definite" warning that would
+  # otherwise leak through that way -- suppressWarnings() isn't an option
+  # here since it would also swallow the warning expect_warning() needs to
+  # see, so ddf is disabled directly instead
+  expect_warning(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", ddf = "asymptotic"))
+  expect_warning(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", ddf = "asymptotic"))
 })
 
 test_that("the model runs for circular", {
@@ -535,19 +575,33 @@ test_that("the model runs for pentaspherical", {
 
 test_that("the model runs for cosine", {
   spcov_type <- "cosine"
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, spcov_type = spcov_type, estmethod = "reml"), NA)
+  # reml/ml fits (unlike sv-wls/sv-cl) attempt the automatic n <= 500
+  # Satterthwaite ddf computation at fit time; this fixture regularly makes
+  # its covariance-parameter Hessian non-positive-definite -- spmodel
+  # already warns and falls back to NULL ddf gracefully, so the warning is
+  # expected/tolerated rather than a sign these fits are broken
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, spcov_type = spcov_type, estmethod = "reml")), NA)
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, spcov_type = spcov_type, estmethod = "ml"), NA)
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, spcov_type = spcov_type, estmethod = "sv-wls"), NA)
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, spcov_type = spcov_type, estmethod = "sv-cl"), NA)
   spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, spcov_initial = spcov_initial_val, estmethod = "reml"), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, spcov_initial = spcov_initial_val, estmethod = "ml"), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, spcov_initial = spcov_initial_val, estmethod = "reml")), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, spcov_initial = spcov_initial_val, estmethod = "ml")), NA)
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, spcov_initial = spcov_initial_val, estmethod = "sv-wls"), NA)
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, spcov_initial = spcov_initial_val, estmethod = "sv-cl"), NA)
 
   # try giving y coordinate
-  expect_warning(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"))
-  expect_warning(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml"))
+  # ddf = "asymptotic": these calls are already under test for a specific,
+  # unrelated warning (providing ycoord for a 1D-only covariance);
+  # expect_warning() only consumes the first warning it sees and lets any
+  # other warning from the same call leak through unmuffled, and this small
+  # fixture's automatic (n <= 500) Satterthwaite ddf computation regularly
+  # emits a second, incidental "not positive definite" warning that would
+  # otherwise leak through that way -- suppressWarnings() isn't an option
+  # here since it would also swallow the warning expect_warning() needs to
+  # see, so ddf is disabled directly instead
+  expect_warning(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", ddf = "asymptotic"))
+  expect_warning(splm(y ~ x, exdata_M, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", ddf = "asymptotic"))
 })
 
 test_that("the model runs for wave", {
@@ -827,19 +881,27 @@ test_that("the model runs for sf and sp objects", {
 test_that("extra covr checks", {
   # random effects with cov_initial_search generics for 4 parameter families
   spcov_type <- "matern"
+  # a random effect combined with matern's extra range parameter (and, below,
+  # partitioning/anisotropy on top of that) leaves the automatic n <= 500
+  # Satterthwaite ddf computation with a lot of covariance parameters to
+  # estimate relative to this small fixture, which regularly makes its
+  # covariance-parameter Hessian non-positive-definite -- spmodel already
+  # warns and falls back to NULL ddf gracefully, so the warning is
+  # expected/tolerated on the more heavily-parameterized calls below
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, random = ~group, partition_factor = ~group), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, random = ~group, anisotropy = TRUE), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, random = ~group, partition_factor = ~group)), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, random = ~group, anisotropy = TRUE)), NA)
   spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group, partition_factor = ~group), NA)
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group, anisotropy = TRUE), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group, partition_factor = ~group)), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group, anisotropy = TRUE)), NA)
 
   # random effects with cov_initial_search generics for 1 parameter families
   spcov_type <- "none"
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group), NA)
+  # same non-positive-definite-Hessian rationale as above
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group)), NA)
   spcov_initial_val <- spcov_initial(spcov_type = spcov_type, de = 1, ie = 1, range = 1, known = "de")
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "reml", random = ~group)), NA)
 
   # anisotropy for sv approaches
   spcov_initial_val <- spcov_initial(spcov_type = "exponential", rotate = 0.5, scale = 0.5, known = "given")
@@ -853,8 +915,13 @@ test_that("extra covr checks", {
 
   # more than one random effect
   expect_error(splm(y ~ x, exdata, "exponential", xcoord = xcoord, ycoord = ycoord, random = ~ group + subgroup), NA)
-  expect_error(splm(y ~ x, exdata, "matern", xcoord = xcoord, ycoord = ycoord, random = ~ group + subgroup), NA)
-  expect_error(splm(y ~ x, exdata, "none", xcoord = xcoord, ycoord = ycoord, random = ~ group + subgroup), NA)
+  # two random effects leave the automatic Satterthwaite ddf computation with
+  # a lot of covariance parameters to estimate relative to this small
+  # fixture, which regularly makes its covariance-parameter Hessian
+  # non-positive-definite -- spmodel already warns and falls back to NULL
+  # ddf gracefully, so the warning is expected/tolerated here
+  expect_error(suppressWarnings(splm(y ~ x, exdata, "matern", xcoord = xcoord, ycoord = ycoord, random = ~ group + subgroup)), NA)
+  expect_error(suppressWarnings(splm(y ~ x, exdata, "none", xcoord = xcoord, ycoord = ycoord, random = ~ group + subgroup)), NA)
 
   # anisotropy resets itself based on spcov initial
   spcov_initial_val <- spcov_initial(spcov_type = "exponential", rotate = 0, scale = 1, known = "given")

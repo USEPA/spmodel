@@ -1,16 +1,20 @@
+#' Compute per-observation deviance residual components for GLM-type models
+#'
+#' @param family The response family
+#' @param y The response vector
+#' @param fitted_response Fitted values on the response scale
+#' @param size Binomial trial sizes (used only when \code{family} is \code{"binomial"})
+#' @param dispersion The dispersion parameter (used for \code{"nbinomial"} and \code{"beta"})
+#'
+#' @return The deviance contribution of each observation
+#'
+#' @noRd
 get_deviance_glm <- function(family, y, fitted_response, size, dispersion) {
-
-  # if (!is.null(offset)) {
-  #   fitted_link <- fitted_link + offset # undo w = w - offset for deviance to match glm
-  # }
-
-  # fitted_response <- invlink(fitted_link, family, size)
-
-  # faraway p 157
-  # y <- pmax(y, 1e-8) # so deviance  Inf is not calculated
+  # each branch computes half the per-observation deviance as the family-specific
+  # log-likelihood ratio between the saturated model (fitted = observed) and the
+  # fitted model; the final deviance_i doubles this to match the usual definition
   if (family == "poisson") {
     half_deviance_i <- ifelse(y == 0, 0, y * log(y / fitted_response)) - (y - fitted_response)
-    # half_deviance_i <- y * pmax(-1e10, log(y / fitted_response)) - (y - fitted_response)
   } else if (family == "binomial") {
     half_deviance_i <- ifelse(y == 0, 0, y * log(y / fitted_response)) +
       ifelse(size - y == 0, 0, (size - y) * log((size - y) / (size - fitted_response)))
@@ -23,8 +27,8 @@ get_deviance_glm <- function(family, y, fitted_response, size, dispersion) {
   } else if (family == "inverse.gaussian") {
     half_deviance_i <- 0.5 * (y - fitted_response)^2 / (y * fitted_response^2)
   } else if (family == "beta") {
-    # has NA problem for large dispersion
-    # constant <- log(gamma(fitted_response * dispersion)) + log(gamma((1 - fitted_response) * dispersion)) - log(gamma(y * dispersion)) - log(gamma((1 - y) * dispersion))
+    # lgamma() is used instead of log(gamma()) to avoid NA/overflow for large dispersion
+    # constant collects the beta-density normalizing terms (log of gamma function ratios)
     constant <- lgamma(fitted_response * dispersion) + lgamma((1 - fitted_response) * dispersion) - lgamma(y * dispersion) - lgamma((1 - y) * dispersion)
     half_deviance_i <- constant + (y - fitted_response) * dispersion * log(y) + ((1 - y) - (1 - fitted_response)) * dispersion * log(1 - y)
   }

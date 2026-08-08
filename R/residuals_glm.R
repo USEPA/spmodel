@@ -3,6 +3,9 @@
 #' @order 7
 #' @export
 residuals.spglm <- function(object, type = "deviance", ...) {
+  # unlike residuals.splm(), the default here is "deviance" rather than
+  # "response" -- deviance residuals are the conventional default for GLMs
+  # since response residuals are less meaningful on a non-Gaussian scale
   if (type == "deviance") {
     return(object$residuals$deviance)
   } else if (type == "response") {

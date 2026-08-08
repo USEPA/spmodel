@@ -33,6 +33,9 @@
 #' sprnbinom(spcov_params_val, samples = 5, data = caribou, xcoord = x, ycoord = y)
 sprnbinom <- function(spcov_params, dispersion = 1, mean = 0, samples = 1, data, randcov_params, partition_factor, ...) {
   n <- NROW(data)
+  # re-dispatch this call to sprnorm() (dropping the "dispersion" argument,
+  # which sprnorm() does not accept) to simulate the shared latent Gaussian
+  # process, then transform it below into the target distribution
   call_val <- match.call()
   call_val[[1]] <- as.symbol("sprnorm")
   call_list <- as.list(call_val)
@@ -44,6 +47,9 @@ sprnbinom <- function(spcov_params, dispersion = 1, mean = 0, samples = 1, data,
   mu <- exp(sprnorm_val)
 
   if (is.matrix(mu)) {
+    # multiple samples: split the matrix into one mean vector per column
+    # (transpose first so split() walks columns instead of rows), simulating
+    # each sample's negative binomial draws independently
     mu_list <- split(t(mu), seq_len(NCOL(mu)))
     sprnbinom_val <- vapply(mu_list, function(x) rnbinom(n, mu = x, size = dispersion), numeric(n))
   } else {

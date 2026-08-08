@@ -8,6 +8,9 @@
 #' @noRd
 spcov_initial_NA <- function(spcov_initial, anisotropy = FALSE, is_W_connected = NULL) {
   # three parameter family
+  # NA default value means "estimate this parameter"; when anisotropy is off,
+  # rotate/scale are instead fixed at their no-op values (0 rotation, scale 1)
+  # and marked known, since isotropic models don't estimate them
   if (inherits(spcov_initial, c("exponential", "spherical", "gaussian", "triangular", "circular", "cubic", "pentaspherical", "cosine", "wave", "jbessel", "gravity", "rquad", "magnetic"))) {
     spcov_names <- c("de", "ie", "range", "rotate", "scale")
     if (anisotropy) {
@@ -27,6 +30,9 @@ spcov_initial_NA <- function(spcov_initial, anisotropy = FALSE, is_W_connected =
       spcov_known_default <- c(de = FALSE, ie = FALSE, range = FALSE, extra = FALSE, rotate = TRUE, scale = TRUE)
     }
   } else if (inherits(spcov_initial, c("car", "sar"))) { # 4 parameter family ar
+    # extra is the unique variance for unconnected observations (no
+    # neighbors); if the whole graph is connected there are none, so extra is
+    # meaningless and fixed at 0/known -- otherwise it must be estimated
     if (is_W_connected) {
       spcov_names <- c("de", "ie", "range", "extra")
       spcov_val_default <- c(de = NA, ie = 0, range = NA, extra = 0)
@@ -52,6 +58,9 @@ spcov_initial_NA <- function(spcov_initial, anisotropy = FALSE, is_W_connected =
   # reorder names
   if (inherits(spcov_initial, c("none", "ie"))) {
     # reset if none covariance
+    # "none" has no spatial structure at all, so de/range/rotate/scale are
+    # forced back to their fixed no-op defaults even if the user supplied
+    # something else for them
     spcov_initial$initial[c("de", "range", "rotate", "scale")] <- spcov_val_default[c("de", "range", "rotate", "scale")]
     # put in is_known not in initial
     spcov_initial$is_known[c("de", "range", "rotate", "scale")] <- spcov_known_default[c("de", "range", "rotate", "scale")]

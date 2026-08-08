@@ -12,13 +12,13 @@
 \alias{tidy.anova.spgautor}
 \title{Compute analysis of variance and likelihood ratio tests of fitted model objects}
 \usage{
-\method{anova}{splm}(object, ..., test = TRUE, Terms, L)
+\method{anova}{splm}(object, ..., test = TRUE, Terms, L, ddf)
 
-\method{anova}{spautor}(object, ..., test = TRUE, Terms, L)
+\method{anova}{spautor}(object, ..., test = TRUE, Terms, L, ddf)
 
-\method{anova}{spglm}(object, ..., test = TRUE, Terms, L)
+\method{anova}{spglm}(object, ..., test = TRUE, Terms, L, ddf)
 
-\method{anova}{spgautor}(object, ..., test = TRUE, Terms, L)
+\method{anova}{spgautor}(object, ..., test = TRUE, Terms, L, ddf)
 
 \method{tidy}{anova.splm}(x, ...)
 
@@ -58,14 +58,24 @@ If \code{L} is a list, each list element is a numeric matrix specified as above.
 Then separate hypothesis tests are conducted. The easiest
 way to obtain all possible coefficients is to run \code{tidy(object)$term}.}
 
+\item{ddf}{The denominator degrees of freedom used. \code{"asymptotic"}
+implements an asymptotic chi-squared test.
+\code{"satterthwaite"} impelments a Satterthwaite/Fai-Cornelius
+F-test. The default is \code{"satterthwaite"} when the sample size is
+less than or equal to 500 and \code{"asymptotic"} otherwise.}
+
 \item{x}{An object from \code{anova(object)}.}
 }
 \value{
-When one fitted model object is present, \code{anova()}
+When \code{ddf} is \code{"asymptotic"}, \code{anova()}
 returns a data frame with degrees of
 freedom (\code{Df}), test statistics (\code{Chi2}), and p-values
 (\code{Pr(>Chi2)} if \code{test = TRUE}) corresponding
-to asymptotic Chi-squared hypothesis tests for each model term.
+to asymptotic Chi-squared hypothesis tests for each model term. When
+\code{ddf} is \code{"satterthwaite"}, \code{anova()} instead
+numerator degrees of freedom (\code{NumDF}), denominator
+degrees of freedom (\code{DenDF}), \eqn{F} statistics (\code{F value}),
+and p-values (\code{Pr(>F)} if \code{test = TRUE}) for each model term.
 
 When two fitted model objects are present, \code{anova()} returns a data frame
 with the difference in degrees of freedom between the full and reduced model (\code{Df}), a test
@@ -112,4 +122,7 @@ lmod <- splm(z ~ water + tarp,
   spcov_type = "none"
 )
 tidy(anova(spmod, lmod))
+}
+\seealso{
+\code{\link[=satterthwaite]{satterthwaite()}}
 }

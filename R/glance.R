@@ -37,6 +37,9 @@
 #' )
 #' glance(spmod)
 glance.splm <- function(x, ...) {
+  # likelihood-based statistics (AIC/AICc/BIC/logLik/deviance) are only
+  # meaningful for likelihood-based estimation methods, not e.g. semivariogram
+  # weighted-least-squares ("sv-wls") or composite-likelihood ("sv-cl")
   is_likbased <- x$estmethod %in% c("ml", "reml")
   tibble::tibble(
     n = x$n,
@@ -48,8 +51,7 @@ glance.splm <- function(x, ...) {
     BIC = ifelse(is_likbased, BIC(x), NA),
     logLik = ifelse(is_likbased, logLik(x), NA),
     deviance = ifelse(is_likbased, deviance(x), NA),
-    pseudo.r.squared = pseudoR2(x),
-    # cv.crit = loocv(x)
+    pseudo.r.squared = pseudoR2(x)
   )
 }
 

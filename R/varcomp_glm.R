@@ -1,3 +1,5 @@
+# spglm/spgautor reuse the splm/spautor varcomp logic directly (same variance
+# decomposition applies on the link-function scale)
 #' @rdname varcomp
 #' @method varcomp spglm
 #' @order 4

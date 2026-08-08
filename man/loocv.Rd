@@ -19,6 +19,7 @@ loocv(object, ...)
   cv_predict = FALSE,
   type = c("link", "response"),
   se.fit = FALSE,
+  delta = FALSE,
   local,
   ...
 )
@@ -28,6 +29,7 @@ loocv(object, ...)
   cv_predict = FALSE,
   type = c("link", "response"),
   se.fit = FALSE,
+  delta = FALSE,
   local,
   ...
 )
@@ -54,6 +56,9 @@ which performs exact computations.}
 
 \item{type}{The scale (\code{response} or \code{link}) of predictions obtained
 when \code{cv_predict = TRUE} and using \code{spglm()} or \code{spgautor} objects.}
+
+\item{delta}{A logical indicating whether to return delta method standard errors
+on the response scale when \code{se.fit = TRUE} and \code{type = "response"}. The default is \code{FALSE}.}
 }
 \value{
 If \code{cv_predict = FALSE} and \code{se.fit = FALSE},

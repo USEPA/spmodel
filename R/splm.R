@@ -126,6 +126,12 @@
 #'   Note that if \code{range_constrain = TRUE} and the value of \code{range} in \code{spcov_initial}
 #'   is larger than \code{range_constrain}, then \code{range_constrain} is set to
 #'   \code{FALSE}.
+#' @param ddf The denominator degrees of freedom to be used for eventual hypothesis testing
+#'   (e.g., \code{confint()}, \code{summary()}, or \code{tidy()} calls on the fitted model object).
+#'   \code{"asymptotic"} assumes infinite degrees of freedom, implying z-tests. 
+#'   \code{"satterthwaite"} impelments Satterthwaite degrees of freeom, implying t-tests
+#'   that are generally more appropriate for small samples. The default is \code{"satterthwaite"} when the sample size is 
+#'   less than or equal to 500 and \code{"asymptotic"} otherwise.
 #' @param ... Other arguments to [esv()] or \code{stats::optim()}.
 #'
 #' @details The spatial linear model for point-referenced data
@@ -220,8 +226,8 @@
 #'   \code{cooks.distance}, \code{covmatrix}, \code{deviance}, \code{fitted}, \code{formula},
 #'   \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
 #'   \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},
-#'   \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
-#'   \code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
+#'   \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{\link{satterthwaite}},
+#'   \code{summary}, \code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
 #'   \code{spcov_type} or \code{spcov_initial} are length greater than one, the
 #'   list has class \code{splm_list} and each element in the list has class
 #'   \code{splm}. \code{glances} can be used to summarize \code{splm_list}
@@ -243,10 +249,7 @@
 splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
                  estmethod = "reml", weights = "cressie", anisotropy = FALSE,
                  random, randcov_initial, partition_factor, local,
-                 range_constrain, ...) {
-
-
-
+                 range_constrain, ddf, ...) {
   # set exponential as default if nothing specified
   if (missing(spcov_type) && missing(spcov_initial)) {
     spcov_type <- "exponential"
@@ -258,6 +261,10 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
   }
 
   # iterate if needed
+  # a list of spcov_initial objects (or a character vector of multiple
+  # spcov_type values) means the caller wants several models fit at once --
+  # recurse once per element by re-dispatching to splm() with that single
+  # element substituted in, then collect the results into an splm_list
   if (!missing(spcov_initial) && is.list(spcov_initial[[1]])) {
     call_list <- as.list(match.call())[-1]
     penv <- parent.frame()
@@ -289,37 +296,38 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
   splm_checks(spcov_initial, !missing(xcoord), !missing(ycoord), estmethod, anisotropy, !missing(random))
 
   # set random NULL if necessary
-  if (missing(random)) {
-    random <- NULL
-  }
+  if (missing(random)) random <- NULL
 
   # set rancov_initial NULL if necessary
-  if (missing(randcov_initial)) {
-    randcov_initial <- NULL
-  }
+  if (missing(randcov_initial)) randcov_initial <- NULL
 
   # set partition factor if necessary
-  if (missing(partition_factor)) {
-    partition_factor <- NULL
-  }
+  if (missing(partition_factor)) partition_factor <- NULL
+
+  # set ddf NULL if necessary
+  if (missing(ddf)) ddf <- NULL
 
   # set local explicitly to FALSE if iid
+  # with no spatial dependence (none/ie) and no random effects, the
+  # covariance is diagonal already, so the big data approximation buys
+  # nothing and is skipped
   if (inherits(spcov_initial, c("none", "ie")) && is.null(random)) {
     local <- FALSE
   }
 
-  if (missing(local)) {
-    local <- NULL
-  }
+  if (missing(local)) local <- NULL
 
-  if (missing(range_constrain)) {
-    range_constrain <- FALSE
-  }
+  if (missing(range_constrain)) range_constrain <- FALSE
   # make this default of TRUE later
 
-  # non standard evaluation for x and y coordinates
-  xcoord <- substitute(xcoord)
-  ycoord <- substitute(ycoord)
+  # non standard evaluation for x and y coordinates -- missing() is checked
+  # here, on the original (not yet substituted) argument, since that's the
+  # one place missing() can answer this reliably; as.character(substitute())
+  # then normalizes both quoted ("x") and unquoted (x) column-name
+  # references into a plain string. Downstream code checks is.null(xcoord)
+  # (not missing()) to see whether the argument was supplied.
+  xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
+  ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
 
   # get data object
   data_object <- get_data_object_splm(
@@ -335,6 +343,9 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
     # invisible(clusterEvalQ(data_object$cl, library(Matrix)))
   }
 
+  # dispatch to the estimator matching estmethod: reml/ml maximize a
+  # (restricted) Gaussian log-likelihood, while sv-wls/sv-cl instead fit the
+  # empirical semivariogram via weighted least squares or composite likelihood
   # estimating covariance parameters
   cov_est_object <- switch(estmethod,
     "reml" = cov_estimate_gloglik_splm(data_object, formula, spcov_initial, estmethod,
@@ -353,8 +364,11 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
     )
   )
 
+  warn_optim_convergence(cov_est_object$optim_output$convergence)
 
-
+  # the iid special case (no spatial dependence, no random effects) has a
+  # diagonal covariance matrix, so model_stats can be computed with cheaper,
+  # non-spatial formulas instead of the general dense/sparse matrix code path
   if (inherits(cov_est_object$spcov_params_val, c("none", "ie")) && is.null(random)) {
     model_stats <- get_model_stats_splm_iid(cov_est_object, data_object, estmethod)
   } else {
@@ -368,12 +382,18 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
   }
 
   # store index if necessary
-  if (is.null(local)) { # local was stored as NULL in previous function call
+  # local can be NULL, TRUE/FALSE, or a list -- is.logical() guards the
+  # negation below so an explicit local = FALSE still clears local_index
+  # without erroring on the (much more common) local = TRUE/list case
+  if (is.null(local) || (is.logical(local) && !local)) { # local was stored as NULL in previous function call
     local_index <- NULL
   } else {
     local_index <- data_object$local_index
   }
 
+  # triangular and circular covariances are only valid in one dimension, so
+  # coordinates were collapsed to 1D for estimation; restore/relabel the
+  # stored data object accordingly for downstream use (e.g., prediction)
   if (inherits(spcov_initial, c("triangular", "circular"))) {
     data_object <- replace_data_object_dimcoords1(data_object)
   }
@@ -418,5 +438,14 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
   )
 
   new_output <- structure(output, class = "splm")
+
+  # ddf = "satterthwaite" also produces the covariance matrix of the
+  # covariance parameter estimates stored to prevent further recomputation
+  fit_ddf <- get_fit_ddf(new_output, ddf)
+  new_output$ddf <- fit_ddf$ddf
+  new_output$vcov$cov <- fit_ddf$vcov_cov
+  new_output$vcov$spcov <- fit_ddf$vcov_spcov
+  new_output$vcov$randcov <- fit_ddf$vcov_randcov
+
   new_output
 }

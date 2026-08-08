@@ -56,13 +56,14 @@
 #' eacf(sulfate ~ 1, sulfate)
 #' plot(eacf(sulfate ~ 1, sulfate))
 eacf <- function(formula, data, xcoord, ycoord, cloud = FALSE, bins = 15, cutoff, dist_matrix, partition_factor) {
-
   # filter out missing response values
   na_index <- is.na(data[[all.vars(formula)[1]]])
   data <- data[!na_index, , drop = FALSE]
   # finding model frame
   data_model_frame <- model.frame(formula, data, drop.unused.levels = TRUE, na.action = na.pass)
   # model matrix with potential NA
+  # na.action = na.pass above keeps NA rows so we can detect and reject them
+  # explicitly here (with a clearer error) rather than silently dropping them
   ob_predictors <- complete.cases(model.matrix(formula, data_model_frame))
   if (any(!ob_predictors)) {
     stop("Cannot have NA values in predictors.", call. = FALSE)
@@ -77,6 +78,8 @@ eacf <- function(formula, data, xcoord, ycoord, cloud = FALSE, bins = 15, cutoff
   ## convert sf to data frame (point geometry) (1d objects obsolete)
   ### see if data has sf class
   if (inherits(data, "sf")) {
+    # collapse any polygon/line geometries to their centroid so distances can
+    # be computed between simple x/y points
     data <- suppressWarnings(sf::st_centroid(data))
     data <- sf_to_df(data)
     ### name xcoord ".xcoord" to be used later
@@ -87,24 +90,30 @@ eacf <- function(formula, data, xcoord, ycoord, cloud = FALSE, bins = 15, cutoff
 
   # compute spatial distances
   if (missing(dist_matrix)) {
-    # non standard evaluation for the x and y coordinates
-    xcoord <- substitute(xcoord)
-    ycoord <- substitute(ycoord)
+    # non standard evaluation for the x and y coordinates -- missing() is
+    # checked here, on the original (not yet substituted) argument, since
+    # that's the one place missing() can answer this reliably;
+    # as.character(substitute()) then normalizes both quoted ("x") and
+    # unquoted (x) column-name references into a plain string. Downstream
+    # code checks is.null(xcoord) (not missing()) to see whether the
+    # argument was supplied.
+    xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
+    ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
 
-    if (missing(xcoord)) {
+    if (is.null(xcoord)) {
       stop("The xcoord argument must be specified.", call. = FALSE)
     }
 
-    if (!missing(xcoord)) {
-      if (!as.character(xcoord) %in% colnames(data)) {
+    if (!is.null(xcoord)) {
+      if (!xcoord %in% colnames(data)) {
         stop("The xcoord argument must match the name of a variable in data.", call. = FALSE)
       }
     }
 
-    if (missing(ycoord)) {
+    if (is.null(ycoord)) {
       dist_matrix <- spdist(data, xcoord)
     } else {
-      if (!as.character(ycoord) %in% colnames(data)) {
+      if (!ycoord %in% colnames(data)) {
         stop("The ycoord argument must match the name of a variable in data.", call. = FALSE)
       }
       dist_matrix <- spdist(data, xcoord, ycoord)
@@ -113,32 +122,37 @@ eacf <- function(formula, data, xcoord, ycoord, cloud = FALSE, bins = 15, cutoff
 
 
   dist_matrix <- as.matrix(dist_matrix)
+  # distance matrix is symmetric with a zero diagonal, so only the upper
+  # triangle (unique pairs) is needed going forward
   dist_matrix <- dist_matrix[upper.tri(dist_matrix)]
 
   if (any(dist_matrix == 0)) {
     warning("Zero distances observed between at least one pair. Ignoring pairs. If using splm(), consider a different estimation method.", call. = FALSE)
   }
 
-  if (missing(partition_factor)) {
-    partition_factor <- NULL
-  }
+  if (missing(partition_factor)) partition_factor <- NULL
 
   if (!is.null(partition_factor)) {
-    # partition_matrix_val <- triu(partition_matrix(partition_factor, data = data), k = 1)
+    # partition_matrix_val is a 0/1 indicator of whether a pair shares the same
+    # partition level; multiplying zeroes out distances for pairs in different
+    # levels so they get filtered out below alongside genuine zero distances
     partition_matrix_val <- as.matrix(partition_matrix(partition_factor, data = data))
     partition_matrix_val <- partition_matrix_val[upper.tri(partition_matrix_val)]
     dist_matrix <- dist_matrix * partition_matrix_val
   }
 
-  if (missing(cutoff)) {
-    cutoff <- NULL
-  }
+  if (missing(cutoff)) cutoff <- NULL
   if (is.null(cutoff)) {
+    # default cutoff of half the maximum observed distance keeps enough pairs
+    # per bin while avoiding the sparsely populated tail of far-apart pairs
     cutoff <- max(dist_matrix) / 2
   }
 
   dist_vector <- dist_matrix
   if (any(dist_vector == 0)) {
+    # zero distances are either coincident locations or cross-partition pairs
+    # zeroed out above; either way they should be excluded, not treated as a
+    # real distance-zero bin
     dist_index <- dist_vector > 0 & dist_vector <= cutoff
   } else {
     dist_index <- dist_vector <= cutoff
@@ -149,6 +163,8 @@ eacf <- function(formula, data, xcoord, ycoord, cloud = FALSE, bins = 15, cutoff
   # compute squared differences in the residuals
   lmod <- lm(formula = formula, data = data)
   residuals <- residuals(lmod)
+  # outer product of residuals gives r_i * r_j for every pair, the building
+  # block of the empirical autocovariance (unlike esv, no squaring here)
   residual_matrix <- outer(residuals, residuals) # ybar is the fitted mean
   residual_matrix <- residual_matrix[upper.tri(residual_matrix)]
   if (!is.null(partition_factor)) {
@@ -160,6 +176,8 @@ eacf <- function(formula, data, xcoord, ycoord, cloud = FALSE, bins = 15, cutoff
   residual_vector2 <- residual_vector # just to align with esv() names
 
 
+  # cloud returns every pairwise value; otherwise pairs are binned by distance
+  # and averaged within each bin
   if (cloud) {
     eacf_out <- get_eacf_cloud(residual_vector2, dist_vector)
   } else {
@@ -167,10 +185,6 @@ eacf <- function(formula, data, xcoord, ycoord, cloud = FALSE, bins = 15, cutoff
   }
 
 
-
-
-  # remove NA
-  # eacf_out <- na.omit(eacf_out)
   eacf_out <- structure(eacf_out, class = c("eacf", class(eacf_out)), call = match.call(), cloud = cloud)
   eacf_out
 }
@@ -181,7 +195,6 @@ eacf <- function(formula, data, xcoord, ycoord, cloud = FALSE, bins = 15, cutoff
 #' @param ... Other arguments passed to other methods.
 #' @export
 plot.eacf <- function(x, ...) {
-
   cal <- attr(x, "call")
   if (!is.na(m.f <- match("formula", names(cal)))) {
     cal <- cal[c(1, m.f)]

@@ -32,12 +32,17 @@
 #' sprpois(spcov_params_val, samples = 5, data = caribou, xcoord = x, ycoord = y)
 sprpois <- function(spcov_params, mean = 0, samples = 1, data, randcov_params, partition_factor, ...) {
   n <- NROW(data)
+  # re-dispatch this call to sprnorm() to simulate the shared latent Gaussian
+  # process, then transform it below into the target distribution
   call_val <- match.call()
   call_val[[1]] <- as.symbol("sprnorm")
   sprnorm_val <- eval(call_val, envir = parent.frame())
   mu <- exp(sprnorm_val)
 
   if (is.matrix(mu)) {
+    # multiple samples: split the matrix into one mean vector per column
+    # (transpose first so split() walks columns instead of rows), simulating
+    # each sample's Poisson draws independently
     mu_list <- split(t(mu), seq_len(NCOL(mu)))
     sprpois_val <- vapply(mu_list, function(x) rpois(n, x), numeric(n))
   } else {

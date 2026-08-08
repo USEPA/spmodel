@@ -29,6 +29,8 @@
 #' )
 #' hatvalues(spmod)
 hatvalues.splm <- function(model, ...) {
+  # hat values are computed once during model fitting (not recomputed here)
+  # and simply stored on the fitted object for extraction
   model$hatvalues
 }
 

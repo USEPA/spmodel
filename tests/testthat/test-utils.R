@@ -1,5 +1,5 @@
 ################################################################################
-############################ check_optim_method (test-check_optim_method.R)
+############################ check_optim_method
 ################################################################################
 
 test_that("check optim method works", {
@@ -19,7 +19,7 @@ test_that("check optim method works", {
 })
 
 ################################################################################
-############################ hwInv (test-hwInv.R)
+############################ hwInv
 ################################################################################
 
 test_that("hwInv works", {
@@ -42,7 +42,7 @@ test_that("hwInv works", {
 })
 
 ################################################################################
-############################ randcov_initial (test-randcov_initial.R)
+############################ randcov_initial
 ################################################################################
 
 test_that("randcov_initial works", {
@@ -91,7 +91,6 @@ test_that("errors return", {
   expect_error(randcov_initial(group = NA, known = "given"))
   expect_error(randcov_initial(group = NA, subgroup = 2, known = "given"))
   expect_error(randcov_initial(group = NA, subgroup = 2, known = "subgroup"), NA)
-  # expect_error(randcov_initial(c(c(1, 2)))) was for names missing
 })
 
 test_that("names of randcov_initial work", {
@@ -107,7 +106,7 @@ test_that("names of randcov_initial work", {
 })
 
 ################################################################################
-############################ randcov_names (test-randcov_names.R)
+############################ randcov_names
 ################################################################################
 
 test_that("get_randcov_names works", {
@@ -122,11 +121,10 @@ test_that("get_randcov_names works", {
   expect_equal(get_randcov_names(~ group + (x | group)), c("1 | group", "1 | group", "x | group"))
   expect_equal(get_randcov_names(~ group * x | group), c("1 | group", "group | group", "x | group", "group:x | group"))
   expect_equal(get_randcov_names(~ (x | group) + (x | subgroup)), c("1 | group", "x | group", "1 | subgroup", "x | subgroup"))
-  # expect_equal(get_randcov_names(~ group + x | group), c("group + x | group")) # force error here (not intended as () MUST be there)
 })
 
 ################################################################################
-############################ randcov_params (test-randcov_params.R)
+############################ randcov_params
 ################################################################################
 
 test_that("randcov_params works", {
@@ -144,7 +142,7 @@ test_that("randcov_params works", {
 })
 
 ################################################################################
-############################ smwInv_rand (test-smwInv_rand.R)
+############################ smwInv_rand
 ################################################################################
 
 test_that("smwInv_rand works", {
@@ -173,7 +171,7 @@ test_that("smwInv_rand works", {
 })
 
 ################################################################################
-############################ spcov_initial (test-spcov_initial.R)
+############################ spcov_initial
 ################################################################################
 
 test_that("spcov_initial works", {
@@ -205,7 +203,7 @@ test_that("names of spcov_initial work", {
 })
 
 ################################################################################
-############################ spcov_matrix (test-spcov_matrix.R)
+############################ spcov_matrix
 ################################################################################
 
 test_that("spcov_matrix works", {
@@ -215,7 +213,7 @@ test_that("spcov_matrix works", {
 })
 
 ################################################################################
-############################ spcov_params (test-spcov_params.R)
+############################ spcov_params
 ################################################################################
 
 test_that("spcov_params works", {
@@ -280,7 +278,7 @@ test_that("defaults are applied", {
 })
 
 ################################################################################
-############################ spcov_vector (test-spcov_vector.R)
+############################ spcov_vector
 ################################################################################
 
 test_that("spcov_vector works", {

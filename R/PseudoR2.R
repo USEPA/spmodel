@@ -37,6 +37,8 @@ pseudoR2 <- function(object, ...) {
 #' @export
 pseudoR2.splm <- function(object, adjust = FALSE, ...) {
   if (adjust) {
+    # the adjustment degrees-of-freedom baseline differs depending on whether
+    # an intercept is estimated, analogous to classical adjusted r-squared
     has_intercept <- "(Intercept)" %in% tidy(object)$term
     pr2 <- object$pseudoR2
     pr2_adj <- 1 - (1 - pr2) * (object$n - 1 * has_intercept) / (object$n - object$p)

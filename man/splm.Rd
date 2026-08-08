@@ -19,6 +19,7 @@ splm(
   partition_factor,
   local,
   range_constrain,
+  ddf,
   ...
 )
 }
@@ -158,6 +159,13 @@ Note that if \code{range_constrain = TRUE} and the value of \code{range} in \cod
 is larger than \code{range_constrain}, then \code{range_constrain} is set to
 \code{FALSE}.}
 
+\item{ddf}{The denominator degrees of freedom to be used for eventual hypothesis testing
+(e.g., \code{confint()}, \code{summary()}, or \code{tidy()} calls on the fitted model object).
+\code{"asymptotic"} assumes infinite degrees of freedom, implying z-tests.
+\code{"satterthwaite"} impelments Satterthwaite degrees of freeom, implying t-tests
+that are generally more appropriate for small samples. The default is \code{"satterthwaite"} when the sample size is
+less than or equal to 500 and \code{"asymptotic"} otherwise.}
+
 \item{...}{Other arguments to \code{\link[=esv]{esv()}} or \code{stats::optim()}.}
 }
 \value{
@@ -169,8 +177,8 @@ summarize model fit are available for \code{splm} objects, including
 \code{cooks.distance}, \code{covmatrix}, \code{deviance}, \code{fitted}, \code{formula},
 \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
 \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},
-\code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
-\code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
+\code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{\link{satterthwaite}},
+\code{summary}, \code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
 \code{spcov_type} or \code{spcov_initial} are length greater than one, the
 list has class \code{splm_list} and each element in the list has class
 \code{splm}. \code{glances} can be used to summarize \code{splm_list}

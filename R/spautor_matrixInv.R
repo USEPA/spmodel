@@ -1,6 +1,25 @@
-# compute matrix inverse for autoregressive models
+#' Compute the covariance matrix inverse (and log-determinant) for autoregressive models
+#'
+#' @param spcov_params_val A \code{spcov_params} object
+#' @param data_object The data object
+#' @param dist_matrix_list The neighbor weight matrix \code{W} (despite the name,
+#'   this is not actually a list for \code{spautor()}/\code{spgautor()} models;
+#'   named for consistency with the analogous \code{splm()}/\code{spglm()} code)
+#' @param randcov_params_val A \code{randcov_params} object
+#' @param ldet Whether to also return the log-determinant
+#'
+#' @return A list with elements \code{SigInv} (the inverse covariance matrix)
+#'   and \code{Sigldet} (its log-determinant, or \code{NULL} if \code{ldet} is
+#'   \code{FALSE}), computed via the Sherman-Morrison-Woodbury identity when
+#'   there is a nonzero independent error variance, since directly inverting
+#'   the dense \code{de + ie} covariance matrix would discard the sparsity of
+#'   the CAR/SAR precision matrix
+#'
+#' @noRd
 spautor_cov_matrixInv <- function(spcov_params_val, data_object,
                                   dist_matrix_list, randcov_params_val, ldet = TRUE) {
+  # floor de away from zero -- during optimization de can be proposed near 0,
+  # which would make the CAR/SAR precision matrix (and its inverse) singular
   if (spcov_params_val[["de"]] < 0.001) {
     spcov_params_val[["de"]] <- 0.001
   }
@@ -43,7 +62,10 @@ spautor_cov_matrixInv <- function(spcov_params_val, data_object,
     SigInv <- hwInv_val$SigInv
     Sigldet <- hwInv_val$Sigldet
   } else {
-
+    # a partition factor multiplies the covariance element-wise by a 0/1
+    # matrix (Hadamard product), which destroys the CAR/SAR sparsity pattern
+    # the SMW shortcut above relies on -- fall back to building the dense
+    # covariance matrix directly and inverting it via Cholesky
     # making a covariance matrix
     cov_matrix_val_full <- cov_matrix(
       spcov_params_val, dist_matrix, randcov_params_val,

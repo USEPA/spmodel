@@ -69,6 +69,12 @@
 #'   when \code{W} is not specified. For an \code{sf} object with \code{POINT} geometry,
 #'   two locations are considered neighbors if the distance between them is less
 #'   than or equal to \code{cutoff}.
+#' @param ddf The denominator degrees of freedom to be used for eventual hypothesis testing
+#'   (e.g., \code{confint()}, \code{summary()}, or \code{tidy()} calls on the fitted model object).
+#'   \code{"asymptotic"} assumes infinite degrees of freedom, implying z-tests. 
+#'   \code{"satterthwaite"} impelments Satterthwaite degrees of freeom, implying t-tests
+#'   that are generally more appropriate for small samples. The default is \code{"satterthwaite"} when the sample size is 
+#'   less than or equal to 500 and \code{"asymptotic"} otherwise.
 #' @param ... Other arguments to \code{stats::optim()}.
 #'
 #' @details The spatial linear model for areal data (i.e., spatial autoregressive model)
@@ -127,6 +133,7 @@
 #'   \code{spautor()} models (i.e., the prediction locations must be known prior
 #'   to estimation).
 #'
+#'
 #' @return A list with many elements that store information about
 #'   the fitted model object. If \code{spcov_type} or \code{spcov_initial} are
 #'   length one, the list has class \code{spautor}. Many generic functions that
@@ -135,8 +142,8 @@
 #'   \code{cooks.distance}, \code{covmatrix}, \code{deviance}, \code{fitted}, \code{formula},
 #'   \code{glance}, \code{glances}, \code{hatvalues}, \code{influence},
 #'   \code{labels}, \code{logLik}, \code{loocv}, \code{model.frame}, \code{model.matrix},
-#'   \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{summary},
-#'   \code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
+#'   \code{plot}, \code{predict}, \code{print}, \code{pseudoR2}, \code{\link{satterthwaite}},
+#'   \code{summary}, \code{terms}, \code{tidy}, \code{update}, \code{varcomp}, and \code{vcov}. If
 #'   \code{spcov_type} or \code{spcov_initial} are length greater than one, the
 #'   list has class \code{spautor_list} and each element in the list has class
 #'   \code{spautor}. \code{glances} can be used to summarize \code{spautor_list}
@@ -154,8 +161,7 @@
 #' summary(spmod)
 spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml",
                     random, randcov_initial, partition_factor, W, row_st = TRUE, M, range_positive = TRUE,
-                    cutoff, ...) {
-
+                    cutoff, ddf, ...) {
   # set car as default if nothing specified
   if (missing(spcov_type) && missing(spcov_initial)) {
     spcov_type <- "car"
@@ -167,6 +173,9 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
   }
 
   # iterate if needed
+  # a list of spcov_initial objects (rather than a single one) means the user
+  # wants a model fit for each -- recurse once per element, swapping in that
+  # element's spcov_initial, and collect the fits into a classed list
   if (!missing(spcov_initial) && is.list(spcov_initial[[1]])) {
     call_list <- as.list(match.call())[-1]
     penv <- parent.frame()
@@ -178,6 +187,7 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
     new_spautor_out <- structure(spautor_out, class = "spautor_list")
     return(new_spautor_out)
   } else if (!missing(spcov_type) && length(spcov_type) > 1) {
+    # same idea, but iterating over multiple spcov_type strings instead
     call_list <- as.list(match.call())[-1]
     penv <- parent.frame()
     spautor_out <- lapply(spcov_type, function(x) {
@@ -190,8 +200,10 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
   }
 
 
-
   # call splm if spcov_type is none (works on an individual element of spcov_type or initial)
+  # "none"/"ie" means no spatial (areal) structure at all, so the model reduces
+  # to a plain (possibly random-effects) linear model, which splm() already
+  # handles -- delegate rather than duplicating that logic here
   if ((!missing(spcov_type) && spcov_type %in% c("none", "ie")) || (!missing(spcov_initial) && inherits(spcov_initial, c("none", "ie")))) {
     call_list <- as.list(match.call())[-1]
     # remove spautor specific arguments
@@ -203,6 +215,9 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
   }
 
   # replace initial values with appropriate NA's
+  # if only spcov_type was given (no explicit spcov_initial), build a bare
+  # spcov_initial object so downstream code has a single, consistent object
+  # to read initial/known values from
   if (missing(spcov_initial)) {
     spcov_initial <- spmodel::spcov_initial(spcov_type)
   }
@@ -210,34 +225,27 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
   spautor_checks(class(spcov_initial), !missing(W), data, estmethod)
 
   # set partition factor if necessary
-  if (missing(W)) {
-    W <- NULL
-  }
+  if (missing(W)) W <- NULL
 
-  if (missing(M)) {
-    M <- NULL
-  }
+  if (missing(M)) M <- NULL
 
   # set random NULL if necessary
-  if (missing(random)) {
-    random <- NULL
-  }
+  if (missing(random)) random <- NULL
 
   # set rancov_initial NULL if necessary
-  if (missing(randcov_initial)) {
-    randcov_initial <- NULL
-  }
+  if (missing(randcov_initial)) randcov_initial <- NULL
 
   # set partition factor if necessary
-  if (missing(partition_factor)) {
-    partition_factor <- NULL
-  }
+  if (missing(partition_factor)) partition_factor <- NULL
 
-  if (missing(cutoff)) {
-    cutoff <- NULL
-  }
+  if (missing(cutoff)) cutoff <- NULL
+
+  # set ddf NULL if necessary
+  if (missing(ddf)) ddf <- NULL
 
   # get data object
+  # builds W (if not supplied), splits observed vs NA response rows, and
+  # assembles design matrices/random effect structures used throughout fitting
   data_object <- get_data_object_spautor(
     formula, data, spcov_initial,
     estmethod, W, M, random, randcov_initial,
@@ -245,6 +253,8 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
   )
 
 
+  # reml and ml call the same optimizer wrapper -- estmethod is passed through
+  # and used internally to pick the (restricted) log-likelihood to maximize
   cov_est_object <- switch(estmethod,
     "reml" = cov_estimate_gloglik_spautor(data_object, formula, spcov_initial, estmethod,
       optim_dotlist = get_optim_dotlist(...)
@@ -254,6 +264,7 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
     )
   )
 
+  warn_optim_convergence(cov_est_object$optim_output$convergence)
 
   model_stats <- get_model_stats_spautor(cov_est_object, data_object, estmethod)
 
@@ -292,5 +303,14 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
   )
 
   new_output <- structure(output, class = "spautor")
+
+  # ddf = "satterthwaite" also produces the covariance matrix of the
+  # covariance parameter estimates stored to prevent further recomputation
+  fit_ddf <- get_fit_ddf(new_output, ddf)
+  new_output$ddf <- fit_ddf$ddf
+  new_output$vcov$cov <- fit_ddf$vcov_cov
+  new_output$vcov$spcov <- fit_ddf$vcov_spcov
+  new_output$vcov$randcov <- fit_ddf$vcov_randcov
+
   new_output
 }

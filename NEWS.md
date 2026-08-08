@@ -1,5 +1,39 @@
 * Fixed a bug that could cause an error for `covmatrix(object, newdata, cov_type = "pred.pred", ...)` when `newdata` was an `sf` object.
 * Minor documentation updates.
+* Added Satterthwaite denominator degrees of freedom (ddf) support for `splm()`/`spautor()` model objects, for `t`-based (rather than asymptotic `z`-based) inference in small samples.
+    * Added `satterthwaite()`, which computes Satterthwaite ddfs for the fixed effect coefficients of an `splm()` or 
+    `spautor()` model object.
+    * Added a `ddf` argument to `splm()`, `spautor()`, and `anova()` that controls whether Satterthwaite or asymptotic degrees of freedom are used for hypothesis tests. In `splm()` and `spautor()`, if `n` (the sample size) is less than or equal to 500, Satterhwaite ddf are computed and used, which implies a breaking change in `summary()` and `tidy()` output.
+    * Added Satterthwaite support to `confint()` for confidence intervals.
+    * Added support for `emmeans::joint_tests()` with Satterthwaite ddf.
+    * Added `"cov"`, `"spcov"`, and `"randcov"` values to the `type` argument in `vcov()` for `splm()`/`spautor()` model objects when using Satterthwaite ddf.
+
+# spmodel 0.14.0
+
+## Major Updates
+
+* Added a `"weight"` value to the `type` argument in `predict()`, which returns the prediction (i.e., Kriging) weights.
+
+## Minor Updates
+
+* Added exponentiated versions of logged variables in `lake`, `moss`, `seal`, and `texas`.
+* Added a `delta` argument to `predict()` and `loocv()` that optionally returns delta method standard errors when `type = "response"` and `object` is an `spglm()` or `spgautor()` model object.
+* Added a `byrow_threshold` argument to the `local` argument to `predict()` for `splm()` and `spglm()` model objects. When the number of observed data rows times the number of prediction data rows is smaller than `byrow_threshold` and there is at least one random effect or a partition factor, observed by prediction covariance matrices are computed all at once rather than row-by-row, which improves computational efficiency.
+* Added a warning for `spglm()` and `spgautor()` model objects fit using `estmethod = "ml"` when `de` and `ie` are at or near a numerical boundary (e.g., for `spcov_type = "none"`), as likelihood-based comparisons (e.g., `AIC()`, `AICc()`, `BIC()`) may be unreliable in this context.
+* Added a warning for `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects when the covariance-parameter optimizer (`optim()`) does not converge.
+* Added a warning for `spglm()` and `spgautor()` model objects fit using `family = "binomial"` when nearly all fitted probabilities are arbitrarily close to 0 or 1, indicating evidence of perfect separation.
+* Minor (internal) documentation, code clarity, and code efficiency updates.
+* Minor (external) documentation updates.
+
+## Bug Fixes
+
+* Fixed a bug that could mix Cholesky and eigenvalue decompositions while predicting for autoregressive models fit using `spautor()` or `spgautor()`.
+* Fixed a bug that could improperly compute slope random effect variances for prediction using `predict()` and `loocv()`.
+* Fixed a bug that could cause an error when computing prediction standard errors for `spautor()` and `spgautor()` fitted model objects.
+* Fixed a bug that prevented random effect fitted values (i.e., BLUPs) from being computed for `spgautor()` model objects.
+* Fixed a bug where the `ie` value reported by `splm()`, `spautor()`, `spglm()` and `spgautor()` model objects could be smaller than the numerical floor used to build the fitted covariance matrix.
+* Fixed a bug that could cause an error in `spglm()` when there was anisotropy and every spatial covariance and dispersion parameter was assumed known.
+>>>>>>> develop
 
 # spmodel 0.13.0
 

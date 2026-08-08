@@ -112,6 +112,9 @@ test_that("generics work spautor polygon data", {
   expect_vector(resid(spmod1, type = "standardized"))
   expect_vector(rstandard(spmod1))
 
+  # satterthwaite
+  expect_type(satterthwaite(spmod1), "double")
+
   # summary
   expect_type(summary(spmod1), "list")
 
@@ -240,6 +243,7 @@ test_that("generics work spautor polygon data with missing", {
   expect_true(inherits(predict(spmod1, interval = "confidence", level = 0.9), "matrix"))
   expect_true(inherits(predict(spmod1, type = "terms"), "matrix"))
   expect_type(predict(spmod1, type = "terms", interval = "confidence"), "list")
+  expect_true(inherits(predict(spmod1, type = "weight"), "matrix"))
 
   # print
   expect_output(print(spmod1))
@@ -257,6 +261,9 @@ test_that("generics work spautor polygon data with missing", {
   expect_vector(resid(spmod1, type = "pearson"))
   expect_vector(resid(spmod1, type = "standardized"))
   expect_vector(rstandard(spmod1))
+
+  # satterthwaite
+  expect_type(satterthwaite(spmod1), "double")
 
   # summary
   expect_type(summary(spmod1), "list")
@@ -393,6 +400,9 @@ test_that("generics work spautor polygon data unconnected", {
   expect_vector(resid(spmod1, type = "standardized"))
   expect_vector(rstandard(spmod1))
 
+  # satterthwaite
+  expect_type(satterthwaite(spmod1), "double")
+
   # summary
   expect_type(summary(spmod1), "list")
 
@@ -410,4 +420,24 @@ test_that("generics work spautor polygon data unconnected", {
 
   # vcov
   expect_true(inherits(vcov(spmod1), "matrix"))
+})
+
+test_that("spautorRF runs", {
+  skip_if_not_installed("ranger")
+  load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
+
+  spmod1 <- spautorRF(y ~ x, exdata_Mpoly, spcov_type = "car", num.trees = 100)
+  expect_s3_class(spmod1, "spautorRF")
+  expect_vector(predict(spmod1, newdata = exdata_Mpoly))
+})
+
+test_that("spautorRF_list runs", {
+  skip_if_not_installed("ranger")
+  load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
+
+  spmod_list <- spautorRF(y ~ x, exdata_Mpoly, spcov_type = c("car", "sar"), num.trees = 100)
+  expect_s3_class(spmod_list, "spautorRF_list")
+  preds <- predict(spmod_list, newdata = exdata_Mpoly)
+  expect_type(preds, "list")
+  expect_length(preds, 2)
 })

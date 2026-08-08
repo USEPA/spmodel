@@ -1,0 +1,111 @@
+decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm, statistic, training_list, anisotropy, random, randcov_params, partition_factor, ordering = "maxmin", local, grid, dense_grid, add_iid, ...) {
+
+
+  data_training <- data[training_list$training_index, , drop = FALSE]
+  data_test <- data[training_list$test_index, , drop = FALSE]
+  yval <- model.response(model.frame(formula, data = data_test))
+
+
+  grid_compare <- decorrelate_grid_internal(
+    formula = formula,
+    data = data,
+    spcov_type = spcov_type,
+    spcov_params = spcov_params,
+    xcoord = xcoord,
+    ycoord = ycoord,
+    anisotropy = anisotropy,
+    random = random,
+    randcov_params = randcov_params,
+    dense_grid = dense_grid,
+    add_iid = add_iid,
+    warn = FALSE
+  )
+  if (is.null(grid)) {
+    grid <- grid_compare
+  } else {
+    check_grid_legal(grid, random)
+    if (!"rotate" %in% names(grid)) grid$rotate <- 0
+    if (!"scale" %in% names(grid)) grid$scale <- 1
+    if (any(! names(grid_compare) %in% names(grid))) stop("Invalid grid column names. Column names in grid must contain all column names returned by decorrelate_grid(formula, data, ...).", call. = FALSE)
+    grid <- grid[, names(grid) %in% names(grid_compare), drop = FALSE]
+  }
+
+  params_list <- get_params_list(grid, random, randcov_params)
+
+  decorrelate_part1 <- decorrelate_data_internal_part1(
+    formula = formula,
+    data = data_training,
+    spcov_type = spcov_type,
+    xcoord = xcoord,
+    ycoord = ycoord,
+    random = random,
+    partition_factor = partition_factor,
+    ordering = ordering,
+    local = local,
+    ...
+  )
+
+  out <- lapply(params_list, function(x) {
+    tdata_training <- decorrelate_data_internal_part2(
+      spcov_params = x$spcov_params,
+      randcov_params = x$randcov_params,
+      decorrelate_part1_object = decorrelate_part1,
+      ...
+    )
+
+    fit <- fit_decorrelate_algorithm(tdata_training, algorithm, ...)
+    tdata_test <- decorrelate_newdata(tdata_training, newdata = data_test)
+    preds <- predict_decorrelate_algorithm(fit, tdata_test, algorithm, ...)
+    sp_decorr_preds <- recorrelate_newdata(tdata_test, preds)
+    errors <- yval - sp_decorr_preds
+    bias <- mean(errors)
+    MSPE <- mean(errors^2)
+    RMSPE <- sqrt(MSPE)
+    cor2 <- suppressWarnings(cor(yval, sp_decorr_preds))^2 # warning for iid data when sp_decorr_preds = 0
+    list(bias = bias, MSPE = MSPE, RMSPE = RMSPE, cor2 = cor2)
+  })
+  grid$bias <- unlist(lapply(out, function(x) x$bias))
+  grid$MSPE <- unlist(lapply(out, function(x) x$MSPE))
+  grid$RMSPE <- unlist(lapply(out, function(x) x$RMSPE))
+  grid$cor2 <- unlist(lapply(out, function(x) x$cor2))
+
+  list(params_list = params_list,
+       grid = grid, training = training_list
+      )
+}
+
+get_params_list <- function(grid, random, randcov_params) {
+  params_list <- lapply(seq(1, NROW(grid)), function(x) {
+    x <- grid[x, ]
+    spcov_type <- x[["spcov_type"]]
+    if ("extra" %in% names(x) && spcov_type != "none") {
+      spcov_params_val <- spcov_params(
+        spcov_type = spcov_type,
+        de = x[["de"]],
+        ie = x[["ie"]],
+        range = x[["range"]],
+        extra = x[["extra"]],
+        rotate = x[["rotate"]],
+        scale = x[["scale"]]
+      )
+    } else {
+      spcov_params_val <- spcov_params(
+        spcov_type = spcov_type,
+        de = x[["de"]],
+        ie = x[["ie"]],
+        range = x[["range"]],
+        rotate = x[["rotate"]],
+        scale = x[["scale"]]
+      )
+    }
+    if (!is.null(random) || !is.null(randcov_params)) {
+      remove_cols <- c("spcov_type", "de", "ie", "range", "rotate", "scale", "bias", "MSPE", "RMSPE", "cor2")
+      if ("extra" %in% names(x)) remove_cols <- c(remove_cols, "extra")
+      randcov_params_val <- unlist(x[, -which(names(x) %in% remove_cols), drop = FALSE])
+      names(randcov_params_val) <- paste("", names(randcov_params_val), "", sep = "")
+    } else {
+      randcov_params_val <- NULL
+    }
+    list(spcov_params = spcov_params_val, randcov_params = randcov_params_val)
+  })
+}

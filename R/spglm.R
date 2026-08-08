@@ -319,7 +319,6 @@
 spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initial,
                   dispersion_initial, estmethod = "reml", anisotropy = FALSE,
                   random, randcov_initial, partition_factor, local, range_constrain, ...) {
-
   # set exponential as default if nothing specified
   if (missing(spcov_type) && missing(spcov_initial)) {
     spcov_type <- "exponential"
@@ -335,6 +334,10 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
   }
 
   # iterate if needed
+  # a list of spcov_initial objects (or a character vector of multiple
+  # spcov_type values) means the caller wants several models fit at once --
+  # recurse once per element by re-dispatching to spglm() with that single
+  # element substituted in, then collect the results into an spglm_list
   if (!missing(spcov_initial) && is.list(spcov_initial[[1]])) {
     call_list <- as.list(match.call())[-1]
     penv <- parent.frame()
@@ -358,26 +361,18 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
   }
 
   # set dispersion initial
+  # dispersion_initial() objects carry their glm family as their class (e.g.
+  # class "Gamma"), so when it's supplied it also determines/overrides family
   if (missing(dispersion_initial)) dispersion_initial <- NULL else family <- class(dispersion_initial)
 
   # fix family
   if (missing(family)) {
     stop("The family argument must be specified.", call. = FALSE)
   }
+  # allow family to be passed unquoted (e.g. family = binomial) like stats::glm
   if (is.symbol(substitute(family))) { # or is.language
     family <- deparse1(substitute(family))
   }
-
-  # Call splm if necessary (deprecated)
-  # if (family == "gaussian") {
-  #   call_val <- match.call()
-  #   call_val[[1]] <- as.symbol("splm")
-  #   call_list <- as.list(call_val)
-  #   call_list <- call_list[-which(names(call_list) %in% c("family", "dispersion_initial"))]
-  #   call_val <- as.call(call_list)
-  #   object <- eval(call_val, envir = parent.frame())
-  #   return(object)
-  # }
 
   # set spcov_initial
   if (missing(spcov_initial)) {
@@ -388,32 +383,27 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
   spglm_checks(family, spcov_initial, !missing(xcoord), !missing(ycoord), estmethod, anisotropy, !missing(random))
 
   # set random NULL if necessary
-  if (missing(random)) {
-    random <- NULL
-  }
+  if (missing(random)) random <- NULL
 
   # set rancov_initial NULL if necessary
-  if (missing(randcov_initial)) {
-    randcov_initial <- NULL
-  }
+  if (missing(randcov_initial)) randcov_initial <- NULL
 
   # set partition factor if necessary
-  if (missing(partition_factor)) {
-    partition_factor <- NULL
-  }
+  if (missing(partition_factor)) partition_factor <- NULL
 
-  if (missing(local)) {
-    local <- NULL
-  }
+  if (missing(local)) local <- NULL
 
-  if (missing(range_constrain)) {
-    range_constrain <- FALSE
-  }
+  if (missing(range_constrain)) range_constrain <- FALSE
   # make this default of TRUE later
 
-  # non standard evaluation for x and y coordinates
-  xcoord <- substitute(xcoord)
-  ycoord <- substitute(ycoord)
+  # non standard evaluation for x and y coordinates -- missing() is checked
+  # here, on the original (not yet substituted) argument, since that's the
+  # one place missing() can answer this reliably; as.character(substitute())
+  # then normalizes both quoted ("x") and unquoted (x) column-name
+  # references into a plain string. Downstream code checks is.null(xcoord)
+  # (not missing()) to see whether the argument was supplied.
+  xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
+  ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
 
   # get data object
   data_object <- get_data_object_spglm(
@@ -428,12 +418,30 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
     # invisible(clusterEvalQ(data_object$cl, library(Matrix)))
   }
 
+  # unlike splm(), spglm() always maximizes a Laplace-approximated (restricted)
+  # log-likelihood because the response is non-Gaussian and the exact
+  # likelihood, which requires integrating out the spatial random effects, is
+  # analytically intractable
   cov_est_object <- cov_estimate_laploglik_spglm(data_object, formula,
     spcov_initial, dispersion_initial, estmethod,
     optim_dotlist = get_optim_dotlist(...)
   )
 
+  warn_optim_convergence(cov_est_object$optim_output$convergence)
+
+  # de and ie collapsing toward zero together makes the ml Laplace likelihood
+  # unbounded (Sigma approaching singular); warn so the user knows likelihood-based
+  # comparisons may not be trustworthy near this boundary (see warn_spcov_boundary())
+  if (identical(estmethod, "ml")) {
+    warn_spcov_boundary(cov_est_object$spcov_params_val, data_object$diagtol)
+  }
+
   model_stats <- get_model_stats_spglm(cov_est_object, data_object, estmethod)
+
+  # spatial structure can make binomial fits separate far more readily than an
+  # ordinary (non-spatial) logistic regression, even with well-behaved
+  # covariates; warn when this has happened (see warn_fitted_saturation())
+  warn_fitted_saturation(model_stats$fitted$response, family)
 
   # parallel cluster if necessary
   if (data_object$parallel) {
@@ -441,12 +449,18 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
   }
 
   # store index if necessary
-  if (is.null(local)) { # local was stored as NULL in previous function call
+  # local can be NULL, TRUE/FALSE, or a list -- is.logical() guards the
+  # negation below so an explicit local = FALSE still clears local_index
+  # without erroring on the (much more common) local = TRUE/list case
+  if (is.null(local) || (is.logical(local) && !local)) { # local was stored as NULL in previous function call
     local_index <- NULL
   } else {
     local_index <- data_object$local_index
   }
 
+  # triangular and circular covariances are only valid in one dimension, so
+  # coordinates were collapsed to 1D for estimation; restore/relabel the
+  # stored data object accordingly for downstream use (e.g., prediction)
   if (inherits(spcov_initial, c("triangular", "circular"))) {
     data_object <- replace_data_object_dimcoords1(data_object)
   }

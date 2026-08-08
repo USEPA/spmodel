@@ -8,6 +8,13 @@
 #'
 #' @noRd
 spcov_vector <- function(spcov_params, dist_vector) {
+  # dispatches on spcov_params' class (e.g. "exponential", "matern") to the
+  # matching method below; used for kriging, where covariances are needed
+  # only between prediction points and observed data (a vector of distances),
+  # unlike spcov_matrix() which builds the full observed-by-observed matrix.
+  # Note there is no ie (nugget) term added here -- prediction-to-observation
+  # covariance has no independent error component by definition, even if
+  # two observations are at the same location
   UseMethod("spcov_vector", spcov_params)
 }
 ########### three parameter geostatistical
@@ -51,6 +58,8 @@ spcov_vector.circular <- function(spcov_params, dist_vector) {
 # spcov_vector none
 #' @export
 spcov_vector.none <- function(spcov_params, dist_vector) {
+  # no spatial dependence means zero covariance between any prediction point
+  # and the observed data, regardless of distance
   if (is.vector(dist_vector)) { # changed to conditional to work with covmatrix(object, newdata)
     spcov_vector_val <- Matrix(0, nrow = 1, ncol = length(dist_vector), sparse = TRUE) # length dist vector
   } else {
@@ -91,6 +100,8 @@ spcov_vector.cosine <- function(spcov_params, dist_vector) {
 spcov_vector.wave <- function(spcov_params, dist_vector) {
   dist_ratio <- dist_vector / spcov_params[["range"]]
   spcov_vector_val <- spcov_params[["de"]] * sin(dist_ratio) / (dist_ratio)
+  # sin(x)/x is a removable singularity at x = 0 (evaluates to NaN in R), so
+  # zero-distance entries are patched to their limiting value, de, by hand
   dist_vector_zero <- which(dist_vector == 0)
   spcov_vector_val[dist_vector_zero] <- spcov_params[["de"]]
   spcov_vector_val
@@ -100,6 +111,8 @@ spcov_vector.wave <- function(spcov_params, dist_vector) {
 #' @export
 spcov_vector.jbessel <- function(spcov_params, dist_vector) {
   dist_product <- dist_vector * spcov_params[["range"]]
+  # cap the besselJ argument -- extremely large inputs can be numerically
+  # unstable/slow to evaluate, and the function is already ~0 out there
   spcov_vector_val <- spcov_params[["de"]] * besselJ(as.matrix(pmin(dist_product, 100000)), 0)
   spcov_vector_val
 }
@@ -133,6 +146,8 @@ spcov_vector.magnetic <- function(spcov_params, dist_vector) {
 spcov_vector.matern <- function(spcov_params, dist_vector) {
   eta <- sqrt(2 * spcov_params[["extra"]]) * (dist_vector / spcov_params[["range"]])
   spcov_vector_val <- spcov_params[["de"]] * 2^(1 - spcov_params[["extra"]]) / gamma(spcov_params[["extra"]]) * eta^spcov_params[["extra"]] * besselK(as.matrix(eta), nu = spcov_params[["extra"]])
+  # besselK(0) is undefined (the Matern form has a removable singularity at
+  # distance 0), so those entries are patched to their limiting value, de
   dist_vector_zero <- which(dist_vector == 0) # consider epsilon threshold instead of exactly zero?
   spcov_vector_val[dist_vector_zero] <- spcov_params[["de"]]
   spcov_vector_val

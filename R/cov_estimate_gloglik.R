@@ -11,11 +11,18 @@
 #' @noRd
 cov_estimate_gloglik_splm <- function(data_object, formula, spcov_initial, estmethod,
                                       optim_dotlist) {
+  # This function chooses among several specialized Gaussian log-likelihood
+  # evaluators (known, iid, profiled, non-profiled, anisotropic) rather than always
+  # calling one general routine, because each specialized path skips computation
+  # that isn't needed for that case (e.g. no optimization at all if every parameter
+  # is fixed, or a simpler iid likelihood when the spatial dependence is zero).
 
-  # make NA spcov_initial
+  # mark which spatial covariance parameters the user fixed (vs. left to estimate)
   spcov_initial_NA_val <- spcov_initial_NA(spcov_initial, anisotropy = data_object$anisotropy)
 
-  # store distance matrix (if applicable)
+  # store distance matrix (if applicable); not needed at all for "none"/"ie"
+  # covariance types with no random effects, since those models have no spatial
+  # dependence structure that depends on distance
   if (data_object$anisotropy) {
     dist_matrix_list <- NULL
   } else {
@@ -27,6 +34,7 @@ cov_estimate_gloglik_splm <- function(data_object, formula, spcov_initial, estme
   }
 
   if (is.null(data_object$randcov_initial)) {
+    # grid search for good optimizer starting values
     cov_initial_val <- cov_initial_search(
       spcov_initial_NA = spcov_initial_NA_val,
       estmethod = estmethod,
@@ -35,45 +43,10 @@ cov_estimate_gloglik_splm <- function(data_object, formula, spcov_initial, estme
     )
 
     spcov_initial_val <- cov_initial_val$spcov_initial_val
-
-    # some initial logical statements to figure out what likelihood to use
-    de_known <- spcov_initial_val$is_known[["de"]]
-    de_known_zero <- de_known && (spcov_initial_val$initial[["de"]] == 0)
-    ie_known <- spcov_initial_val$is_known[["ie"]]
-
-    # all parameters known
-    if (all(spcov_initial_val$is_known)) {
-      if (data_object$anisotropy) {
-        cov_estimate_val <- use_gloglik_known_anis(spcov_initial_val, data_object, estmethod, randcov_initial = NULL)
-      } else {
-        cov_estimate_val <- use_gloglik_known(spcov_initial_val, data_object, estmethod, dist_matrix_list, randcov_initial = NULL)
-      }
-    } else if (de_known_zero) { # de = 0 for iid models
-      cov_estimate_val <- use_gloglik_iid(spcov_initial_val, estmethod, data_object, dist_matrix_list)
-    } else if (de_known || ie_known) { # use non-profiled likelihood
-      if (data_object$anisotropy) {
-        cov_estimate_val <- use_gloglik_anis(spcov_initial_val, data_object, estmethod,
-          spcov_profiled = FALSE, optim_dotlist = optim_dotlist
-        )
-      } else {
-        cov_estimate_val <- use_gloglik(spcov_initial_val, data_object, estmethod,
-          dist_matrix_list,
-          spcov_profiled = FALSE, optim_dotlist = optim_dotlist
-        )
-      }
-    } else {
-      if (data_object$anisotropy) {
-        cov_estimate_val <- use_gloglik_anis(spcov_initial_val, data_object, estmethod,
-          spcov_profiled = TRUE, optim_dotlist = optim_dotlist
-        )
-      } else {
-        cov_estimate_val <- use_gloglik(spcov_initial_val, data_object, estmethod,
-          dist_matrix_list,
-          spcov_profiled = TRUE, optim_dotlist = optim_dotlist
-        )
-      }
-    }
+    randcov_initial_val <- NULL
   } else {
+    # branch for models that include one or more random effects in addition to the
+    # spatial covariance structure
     randcov_names <- data_object$randcov_names
     randcov_initial_NA_val <- randcov_initial_NA(data_object$randcov_initial, randcov_names)
 
@@ -87,50 +60,14 @@ cov_estimate_gloglik_splm <- function(data_object, formula, spcov_initial, estme
 
     spcov_initial_val <- cov_initial_val$spcov_initial_val
     randcov_initial_val <- cov_initial_val$randcov_initial_val
-
-    # some initial logical statements to figure out what likelihood to use
-    de_known <- spcov_initial_val$is_known[["de"]]
-    de_known_zero <- de_known && (spcov_initial_val$initial[["de"]] == 0)
-    ie_known <- spcov_initial_val$is_known[["ie"]]
-
-    if (all(spcov_initial_val$is_known, randcov_initial_val$is_known)) {
-      if (data_object$anisotropy) {
-        cov_estimate_val <- use_gloglik_known_anis(spcov_initial_val, data_object, estmethod, randcov_initial_val)
-      } else {
-        cov_estimate_val <- use_gloglik_known(spcov_initial_val, data_object, estmethod, dist_matrix_list, randcov_initial_val)
-      }
-    } else if (any(de_known && !de_known_zero, spcov_initial_val$is_known[["ie"]], randcov_initial_val$is_known)) { # at least one variance parameter known
-      if (data_object$anisotropy) {
-        cov_estimate_val <- use_gloglik_anis(spcov_initial_val, data_object, estmethod,
-          spcov_profiled = FALSE,
-          randcov_initial = randcov_initial_val, randcov_profiled = FALSE,
-          optim_dotlist = optim_dotlist
-        )
-      } else {
-        cov_estimate_val <- use_gloglik(spcov_initial_val, data_object, estmethod,
-          dist_matrix_list = dist_matrix_list, spcov_profiled = FALSE,
-          randcov_initial = randcov_initial_val, randcov_profiled = FALSE,
-          optim_dotlist = optim_dotlist
-        )
-      }
-    } else { # all unknown so profile
-      if (data_object$anisotropy) {
-        cov_estimate_val <- use_gloglik_anis(spcov_initial_val, data_object, estmethod,
-          spcov_profiled = TRUE,
-          randcov_initial = randcov_initial_val, randcov_profiled = TRUE,
-          optim_dotlist = optim_dotlist
-        )
-      } else {
-        cov_estimate_val <- use_gloglik(spcov_initial_val, data_object, estmethod,
-          dist_matrix_list = dist_matrix_list, spcov_profiled = TRUE,
-          randcov_initial = randcov_initial_val, randcov_profiled = TRUE,
-          optim_dotlist = optim_dotlist
-        )
-      }
-    }
   }
-}
 
+  # choose among known/iid/non-profiled/profiled likelihood evaluators -- see
+  # run_gloglik_dispatch_splm() in cov_estimate_dispatch_helpers.R
+  cov_estimate_val <- run_gloglik_dispatch_splm(
+    spcov_initial_val, randcov_initial_val, data_object, estmethod, dist_matrix_list, optim_dotlist
+  )
+}
 
 
 #' Gaussian log-likelihood estimation for autoregressive models
@@ -146,6 +83,10 @@ cov_estimate_gloglik_splm <- function(data_object, formula, spcov_initial, estme
 #' @noRd
 cov_estimate_gloglik_spautor <- function(data_object, formula, spcov_initial, estmethod,
                                          optim_dotlist) {
+  # For autoregressive (CAR/SAR) models the "extra" parameter is the autocorrelation
+  # parameter (rho); extra = 0 means no spatial dependence, in which case (combined
+  # with de = 0) the model reduces to the plain iid case, same as for geostatistical
+  # models
   # make NA spcov_initial
   spcov_initial_NA_val <- spcov_initial_NA(spcov_initial, is_W_connected = data_object$is_W_connected)
 
@@ -155,7 +96,6 @@ cov_estimate_gloglik_spautor <- function(data_object, formula, spcov_initial, es
   dist_matrix_list <- data_object$W
 
   if (is.null(data_object$randcov_initial)) {
-
     # find initial values
     cov_initial_val <- cov_initial_search(
       spcov_initial_NA = spcov_initial_NA_val,
@@ -166,34 +106,8 @@ cov_estimate_gloglik_spautor <- function(data_object, formula, spcov_initial, es
 
     # initial spatial covariance value
     spcov_initial_val <- cov_initial_val$spcov_initial_val
-
-    # some initial logical statements to figure out what likelihood to use
-    de_known <- spcov_initial_val$is_known[["de"]]
-    de_known_zero <- de_known && (spcov_initial_val$initial[["de"]] == 0)
-    ie_known <- spcov_initial_val$is_known[["ie"]]
-    extra_known <- spcov_initial_val$is_known[["extra"]]
-    extra_known_zero <- extra_known && (spcov_initial_val$initial[["extra"]] == 0)
-
-    # use likelihood
-    if (all(spcov_initial_val$is_known)) {
-      cov_estimate_val <- use_gloglik_known(spcov_initial_val, data_object, estmethod, dist_matrix_list, randcov_initial = NULL)
-    } else if (de_known_zero && extra_known_zero) {
-      cov_estimate_val <- use_gloglik_iid(spcov_initial_val, estmethod, data_object, dist_matrix_list)
-    } else if (extra_known_zero && !de_known && !ie_known) {
-      cov_estimate_val <- use_gloglik(spcov_initial_val, data_object, estmethod,
-        dist_matrix_list,
-        spcov_profiled = TRUE,
-        optim_dotlist = optim_dotlist
-      )
-    } else {
-      cov_estimate_val <- use_gloglik(spcov_initial_val, data_object, estmethod,
-        dist_matrix_list,
-        spcov_profiled = FALSE,
-        optim_dotlist = optim_dotlist
-      )
-    }
+    randcov_initial_val <- NULL
   } else {
-
     # assign random effects
     randcov_names <- data_object$randcov_names
     randcov_initial_NA_val <- randcov_initial_NA(data_object$randcov_initial, randcov_names)
@@ -210,29 +124,11 @@ cov_estimate_gloglik_spautor <- function(data_object, formula, spcov_initial, es
     # spatial and random effect initial values
     spcov_initial_val <- cov_initial_val$spcov_initial_val
     randcov_initial_val <- cov_initial_val$randcov_initial_val
-
-    # some initial logical statements to figure out what likelihood to use
-    de_known <- spcov_initial_val$is_known[["de"]]
-    de_known_zero <- de_known && (spcov_initial_val$initial[["de"]] == 0)
-    ie_known <- spcov_initial_val$is_known[["ie"]]
-    extra_known <- spcov_initial_val$is_known[["extra"]]
-    extra_known_zero <- extra_known && (spcov_initial_val$initial[["extra"]] == 0)
-
-    # use likelihood
-    if (all(spcov_initial_val$is_known, randcov_initial_val$is_known)) {
-      cov_estimate_val <- use_gloglik_known(spcov_initial_val, data_object, estmethod, dist_matrix_list, randcov_initial_val)
-    } else if (extra_known_zero && !any(de_known, ie_known, randcov_initial_val$is_known)) {
-      cov_estimate_val <- use_gloglik(spcov_initial_val, data_object, estmethod,
-        dist_matrix_list = dist_matrix_list, spcov_profiled = TRUE,
-        randcov_initial = randcov_initial_val, randcov_profiled = TRUE,
-        optim_dotlist = optim_dotlist
-      )
-    } else {
-      cov_estimate_val <- use_gloglik(spcov_initial_val, data_object, estmethod,
-        dist_matrix_list = dist_matrix_list, spcov_profiled = FALSE,
-        randcov_initial = randcov_initial_val, randcov_profiled = FALSE,
-        optim_dotlist = optim_dotlist
-      )
-    }
   }
+
+  # choose among known/iid/profiled/non-profiled likelihood evaluators -- see
+  # run_gloglik_dispatch_spautor() in cov_estimate_dispatch_helpers.R
+  cov_estimate_val <- run_gloglik_dispatch_spautor(
+    spcov_initial_val, randcov_initial_val, data_object, estmethod, dist_matrix_list, optim_dotlist
+  )
 }

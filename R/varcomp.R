@@ -35,6 +35,10 @@ varcomp <- function(object, ...) {
 #' @order 2
 #' @export
 varcomp.splm <- function(object, ...) {
+  # fixed effects get credit for PR2 of total variability; the remaining
+  # (1 - PR2) is split across variance components in proportion to their
+  # share of total_var (de = partial sill/dependent error, ie = independent
+  # error/nugget, plus any random effect variances)
   PR2 <- pseudoR2(object)
   spcov_coef <- coef(object, type = "spcov")
   de <- spcov_coef[["de"]]
@@ -62,11 +66,15 @@ varcomp.spautor <- function(object, ...) {
   varcomp_names_con <- c("Covariates (PR-sq)", "de", "ie", c(names(randcov_coef)))
   varcomp_values_con <- c(PR2, (1 - PR2) * c(de, ie, randcov_coef) / total_var_con)
   varcomp_val <- tibble::tibble(varcomp = varcomp_names_con, proportion = varcomp_values_con)
+  # a nonzero "extra" variance means the spautor() fit has unconnected sites,
+  # which get their own variance component (in place of de/ie) since they
+  # aren't part of the spatial dependence structure of the connected sites
   if (extra != 0) {
     total_var_uncon <- sum(extra, randcov_coef)
     varcomp_names_uncon <- c("Covariates (PR-sq)", "extra", c(names(randcov_coef)))
     varcomp_values_uncon <- c(PR2, (1 - PR2) * c(extra, randcov_coef) / total_var_uncon)
     varcomp_val_2 <- tibble::tibble(varcomp = varcomp_names_uncon, proportion = varcomp_values_uncon)
+    # relative scale of variability between the two site groups
     ratio <- total_var_con / total_var_uncon
     varcomp_val <- list(connected = varcomp_val, unconnected = varcomp_val_2, ratio = ratio)
   }

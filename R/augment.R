@@ -91,11 +91,11 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
   interval <- match.arg(interval)
 
   # set data and newdata
+  # when newdata is NULL, augment the original fitted data with diagnostics;
+  # otherwise augment new observations with predictions
   if (is.null(newdata)) {
     if (drop) {
       data <- cbind(model.frame(x), x$obdata[, c(x$xcoord, x$ycoord)])
-      # keep_cols <- colnames(model.frame(x))
-      # data <- x$obdata[, c(keep_cols, x$xcoord, x$ycoord)]
     } else {
       data <- x$obdata
     }
@@ -104,6 +104,8 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
   }
 
   if (is.null(newdata)) {
+    # original-data path: attach fitted values plus leverage/residual/Cook's
+    # distance diagnostics computed by influence()
     augment_data <- tibble::tibble(.fitted = fitted(x))
     if (se_fit) {
       preds_data <- predict(x, newdata = data, se.fit = se_fit, interval = "confidence", ...)
@@ -111,6 +113,7 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
     }
     tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x)))
   } else {
+    # newdata path: attach predictions (and optional intervals/se) instead of diagnostics
     if (missing(local)) local <- NULL
     preds_newdata <- predict(x,
       newdata = newdata, se.fit = se_fit, interval = interval,
@@ -150,6 +153,8 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
     }
 
     if (inherits(newdata, "sf")) {
+      # extract point coordinates from sf geometry (centroid handles
+      # polygon/line geometries) so the model's xcoord/ycoord columns exist
       newdata <- suppressWarnings(sf::st_centroid(newdata))
 
       newdata <- sf_to_df(newdata)
@@ -163,9 +168,9 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
   }
 
 
-  # if (x$is_sf && requireNamespace("sf", quietly = TRUE)) {
   if (x$is_sf) {
     # sf installed
+    # re-attach sf geometry to match the class of the original data
     if (inherits(newdata, "sf")) {
       tibble_out <- sf::st_as_sf(tibble_out,
         sf_column_name = x$sf_column_name,
@@ -194,14 +199,14 @@ augment.spautor <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
   interval <- match.arg(interval)
 
   # set data and newdata
+  # spautor/spgautor fit on the full autocorrelation neighborhood (observed +
+  # unobserved locations), so diagnostics are restricted to observed_index rows only
   if (is.null(newdata)) {
     if (drop) {
       if (x$is_sf) {
         data_sf <- x$data[x$observed_index, x$sf_column_name, drop = FALSE]
       }
       data <- model.frame(x)
-      # keep_cols <- colnames(model.frame(x))
-      # data <- data[, keep_cols, drop = FALSE]
     } else {
       data <- x$data[x$observed_index, , drop = FALSE]
     }

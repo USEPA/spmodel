@@ -7,6 +7,10 @@
 #'
 #' @noRd
 get_spcov_params <- function(spcov_type, spcov_orig_val) {
+  # different covariance families take different sets of parameters (e.g.
+  # matern-type functions need an extra smoothness/shape "extra" parameter,
+  # car/sar need "extra" but no rotate/scale), so build the spcov_params
+  # object with the argument set that matches spcov_type
   if (spcov_type %in% c("exponential", "spherical", "gaussian", "triangular", "circular", "none", "ie", "cubic", "pentaspherical", "cosine", "wave", "jbessel", "gravity", "rquad", "magnetic")) {
     spcov_params_val <- spcov_params(
       spcov_type = spcov_type,

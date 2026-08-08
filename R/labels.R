@@ -20,6 +20,8 @@
 #' )
 #' labels(spmod)
 labels.splm <- function(object, ...) {
+  # delegates to base R's formula/terms machinery, so this returns the fixed
+  # effect term labels only (not spatial covariance or random effect terms)
   labels(terms(formula(object)))
 }
 

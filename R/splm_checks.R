@@ -8,14 +8,8 @@
 #' @noRd
 splm_checks <- function(spcov_initial, xcoord_given, ycoord_given, estmethod, anisotropy, random_given) {
   spcov_type <- class(spcov_initial)
-  if (spcov_type %in% c("car", "sar")) {
-    stop("Invalid spatial covariance type for splm(). To fit models for autoregressive data, use spautor().", call. = FALSE)
-  }
-
-  if (spcov_type %in% c("triangular", "cosine") && ycoord_given) {
-    warning(paste0(spcov_type, " covariance can only be used in one dimension. Ignoring y-coordinate."), call. = FALSE)
-    # should also be given for sf objects
-  }
+  check_not_areal_type(spcov_type, "splm", "spautor")
+  warn_ycoord_ignored_for_1d_cov(spcov_type, ycoord_given)
 
   if (!estmethod %in% c("reml", "ml", "sv-wls", "sv-cl")) {
     stop("Estimation method must be \"reml\", \"ml\", \"sv-wls\", or \"sv-cl\".", call. = FALSE)

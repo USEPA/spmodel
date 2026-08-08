@@ -14,6 +14,10 @@
 #' @noRd
 get_prof_sigma2 <- function(spcov_params_val, data_object, estmethod,
                             dist_matrix_list, randcov_params_val = NULL) {
+  # given the other (correlation-scale) covariance parameters, the overall
+  # variance sigma^2 has a closed-form maximizer (l2, a quadratic form in the
+  # whitened residuals, scaled by the degrees of freedom) -- this lets
+  # optimization profile sigma^2 out entirely rather than searching over it
   gll_prods <- gloglik_products(
     spcov_params_val, data_object, estmethod,
     dist_matrix_list, randcov_params_val

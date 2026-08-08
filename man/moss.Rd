@@ -5,7 +5,7 @@
 \alias{moss}
 \title{Heavy metals in mosses near a mining road in Alaska, USA}
 \format{
-An \code{sf} object with 365 rows and 10 columns:
+An \code{sf} object with 365 rows and 12 columns:
 
 \itemize{
 \item sample: A factor with a sample identifier. Some samples were
@@ -20,7 +20,9 @@ and \code{2}.
 Takes values \code{N} (north of the haul road) and \code{S} (south
 of the haul road).
 \item log_dist2road: The log of distance (in meters) to the haul road.
+\item dist2road: The distance (in meters) to the haul road.
 \item log_Zn: The log of zinc concentration in moss tissue (mg/kg).
+\item Zn: The zinc concentration in moss tissue (mg/kg).
 \item geometry: \code{POINT} geometry representing coordinates in an Alaska
 Albers projection (EPSG: 3338). Distances between points are in meters.
 }

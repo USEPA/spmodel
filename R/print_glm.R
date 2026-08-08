@@ -19,14 +19,7 @@ print.spglm <- function(x, digits = max(3L, getOption("digits") - 3L),
 
   cat("\n")
 
-  spcoef <- coef(x, type = "spcov")
-
-  if (!x$anisotropy) {
-    spcoef <- spcoef[-which(names(spcoef) %in% c("rotate", "scale"))]
-  }
-  if (inherits(coef(x, type = "spcov"), c("none", "ie"))) {
-    spcoef <- spcoef["ie"]
-  }
+  spcoef <- select_print_spcoef_pointref(coef(x, type = "spcov"), x$anisotropy)
 
   cat(paste("\nCoefficients (", class(coef(x, type = "spcov")), " spatial covariance):\n", sep = ""))
   print.default(format(spcoef, digits = digits),
@@ -36,13 +29,9 @@ print.spglm <- function(x, digits = max(3L, getOption("digits") - 3L),
 
   cat("\n")
 
-  cat(paste("\nCoefficients (Dispersion for ", class(coef(x, type = "dispersion")), " family):\n", sep = ""))
-  print.default(format(unclass(coef(x, type = "dispersion")), digits = digits),
-    print.gap = 2L,
-    quote = FALSE
-  )
-
-  cat("\n")
+  # dispersion is the extra family-specific scale/shape parameter (e.g.
+  # overdispersion) that generalized linear models need beyond the mean structure
+  print_dispersion_block(coef(x, type = "dispersion"), digits, style = "raw")
 
   if (length(coef(x, type = "randcov"))) {
     cat("Coefficients (random effects):\n")
@@ -77,19 +66,7 @@ print.spgautor <- function(x, digits = max(3L, getOption("digits") - 3L),
 
   cat("\n")
 
-  spcoef <- coef(x, type = "spcov")
-
-  no_ie <- spcoef[["ie"]] == 0 && x$is_known$spcov[["ie"]]
-  no_extra <- spcoef[["extra"]] == 0 && x$is_known$spcov[["extra"]]
-  if (no_ie && no_extra) {
-    spcoef <- spcoef[c("de", "range")]
-  } else if (no_ie && !no_extra) {
-    spcoef <- spcoef[c("de", "range", "extra")]
-  } else if (!no_ie && no_extra) {
-    spcoef <- spcoef[c("de", "ie", "range")]
-  } else {
-    spcoef <- spcoef[c("de", "ie", "range", "extra")]
-  }
+  spcoef <- select_print_spcoef_areal(coef(x, type = "spcov"), x$is_known$spcov)
 
   cat(paste("\nCoefficients (", class(coef(x, type = "spcov")), " spatial covariance):\n", sep = ""))
   print.default(format(spcoef, digits = digits),
@@ -99,13 +76,7 @@ print.spgautor <- function(x, digits = max(3L, getOption("digits") - 3L),
 
   cat("\n")
 
-  cat(paste("\nCoefficients (Dispersion for ", class(coef(x, type = "dispersion")), " family):\n", sep = ""))
-  print.default(format(unclass(coef(x, type = "dispersion")), digits = digits),
-    print.gap = 2L,
-    quote = FALSE
-  )
-
-  cat("\n")
+  print_dispersion_block(coef(x, type = "dispersion"), digits, style = "raw")
 
   if (length(coef(x, type = "randcov"))) {
     cat("Coefficients (random effects):\n")
@@ -131,18 +102,11 @@ print.summary.spglm <- function(x,
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
 
   # pasting the residual summary
-  cat("\nDeviance Residuals:\n")
-  resQ <- c(
-    min(x$residuals$deviance), quantile(x$residuals$deviance, p = c(0.25, 0.5, 0.75), na.rm = TRUE),
-    max(x$residuals$deviance)
-  )
-  names(resQ) <- c("Min", "1Q", "Median", "3Q", "Max")
-  print(resQ, digits = digits)
+  print_residual_summary(x$residuals, digits, field = "deviance")
 
   # pasting the fixed coefficient summary
   cat("\nCoefficients (fixed):\n")
   coefs_fixed <- x$coefficients$fixed
-  # colnames(coefs_fixed) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
   colnames(coefs_fixed) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
   printCoefmat(coefs_fixed, digits = digits, signif.stars = signif.stars, na.print = "NA", ...)
 
@@ -154,22 +118,12 @@ print.summary.spglm <- function(x,
   }
 
   # pasting the covariance coefficient summary
-  spcoef <- x$coefficients$spcov
-
-
-  if (!x$anisotropy) {
-    spcoef <- spcoef[-which(names(spcoef) %in% c("rotate", "scale"))]
-  }
-  if (inherits(x$coefficients$spcov, c("none", "ie"))) {
-    spcoef <- spcoef["ie"]
-  }
-
+  spcoef <- select_print_spcoef_pointref(x$coefficients$spcov, x$anisotropy)
 
   cat(paste("\nCoefficients (", class(x$coefficients$spcov), " spatial covariance):\n", sep = ""))
   print(spcoef, digits = digits)
 
-  cat(paste("\nCoefficients (Dispersion for ", class(x$coefficients$dispersion), " family):\n", sep = ""))
-  print(unclass(x$coefficients$dispersion), digits = digits)
+  print_dispersion_block(x$coefficients$dispersion, digits, style = "summary")
 
   if (length(x$coefficients$randcov)) {
     cat("\nCoefficients (random effects):\n")
@@ -192,18 +146,11 @@ print.summary.spgautor <- function(x,
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
 
   # pasting the residual summary
-  cat("\nDeviance Residuals:\n")
-  resQ <- c(
-    min(x$residuals$deviance), quantile(x$residuals$deviance, p = c(0.25, 0.5, 0.75), na.rm = TRUE),
-    max(x$residuals$deviance)
-  )
-  names(resQ) <- c("Min", "1Q", "Median", "3Q", "Max")
-  print(resQ, digits = digits)
+  print_residual_summary(x$residuals, digits, field = "deviance")
 
   # pasting the fixed coefficient summary
   cat("\nCoefficients (fixed):\n")
   coefs_fixed <- x$coefficients$fixed
-  # colnames(coefs_fixed) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
   colnames(coefs_fixed) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
   printCoefmat(coefs_fixed, digits = digits, signif.stars = signif.stars, na.print = "NA", ...)
 
@@ -215,27 +162,12 @@ print.summary.spgautor <- function(x,
   }
 
   # pasting the covariance coefficient summary
-  spcoef <- x$coefficients$spcov
-
-
-  no_ie <- spcoef[["ie"]] == 0 && x$is_known$spcov[["ie"]]
-  no_extra <- spcoef[["extra"]] == 0 && x$is_known$spcov[["extra"]]
-  if (no_ie && no_extra) {
-    spcoef <- spcoef[c("de", "range")]
-  } else if (no_ie && !no_extra) {
-    spcoef <- spcoef[c("de", "range", "extra")]
-  } else if (!no_ie && no_extra) {
-    spcoef <- spcoef[c("de", "ie", "range")]
-  } else {
-    spcoef <- spcoef[c("de", "ie", "range", "extra")]
-  }
-
+  spcoef <- select_print_spcoef_areal(x$coefficients$spcov, x$is_known$spcov)
 
   cat(paste("\nCoefficients (", class(x$coefficients$spcov), " spatial covariance):\n", sep = ""))
   print(spcoef, digits = digits)
 
-  cat(paste("\nCoefficients (Dispersion for ", class(x$coefficients$dispersion), " family):\n", sep = ""))
-  print(unclass(x$coefficients$dispersion), digits = digits)
+  print_dispersion_block(x$coefficients$dispersion, digits, style = "summary")
 
   if (length(x$coefficients$randcov)) {
     cat("\nCoefficients (random effects):\n")

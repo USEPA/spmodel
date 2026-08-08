@@ -34,7 +34,7 @@ Install and load the most recent development version of`spmodel` from GitHub by 
 install.packages("remotes")
 
 # install the most recent development version from GitHub
-remotes::install_github("USEPA/spmodel", ref = "main")
+remotes::install_github("USEPA/spmodel", ref = "develop")
 # load the most recent development version from GitHub
 library(spmodel)
 ```
@@ -42,7 +42,7 @@ library(spmodel)
 Install the most recent development version of `spmodel` from GitHub with package vignettes by running
 ```r
 install the most recent development version from GitHub with package vignettes
-devtools::install_github("USEPA/spmodel", ref = "main", build_vignettes=TRUE)
+devtools::install_github("USEPA/spmodel", ref = "develop", build_vignettes=TRUE)
 ```
 
 View the introductory vignette in RStudio by running

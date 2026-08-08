@@ -143,14 +143,20 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
       ycoord <- ".ycoord"
     }
 
-    # non standard evaluation for the x and y coordinates
-    xcoord <- substitute(xcoord)
-    # replace null if necessary
+    # non standard evaluation for the x and y coordinates -- as.character()
+    # right at capture normalizes both quoted ("x") and unquoted (x)
+    # column-name references into a plain string
+    xcoord <- as.character(substitute(xcoord))
+    # replace null if necessary -- this missing() check runs before ycoord's
+    # own capture below, so it still reflects the original argument correctly
     if (missing(ycoord)) {
+      # 1-D data: fabricate a constant y-coordinate so the same 2-D distance
+      # machinery below can be reused without a separate 1-D code path
       ycoord <- ".ycoord"
       data[[ycoord]] <- 0
     }
-    ycoord <- substitute(ycoord)
+    ycoord <- as.character(substitute(ycoord))
+
 
     # storing x and y coordinate values
     xcoord_val <- data[[xcoord]]
@@ -232,6 +238,7 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
 
   base_val <- sweep(base_val, 1, mean, "+")
 
+
   if (samples == 1) {
     base_val <- as.vector(base_val)
   }
@@ -298,10 +305,60 @@ sprnorm.cauchy <- sprnorm.exponential
 #' @export
 sprnorm.pexponential <- sprnorm.exponential
 
+#' @rdname sprnorm
 #' @method sprnorm none
 #' @export
-sprnorm.none <- sprnorm.exponential
+sprnorm.none <- function(spcov_params, mean = 0, samples = 1, data, randcov_params, partition_factor, ...) {
+  n <- NROW(data)
 
+  if (length(mean) != n && length(mean) != 1) {
+    stop("mean vector must be length n or length 1 (recycled)")
+  }
+
+  dist_matrix <- diag(n)
+
+  # compute the random effects covariance matrix
+  if (missing(randcov_params)) {
+    randcov_params <- NULL
+    randcov_Zs <- NULL
+  } else {
+    names(randcov_params) <- get_randcov_names(reformulate(paste("(", names(randcov_params), ")", sep = "")))
+    randcov_Zs <- get_randcov_Zs(data = data, names(randcov_params))
+  }
+
+  # partition matrix
+  if (missing(partition_factor)) partition_factor <- NULL
+  partition_matrix_val <- partition_matrix(partition_factor, data)
+
+  # compute the covariance matrix
+  cov_matrix_val <- cov_matrix(
+    spcov_params, dist_matrix,
+    randcov_params, randcov_Zs, partition_matrix_val
+  )
+
+  if (is.null(randcov_params)) {
+    # with no spatial dependence and no random effects, the covariance matrix
+    # is just ie * I, so drawing directly from rnorm() with sd = sqrt(ie) is
+    # equivalent to (and much cheaper than) the general Cholesky route below
+    sprnorm_val <- vapply(seq_len(samples), function(x) mean + rnorm(n, sd = sqrt(spcov_params[["ie"]])), numeric(n))
+  } else {
+    # transpose is lower triangular, needed for normal sim
+    cov_matrix_lowchol <- t(chol(cov_matrix_val))
+    # record sample sizes
+
+    # simulate n random normal vectors
+    sprnorm_val <- vapply(seq_len(samples), function(x) mean + as.numeric(cov_matrix_lowchol %*% rnorm(n)), numeric(n))
+  }
+
+  if (samples == 1) {
+    sprnorm_val <- as.vector(sprnorm_val)
+  }
+
+  sprnorm_val
+}
+
+
+#' @rdname sprnorm
 #' @method sprnorm ie
 #' @export
 sprnorm.ie <- sprnorm.none
@@ -335,22 +392,26 @@ sprnorm.car <- function(spcov_params, mean = 0, samples = 1, data, randcov_param
 
   # make M if necessary
   if (row_st) {
+    # under row standardization, M = diag(1 / rowSums(W)) is the matrix that
+    # makes the CAR symmetry condition (I - range * W)^{-1} M symmetric hold
     if (!missing(M)) {
       warning("Overriding M when row_st = TRUE", call. = FALSE)
     }
     M <- 1 / W_rowsums # this has not been standardized
   } else {
-    if (missing(M)) {
-      M <- rep(1, nrow(W)) # assume identity
-    }
+    if (missing(M)) M <- rep(1, nrow(W)) # assume identity
   }
 
   if (row_st) {
     W_rowsums_val <- W_rowsums # make copy so rowsums are saved later
+    # units with zero neighbors would otherwise divide by zero here; since
+    # their entire row of W is already zero this substitution is a no-op
     W_rowsums_val[W_rowsums_val == 0] <- 1 # not a Matrix object so this subsetting is okay
     W <- W / W_rowsums_val
   }
 
+  # verify the CAR symmetry condition holds so the resulting covariance
+  # matrix (derived from (I - range * W)^{-1} M) is a valid, symmetric one
   if (inherits(spcov_params, "car") && !isSymmetric(as.matrix((Matrix(diag(nrow(W)), sparse = TRUE) - W) * 1 / M))) {
     stop("W and M must satisfy the CAR symmetry condition", call. = FALSE)
   }
@@ -367,9 +428,7 @@ sprnorm.car <- function(spcov_params, mean = 0, samples = 1, data, randcov_param
   }
 
   # partition matrix
-  if (missing(partition_factor)) {
-    partition_factor <- NULL
-  }
+  if (missing(partition_factor)) partition_factor <- NULL
   partition_matrix_val <- partition_matrix(partition_factor, data)
 
   # compute the covariance matrix

@@ -97,10 +97,12 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
   }
 
   # spcov
-  spcov_params_val <- coef(object, type = "spcov")
+  # spcov_params_val <- coef(object, type = "spcov")
+  spcov_params_val <- object$coefficients$spcov
 
   # randcov
-  randcov_params_val <- coef(object, type = "randcov")
+  # randcov_params_val <- coef(object, type = "randcov")
+  randcov_params_val <- object$coefficients$randcov
 
   if (cov_type == "obs.obs") {
     # coordinate stuff

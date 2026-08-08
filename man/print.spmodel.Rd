@@ -8,6 +8,7 @@
 \alias{print.summary.spautor}
 \alias{print.anova.splm}
 \alias{print.anova.spautor}
+\alias{print.decorrelate}
 \alias{print.spglm}
 \alias{print.spgautor}
 \alias{print.summary.spglm}
@@ -47,6 +48,8 @@
   signif.stars = getOption("show.signif.stars"),
   ...
 )
+
+\method{print}{decorrelate}(x, digits = max(3L, getOption("digits") - 3L), ...)
 
 \method{print}{spglm}(x, digits = max(3L, getOption("digits") - 3L), ...)
 

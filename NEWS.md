@@ -1,3 +1,5 @@
+* Fixed a bug that could cause an error for `covmatrix(object, newdata, cov_type = "pred.pred", ...)` when `newdata` was an `sf` object.
+* Minor documentation updates.
 * Added Satterthwaite denominator degrees of freedom (ddf) support for `splm()`/`spautor()` model objects, for `t`-based (rather than asymptotic `z`-based) inference in small samples.
     * Added `satterthwaite()`, which computes Satterthwaite ddfs for the fixed effect coefficients of an `splm()` or 
     `spautor()` model object.
@@ -31,6 +33,7 @@
 * Fixed a bug that prevented random effect fitted values (i.e., BLUPs) from being computed for `spgautor()` model objects.
 * Fixed a bug where the `ie` value reported by `splm()`, `spautor()`, `spglm()` and `spgautor()` model objects could be smaller than the numerical floor used to build the fitted covariance matrix.
 * Fixed a bug that could cause an error in `spglm()` when there was anisotropy and every spatial covariance and dispersion parameter was assumed known.
+>>>>>>> develop
 
 # spmodel 0.13.0
 

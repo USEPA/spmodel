@@ -41,5 +41,7 @@ get_optim_dotlist <- function(...) {
   dotlist$upper <- Inf
 
   # make optim dotlist
+  # hardcode hessian false while developing satterthwaite
+  dotlist$hessian <- FALSE
   optim_dotlist <- list(gr = NULL, method = dotlist$method, lower = dotlist$lower, upper = dotlist$upper, control = dotlist$control, hessian = dotlist$hessian)
 }

@@ -36,11 +36,20 @@ summary.splm <- function(object, ...) {
     Std_Error = sqrt(diag(vcov(object, type = "fixed")))
   )
 
-  # Wald z-test for each fixed effect: estimate / se ~ N(0, 1) under the null
-  # that the true coefficient is zero, so the two-sided p-value uses the
-  # standard normal (infinite t df) distribution
-  summary_coefficients_fixed$z_value <- summary_coefficients_fixed$estimates / summary_coefficients_fixed$Std_Error
-  summary_coefficients_fixed$p <- 2 * (1 - pnorm(abs(summary_coefficients_fixed$z_value)))
+  if (!is.null(object$ddf)) {
+    # denominator degrees of freedom available (see splm()/spautor()'s ddf
+    # argument) -- t-test each fixed effect using them instead of the
+    # asymptotic z-test below, matching lmerTest's Satterthwaite summary()
+    summary_coefficients_fixed$df <- object$ddf[rownames(summary_coefficients_fixed)]
+    summary_coefficients_fixed$t_value <- summary_coefficients_fixed$estimates / summary_coefficients_fixed$Std_Error
+    summary_coefficients_fixed$p <- 2 * pt(abs(summary_coefficients_fixed$t_value), summary_coefficients_fixed$df, lower.tail = FALSE)
+  } else {
+    # Wald z-test for each fixed effect: estimate / se ~ N(0, 1) under the null
+    # that the true coefficient is zero, so the two-sided p-value uses the
+    # standard normal (infinite t df) distribution
+    summary_coefficients_fixed$z_value <- summary_coefficients_fixed$estimates / summary_coefficients_fixed$Std_Error
+    summary_coefficients_fixed$p <- 2 * (1 - pnorm(abs(summary_coefficients_fixed$z_value)))
+  }
 
   spcov_params_val <- coef(object, type = "spcov")
   randcov_params_val <- coef(object, type = "randcov")

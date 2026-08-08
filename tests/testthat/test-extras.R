@@ -935,7 +935,11 @@ test_that("labels works geostatistical", {
 })
 
 test_that("labels works autoregressive", {
-  spmod <- spautor(y ~ x + group, exdata_poly, "car")
+  # this fixture (n = 49) regularly makes the automatic n <= 500
+  # Satterthwaite ddf computation's covariance-parameter Hessian
+  # non-positive-definite -- spmodel already warns and falls back to NULL
+  # ddf gracefully, so the warning is expected/tolerated here
+  spmod <- suppressWarnings(spautor(y ~ x + group, exdata_poly, "car"))
   expect_equal(labels(spmod), c("x", "group"))
 })
 
@@ -1320,7 +1324,11 @@ test_that("Prediction works for other covariances", {
   smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "pentaspherical", estmethod = "reml")
   expect_equal(length(predict(smod, newexdata)), NROW(newexdata))
 
-  smod <- splm(y ~ x, exdata, xcoord = xcoord, spcov_type = "cosine", estmethod = "reml")
+  # cosine's fitted covariance parameters regularly make the automatic
+  # n <= 500 Satterthwaite ddf computation's covariance-parameter Hessian
+  # non-positive-definite -- spmodel already warns and falls back to NULL
+  # ddf gracefully, so the warning is expected/tolerated here
+  smod <- suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, spcov_type = "cosine", estmethod = "reml"))
   expect_equal(length(predict(smod, newexdata)), NROW(newexdata))
 
   smod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "wave", estmethod = "reml")
@@ -1517,6 +1525,13 @@ test_that("prediction values match for both approaches autoregressive", {
 })
 
 test_that("prediction no error with order 2 polynomial one prediction row", {
+  # a poly() term leaves the automatic n <= 500 Satterthwaite ddf computation
+  # with a numerically marginal covariance-parameter Hessian for some of
+  # these fits (which specific one flips can vary run to run with
+  # BLAS-level floating-point nondeterminism) -- spmodel already warns and
+  # falls back to NULL ddf gracefully, so the warning is expected/tolerated
+  # across this whole block
+  suppressWarnings({
   # there is a bug in lm() trying to do the same thing
   spmod <- splm(y ~ poly(xcoord, ycoord, degree = 1), exdata, "none")
   expect_error(predict(spmod, newdata = newexdata), NA)
@@ -1533,6 +1548,7 @@ test_that("prediction no error with order 2 polynomial one prediction row", {
   exdata_Mpoly$x2 <- rnorm(NROW(exdata_Mpoly))
   spmod <- spautor(y ~ poly(x, x2, degree = 1), exdata_Mpoly, "car")
   expect_error(predict(spmod), NA)
+  })
 })
 
 test_that("prediction works when newdata does not have all factor levels", {
@@ -1545,7 +1561,11 @@ test_that("prediction works when newdata does not have all factor levels", {
   # autoregressive
   exdata_Mpoly_new <- exdata_Mpoly
   exdata_Mpoly_new$group <- as.character(exdata_Mpoly_new$group)
-  spmod <- spautor(y ~ group, exdata_Mpoly_new, "car")
+  # this fixture regularly makes the automatic n <= 500 Satterthwaite ddf
+  # computation's covariance-parameter Hessian non-positive-definite --
+  # spmodel already warns and falls back to NULL ddf gracefully, so the
+  # warning is expected/tolerated here
+  spmod <- suppressWarnings(spautor(y ~ group, exdata_Mpoly_new, "car"))
   expect_error(predict(spmod), NA)
 })
 
@@ -1943,47 +1963,67 @@ test_that("summary works auto", {
 test_that("tidy works geo", {
   spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
   expect_s3_class(tidy(spmod), "tbl")
-  expect_equal(ncol(tidy(spmod)), 5)
+  # 6, not 5: these fits are small enough (n <= 500) that ddf defaults to
+  # "satterthwaite", which adds a "df" column to tidy()'s fixed-effect output
+  expect_equal(ncol(tidy(spmod)), 6)
   expect_s3_class(tidy(spmod, effects = "spcov"), "tbl")
   expect_equal(ncol(tidy(spmod, effects = "spcov")), 3)
   expect_null(tidy(spmod, effects = "randcov"))
   expect_s3_class(tidy(anova(spmod)), "tbl")
-  expect_equal(ncol(tidy(anova(spmod))), 4)
+  # 5, not 4: ddf defaults to "satterthwaite" for these fits, so anova()
+  # returns an F table (NumDF/DenDF/Fvalue/Pr(>F)) with one more column than
+  # the asymptotic chi-squared table (Df/Chi2/Pr(>Chi2))
+  expect_equal(ncol(tidy(anova(spmod))), 5)
 })
 
 test_that("tidy works geo", {
   spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord, random = ~group)
   expect_s3_class(tidy(spmod), "tbl")
-  expect_equal(ncol(tidy(spmod)), 5)
+  # 6, not 5: these fits are small enough (n <= 500) that ddf defaults to
+  # "satterthwaite", which adds a "df" column to tidy()'s fixed-effect output
+  expect_equal(ncol(tidy(spmod)), 6)
   expect_s3_class(tidy(spmod, effects = "spcov"), "tbl")
   expect_equal(ncol(tidy(spmod, effects = "spcov")), 3)
   expect_s3_class(tidy(spmod, effects = "randcov"), "tbl")
   expect_equal(ncol(tidy(spmod, effects = "randcov")), 3)
   expect_s3_class(tidy(anova(spmod)), "tbl")
-  expect_equal(ncol(tidy(anova(spmod))), 4)
+  # 5, not 4: ddf defaults to "satterthwaite" for these fits, so anova()
+  # returns an F table (NumDF/DenDF/Fvalue/Pr(>F)) with one more column than
+  # the asymptotic chi-squared table (Df/Chi2/Pr(>Chi2))
+  expect_equal(ncol(tidy(anova(spmod))), 5)
 })
 
 test_that("tidy works auto", {
   spmod <- spautor(y ~ x, exdata_poly, "car")
   expect_s3_class(tidy(spmod), "tbl")
-  expect_equal(ncol(tidy(spmod)), 5)
+  # 6, not 5: these fits are small enough (n <= 500) that ddf defaults to
+  # "satterthwaite", which adds a "df" column to tidy()'s fixed-effect output
+  expect_equal(ncol(tidy(spmod)), 6)
   expect_s3_class(tidy(spmod, effects = "spcov"), "tbl")
   expect_equal(ncol(tidy(spmod, effects = "spcov")), 3)
   expect_null(tidy(spmod, effects = "randcov"))
   expect_s3_class(tidy(anova(spmod)), "tbl")
-  expect_equal(ncol(tidy(anova(spmod))), 4)
+  # 5, not 4: ddf defaults to "satterthwaite" for these fits, so anova()
+  # returns an F table (NumDF/DenDF/Fvalue/Pr(>F)) with one more column than
+  # the asymptotic chi-squared table (Df/Chi2/Pr(>Chi2))
+  expect_equal(ncol(tidy(anova(spmod))), 5)
 })
 
 test_that("tidy works auto", {
   spmod <- spautor(y ~ x, exdata_poly, "car", random = ~group)
   expect_s3_class(tidy(spmod), "tbl")
-  expect_equal(ncol(tidy(spmod)), 5)
+  # 6, not 5: these fits are small enough (n <= 500) that ddf defaults to
+  # "satterthwaite", which adds a "df" column to tidy()'s fixed-effect output
+  expect_equal(ncol(tidy(spmod)), 6)
   expect_s3_class(tidy(spmod, effects = "spcov"), "tbl")
   expect_equal(ncol(tidy(spmod, effects = "spcov")), 3)
   expect_s3_class(tidy(spmod, effects = "randcov"), "tbl")
   expect_equal(ncol(tidy(spmod, effects = "randcov")), 3)
   expect_s3_class(tidy(anova(spmod)), "tbl")
-  expect_equal(ncol(tidy(anova(spmod))), 4)
+  # 5, not 4: ddf defaults to "satterthwaite" for these fits, so anova()
+  # returns an F table (NumDF/DenDF/Fvalue/Pr(>F)) with one more column than
+  # the asymptotic chi-squared table (Df/Chi2/Pr(>Chi2))
+  expect_equal(ncol(tidy(anova(spmod))), 5)
 })
 
 ##############################################################################

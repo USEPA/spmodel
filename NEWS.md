@@ -1,3 +1,11 @@
+* Added Satterthwaite denominator degrees of freedom (ddf) support for `splm()`/`spautor()` model objects, for `t`-based (rather than asymptotic `z`-based) inference in small samples.
+    * Added `satterthwaite()`, which computes Satterthwaite ddfs for the fixed effect coefficients of an `splm()` or 
+    `spautor()` model object.
+    * Added a `ddf` argument to `splm()`, `spautor()`, and `anova()` that controls whether Satterthwaite or asymptotic degrees of freedom are used for hypothesis tests. In `splm()` and `spautor()`, if `n` (the sample size) is less than or equal to 500, Satterhwaite ddf are computed and used, which implies a breaking change in `summary()` and `tidy()` output.
+    * Added Satterthwaite support to `confint()` for confidence intervals.
+    * Added support for `emmeans::joint_tests()` with Satterthwaite ddf.
+    * Added `"cov"`, `"spcov"`, and `"randcov"` values to the `type` argument in `vcov()` for `splm()`/`spautor()` model objects when using Satterthwaite ddf.
+
 # spmodel 0.14.0
 
 ## Major Updates

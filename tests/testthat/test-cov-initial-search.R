@@ -70,7 +70,7 @@ test_that("splm starting grid is unchanged (none/ie)", {
 
   captured <- capture_cov_initial(
     "cov_initial_search",
-    splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "reml", random = ~group)
+    suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "reml", random = ~group)) # vcov_theta pd warning
   )
   expect_snapshot(print(captured$spcov_initial_val$initial))
   expect_snapshot(print(captured$randcov_initial_val$initial))

@@ -55,6 +55,7 @@ Suggests:
     pROC,
     emmeans (>= 1.4),
     estimability,
+    numDeriv
     GPvecchia,
     randomForest,
     xgboost,

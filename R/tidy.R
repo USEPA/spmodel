@@ -39,10 +39,17 @@ tidy.splm <- function(x, conf.int = FALSE,
     result <- tibble::as_tibble(summary(x)$coefficients$fixed,
       rownames = "term", .name_repair = "minimal"
     )
-    colnames(result) <- c(
-      "term", "estimate", "std.error",
-      "statistic", "p.value"
-    )
+    if ("df" %in% colnames(result)) {
+      colnames(result) <- c(
+        "term", "estimate", "std.error",
+        "df", "statistic", "p.value"
+      )
+    } else {
+      colnames(result) <- c(
+        "term", "estimate", "std.error",
+        "statistic", "p.value"
+      )
+    }
 
     if (conf.int) {
       ci <- tibble::as_tibble(
@@ -104,10 +111,17 @@ tidy.spautor <- function(x, conf.int = FALSE,
     result <- tibble::as_tibble(summary(x)$coefficients$fixed,
       rownames = "term", .name_repair = "minimal"
     )
-    colnames(result) <- c(
-      "term", "estimate", "std.error",
-      "statistic", "p.value"
-    )
+    if ("df" %in% colnames(result)) {
+      colnames(result) <- c(
+        "term", "estimate", "std.error",
+        "df", "statistic", "p.value"
+      )
+    } else {
+      colnames(result) <- c(
+        "term", "estimate", "std.error",
+        "statistic", "p.value"
+      )
+    }
 
     if (conf.int) {
       ci <- tibble::as_tibble(

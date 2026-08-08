@@ -148,6 +148,9 @@ test_that("generics work splm point data", {
   expect_vector(resid(spmod1, type = "standardized"))
   expect_vector(rstandard(spmod1))
 
+  # satterthwaite
+  expect_type(satterthwaite(spmod1), "double")
+
   # summary
   expect_type(summary(spmod1), "list")
 
@@ -315,6 +318,9 @@ test_that("generics work splm point data with missing", {
   expect_vector(resid(spmod1, type = "standardized"))
   expect_vector(rstandard(spmod1))
 
+  # satterthwaite
+  expect_type(satterthwaite(spmod1), "double")
+
   # summary
   expect_type(summary(spmod1), "list")
 
@@ -467,6 +473,9 @@ test_that("generics work splm polygon data with missing", {
   expect_vector(resid(spmod1, type = "pearson"))
   expect_vector(resid(spmod1, type = "standardized"))
   expect_vector(rstandard(spmod1))
+
+  # satterthwaite
+  expect_type(satterthwaite(spmod1), "double")
 
   # summary
   expect_type(summary(spmod1), "list")

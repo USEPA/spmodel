@@ -122,7 +122,11 @@ print.summary.splm <- function(x,
   # pasting the fixed coefficient summary
   cat("\nCoefficients (fixed):\n")
   coefs_fixed <- x$coefficients$fixed
-  colnames(coefs_fixed) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+  if ("df" %in% colnames(coefs_fixed)) {
+    colnames(coefs_fixed) <- c("Estimate", "Std. Error", "df", "t value", "Pr(>|t|)")
+  } else {
+    colnames(coefs_fixed) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+  }
   printCoefmat(coefs_fixed, digits = digits, signif.stars = signif.stars, na.print = "NA", ...)
 
   # pasting the generalized r squared
@@ -164,7 +168,11 @@ print.summary.spautor <- function(x,
   # pasting the fixed coefficient summary
   cat("\nCoefficients (fixed):\n")
   coefs_fixed <- x$coefficients$fixed
-  colnames(coefs_fixed) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+  if ("df" %in% colnames(coefs_fixed)) {
+    colnames(coefs_fixed) <- c("Estimate", "Std. Error", "df", "t value", "Pr(>|t|)")
+  } else {
+    colnames(coefs_fixed) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+  }
   printCoefmat(coefs_fixed, digits = digits, signif.stars = signif.stars, na.print = "NA", ...)
 
   # pasting the generalized r squared
@@ -199,16 +207,27 @@ print.anova.splm <- function(x, digits = max(getOption("digits") - 2L, 3L),
   cat("\n")
   cat(attr(x, "heading")[2])
   cat("\n")
-  # a Pr(>Chi2) column is only present when the anova table compares nested
-  # models via a likelihood ratio test, as opposed to a single-model Wald table
-  if ("Pr(>Chi2)" %in% colnames(x)) {
+  # a Pr(>Chi2)/Pr(>F) column is only present when test = TRUE (Pr(>F)
+  # specifically when ddf = "satterthwaite" was used -- see anova.splm())
+  if ("Pr(>Chi2)" %in% colnames(x) || "Pr(>F)" %in% colnames(x)) {
     P.values <- TRUE
     has.Pvalue <- TRUE
   } else {
     P.values <- FALSE
     has.Pvalue <- FALSE
   }
-  printCoefmat(x, digits = digits, signif.stars = signif.stars, P.values = P.values, has.Pvalue = has.Pvalue, ...)
+  if ("NumDF" %in% colnames(x)) {
+    # NumDF (always a whole number) is otherwise grouped with DenDF under
+    # printCoefmat()'s default cs.ind, which rounds both to a shared decimal
+    # precision and puts spurious trailing zeros (e.g. "1.000") on NumDF;
+    # pointing cs.ind/tst.ind at DenDF/F value alone leaves NumDF to fall
+    # through to plain format(), printing as an integer
+    cs.ind <- which(colnames(x) == "DenDF")
+    tst.ind <- which(colnames(x) == "F value")
+    printCoefmat(x, digits = digits, signif.stars = signif.stars, P.values = P.values, has.Pvalue = has.Pvalue, cs.ind = cs.ind, tst.ind = tst.ind, ...)
+  } else {
+    printCoefmat(x, digits = digits, signif.stars = signif.stars, P.values = P.values, has.Pvalue = has.Pvalue, ...)
+  }
 }
 
 #' @rdname print.spmodel

@@ -35,6 +35,53 @@ get_areal_sf_info <- function(data) {
   list(is_sf = is_sf, sf_column_name = sf_column_name, crs = crs)
 }
 
+#' Expand a "." in formula into explicit predictor names, excluding
+#' reserved coordinate/geometry columns
+#'
+#' @param formula A two-sided formula, possibly containing \code{.} on the
+#'   right-hand side
+#' @param data The data \code{.} is expanded against (only its column names
+#'   matter here, not its values, so any data frame with the right columns
+#'   works -- e.g. \code{obdata} or the full \code{data})
+#' @param reserved_cols Column names to exclude from \code{.}'s expansion:
+#'   \code{c(xcoord, ycoord, ycoord_orig_name)} for \code{splm()}/\code{spglm()},
+#'   or the sf geometry column name for \code{spautor()}/\code{spgautor()}
+#'   (\code{character(0)} if there is nothing to reserve, e.g. non-sf areal data)
+#'
+#' @details If \code{formula} actually contains \code{.},
+#'   \code{.} is resolved via \code{terms()}, given a zero-row plain data frame
+#'   containing only \code{data}'s non-reserved column \emph{names} (not a
+#'   subset of \code{data} itself -- some data classes' \code{[} methods don't
+#'   honor column exclusion the way a plain data frame's does; notably, an
+#'   \code{sf} object's \code{[} always keeps the geometry column even when
+#'   it isn't selected). Since \code{terms()} only consults a \code{data}
+#'   argument's column names to decide what \code{.} stands for (not to
+#'   validate other, explicitly-named terms), this leaves any explicit use of
+#'   a reserved column elsewhere in \code{formula} (e.g. a trend-surface term
+#'   deliberately using \code{xcoord} as a covariate) untouched, and the
+#'   response is automatically excluded from \code{.} by R's usual formula
+#'   semantics. The returned formula must be used in place of \code{formula}
+#'   for the rest of model fitting/prediction (not just the one
+#'   \code{model.frame()} call it's needed for) -- \code{object$formula} is
+#'   reused verbatim by \code{predict()}, \code{kcv()}/\code{loocv()} refits,
+#'   \code{anova()}, and \code{model.matrix()}, and if \code{.} were left
+#'   unexpanded there, each of those would silently re-expand it against
+#'   whatever columns their own data happens to have (e.g. \code{newdata}),
+#'   which could pull the coordinate columns back in as predictors or
+#'   otherwise produce a different predictor set than the one actually fit.
+#'
+#' @return \code{formula}, expanded if it contained \code{.}
+#'
+#' @noRd
+expand_formula_dot <- function(formula, data, reserved_cols = character(0)) {
+  if (!"." %in% all.vars(formula)) {
+    return(formula)
+  }
+  dot_names <- setdiff(names(data), reserved_cols)
+  dot_data <- as.data.frame(matrix(nrow = 0, ncol = length(dot_names), dimnames = list(NULL, dot_names)))
+  formula(terms(formula, data = dot_data))
+}
+
 #' Resolve point-referenced coordinates: sf centroid coercion, xcoord/ycoord
 #' validation, and \code{dim_coords} derivation
 #'
@@ -329,6 +376,37 @@ check_p_n <- function(p, n, refit_fun_text) {
       ),
       call. = FALSE
     )
+  }
+  invisible(NULL)
+}
+
+#' Require a user-supplied local$index to match the length of the non-missing response
+#'
+#' @param local The (possibly list) \code{local} argument
+#' @param n_obdata The number of rows in \code{obdata} (the non-missing-response,
+#'   complete-predictor data actually used for fitting)
+#'
+#' @details \code{local$index} labels each row of the data used for fitting
+#'   with a partition assignment (see the spatial indexing/SPIN method this
+#'   implements), so its length must match \code{obdata}, not the original
+#'   (possibly larger) \code{data} passed to \code{splm()}/\code{spglm()} --
+#'   rows with a missing response are excluded from fitting entirely (they
+#'   become prediction locations instead) and so must already be excluded
+#'   from \code{local$index} too
+#'
+#' @return Error message or nothing
+#'
+#' @noRd
+check_local_index_length <- function(local, n_obdata) {
+  if (is.list(local) && "index" %in% names(local)) {
+    if (length(local$index) != n_obdata) {
+      stop(
+        "local$index must have the same length as the non-missing (non-NA) response vector (",
+        n_obdata, "), but has length ", length(local$index), ". ",
+        "Observations with a missing response are excluded from fitting (they become prediction locations instead), so they must also be excluded from local$index.",
+        call. = FALSE
+      )
+    }
   }
   invisible(NULL)
 }

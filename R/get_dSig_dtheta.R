@@ -73,6 +73,33 @@ dSig_dtheta_spcov.spherical <- function(spcov_params_val, dist_matrix, ...) {
 }
 
 #' @noRd
+# "none"/"ie" covariance: Sigma = ie * I, with de fixed at 0 and range fixed
+# at Inf (see spcov_initial_NA()) -- neither actually appears in Sigma, so
+#  - d(Sigma)/d(de) = 0
+#  - d(Sigma)/d(ie) = I, same as every other spcov_type's ie derivative
+#  - d(Sigma)/d(range) = 0
+# n is taken from `...` (get_dSig_dtheta_cov() passes it as
+# n = context$data_object$n) rather than nrow(dist_matrix), because
+# get_cov_gradients_context.splm() leaves dist_matrix NULL for spcov_type
+# "none"/"ie" without random effects -- it is genuinely unneeded for the math
+# above, so no real distance matrix is built just to size these matrices
+dSig_dtheta_spcov.none <- function(spcov_params_val, dist_matrix, ..., n = nrow(dist_matrix)) {
+  zero_mat <- Matrix(0, nrow = n, ncol = n, sparse = TRUE)
+  list(
+    de = zero_mat,
+    ie = Diagonal(n),
+    range = zero_mat
+  )
+}
+
+#' @noRd
+# "ie" is a spcov_params()/spcov_initial() alias for "none" (identical
+# Sigma = ie * I structure, just a different class label) when 
+# splm() or spautor() models are fit (it does differ for spglm() and spgautor(), but
+# those functions are not currently used for satterthwaite)
+dSig_dtheta_spcov.ie <- dSig_dtheta_spcov.none
+
+#' @noRd
 # a random effect contributes sigma_k^2 * Z_k Z_k' to Sigma, linearly in its
 # own variance component sigma_k^2 -- so unlike the spatial covariance
 # parameters above, every random effect's derivative is simply its own
@@ -98,7 +125,7 @@ get_dSig_dtheta_cov.splm <- function(context, object) {
 
   randcov_Zs <- if (is.null(context$data_object$randcov_list)) NULL else context$data_object$randcov_list[[1]]
 
-  dSig_spcov <- dSig_dtheta_spcov(context$spcov_params, context$dist_matrix)[context$spcov_names_free]
+  dSig_spcov <- dSig_dtheta_spcov(context$spcov_params, context$dist_matrix, n = context$data_object$n)[context$spcov_names_free]
   dSig_randcov <- if (!is.null(context$randcov_names_free)) {
     dSig_dtheta_randcov(randcov_Zs, context$randcov_names_free)
   } else {
@@ -111,7 +138,7 @@ get_dSig_dtheta_cov.splm <- function(context, object) {
 #' @exportS3Method
 get_dSig_dtheta_cov.spautor <- function(context, object) {
 
-  dSig_spcov <- dSig_dtheta_spcov(context$spcov_params, context$data_object$W)[context$spcov_names_free]
+  dSig_spcov <- dSig_dtheta_spcov(context$spcov_params, context$data_object$W, n = context$data_object$n)[context$spcov_names_free]
   dSig_randcov <- if (!is.null(context$randcov_names_free)) {
     dSig_dtheta_randcov(context$data_object$randcov_Zs, context$randcov_names_free)
   } else {

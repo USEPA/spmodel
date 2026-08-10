@@ -6,7 +6,7 @@
 #'   fitted anisotropic level curve of equal correlation.
 #'
 #' @param x A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
-#' @param which An integer vector taking on values between 1 and 7, which indicates
+#' @param which An integer vector taking on values between 1 and 8, which indicates
 #'   the plots to return. Available plots are described in Details. If \code{which}
 #'   has length greater than one, additional plots are stepped through in order
 #'   using \code{<Return>}. The default for [splm()] and [spglm()] fitted model objects is

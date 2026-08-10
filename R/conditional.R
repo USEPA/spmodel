@@ -148,6 +148,8 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   }
 
   y <- model.response(model.frame(object))
+  # output = "object" just replicates the observed y across simulation columns
+  # (for easy row-binding with the newdata/beta draws below)
   base_val_y <- matrix(rep(y, times = samples), ncol = samples)
   if (length(output) == 1 && output == "object") {
     return(base_val_y)
@@ -163,7 +165,14 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   betahat <- coef(object)
   X <- model.matrix(object)
 
-
+  # Composition sampling strategy for p(y0 | y): rather than drawing y0
+  # directly from its (intractable-ish, beta-dependent) predictive
+  # distribution, first draw beta from its asymptotic sampling distribution
+  # N(betahat, vcov(object)) via a Cholesky factor, then (below) draw the
+  # spatial residual field conditional on the *observed* residuals implied by
+  # each drawn beta, and finally add the drawn beta's trend back in. This
+  # propagates fixed effect uncertainty into the conditional draws instead of
+  # conditioning on betahat alone.
   cov_betahat_lowchol <- t(chol(vcov(object)))
   new_betahat <- vapply(seq_len(samples), function(x) as.numeric(cov_betahat_lowchol %*% rnorm(length(betahat))), numeric(length(betahat)))
   # beta0 force to matrix
@@ -172,43 +181,40 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   }
   new_betahat <- sweep(new_betahat, 1, betahat, "+")
   new_fitted <- X %*% new_betahat
+  # residualize the observed y against each simulated beta -- these
+  # (mean-zero, per-draw) residuals are what the spatial field is actually
+  # conditioned on below; the simulated trend is added back in at the end
   new_resid <- sweep(-1 * new_fitted, 1, y, "+")
 
   # now simulate beta and add
-  formula_newdata <- delete.response(terms(object))
-  # fix model frame bug with degree 2 basic polynomial and one prediction row
-  # e.g. poly(x, y, degree = 2) and newdata has one row
-  if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses, fixed = TRUE)) && NROW(newdata) == 1) {
-    newdata <- newdata[c(1, 1), , drop = FALSE]
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
-    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
-    newdata_model <- newdata_model[1, , drop = FALSE]
-    # find offset
-    offset <- model.offset(newdata_model_frame)
-    if (!is.null(offset)) {
-      offset <- offset[1]
-    }
-    newdata <- newdata[1, , drop = FALSE]
-  } else {
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
-    # assumes that predicted observations are not outside the factor levels
-    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
-    # find offset
-    offset <- model.offset(newdata_model_frame)
-  }
+  newdata_model_list <- get_newdata_model_matrix(object, newdata)
+  newdata <- newdata_model_list$newdata
+  newdata_model <- newdata_model_list$newdata_model
+  offset <- newdata_model_list$offset
   attr_assign <- attr(newdata_model, "assign")
   attr_contrasts <- attr(newdata_model, "contrasts")
+  # keep only the newdata_model columns that also appear in the fitted
+  # design matrix (factor levels present in data but absent from newdata can
+  # otherwise leave newdata_model with a different column layout than X)
   keep_cols <- which(colnames(newdata_model) %in% colnames(model.matrix(object)))
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
 
+  # big data approximation, part 1: restrict the "observed" data conditioned
+  # on to a spatially-representative base sample instead of all of data, so
+  # the base covariance matrix factorized below stays a manageable size
   if (local_list$method_base != "all") {
     object$obdata <- object$obdata[local_list$index$base, , drop = FALSE]
     base_val <- new_resid[local_list$index$base, , drop = FALSE]
   } else {
     base_val <- new_resid
   }
+  # big data approximation, part 2: split newdata into blocks so each
+  # block's observed-by-prediction covariance is computed and factorized
+  # separately (blocks are treated as conditionally independent given the
+  # base sample); each block is a list element handled by
+  # get_conditional_new_from_base_adjust() below, in parallel if requested
   if (local_list$method_new != "all") {
     x0 <- lapply(local_list$index$new, function(x) newdata_model[x, , drop = FALSE])
     newdata <- lapply(local_list$index$new, function(x) newdata[x, , drop = FALSE])
@@ -218,28 +224,35 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   }
   newdata_list <- mapply(x = x0, y = newdata, FUN = function(x, y) list(x0 = x, newdata = y), SIMPLIFY = FALSE)
   spcov_val <- coef(object, type = "spcov")
+  # pure nugget (independent error, no spatial dependence or random effects):
+  # the base covariance matrix is diagonal, so a plain sqrt() gives its
+  # (lower triangular) Cholesky factor without paying for a full chol()
   if (spcov_val[["de"]] == 0 && is.null(coef(object, type = "randcov"))) {
     cov_lowchol_base <- Matrix::Diagonal(n = object$n, x = sqrt(spcov_val[["ie"]]))
   } else {
     cov_lowchol_base <- t(chol(covmatrix(object)))
   }
-  SqrtSigInv_X <- forwardsolve(cov_lowchol_base, X)
-  cov_betahat <- vcov(object)
   if (local_list$parallel) {
     cl <- parallel::makeCluster(local_list$ncores)
-    new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust, object, base_val, cov_lowchol_base, samples, SqrtSigInv_X, cov_betahat)
+    new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust, object, base_val, cov_lowchol_base, samples)
     cl <- parallel::stopCluster(cl)
   } else {
-    new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust, object, base_val, cov_lowchol_base, samples, SqrtSigInv_X, cov_betahat)
+    new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust, object, base_val, cov_lowchol_base, samples)
   }
 
 
   new_val <- do.call("rbind", new_val)
+  # blocks were processed independently (and possibly reordered upstream by
+  # GRTS/k-means grouping in get_local_list_conditional()), so restore the
+  # original newdata row order before returning
   if (local_list$method_new != "all") {
     index_new <- do.call("c", local_list$index$new)
     new_val <- new_val[order(index_new), , drop = FALSE]
   }
 
+  # add the simulated fixed effect trend (X0 %*% beta_b) back onto the
+  # (mean-zero) conditional spatial residual draws -- completes the
+  # composition sampling described previously
   new_val <- newdata_model %*% new_betahat + new_val
 
   if (!is.null(offset)) {
@@ -288,6 +301,12 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
     newdata_size <- rep(1, NROW(newdata))
   }
 
+  # spglm() models a latent Gaussian process w on the link scale via a
+  # Laplace approximation (analogous to a GLMM's linear predictor); w plays
+  # the role that the observed y plays in conditional.splm() above. Unlike y,
+  # w is not observed directly -- its own estimation uncertainty is
+  # propagated analytically via var_adj below rather than by simulating a new
+  # draw of w (see get_conditional_new_from_base_adjust_glm())
   w <- fitted(object, type = "link")
   y <- object$y
   size <- object$size
@@ -307,6 +326,9 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   betahat <- coef(object)
   X <- model.matrix(object)
 
+  # same composition sampling idea as conditional.splm(): draw beta from its
+  # asymptotic sampling distribution N(betahat, vcov(object)) so fixed effect
+  # uncertainty propagates into the conditional draws of w below
   cov_betahat_lowchol <- t(chol(vcov(object)))
   new_betahat <- vapply(seq_len(samples), function(x) as.numeric(cov_betahat_lowchol %*% rnorm(length(betahat))), numeric(length(betahat)))
   # beta0 force to matrix
@@ -318,27 +340,10 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   # new_resid <- w - new_fitted
 
   # now simulate beta and add
-  formula_newdata <- delete.response(terms(object))
-  # fix model frame bug with degree 2 basic polynomial and one prediction row
-  # e.g. poly(x, y, degree = 2) and newdata has one row
-  if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses, fixed = TRUE)) && NROW(newdata) == 1) {
-    newdata <- newdata[c(1, 1), , drop = FALSE]
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
-    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
-    newdata_model <- newdata_model[1, , drop = FALSE]
-    # find offset
-    offset <- model.offset(newdata_model_frame)
-    if (!is.null(offset)) {
-      offset <- offset[1]
-    }
-    newdata <- newdata[1, , drop = FALSE]
-  } else {
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
-    # assumes that predicted observations are not outside the factor levels
-    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
-    # find offset
-    offset <- model.offset(newdata_model_frame)
-  }
+  newdata_model_list <- get_newdata_model_matrix(object, newdata)
+  newdata <- newdata_model_list$newdata
+  newdata_model <- newdata_model_list$newdata_model
+  offset <- newdata_model_list$offset
   attr_assign <- attr(newdata_model, "assign")
   attr_contrasts <- attr(newdata_model, "contrasts")
   keep_cols <- which(colnames(newdata_model) %in% colnames(model.matrix(object)))
@@ -346,6 +351,9 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
 
+  # big data approximation, part 1 (see conditional.splm() for part 2, the
+  # newdata blocking, applied identically below): restrict to a
+  # spatially-representative base sample, keeping X/w/y/size in sync
   if (local_list$method_base != "all") {
     object$obdata <- object$obdata[local_list$index$base, , drop = FALSE]
     X <- X[local_list$index$base, , drop = FALSE]
@@ -356,6 +364,18 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
     }
   }
 
+  # Covariance components needed by var_adj (applied later, in
+  # get_conditional_new_from_base_adjust_glm()) -- the analytic adjustment
+  # for w's own Laplace-approximate estimation uncertainty:
+  #  - SigInv: precision of the spatial covariance matrix of w
+  #  - Ptheta: SigInv adjusted for fixed effect estimation uncertainty (the
+  #    usual "residual maker" projection SigInv - SigInv X (X'SigInv X)^-1 X'SigInv)
+  #  - D: GLM working-weight curvature of the response log-likelihood in w
+  #    (see get_D()), i.e. the data's contribution to the Hessian
+  #  - cov_lowchol_mH: Cholesky factor of -(D - Ptheta), the negative Hessian
+  #    of the joint log-likelihood for w -- var_adj uses its inverse (the
+  #    Laplace-approximate posterior covariance of w) to inflate the
+  #    predictive variance analytically instead of by simulating a new w
   cov_lowchol_base <- t(chol(covmatrix(object)))
   SigInv <- chol2inv(t(cov_lowchol_base))
   SqrtSigInv_X <- forwardsolve(cov_lowchol_base, X)
@@ -366,17 +386,12 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   cov_lowchol_mH <- t(chol(Matrix::forceSymmetric(-1 * (D - Ptheta)))) # this is actually the inverse of covariance matrix of w
   wts_beta <- tcrossprod(cov_betahat, SigInv_X)
 
-  # cov_lowchol_w <- t(chol(chol2inv(t(cov_lowchol_mH)))) # made this more efficient below but not as correct
-  # new_w <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_w %*% rnorm(length(w))), numeric(length(w)))
-
-  # increase efficiency by exploiting triangular cholesky relationships to reach
-  # above solution but with different rnorm() entries (which are then rearranged)
-  cov_lowchol_w <- t(forwardsolve(cov_lowchol_mH, Matrix::Diagonal(length(w))))
-  reshuffle <- seq(length(w), 1)
-  cov_lowchol_w <- cov_lowchol_w[reshuffle, reshuffle, drop = FALSE]
-  new_w <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_w %*% rnorm(length(w)))[reshuffle], numeric(length(w)))
-  w <- sweep(new_w, 1, w, "+")
-
+  # w is held fixed at its fitted (Laplace-mode) value rather than simulated:
+  # var_adj (applied in get_conditional_new_from_base_adjust_glm()) already
+  # supplies w's own estimation uncertainty analytically, so simulating a new
+  # draw of w here on top of that would double-count it. residualizing the
+  # (fixed) w against the simulated fixed effect trend plays the same role
+  # as new_resid in conditional.splm()
   base_val <- w - X %*% new_betahat
 
   if (local_list$method_new != "all") {
@@ -390,10 +405,10 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
 
   if (local_list$parallel) {
     cl <- parallel::makeCluster(local_list$ncores)
-    new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust_glm, object, base_val, cov_lowchol_base, samples, SqrtSigInv_X, cov_betahat, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
+    new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust_glm, object, base_val, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
     cl <- parallel::stopCluster(cl)
   } else {
-    new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust_glm, object, base_val, cov_lowchol_base, samples, SqrtSigInv_X, cov_betahat, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
+    new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust_glm, object, base_val, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
   }
 
 
@@ -409,6 +424,8 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
     new_val <- sweep(new_val, 1, offset, "+")
   }
 
+  # new_val holds link-scale draws up to this point; back-transform to the
+  # response scale, or simulate a genuinely new observation, only if asked
   if (type != "link") {
     new_val <- invlink_conditional(new_val, type, dispersion = as.vector(coef(object, type = "dispersion")), family = object$family, newdata_size)
   }
@@ -421,12 +438,34 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   }
 }
 
+#' Back-transform conditional simulations from the link scale
+#'
+#' Converts the link-scale draws returned by the shared code path in
+#' \code{conditional.spglm()} to the scale requested via its \code{type}
+#' argument: the response-scale mean (\code{type = "response"}), or a newly
+#' simulated observation drawn from the response distribution with that mean
+#' and the fitted dispersion parameter (\code{type = "new"}).
+#'
+#' @param mu_link A matrix of link-scale conditional simulations (rows are
+#'   \code{newdata} observations, columns are simulation draws).
+#' @param type \code{"response"} or \code{"new"} (\code{"link"} is handled by
+#'   the caller and never reaches this function).
+#' @param dispersion The fitted dispersion parameter from \code{object}.
+#' @param family The \code{object} family, e.g. \code{"poisson"}, \code{"Gamma"}.
+#' @param newdata_size The binomial size for each \code{newdata} row; only
+#'   used when \code{family = "binomial"}.
+#'
+#' @return A matrix the same shape as \code{mu_link} on the requested scale.
+#'
+#' @noRd
 invlink_conditional <- function(mu_link, type, dispersion, family, newdata_size) {
 
   # compare to delta method?
   n_newdata <- NROW(mu_link)
   n_sim <- NCOL(mu_link)
   len_sim <- seq(1, n_sim)
+  # size = 1 here because binomial rescaling (by the true newdata_size) is
+  # applied afterward, once, for both type = "response" and type = "new"
   mu <- invlink(mu_link, family, size = 1)
   rm("mu_link")
 
@@ -434,6 +473,10 @@ invlink_conditional <- function(mu_link, type, dispersion, family, newdata_size)
     val <- mu
   } else if (type == "new") {
 
+    # each column of mu is one simulation draw's response-scale mean for
+    # every newdata row; for type = "new" a genuinely new observation is
+    # drawn per column from the family's response distribution at that mean
+    # (and the fitted dispersion), rather than just returning the mean itself
     if (family == "poisson") {
       mu_list <- split(t(mu), len_sim)
       val <- vapply(mu_list, function(x) rpois(n_newdata, x), numeric(n_newdata))
@@ -474,6 +517,9 @@ invlink_conditional <- function(mu_link, type, dispersion, family, newdata_size)
     }
   }
 
+  # invlink() above returned a proportion (size = 1); rescale to counts using
+  # the actual newdata_size now that both type branches have produced their
+  # response-scale value (rbinom() already returns counts, so "new" skips this)
   if (type == "response" && family == "binomial") {
     val <- sweep(val, 1, newdata_size, "*")
   }

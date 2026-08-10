@@ -2,7 +2,7 @@
 #'
 #' @description Summarize a fitted model object.
 #'
-#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()].
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], [spgautor()], [splmRF()], or [spautorRF()].
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
 #' @details \code{summary()} creates a summary of a fitted model object

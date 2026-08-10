@@ -2,8 +2,8 @@
 #'
 #' @description Print fitted model objects and summaries.
 #'
-#' @param x A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()] or output from
-#'   \code{summary(x)} or or \code{anova(x)}.
+#' @param x A fitted model object from [splm()], [spautor()], [spglm()], [spgautor()], [splmRF()], [spautorRF()]
+#'   or output from \code{summary(x)} or \code{anova(x)}.
 #' @param digits The number of significant digits to use when printing.
 #' @param signif.stars Logical. If \code{TRUE}, significance stars are printed for each coefficient
 #' @param ... Other arguments passed to or from other methods.

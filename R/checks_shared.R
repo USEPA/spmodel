@@ -33,7 +33,6 @@ check_not_areal_type <- function(spcov_type, current_fun, target_fun) {
 warn_ycoord_ignored_for_1d_cov <- function(spcov_type, ycoord_given) {
   if (spcov_type %in% c("triangular", "cosine") && ycoord_given) {
     warning(paste0(spcov_type, " covariance can only be used in one dimension. Ignoring y-coordinate."), call. = FALSE)
-    # should also be given for sf objects
   }
   invisible(NULL)
 }
@@ -101,6 +100,76 @@ check_family_valid <- function(family) {
   family_valid <- c("binomial", "poisson", "nbinomial", "Gamma", "inverse.gaussian", "beta")
   if (!(family %in% family_valid)) {
     stop(paste(family, " is not a valid glm family.", sep = ""), call. = FALSE)
+  }
+  invisible(NULL)
+}
+
+#' Require every variable used in formula/random/partition_factor to exist in data
+#'
+#' @param formula The model formula
+#' @param data The data
+#' @param random An optional random effect formula (or \code{NULL})
+#' @param partition_factor An optional partition factor formula (or \code{NULL})
+#'
+#' @details Without this check, a variable used in \code{formula}/\code{random}/
+#'   \code{partition_factor} but absent from \code{data} is not caught here.
+#'
+#' @return Error message or nothing
+#'
+#' @noRd
+check_formula_vars_in_data <- function(formula, data, random = NULL, partition_factor = NULL) {
+  if ("." %in% all.vars(random)) {
+    stop("The `.` shorthand is not supported in random. Explicitly list the desired variable(s).", call. = FALSE)
+  }
+  if ("." %in% all.vars(partition_factor)) {
+    stop("The `.` shorthand is not supported in partition_factor. Explicitly list the desired variable(s).", call. = FALSE)
+  }
+  formula_vars <- unique(c(all.vars(formula), all.vars(random), all.vars(partition_factor)))
+  formula_vars <- setdiff(formula_vars, ".")
+  missing_vars <- setdiff(formula_vars, names(data))
+  if (length(missing_vars) > 0) {
+    stop(
+      "Variable(s) ", paste0("\"", missing_vars, "\"", collapse = ", "),
+      " used in formula, random, or partition_factor not found in data.",
+      call. = FALSE
+    )
+  }
+  invisible(NULL)
+}
+
+#' Reject newdata for areal (spautor()/spgautor()) prediction unless it's object$newdata
+#'
+#' @param object_newdata The fitted model's own \code{$newdata} (or \code{NULL}
+#'   if there were no missing-response rows at fitting time)
+#' @param newdata_given Whether the caller's \code{newdata} argument to
+#'   \code{predict()} was supplied (i.e. \code{!missing(newdata)})
+#' @param newdata The caller's \code{newdata} value; only accessed when
+#'   \code{newdata_given} is \code{TRUE} (evaluating a genuinely missing
+#'   argument would itself error)
+#' @param current_fun Name of the calling constructor, used in the error
+#'   message (e.g. \code{"spautor"})
+#'
+#' @details Unlike \code{splm()}/\code{spglm()}, \code{spautor()}/\code{spgautor()}
+#'   prediction locations are fixed when the model is fit, as they determine
+#'   the neighbor structure (\code{W}/\code{M}) used throughout fitting. This
+#'   implies \code{newdata} cannot be provided by the user if it is different
+#'   from object$newdata.  
+#'
+#' @return Error message or nothing
+#'
+#' @noRd
+check_newdata_areal <- function(object_newdata, newdata_given, newdata, current_fun) {
+  if (!newdata_given) {
+    if (is.null(object_newdata)) {
+      stop("No missing data to predict. Fit the model with NA response values for the locations you want to predict.", call. = FALSE)
+    }
+  } else if (!identical(newdata, object_newdata)) {
+    stop(
+      "newdata cannot be specified for ", current_fun, "() model objects different from object$newdata, ",
+      "because prediction locations are fixed when the model is fit (they determine the neighbor structure used in fitting). ",
+      "Ignoring newdata and predicting for object$newdata instead.",
+      call. = FALSE
+    )
   }
   invisible(NULL)
 }

@@ -36,6 +36,9 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   crs <- point_ref$crs
   data_sf <- point_ref$data_sf
 
+  # expanding "." in formula
+  formula <- expand_formula_dot(formula, data, c(xcoord, ycoord, ycoord_orig_name))
+
   # subsetting by na and not na values
   ## find response variabale name
   # rows with a missing response are not used for fitting -- they are instead
@@ -80,6 +83,9 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   }
   # subset obdata by nonNA predictors
   obdata <- obdata[ob_predictors, , drop = FALSE]
+  # a user-supplied local$index must already be sized to obdata (see
+  # check_local_index_length())
+  check_local_index_length(local, NROW(obdata))
 
   # new model frame
   obdata_model_frame <- model.frame(formula, obdata, drop.unused.levels = TRUE, na.action = na.omit)
@@ -228,6 +234,9 @@ get_data_object_spautor <- function(formula, data, spcov_initial,
   is_sf <- sf_info$is_sf
   sf_column_name <- sf_info$sf_column_name
   crs <- sf_info$crs
+
+  # expanding "." in formula
+  formula <- expand_formula_dot(formula, data, if (is_sf) sf_column_name else character(0))
 
   car_neighbor <- build_car_neighbor_structure(data, spcov_initial, W, M, row_st, range_positive, cutoff)
   W <- car_neighbor$W

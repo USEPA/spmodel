@@ -90,6 +90,12 @@ test_that("generics work spgautor polygon data", {
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE, type = "response", delta = TRUE), "list")
 
+  # kcv
+  expect_vector(kcv(spmod1))
+  expect_type(kcv(spmod1, cv_predict = TRUE, type = "response"), "list")
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE, type = "response", delta = TRUE), "list")
+
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
 
@@ -239,6 +245,12 @@ test_that("generics work spgautor polygon data with missing", {
   expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE, type = "response", delta = TRUE), "list")
+
+  # kcv
+  expect_vector(kcv(spmod1))
+  expect_type(kcv(spmod1, cv_predict = TRUE, type = "response"), "list")
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE, type = "response", delta = TRUE), "list")
 
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
@@ -390,6 +402,12 @@ test_that("generics work spgautor polygon data unconnected", {
   expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE, type = "response", delta = TRUE), "list")
+
+  # kcv
+  expect_vector(kcv(spmod1))
+  expect_type(kcv(spmod1, cv_predict = TRUE, type = "response"), "list")
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE, type = "response", delta = TRUE), "list")
 
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")

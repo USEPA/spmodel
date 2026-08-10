@@ -188,13 +188,17 @@ get_vcov_theta.spautor <- function(method, context, object) {
     vcov_theta <- J %*% base::tcrossprod(vcov_eta, J)
     dimnames(vcov_theta) <- list(context$cov_names_free, context$cov_names_free)
   } else if (method == "closed") {
-    # placeholder: no dSig_dtheta_spcov.car()/.sar() exist yet, so this
-    # errors informatively (via get_dSig_dtheta_cov()'s default dispatch)
-    # rather than doing anything -- get_satterthwaite_method() already
-    # forces method = "numeric" for car/sar, so this branch is currently used
-    # but is kept so the two vcov_theta methods stay
-    # structurally similar and closed-form support can be added later without
-    # major structural changes
+    # DEAD CODE (currently unreachable), kept for structural parity with
+    # get_grad_g.spautor()'s "closed" branch: a genuinely spautor-classed
+    # object can only ever have spcov_type "car" or "sar" here, since
+    # spautor(spcov_type = "none"/"ie") redirects to splm() and returns an
+    # splm-classed object instead (see spautor(), "call splm if spcov_type is
+    # none") -- so satterthwaite()'s S3 dispatch never reaches this method for
+    # "none"/"ie" at all. car/sar have no dSig_dtheta_spcov.car()/.sar()
+    # implementation yet, and get_satterthwaite_method() already forces those
+    # back to "numeric", so this branch has no live caller today. It is kept
+    # so the two vcov_theta methods stay structurally similar, and will start
+    # working immediately if closed-form car/sar derivatives are ever added.
     dSig_list <- get_dSig_dtheta_cov(context, object)
     Sig <- covmatrix(object)
     SigInv <- chol2inv(chol(Sig))
@@ -317,7 +321,24 @@ get_fit_ddf <- function(object, ddf) {
     return(none)
   }
 
-  out <- tryCatch(satterthwaite_core(object, NULL), error = function(e) NULL)
+  # ddf = "satterthwaite" is the default here whenever n <= 500 (see
+  # determine_ddf()), so a non-positive-definite covariance-parameter
+  # covariance matrix -- not uncommon for small/boundary fits, exactly the
+  # regime this default targets -- would otherwise surface as a brand new
+  # warning on old code that never mentioned ddf at all. That failure
+  # already degrades gracefully (ddf/vcov_cov become NULL below), so only
+  # this specific warning needs muffling; other satterthwaite_core()
+  # warnings (e.g. the n >= 500 performance warning, only reachable by
+  # explicitly requesting ddf = "satterthwaite" on a large fit) reflect an
+  # intentional choice and are left to surface normally.
+  out <- withCallingHandlers(
+    tryCatch(satterthwaite_core(object, NULL), error = function(e) NULL),
+    warning = function(w) {
+      if (grepl("not numerically positive definite", conditionMessage(w), fixed = TRUE)) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
   if (is.null(out)) {
     return(none)
   }

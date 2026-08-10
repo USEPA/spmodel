@@ -747,3 +747,66 @@ test_that("optim non-convergence warning fires for spautor", {
     NA
   )
 })
+
+test_that("spautor() errors informatively when a formula/random/partition_factor variable is not in data", {
+  load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
+
+  # a same-named object in the calling environment (but not in data) should
+  # not be silently picked up via ordinary formula scoping -- it should error
+  not_a_col <- rnorm(NROW(exdata_poly))
+  not_a_group <- factor(sample(letters[1:3], NROW(exdata_poly), replace = TRUE))
+
+  expect_error(spautor(y ~ not_a_col, data = exdata_poly, spcov_type = "car"), "not_a_col.*not found in data")
+  expect_error(spautor(not_a_col ~ x, data = exdata_poly, spcov_type = "car"), "not_a_col.*not found in data")
+  expect_error(spautor(y ~ x, data = exdata_poly, spcov_type = "car", random = ~not_a_group), "not_a_group.*not found in data")
+  expect_error(spautor(y ~ x, data = exdata_poly, spcov_type = "car", partition_factor = ~not_a_group), "not_a_group.*not found in data")
+
+  # sanity: a valid call still works
+  expect_s3_class(spautor(y ~ x, data = exdata_poly, spcov_type = "car"), "spautor")
+})
+
+test_that("spautor() formula supports . as shorthand for all predictors, excluding the sf geometry column", {
+  load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
+  d <- exdata_poly[, c("y", "x")] # sf's `[` keeps geometry regardless of selection
+
+  mod_dot <- spautor(y ~ ., data = d, spcov_type = "car")
+  mod_explicit <- spautor(y ~ x, data = d, spcov_type = "car")
+  expect_equal(names(coef(mod_dot)), names(coef(mod_explicit)))
+  expect_equal(unname(coef(mod_dot)), unname(coef(mod_explicit)))
+  expect_false("geometry" %in% colnames(model.matrix(mod_dot)))
+
+  expect_error(
+    spautor(y ~ x, data = d, spcov_type = "car", partition_factor = ~.),
+    "not supported in partition_factor"
+  )
+})
+
+test_that("predict() only allows newdata = object$newdata for spautor()", {
+  # spautor() prediction locations are fixed when the model is fit (they
+  # determine the neighbor structure W/M used throughout fitting), so a
+  # different newdata cannot be honored at predict() time -- previously it
+  # was silently ignored (always predicting object$newdata regardless),
+  # which risks the user believing their newdata was used
+  load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
+  load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
+
+  amod <- spautor(y ~ x, exdata_Mpoly, spcov_type = "car")
+
+  expect_vector(predict(amod))
+  expect_equal(predict(amod), predict(amod, newdata = amod$newdata))
+
+  modified_newdata <- amod$newdata
+  modified_newdata$x <- modified_newdata$x + 1
+  expect_error(predict(amod, newdata = modified_newdata), "newdata cannot be specified")
+  expect_error(predict(amod, newdata = exdata_poly), "newdata cannot be specified")
+
+  # a model with no missing data at all should still error informatively
+  amod_full <- spautor(y ~ x, exdata_poly, spcov_type = "car")
+  expect_error(predict(amod_full), "No missing data to predict")
+
+  # spautorRF()'s internal predict.spautor() call (with no explicit newdata,
+  # relying on object$spautor$newdata) must still work
+  skip_if_not_installed("ranger")
+  sprfmod <- spautorRF(y ~ x, exdata_Mpoly, spcov_type = "car", num.trees = 100)
+  expect_vector(predict(sprfmod))
+})

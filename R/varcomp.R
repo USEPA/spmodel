@@ -6,11 +6,30 @@
 #' @param object A fitted model object (e.g., from [splm()], [spautor()], [spglm()], or [spgautor()]).
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
-#' @return A tibble that partitions the the total variability by the fixed effects
-#'   and each variance parameter. The proportion of variability explained by the
-#'   fixed effects is the pseudo R-squared obtained by \code{psuedoR2()}. The
-#'   remaining proportion is spread accordingly among each variance parameter:
-#'   \code{"de"}, \code{"ie"}, and if random effects are used, each named random effect.
+#' @details The total variability in the response is decomposed into a
+#'   portion explained by the fixed effects and a portion explained by each
+#'   variance parameter in the fitted covariance structure:
+#'   \itemize{
+#'     \item \code{de}: the spatially dependent (correlated) random error
+#'       variance, commonly referred to as a partial sill.
+#'     \item \code{ie}: the spatially independent (uncorrelated) random error
+#'       variance, commonly referred to as a nugget.
+#'     \item random effects: if \code{object} was fit with a \code{random}
+#'       argument, one additional variance parameter per named random effect
+#'       term (e.g., a random intercept's grouping variable), representing
+#'       the variance attributable to that grouping.
+#'   }
+#'   See [spcov_params()] abd [spcov_initial()] for more on \code{de}/\code{ie} and [splm()] (or
+#'   [spglm()]) for more on random effects. The proportion of variability
+#'   explained by the fixed effects is the pseudo R-squared returned by
+#'   [pseudoR2()]. The remaining
+#'   \code{1 - pseudoR2} proportion is then split among \code{de}, \code{ie},
+#'   and any random effect variances, in proportion to their share of the
+#'   total variance (the sum of \code{de}, \code{ie}, and all random effect
+#'   variances).
+#'
+#' @return A tibble that partitions the total variability by the fixed effects
+#'   and each variance parameter (see Details).
 #'   If \code{spautor()} objects have unconnected sites, a list is returned with three elements:
 #'   \code{"connected"} for a variability comparison among the connected sites;
 #'   \code{"unconnected"} for a variability comparison among the unconnected

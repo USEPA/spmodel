@@ -39,8 +39,8 @@ satterthwaite <- function(object, ...) {
 #' @param method The method by which to compute gradients. \code{"numeric"}
 #'   for numerical differentiation and \code{"closed"} for closed form solutions.
 #'   The default \code{"closed"} for \code{"exponential"}, \code{"gaussian"},
-#'   and \code{"spherical"} spatial covariance functions (without anisotropy)
-#'   and \code{"numeric"} otherwise.
+#'   \code{"spherical"}, \code{"none"}, and \code{"ie"} spatial covariance
+#'   functions (without anisotropy) and \code{"numeric"} otherwise.
 #' @method satterthwaite splm
 #' @order 2
 #' @export
@@ -151,7 +151,7 @@ satterthwaite.spautor <- satterthwaite.splm
 
 get_satterthwaite_method <- function(object, method) {
 
-  satterthwaite_closed_form_types <- c("exponential", "gaussian", "spherical")
+  satterthwaite_closed_form_types <- c("exponential", "gaussian", "spherical", "none", "ie")
 
   # anisotropy makes the distance matrix itself a function of theta (rotate/
   # scale), which the closed-form dSig_dtheta_spcov.<type>() derivatives do

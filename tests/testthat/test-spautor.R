@@ -79,6 +79,10 @@ test_that("generics work spautor polygon data", {
   expect_vector(loocv(spmod1))
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
 
+  # kcv
+  expect_vector(kcv(spmod1))
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
+
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
 
@@ -220,6 +224,10 @@ test_that("generics work spautor polygon data with missing", {
   # loocv
   expect_vector(loocv(spmod1))
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
+
+  # kcv
+  expect_vector(kcv(spmod1))
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
 
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
@@ -367,6 +375,10 @@ test_that("generics work spautor polygon data unconnected", {
   expect_vector(loocv(spmod1))
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
 
+  # kcv
+  expect_vector(kcv(spmod1))
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = FALSE), "list")
+
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
 
@@ -429,6 +441,32 @@ test_that("spautorRF runs", {
   spmod1 <- spautorRF(y ~ x, exdata_Mpoly, spcov_type = "car", num.trees = 100)
   expect_s3_class(spmod1, "spautorRF")
   expect_vector(predict(spmod1, newdata = exdata_Mpoly))
+})
+
+test_that("print() and summary() work for splmRF via spautorRF none/ie delegation", {
+  skip_if_not_installed("ranger")
+  load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
+
+  # spautor() with spcov_type = "none"/"ie" delegates internally to splm(),
+  # so spautorRF() produces a "splmRF"-classed object whose residual model
+  # element is named "spautor" (not "splm") -- print.splmRF()/summary.splmRF()
+  # must still find it
+  spmod1 <- spautorRF(y ~ x, exdata_Mpoly, spcov_type = "none", num.trees = 100)
+  expect_s3_class(spmod1, "splmRF")
+  expect_true(is.null(spmod1$splm))
+  expect_s3_class(spmod1$spautor, "splm")
+
+  print_out <- capture.output(print(spmod1))
+  expect_equal(print_out[[1]], "ranger:")
+  expect_true(any(grepl("^splm on ranger residuals:$", print_out)))
+  expect_true(any(grepl("Coefficients \\(fixed\\)", print_out)))
+
+  smod <- summary(spmod1)
+  expect_s3_class(smod, "summary.splmRF")
+  expect_s3_class(smod$splm, "summary.splm")
+  summary_out <- capture.output(print(smod))
+  expect_equal(summary_out[[1]], "ranger:")
+  expect_true(any(grepl("^splm on ranger residuals:$", summary_out)))
 })
 
 test_that("spautorRF_list runs", {

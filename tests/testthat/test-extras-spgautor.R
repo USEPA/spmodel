@@ -203,3 +203,57 @@ test_that("optim non-convergence warning fires for spgautor", {
   )
 })
 
+test_that("spgautor() errors informatively when a formula/random/partition_factor variable is not in data", {
+  load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
+
+  # a same-named object in the calling environment (but not in data) should
+  # not be silently picked up via ordinary formula scoping -- it should error
+  not_a_col <- rnorm(NROW(exdata_poly))
+  not_a_group <- factor(sample(letters[1:3], NROW(exdata_poly), replace = TRUE))
+
+  expect_error(spgautor(abs(y) ~ not_a_col, family = "Gamma", data = exdata_poly, spcov_type = "car"), "not_a_col.*not found in data")
+  expect_error(spgautor(not_a_col ~ x, family = "Gamma", data = exdata_poly, spcov_type = "car"), "not_a_col.*not found in data")
+  expect_error(spgautor(abs(y) ~ x, family = "Gamma", data = exdata_poly, spcov_type = "car", random = ~not_a_group), "not_a_group.*not found in data")
+  expect_error(spgautor(abs(y) ~ x, family = "Gamma", data = exdata_poly, spcov_type = "car", partition_factor = ~not_a_group), "not_a_group.*not found in data")
+
+  # sanity: a valid call still works
+  expect_s3_class(spgautor(abs(y) ~ x, family = "Gamma", data = exdata_poly, spcov_type = "car"), "spgautor")
+})
+
+test_that("spgautor() formula supports . as shorthand for all predictors, excluding the sf geometry column", {
+  load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
+  d <- exdata_poly[, c("y", "x")] # sf's `[` keeps geometry regardless of selection
+
+  mod_dot <- spgautor(abs(y) ~ ., family = "Gamma", data = d, spcov_type = "car")
+  mod_explicit <- spgautor(abs(y) ~ x, family = "Gamma", data = d, spcov_type = "car")
+  expect_equal(names(coef(mod_dot)), names(coef(mod_explicit)))
+  expect_equal(unname(coef(mod_dot)), unname(coef(mod_explicit)))
+  expect_false("geometry" %in% colnames(model.matrix(mod_dot)))
+
+  expect_error(
+    spgautor(abs(y) ~ x, family = "Gamma", data = d, spcov_type = "car", random = ~.),
+    "not supported in random"
+  )
+})
+
+test_that("predict() only allows newdata = object$newdata for spgautor()", {
+  # spgautor() prediction locations are fixed when the model is fit (they
+  # determine the neighbor structure W/M used throughout fitting), so a
+  # different newdata cannot be honored at predict() time
+  load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
+  load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
+
+  gamod <- spgautor(abs(y) ~ x, family = "Gamma", exdata_Mpoly, spcov_type = "car")
+
+  expect_vector(predict(gamod))
+  expect_equal(predict(gamod), predict(gamod, newdata = gamod$newdata))
+
+  modified_newdata <- gamod$newdata
+  modified_newdata$x <- modified_newdata$x + 1
+  expect_error(predict(gamod, newdata = modified_newdata), "newdata cannot be specified")
+  expect_error(predict(gamod, newdata = exdata_poly), "newdata cannot be specified")
+
+  # a model with no missing data at all should still error informatively
+  gamod_full <- spgautor(abs(y) ~ x, family = "Gamma", exdata_poly, spcov_type = "car")
+  expect_error(predict(gamod_full), "No missing data to predict")
+})

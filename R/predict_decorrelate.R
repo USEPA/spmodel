@@ -14,6 +14,10 @@ predict.decorrelate <- function(object, newdata, local, ...) {
     stop("No missing data to predict. newdata must be specified in the newdata argument or object$newdata must be non-NULL.", call. = FALSE)
   }
   if (missing(local) || is.null(local)) local <- object$decorrelate_data$local
+  # the three-step decorrelate/ML-predict/recorrelate pipeline described in
+  # decorrelate()'s documentation, applied here to a fitted "decorrelate"
+  # object: transform newdata onto the decorrelated scale, predict with the
+  # already-fitted ML algorithm, then undo the transform on the predictions
   tnewdata <- decorrelate_newdata(object$decorrelate_data, newdata, local, ...)
   tpreds <- predict_decorrelate_algorithm(object$fit, tnewdata, object$algorithm)
   preds <- recorrelate_newdata(tnewdata, tpreds)
@@ -26,6 +30,8 @@ predict.decorrelate <- function(object, newdata, local, ...) {
 #' @export
 predict.decorrelate_list <- function(object, newdata, local, ...) {
 
+  # object is the named list of per-spcov_type "decorrelate" fits returned
+  # by decorrelate() when spcov_type has length > 1; predict once per fit
   if (missing(newdata)) newdata <- NULL
   if (missing(local)) local <- NULL
   preds <- lapply(object, function(x) predict(x, newdata, local, ...))

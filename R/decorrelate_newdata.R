@@ -69,10 +69,6 @@ decorrelate_newdata <- function(object, newdata, local, ...) {
     stop("object must have class \"decorrelate_data\".", call. = FALSE)
   }
 
-  # if (!missing(local)) {
-  #   object$local <- get_local_list_decorrelate(local)
-  # }
-
   if (missing(local)) {
     local <- NULL
   }
@@ -141,25 +137,10 @@ decorrelate_newdata <- function(object, newdata, local, ...) {
     newdata[[ycoord]] <- newdata_aniscoords$ycoord_val
   }
 
-  formula_newdata <- delete.response(terms(object))
-  # fix model frame bug with degree 2 basic polynomial and one prediction row
-  # e.g. poly(x, y, degree = 2) and newdata has one row
-  if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses, fixed = TRUE)) && NROW(newdata) == 1) {
-    newdata <- newdata[c(1, 1), , drop = FALSE]
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
-    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
-    newdata_model <- newdata_model[1, , drop = FALSE]
-    # find offset
-    offset <- model.offset(newdata_model_frame)
-    if (!is.null(offset)) {
-      offset <- offset[1]
-    }
-    newdata <- newdata[1, , drop = FALSE]
-  } else {
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
-    # assumes that predicted observations are not outside the factor levels
-    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
-  }
+  newdata_model_list <- get_newdata_model_matrix(object, newdata)
+  newdata <- newdata_model_list$newdata
+  newdata_model <- newdata_model_list$newdata_model
+  offset <- newdata_model_list$offset
   attr_assign <- attr(newdata_model, "assign")
   attr_contrasts <- attr(newdata_model, "contrasts")
   keep_cols <- which(colnames(newdata_model) %in% colnames(object$X)) # colnames(model.matrix(object)))
@@ -184,16 +165,19 @@ decorrelate_newdata <- function(object, newdata, local, ...) {
 
   # randcov stuff
   extra_randcov_list <- get_extra_randcov_list(object, obdata, newdata)
-  # reform_bar2_list <- extra_randcov_list$reform_bar2_list
-  # Z_index_obdata_list <- extra_randcov_list$Z_index_obdata_list
-  # reform_bar1_list <- extra_randcov_list$reform_bar1_list
-  # Z_val_obdata_list <- extra_randcov_list$Z_val_obdata_list
 
   # partition stuff
   extra_partition_list <- get_extra_partition_list(object, obdata, newdata)
   # reform_bar2 <- extra_partition_list$reform_bar2
   # partition_index_obdata <- extra_partition_list$partition_index_obdata
 
+  # local$method == "all": every newdata row conditions on the same full
+  # observed data set, so its Cholesky factor (and the whitened X/y it
+  # implies) is computed once here and reused by get_decorrelate_newdata()
+  # for every row below, instead of recomputing it per row. For
+  # local$method %in% c("distance", "covariance") each row instead
+  # conditions on its own (row-specific) neighbor subset, so no shared
+  # factor is possible and cor_lowchol_list stays NULL
   if (object$local$method == "all") {
     if (object$anisotropy) object$anisotropy <- FALSE # reset anisotropy to
     # FALSE because coordinates already transformed and covmatrix() will rotate/scale them again unnecessarily
@@ -224,6 +208,13 @@ decorrelate_newdata <- function(object, newdata, local, ...) {
   tX_newdata <- do.call("rbind", lapply(output, function(x) x$tX_newdata))
   rownames(tX_newdata) <- rownames(newdata)
   colnames(tX_newdata) <- colnames(object$X)
+  # yscale/yoffset are per-newdata-row conditional standard deviation and
+  # conditional mean contribution (from conditioning on the observed data);
+  # recorrelate_newdata() undoes the response transform for machine learning predictions
+  # via response = prediction * yscale + yoffset, the inverse of the same
+  # transform applied to y during decorrelate_data()/get_decorrelated_value()
+  # (an offset provided to the function is a traditional offset; yoffset
+  # is just the amount to add back on the recorrelated scale)
   yscale <- do.call("c", lapply(output, function(x) x$yscale))
   names(yscale) <- rownames(newdata)
   yoffset <- do.call("c", lapply(output, function(x) x$yoffset))
@@ -238,13 +229,42 @@ decorrelate_newdata <- function(object, newdata, local, ...) {
     tX_newdata = tX_newdata,
     local = object$local,
     yscale = yscale,
-    yoffset = yoffset
+    yoffset = yoffset,
+    offset = offset
   )
   new_output <- structure(output, class = "decorrelate_newdata")
   new_output
 
 }
 
+#' Spatially decorrelate one \code{newdata} row for prediction
+#'
+#' Prediction analog of \code{\link{get_decorrelated_value}()}: rather than
+#' conditioning an observation on earlier-ordered observations from the
+#' same (training) data set, this conditions a single \code{newdata} row on
+#' (some or all of) the entire observed data set \code{object$obdata}, since
+#' there is no sequential ordering constraint for out-of-sample prediction.
+#' Produces the transformed explanatory variables \code{tX_newdata} used as
+#' input to the fitted machine learning model, plus \code{yscale}/
+#' \code{yoffset} -- the conditional standard deviation and conditional mean
+#' contribution needed by \code{\link{recorrelate_newdata}()} to invert the
+#' response transform on that model's predictions.
+#'
+#' @param newdata_list A list with elements \code{row} (this \code{newdata}
+#'   row) and \code{x0} (its design matrix row).
+#' @param object A \code{\link{decorrelate_data}()} object.
+#' @param cor_lowchol_list When \code{object$local$method == "all"}, the
+#'   precomputed shared Cholesky factor (and whitened X/y) from
+#'   \code{\link{decorrelate_newdata}()}; \code{NULL} otherwise, in which
+#'   case this function computes its own row-specific factor below.
+#' @param extra_randcov_list,extra_partition_list Precomputed random effect/
+#'   partition factor lookup structures for \code{newdata}; see
+#'   \code{\link{get_extra_randcov_list}()}/\code{\link{get_extra_partition_list}()}.
+#'
+#' @return A list with elements \code{tX_newdata}, \code{yscale}, and
+#'   \code{yoffset} for this row.
+#'
+#' @noRd
 get_decorrelate_newdata <- function(newdata_list, object, cor_lowchol_list, extra_randcov_list, extra_partition_list) {
 
   obdata <- object$obdata
@@ -269,7 +289,7 @@ get_decorrelate_newdata <- function(newdata_list, object, cor_lowchol_list, extr
   # making random vector if necessary
   if (!is.null(object$random)) {
     randcov_vector_val <- randcov_vector(object$coefficients$randcov, object$obdata, newdata_list$row,
-                                         extra_randcov_list$reform_bar2_list, extra_randcov_list$Z_index_obdata_list)
+                                         extra_randcov_list$randcov_terms)
   } else {
     randcov_vector_val <- NULL
   }
@@ -281,7 +301,8 @@ get_decorrelate_newdata <- function(newdata_list, object, cor_lowchol_list, extr
   # subsetting data if method distance
   if (object$local$method == "distance") {
     n <- length(cov_vector_val)
-    # want the smallest distance here and order goes from smallest first to largest last (keep last values with are smallest distance)
+    # want the smallest distance here and order goes from smallest first to largest last
+    # (keep last values with are smallest distance)
     nn_index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, object$local$size))]
     obdata <- obdata[nn_index, , drop = FALSE]
     X <- X[nn_index, , drop = FALSE]
@@ -291,11 +312,12 @@ get_decorrelate_newdata <- function(newdata_list, object, cor_lowchol_list, extr
 
   if (object$local$method == "covariance") {
     n <- length(cov_vector_val)
-    # want the largest covariance here and order goes from smallest first to largest last (keep last values which are largest covariance)
-    # TODO: see matching note in decorrelate_data.R get_decorrelated_value() -- ranks by raw
-    # covariance, not |covariance|, which can be suboptimal for spcov_types with negative lobes
-    # (wave, cosine, jbessel).
-    cov_index <- order(as.numeric(cov_vector_val))[seq(from = n, to = max(1, n - object$local$size + 1))]
+    # want the largest covariance here and order goes from smallest first to largest last
+    # (keep last values which are largest covariance)
+    # abs() is used because a few spcov_types (e.g., wave, cosine, jbessel)
+    # have negative covariance lobes -- see the matching note in
+    # decorrelate_data.R's get_decorrelated_value()
+    cov_index <- order(abs(as.numeric(cov_vector_val)))[seq(from = n, to = max(1, n - object$local$size + 1))]
     obdata <- obdata[cov_index, , drop = FALSE]
     X <- X[cov_index, , drop = FALSE]
     y <- y[cov_index]
@@ -305,7 +327,7 @@ get_decorrelate_newdata <- function(newdata_list, object, cor_lowchol_list, extr
   if (object$local$method %in% c("distance", "covariance")) {
     if (!is.null(object$random)) {
       randcov_names <- get_randcov_names(object$random)
-      xlev_list <- lapply(extra_randcov_list$Z_index_obdata_list, function(x) x$reform_bar2_xlev)
+      xlev_list <- lapply(extra_randcov_list$randcov_terms, function(x) x$xlev)
       randcov_Zs <- get_randcov_Zs(obdata, randcov_names, xlev_list = xlev_list)
     }
     partition_matrix_val <- partition_matrix(object$partition_factor, obdata)
@@ -320,11 +342,18 @@ get_decorrelate_newdata <- function(newdata_list, object, cor_lowchol_list, extr
     cor_lowchol <- cor_lowchol_list$cor_lowchol
   }
 
+  # same conditioning math as get_decorrelated_value() in decorrelate_data.R:
+  # w is the conditional variance left over after conditioning this row on
+  # (the neighbor subset of) the observed data
   cor_vector_val <- cov_vector_val / object$total_var
 
   rSqrtSigInv_r0 <- forwardsolve(cor_lowchol, cor_vector_val)
   r0_SigInv_r0 <- crossprod(rSqrtSigInv_r0, rSqrtSigInv_r0)
-  w <- as.numeric(1 - r0_SigInv_r0)
+  # pmax(): see the matching note in decorrelate_data.R's get_decorrelated_value()
+  # -- r0_SigInv_r0 can come out numerically just above 1 (floating point
+  # roundoff), which would otherwise make sqrt(w) below silently produce NaN
+  # consider flooring by small positive constant in future updates
+  w <- pmax(as.numeric(1 - r0_SigInv_r0), 0)
 
   if (object$local$method %in% c("distance", "covariance")) {
     rSqrtSigInv_X <- forwardsolve(cor_lowchol, X)
@@ -335,6 +364,14 @@ get_decorrelate_newdata <- function(newdata_list, object, cor_lowchol_list, extr
   }
 
 
+  # tX_newdata: this row's design matrix minus the part predictable from the
+  # observed data, standardized by the conditional standard deviation --
+  # the same transform applied to the training data, so the fitted ML model
+  # sees inputs on a consistent (decorrelated) scale.
+  # yoffset/sqrt_w (returned as yscale) are *not* applied to a response here
+  # (newdata has no observed y) -- they are instead handed back to the
+  # caller so recorrelate_newdata() can invert the transform on the model's
+  # predictions later: response = prediction * yscale + yoffset
   sqrt_w <- sqrt(w)
   tX_newdata <- (newdata_list$x0 - crossprod(rSqrtSigInv_r0, rSqrtSigInv_X)) / sqrt_w
   yoffset <- crossprod(rSqrtSigInv_r0, rSqrtSigInv_y)

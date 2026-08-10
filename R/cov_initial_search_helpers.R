@@ -26,6 +26,12 @@
 build_de_ie_grid <- function(de, ie, ns2, ...) {
   spcov_grid <- expand.grid(de = de, ie = ie, ...)
   spcov_grid <- spcov_grid[spcov_grid$de + spcov_grid$ie == 1, , drop = FALSE]
+  if (all(c("rotate", "scale") %in% names(spcov_grid))) {
+    # scale = 1 is a circle (no anisotropic stretching), and rotating a circle
+    # leaves it unchanged, so every rotate candidate at scale = 1 evaluates an
+    # identical covariance -- only rotate = 0 needs to be kept
+    spcov_grid <- spcov_grid[spcov_grid$scale != 1 | spcov_grid$rotate == 0, , drop = FALSE]
+  }
   spcov_grid[, c("de", "ie")] <- ns2 * spcov_grid[, c("de", "ie")]
   spcov_grid
 }

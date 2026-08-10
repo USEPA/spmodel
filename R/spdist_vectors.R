@@ -13,6 +13,29 @@
 #'
 #' @noRd
 spdist_vectors <- function(data, data2, xcoord, ycoord, dim_coords, sparse = TRUE) {
+  # a missing coordinate column silently returns NULL from data[[xcoord]]
+  # rather than erroring, which outer() then turns into a 0-length dimension
+  # instead of a clear failure -- left unchecked, this produces either a
+  # dimension mismatch several lines below ("non-conformable arrays") or, if
+  # every coordinate column is missing, a degenerate 0-row distance matrix
+  # that only fails much later inside an unrelated Cholesky-based linear
+  # algebra call ("invalid 'k' argument") -- neither of which points back to
+  # the actual problem. Most callers go through get_prediction_object_splm()/
+  # _spglm()/predict_block_splm(), which already check newdata via
+  # check_newdata_coords() (R/predict_helpers.R) for a friendlier, earlier
+  # message; this is the generic backstop for every other caller (fitting,
+  # loocv()/kcv()'s local path, conditional(), decorrelate_newdata(), etc.)
+  if (dim_coords %in% c(1, 2)) {
+    required_coords <- c(xcoord, if (dim_coords == 2) ycoord)
+    missing_coords <- unique(c(setdiff(required_coords, names(data)), setdiff(required_coords, names(data2))))
+    if (length(missing_coords) > 0) {
+      stop(
+        "Coordinate column(s) not found: ", paste0("\"", missing_coords, "\"", collapse = ", "), ".",
+        call. = FALSE
+      )
+    }
+  }
+
   # storing distances
   if (dim_coords == 1) {
     dist_vector <- sqrt(outer(X = data[[xcoord]], Y = data2[[xcoord]], FUN = function(X, Y) (X - Y)^2))

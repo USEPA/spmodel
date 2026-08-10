@@ -2,6 +2,35 @@
 # effect design-matrix construction; naming conventions between the two were
 # reconciled in a recent bug fix (e.g. group labels use the same
 # "varname + level" convention on both sides)
+#' Build a random-effect slope value vector for \code{newdata}, erroring on NA
+#'
+#' \code{model.matrix()} on a plain data frame (rather than a pre-built model
+#' frame) defaults to \code{na.action = na.omit}, silently dropping NA rows
+#' instead of keeping them -- for a single-row \code{newdata} that means a
+#' 0-length result, which crashes the \code{se.fit} computation
+#' (\code{randcov_newvar()}) deep inside \code{vapply()} with an uninformative
+#' "result is length 0" error, and otherwise (no \code{se.fit}) silently
+#' produces \code{NA} via out-of-bounds indexing (\code{get_randcov_vectors()})
+#' with no warning at all. Pre-building the model frame with
+#' \code{na.action = na.pass} keeps the row (as an \code{NA} value) instead of
+#' dropping it, so the explicit check below can catch it with a message
+#' matching the existing fixed-effect NA check in
+#' \code{get_prediction_object_splm()}/\code{_spglm()}/\code{predict_block_splm()}.
+#'
+#' @param reform_bar1 The random effect's slope formula (\code{~ x - 1})
+#' @param newdata The newdata to build the slope value from
+#'
+#' @return A numeric vector, one value per row of \code{newdata}
+#'
+#' @noRd
+get_randcov_slope_val_newdata <- function(reform_bar1, newdata) {
+  slope_val_newdata <- as.vector(model.matrix(reform_bar1, model.frame(reform_bar1, newdata, na.action = na.pass)))
+  if (anyNA(slope_val_newdata)) {
+    stop("Cannot have NA values in predictors.", call. = FALSE)
+  }
+  slope_val_newdata
+}
+
 #' Create a random effects covariance vector
 #'
 #' @param randcov_params A \code{cov_params} object
@@ -94,7 +123,7 @@ get_randcov_vectors <- function(randcov_name, randcov_params, data, newdata, ran
   new_idx <- rep(seq_len(n_new), match_lengths)
 
   if (!is.null(reform_bar1)) {
-    slope_val_newdata <- as.vector(model.matrix(reform_bar1, newdata))
+    slope_val_newdata <- get_randcov_slope_val_newdata(reform_bar1, newdata)
     # equivalent to the old dense Z_index (cov zeroed off-group) swept by
     # slope_val_newdata and slope_val, but only ever computed at the nonzero
     # (matched) positions
@@ -139,7 +168,7 @@ randcov_newvar <- function(randcov_params = NULL, newdata, randcov_terms = NULL)
     }
     term <- randcov_terms[[randcov_name]]
     reform_bar1 <- if (is.null(term)) reformulate(bar_split[[1]], intercept = FALSE) else term$reform_bar1
-    slope_val_newdata <- as.vector(model.matrix(reform_bar1, newdata))
+    slope_val_newdata <- get_randcov_slope_val_newdata(reform_bar1, newdata)
     randcov_param * slope_val_newdata^2
   }, numeric(1))
   sum(vars)

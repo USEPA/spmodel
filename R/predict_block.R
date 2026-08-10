@@ -76,10 +76,21 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
   }
 
   # add back in zero column to cover anisotropy (should make anisotropy only available 1-d)
-  if (object$dim_coords == 1) {
+  if (object$dim_coords == 0) {
+    # spcov_type "none"/"ie" fit without xcoord/ycoord: both coordinates are
+    # synthetic placeholders (see get_point_ref_coords()), so newdata never
+    # has them either -- fill both rather than requiring check_newdata_coords()
+    # below to find columns that were never meant to exist in newdata
+    obdata[[xcoord]] <- 0
+    obdata[[ycoord]] <- 0
+    newdata[[xcoord]] <- 0
+    newdata[[ycoord]] <- 0
+  } else if (object$dim_coords == 1) {
     obdata[[ycoord]] <- 0
     newdata[[ycoord]] <- 0
   }
+
+  check_newdata_coords(newdata, xcoord, ycoord)
 
   if (object$anisotropy) { # could just do rotate != 0 || scale != 1
     obdata_aniscoords <- transform_anis(obdata, xcoord, ycoord,
@@ -96,27 +107,10 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
     newdata[[ycoord]] <- newdata_aniscoords$ycoord_val
   }
 
-  formula_newdata <- delete.response(terms(object))
-  # fix model frame bug with degree 2 basic polynomial and one prediction row
-  # e.g. poly(x, y, degree = 2) and newdata has one row
-  if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses, fixed = TRUE)) && NROW(newdata) == 1) {
-    newdata <- newdata[c(1, 1), , drop = FALSE]
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
-    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
-    newdata_model <- newdata_model[1, , drop = FALSE]
-    # find offset
-    offset <- model.offset(newdata_model_frame)
-    if (!is.null(offset)) {
-      offset <- offset[1]
-    }
-    newdata <- newdata[1, , drop = FALSE]
-  } else {
-    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
-    # assumes that predicted observations are not outside the factor levels
-    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
-    # find offset
-    offset <- model.offset(newdata_model_frame)
-  }
+  newdata_model_list <- get_newdata_model_matrix(object, newdata)
+  newdata <- newdata_model_list$newdata
+  newdata_model <- newdata_model_list$newdata_model
+  offset <- newdata_model_list$offset
   attr_assign <- attr(newdata_model, "assign")
   attr_contrasts <- attr(newdata_model, "contrasts")
   keep_cols <- which(colnames(newdata_model) %in% colnames(model.matrix(object)))
@@ -187,7 +181,8 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
         dist_vector <- colMeans(dist_vector)
         index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
       } else if (local$method == "covariance") {
-        index <- order(as.numeric(c0))[seq(from = n, to = max(1, n - local$size + 1))]
+        # use abs() here for negative covariance types
+        index <- order(abs(as.numeric(c0)))[seq(from = n, to = max(1, n - local$size + 1))]
       }
       obdata <- obdata[index, , drop = FALSE]
       c0 <- c0[index]

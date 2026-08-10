@@ -68,14 +68,18 @@ get_eacf_dotlist_defaults <- function(x, dotlist, cloud) {
   if (!"ylim" %in% names_dotlist) {
     # include zero if not in limits
 
+    # na.rm = TRUE throughout: bins beyond the data's actual extent (e.g. a
+    # cutoff larger than any observed pairwise distance) have no pairs and so
+    # a NA acov: all()/max()/min() must ignore those to still classify sign
+    # and find a finite ylim from the real bins
     ## all greater than zero (positive)
-    if (all(x$acov > 0)) {
-      dotlist$ylim <- c(0, 1.1 * max(x$acov))
+    if (all(x$acov > 0, na.rm = TRUE)) {
+      dotlist$ylim <- c(0, 1.1 * max(x$acov, na.rm = TRUE))
     }
 
     ## all less than zero (negative)
-    if (all(x$acov < 0)) {
-      dotlist$ylim <- c(1.1 * min(x$acov), 0)
+    if (all(x$acov < 0, na.rm = TRUE)) {
+      dotlist$ylim <- c(1.1 * min(x$acov, na.rm = TRUE), 0)
     }
   }
 

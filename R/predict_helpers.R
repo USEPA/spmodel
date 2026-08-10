@@ -1,5 +1,95 @@
 # shared building blocks for the predict.splm()/predict.spautor()/
-# predict.spglm()/predict.spgautor() family (R/predict.R, R/predict_glm.R).
+# predict.spglm()/predict.spgautor() family (R/predict.R, R/predict_glm.R),
+# plus conditional.R, decorrelate_newdata.R, and predict_block.R, which build
+# prediction design matrices the same way.
+#' Check that \code{newdata} contains the coordinate columns a point-referenced model needs
+#'
+#' \code{splm()}/\code{spglm()} point and block predictions all eventually
+#' compute distances via \code{spdist_vectors()}, which treats a missing
+#' coordinate column as a 0-length dimension rather than erroring immediately
+#' -- the resulting mismatched or degenerate distance matrices only fail
+#' several steps later, deep inside a Cholesky-related linear algebra call,
+#' with an error that says nothing about coordinates or \code{newdata} (e.g.
+#' "non-conformable arrays" or "invalid 'k' argument"; see
+#' \code{\link{spdist_vectors}()}, which also guards against this
+#' independently). Checking here, right after \code{newdata} is resolved
+#' (sf-to-data-frame converted and 1D-zero-filled, if applicable) and before
+#' any coordinate-dependent computation begins, gives a message that actually
+#' explains what is wrong. \code{spautor()}/\code{spgautor()} have no
+#' equivalent check -- their predictions use a precomputed neighbor structure
+#' (\code{object$W}) rather than \code{newdata} coordinates.
+#'
+#' @param newdata The resolved \code{newdata}
+#' @param xcoord,ycoord The x-coordinate/y-coordinate variable names
+#'
+#' @return Invisibly \code{NULL}; called for its error-checking side effect
+#'
+#' @noRd
+check_newdata_coords <- function(newdata, xcoord, ycoord) {
+  missing_coords <- setdiff(c(xcoord, ycoord), names(newdata))
+  if (length(missing_coords) > 0) {
+    stop(
+      "newdata is missing the coordinate column(s) used to fit the model: ",
+      paste0("\"", missing_coords, "\"", collapse = ", "), ".",
+      call. = FALSE
+    )
+  }
+  invisible(NULL)
+}
+
+#' Build the prediction design matrix, guarding against a \code{poly()}/\code{model.matrix()} bug with one-row \code{newdata}
+#'
+#' When a formula term produces matrix-valued columns (e.g. \code{poly()},
+#' \code{splines::bs()}/\code{ns()}) and \code{newdata} has exactly one row,
+#' \code{stats::poly()}'s two-variable form (\code{poly(x, y, degree = n)})
+#' misparses \code{y}'s single value as a positional \code{degree} argument
+#' (see \code{stats::poly()}'s \code{dots_deg} heuristic), which either errors
+#' outright or silently builds the wrong basis (I believe this is a bug with
+#' base R that is hopefully fixed at some point). The single row is duplicated
+#' to give \code{poly()} enough rows to build its basis correctly, and the
+#' duplicate is dropped again once the model matrix is built. Shared by
+#' \code{get_prediction_object_splm()}/\code{get_prediction_object_spautor()}
+#' (R/get_prediction_object.R), their GLM counterparts
+#' (R/get_prediction_object_glm.R), \code{conditional.splm()}/
+#' \code{conditional.spglm()} (R/conditional.R), \code{decorrelate_newdata()}
+#' (R/decorrelate_newdata.R), and \code{predict_block()} (R/predict_block.R).
+#'
+#' @param object A fitted model object
+#' @param newdata The data requiring prediction
+#'
+#' @return A list with \code{newdata} (possibly reduced back to its original
+#'   single row), \code{newdata_model}, and \code{offset} (from
+#'   \code{model.offset()}, \code{NULL} if the formula has no \code{offset()}
+#'   term)
+#'
+#' @noRd
+get_newdata_model_matrix <- function(object, newdata) {
+  formula_newdata <- delete.response(terms(object))
+  # fix model frame bug with degree 2 basic polynomial and one prediction row
+  # e.g. poly(x, y, degree = 2) and newdata has one row
+  # workaround: duplicate the single row so poly() has enough rows to build
+  # its basis without erroring, build the model matrix, then keep only row 1
+  if (any(grepl("nmatrix.", attributes(formula_newdata)$dataClasses, fixed = TRUE)) && NROW(newdata) == 1) {
+    newdata <- newdata[c(1, 1), , drop = FALSE]
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
+    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
+    newdata_model <- newdata_model[1, , drop = FALSE]
+    # find offset
+    offset <- model.offset(newdata_model_frame)
+    if (!is.null(offset)) {
+      offset <- offset[1]
+    }
+    newdata <- newdata[1, , drop = FALSE]
+  } else {
+    newdata_model_frame <- model.frame(formula_newdata, newdata, drop.unused.levels = FALSE, na.action = na.pass, xlev = object$xlevels)
+    # assumes that predicted observations are not outside the factor levels
+    newdata_model <- model.matrix(formula_newdata, newdata_model_frame, contrasts = object$contrasts)
+    # find offset
+    offset <- model.offset(newdata_model_frame)
+  }
+  list(newdata = newdata, newdata_model = newdata_model, offset = offset)
+}
+
 #' Resolve the extra random effect / partition factor lookup lists used by prediction
 #'
 #' \code{...} lets \code{loocv()} (which repeatedly calls \code{predict()} on

@@ -20,16 +20,18 @@
 #'
 #' @details Each observation is held-out from the data set and the remaining data
 #'   are used to make a prediction for the held-out observation. This is compared
-#'   to the true value of the observation and several fit statistics are computed:
+#'   to the true value of the observation and several fit statistics are (sometimes optionally) computed:
 #'   bias, mean-squared-prediction error (MSPE), root-mean-squared-prediction
 #'   error (RMSPE), and the squared correlation (cor2) between the observed data
 #'   and leave-one-out predictions (regarded as a prediction version of r-squared
-#'   appropriate for comparing across spatial and nonspatial models). Generally,
-#'   bias should be near zero for well-fitting models. The lower the MSPE and RMSPE,
+#'   appropriate for comparing across spatial and nonspatial models), and 
+#'   prediction interval coverage (cover.XX). Generally,
+#'   bias should be near zero and prediction interval coverage at the
+#'   intended level for well-fitting models. The lower the MSPE and RMSPE,
 #'   the better the model fit (according to the leave-out-out criterion).
 #'   The higher the cor2, the better the model fit (according to the leave-out-out
-#'   criterion). cor2 is not returned when \code{object} was fit using
-#'   \code{spglm()} or \code{spgautor()}, as it is only applicable here for linear models.
+#'   criterion). cor2 and cover.XX are not returned when \code{object} was fit using
+#'   \code{spglm()} or \code{spgautor()} because we do not observe the underlying latent mean.
 #'
 #' @return If \code{cv_predict = FALSE} and \code{se.fit = FALSE},
 #'   a fit statistics tibble (with bias, MSPE, RMSPE, and cor2; see Details).
@@ -38,7 +40,10 @@
 #'   (with bias, MSPE, RMSPE, and cor2; see Details); \code{cv_predict}, a numeric vector
 #'   with leave-one-out predictions for each observation (if \code{cv_predict = TRUE});
 #'   and \code{se.fit}, a numeric vector with leave-one-out prediction standard
-#'   errors for each observation (if \code{se.fit = TRUE}).
+#'   errors for each observation (if \code{se.fit = TRUE}). When \code{object} is from
+#'   \code{splm()} or \code{spautor()} and \code{interval = "prediction"}, the fit
+#'   statistics tibble also has a \code{cover.XX} column (e.g. \code{cover.95}
+#'   for \code{level = 0.95}; see Details).
 #'
 #' @order 1
 #' @export
@@ -54,11 +59,19 @@ loocv <- function(object, ...) {
   UseMethod("loocv", object)
 }
 
+#' @param interval Whether to also report empirical leave-one-out prediction
+#'   interval coverage in the returned fit statistics. \code{"none"} (the
+#'   default) omits it; \code{"prediction"} reports it (see Details). Only
+#'   available for \code{splm()}/\code{spautor()} objects.
+#' @param level The prediction interval level (e.g. 0.95) used to compute
+#'   prediction interval coverage when \code{interval = "prediction"}. Ignored otherwise. The
+#'   default is \code{0.95}.
 #' @rdname loocv
 #' @method loocv splm
 #' @order 2
 #' @export
-loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
+loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, interval = c("none", "prediction"), level = 0.95, ...) {
+  interval <- match.arg(interval)
   if (missing(local)) local <- NULL
 
   # when there is no spatial dependence or random effects, leave-one-out
@@ -67,7 +80,7 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
   # over rows, so take that fast path whenever it applies
   # iid if relevant otherwise pass
   if (inherits(coef(object, type = "spcov"), c("none", "ie")) && is.null(object$random)) {
-    return(loocv_iid(object, cv_predict, se.fit, local))
+    return(loocv_iid(object, cv_predict, se.fit, local, interval, level))
   }
 
   # local prediction list
@@ -82,6 +95,9 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
     }
   }
   local_list <- get_local_list_prediction(local)
+  # interval = "prediction" needs se.fit internally to build the interval even
+  # when the caller didn't request se.fit in the return value
+  se_needed <- se.fit || interval == "prediction"
 
   if (local_list$method == "all") {
     # exact LOO: build the full n x n covariance matrix and its inverse once,
@@ -105,18 +121,18 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
       cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv,
         Sig = cov_matrix_val,
         SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
-        SigInv_yX = SigInv_yX, se.fit = se.fit
+        SigInv_yX = SigInv_yX, se.fit = se_needed
       )
       cl <- parallel::stopCluster(cl)
     } else {
       cv_predict_val_list <- lapply(seq_len(object$n), get_loocv,
         Sig = cov_matrix_val,
         SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
-        SigInv_yX = SigInv_yX, se.fit = se.fit
+        SigInv_yX = SigInv_yX, se.fit = se_needed
       )
     }
     cv_predict_val <- vapply(cv_predict_val_list, function(x) x$pred, numeric(1))
-    if (se.fit) {
+    if (se_needed) {
       cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
     }
   } else {
@@ -195,12 +211,12 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
       # turn of parallel as it is used different in predict
       local_list$parallel <- FALSE
       cl <- parallel::makeCluster(local_list$ncores)
-      cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), loocv_local, loocv_context, se.fit, local_list)
+      cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), loocv_local, loocv_context, se_needed, local_list)
       cl <- parallel::stopCluster(cl)
     } else {
-      cv_predict_val_list <- lapply(seq_len(object$n), loocv_local, loocv_context, se.fit, local_list)
+      cv_predict_val_list <- lapply(seq_len(object$n), loocv_local, loocv_context, se_needed, local_list)
     }
-    if (se.fit) {
+    if (se_needed) {
       cv_predict_val <- vapply(cv_predict_val_list, function(x) x$fit, numeric(1))
       cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
     } else {
@@ -220,6 +236,10 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
     RMSPE = RMSPE,
     cor2 = cor2
   )
+
+  if (interval == "prediction") {
+    loocv_stats <- add_cv_coverage(loocv_stats, y, cv_predict_val, cv_predict_se, level)
+  }
 
   if (!cv_predict && !se.fit) {
     return(loocv_stats)
@@ -242,10 +262,14 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
 #' @method loocv spautor
 #' @order 3
 #' @export
-loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...) {
+loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, interval = c("none", "prediction"), level = 0.95, ...) {
+  interval <- match.arg(interval)
   if (missing(local)) local <- NULL
 
   local_list <- get_local_list_prediction(local)
+  # interval = "prediction" needs se.fit internally to build the interval even
+  # when the caller didn't request se.fit in the return value
+  se_needed <- se.fit || interval == "prediction"
 
   cov_matrix_obs_val <- covmatrix(object)
 
@@ -262,18 +286,18 @@ loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...
     cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv,
       Sig = cov_matrix_obs_val,
       SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
-      SigInv_yX = SigInv_yX, se.fit = se.fit
+      SigInv_yX = SigInv_yX, se.fit = se_needed
     )
     cl <- parallel::stopCluster(cl)
   } else {
     cv_predict_val_list <- lapply(seq_len(object$n), get_loocv,
       Sig = cov_matrix_obs_val,
       SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
-      SigInv_yX = SigInv_yX, se.fit = se.fit
+      SigInv_yX = SigInv_yX, se.fit = se_needed
     )
   }
   cv_predict_val <- vapply(cv_predict_val_list, function(x) x$pred, numeric(1))
-  if (se.fit) {
+  if (se_needed) {
     cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
   }
 
@@ -289,6 +313,10 @@ loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, ...
     RMSPE = RMSPE,
     cor2 = cor2
   )
+
+  if (interval == "prediction") {
+    loocv_stats <- add_cv_coverage(loocv_stats, y, cv_predict_val, cv_predict_se, level)
+  }
 
   if (!cv_predict && !se.fit) {
     return(loocv_stats)
@@ -385,6 +413,8 @@ loocv_local <- function(row, context, se.fit, local_list) {
 #' @param se.fit Whether to return the leave-one-out prediction standard errors
 #' @param local A list or logical controlling the big data approximation for
 #'   parallelizing the (independent, so embarrassingly parallel) standard error calculation
+#' @param interval See \code{loocv.splm()}'s \code{interval} argument
+#' @param level See \code{loocv.splm()}'s \code{level} argument
 #'
 #' @return The same value as \code{loocv.splm()}, computed via the classical
 #'   leave-one-out identity \eqn{y_i - \hat{y}_i^{(-i)} = e_i / (1 - h_{ii})},
@@ -393,10 +423,13 @@ loocv_local <- function(row, context, se.fit, local_list) {
 #'   leverage rather than requiring a full covariance-matrix update
 #'
 #' @noRd
-loocv_iid <- function(object, cv_predict, se.fit, local) {
+loocv_iid <- function(object, cv_predict, se.fit, local, interval = "none", level = 0.95) {
   # set to FALSE unless it is a list with parallel
   if (is.null(local) || is.logical(local)) local <- FALSE
   local_list <- get_local_list_prediction(local)
+  # interval = "prediction" needs se.fit internally to build the interval even
+  # when the caller didn't request se.fit in the return value
+  se_needed <- se.fit || interval == "prediction"
 
   model_frame <- model.frame(object)
   X <- model.matrix(object)
@@ -408,7 +441,7 @@ loocv_iid <- function(object, cv_predict, se.fit, local) {
   cv_predict_val <- y - cv_predict_error
 
   # parallel stuff
-  if (se.fit) {
+  if (se_needed) {
     total_var <- coef(object, type = "spcov")[["ie"]]
     if (local_list$parallel) {
       cl <- parallel::makeCluster(local_list$ncores)
@@ -437,6 +470,10 @@ loocv_iid <- function(object, cv_predict, se.fit, local) {
     cor2 = cor2
   )
 
+  if (interval == "prediction") {
+    loocv_stats <- add_cv_coverage(loocv_stats, y, cv_predict_val, cv_predict_se, level)
+  }
+
   if (!cv_predict && !se.fit) {
     return(loocv_stats)
   } else {
@@ -452,4 +489,33 @@ loocv_iid <- function(object, cv_predict, se.fit, local) {
     }
     return(loocv_out)
   }
+}
+
+#' Append empirical prediction interval coverage to a \code{loocv()}/\code{kcv()} stats tibble
+#'
+#' Shared by \code{loocv.splm()}/\code{loocv.spautor()}/\code{loocv_iid()} and
+#' \code{kcv.splm()}/\code{kcv.spautor()} -- only ever called when
+#' \code{interval == "prediction"}, i.e. when \code{fit}/\code{se} were already
+#' computed (see each caller's \code{se_needed} flag).
+#'
+#' @param stats_tibble The existing bias/MSPE/RMSPE/cor2 tibble
+#' @param y The observed response
+#' @param fit The cross-validated predictions
+#' @param se The cross-validated prediction standard errors
+#' @param level The prediction interval level
+#'
+#' @return \code{stats_tibble} with a \code{cover.XX} column appended, where
+#'   \code{XX} is \code{level} with its leading \code{"0."} dropped (e.g.
+#'   \code{cover.95} for \code{level = 0.95})
+#'
+#' @noRd
+add_cv_coverage <- function(stats_tibble, y, fit, se, level) {
+  # same normal-quantile interval predict.spmodel() uses by default (untouched
+  # scale/df, i.e. qt(..., df = Inf) == qnorm(...))
+  tstar <- qnorm(1 - (1 - level) / 2)
+  lwr <- fit - tstar * se
+  upr <- fit + tstar * se
+  cover_name <- paste0("cover.", sub("^0\\.", "", as.character(level)))
+  stats_tibble[[cover_name]] <- mean(y >= lwr & y <= upr)
+  stats_tibble
 }

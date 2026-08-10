@@ -238,6 +238,8 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
   # set partition factor if necessary
   if (missing(partition_factor)) partition_factor <- NULL
 
+  check_formula_vars_in_data(formula, data, random, partition_factor)
+
   if (missing(cutoff)) cutoff <- NULL
 
   # set ddf NULL if necessary
@@ -280,7 +282,7 @@ spautor <- function(formula, data, spcov_type, spcov_initial, estmethod = "reml"
     p = data_object$p,
     n = data_object$n,
     npar = model_stats$npar,
-    formula = formula,
+    formula = data_object$formula,
     terms = data_object$terms,
     call = match.call(),
     estmethod = estmethod,

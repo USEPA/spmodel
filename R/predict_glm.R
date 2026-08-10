@@ -386,8 +386,8 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
 
   if (local$method == "covariance") {
     n <- length(cov_vector_val)
-    # want the largest covariance here and order goes from smallest first to largest last (keep last values which are largest covariance)
-    cov_index <- order(as.numeric(cov_vector_val))[seq(from = n, to = max(1, n - local$size + 1))] # use abs() here?
+    # use abs here for the most covariance
+    cov_index <- order(abs(as.numeric(cov_vector_val)))[seq(from = n, to = max(1, n - local$size + 1))]
     obdata <- obdata[cov_index, , drop = FALSE]
     cov_vector_val <- cov_vector_val[cov_index]
     w <- w[cov_index]

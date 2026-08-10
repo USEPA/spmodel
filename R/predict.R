@@ -600,7 +600,10 @@ get_pred_splm <- function(newdata_list, prediction_object) {
   if (local$method == "covariance") {
     n <- length(cov_vector_val)
     # want the largest covariance here and order goes from smallest first to largest last (keep last values which are largest covariance)
-    cov_index <- order(as.numeric(cov_vector_val))[seq(from = n, to = max(1, n - local$size + 1))] # use abs() here?
+    # use abs() here for largest absolute covariance
+    # generally the same as cov unless spcov type 
+    # is not a monotonic function of distance
+    cov_index <- order(abs(as.numeric(cov_vector_val)))[seq(from = n, to = max(1, n - local$size + 1))]
     obdata <- obdata[cov_index, , drop = FALSE]
     cov_vector_val <- cov_vector_val[cov_index]
   }
@@ -862,8 +865,13 @@ predict.spautorRF <- function(object, newdata, local, ...) {
 
     # set local if missing
     if (missing(local)) local <- NULL
-    # do spautor prediction
-    spautor_pred <- do.call(predict, list(object = object$spautor, newdata = newdata, local = local))
+    # do spautor prediction -- newdata is intentionally omitted here (unlike
+    # the splmRF/ranger call above): object$spautor already knows its own
+    # prediction locations via object$spautor$newdata, which predict.spautor()
+    # requires newdata (if supplied at all) to match exactly, and this
+    # wrapper's own newdata is not identical to it (e.g. sf geometry handling
+    # differs) even though both represent the same underlying rows
+    spautor_pred <- do.call(predict, list(object = object$spautor, local = local))
   }
   # obtain final predictions
   ranger_pred$predictions + spautor_pred
@@ -932,9 +940,10 @@ predict.spautorRF_list <- function(object, newdata, local, ...) {
 
     # set local if missing
     if (missing(local)) local <- NULL
-    # do spautor prediction
+    # do spautor prediction -- newdata intentionally omitted; see the matching
+    # note in predict.spautorRF()
     spautor_pred <- lapply(object$spautor_list, function(x) {
-      do.call(predict, list(object = x, newdata = newdata, local = local))
+      do.call(predict, list(object = x, local = local))
     })
   }
   # obtain final predictions
@@ -1061,11 +1070,21 @@ get_extra_partition_list <- function(object, obdata, newdata) {
 #'   level (numeric/integer variables, e.g. a continuous random slope, are left
 #'   unchanged since there is no notion of an "unseen level" for them)
 #'
+#' @details \code{NA %in% x} is always \code{FALSE}, so without an explicit
+#'   check an \code{NA} value would be silently treated as just another
+#'   unseen level and replaced by the placeholder. This gives that row a zero
+#'   random effect/partition factor contribution with no error or warning,
+#'   rather than surfacing a "Cannot have NA values in predictors."
+#'   error already used for \code{NA} in a fixed effect or random slope value.
+#'
 #' @noRd
 replace_newdata <- function(varnames, obdata, newdata) {
   newdata_vec <- lapply(varnames, function(x) {
     obdata_vec <- obdata[[x]]
     newdata_vec <- newdata[[x]]
+    if (anyNA(newdata_vec)) {
+      stop("Cannot have NA values in predictors.", call. = FALSE)
+    }
     index_vec <- !newdata_vec %in% obdata_vec
     if (any(index_vec)) {
       if (is.factor(newdata_vec)) {

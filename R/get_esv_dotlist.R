@@ -70,7 +70,10 @@ get_esv_dotlist_defaults <- function(x, dotlist, cloud) {
   }
 
   if (!"ylim" %in% names_dotlist) {
-    dotlist$ylim <- c(0, 1.1 * max(x$gamma))
+    # na.rm = TRUE: bins beyond the data's actual extent (e.g. a cutoff larger
+    # than any observed pairwise distance) have no pairs and so a NA gamma;
+    # max() must ignore those to still find a finite ylim from the real bins
+    dotlist$ylim <- c(0, 1.1 * max(x$gamma, na.rm = TRUE))
   }
 
   dotlist

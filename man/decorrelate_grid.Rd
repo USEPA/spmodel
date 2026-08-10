@@ -20,7 +20,11 @@ decorrelate_grid(
 \arguments{
 \item{formula}{A two-sided linear formula describing the fixed effect structure
 of the model, with the response to the left of the \code{~} operator and
-the terms on the right, separated by \code{+} operators.}
+the terms on the right, separated by \code{+} operators. \code{.} on the
+right-hand side represents every variable in \code{data} except the
+response and the x-coordinate/y-coordinate columns (\code{xcoord}/\code{ycoord},
+or, for an \code{sf} object, the geometry column), which are never
+included via \code{.} (though they may still be given explicitly).}
 
 \item{data}{A data frame or \code{sf} object object that contains
 the variables in \code{fixed}, \code{random}, and \code{partition_factor}

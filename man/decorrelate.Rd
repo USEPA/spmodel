@@ -32,7 +32,11 @@ decorrelate(
 \arguments{
 \item{formula}{A two-sided linear formula describing the fixed effect structure
 of the model, with the response to the left of the \code{~} operator and
-the terms on the right, separated by \code{+} operators.}
+the terms on the right, separated by \code{+} operators. \code{.} on the
+right-hand side represents every variable in \code{data} except the
+response and the x-coordinate/y-coordinate columns (\code{xcoord}/\code{ycoord},
+or, for an \code{sf} object, the geometry column), which are never
+included via \code{.} (though they may still be given explicitly).}
 
 \item{data}{A data frame or \code{sf} object object that contains
 the variables in \code{fixed}, \code{random}, and \code{partition_factor}
@@ -86,11 +90,11 @@ The following arguments detail this process:
 proportionally based on \code{p}. \code{"cv"} will split \code{data} up
 via k-fold cross validation based on \code{folds}, the number of folds.
 \item \code{p}: The proportion (a numeric vector between zero and one) of observations in \code{data} that should
-be assigned to the training data. The default is 0.75, which means that
-75\% of the observations are assigned to the training data and 25\% to the
+be assigned to the training data. The default is 0.8, which means that
+80\% of the observations are assigned to the training data and 20\% to the
 test data. Ignored if \code{training_index} or \code{test_index} are provided.
 \item \code{replicate}: The number of times to replicate \code{"split"} with different random training and test assignments.
-\item \code{folds}: The number of folds to use in cross-validation. Requires \code{method = "cv"}. Ignored if \code{folds_index} is specified.
+\item \code{folds}: The number of folds to use in cross-validation. Requires \code{method = "cv"}. Ignored if \code{folds_index} is specified. The default is 5, matching the 80/20 default split above.
 \item \code{training_index}: A numeric vector that specifies which rows (i.e., indices)
 of \code{data} should be assigned to the training data. If omitted, defaults
 to the rows which are not already included in \code{test_index}.
@@ -102,7 +106,7 @@ of \code{data} are associated with each cross-validation fold. Requires
 \code{method = "cv"}.
 }
 If omitted, \code{training} is transformed into
-\code{list(method = "split", p = 0.75, replicate = 1)}.}
+\code{list(method = "split", p = 0.8, replicate = 1)}.}
 
 \item{evaluate_test}{A logical indicating whether a grid should be constructed
 and evaluated when spatial decorrelation parameters are known (i.e.,
@@ -250,7 +254,7 @@ for \eqn{h} distance between observations:
 \item gravity: \eqn{(1 + \eta^2)^{-0.5}}
 \item rquad: \eqn{(1 + \eta^2)^{-1}}
 \item magnetic: \eqn{(1 + \eta^2)^{-1.5}}
-\item matern: \eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}
+\item matern: \eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra)^{0.5} * \eta}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}
 \item cauchy: \eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}
 \item pexponential: \eqn{exp(h^{extra}/range)}, \eqn{0 < extra \le 2}
 \item none: \eqn{0}

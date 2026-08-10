@@ -221,7 +221,7 @@
 #'     \item gravity: \eqn{(1 + \eta^2)^{-0.5}}
 #'     \item rquad: \eqn{(1 + \eta^2)^{-1}}
 #'     \item magnetic: \eqn{(1 + \eta^2)^{-1.5}}
-#'     \item matern: \eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}
+#'     \item matern: \eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra)^{0.5} * \eta}, Bk is Bessel-K function with order \eqn{1/5 \le extra \le 5}
 #'     \item cauchy: \eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}
 #'     \item pexponential: \eqn{exp(h^{extra}/range)}, \eqn{0 < extra \le 2}
 #'     \item none: \eqn{0}
@@ -391,6 +391,8 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
   # set partition factor if necessary
   if (missing(partition_factor)) partition_factor <- NULL
 
+  check_formula_vars_in_data(formula, data, random, partition_factor)
+
   if (missing(local)) local <- NULL
 
   if (missing(range_constrain)) range_constrain <- FALSE
@@ -478,7 +480,7 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
     p = data_object$p,
     n = data_object$n,
     npar = model_stats$npar,
-    formula = formula,
+    formula = data_object$formula,
     terms = data_object$terms,
     call = match.call(),
     estmethod = estmethod,

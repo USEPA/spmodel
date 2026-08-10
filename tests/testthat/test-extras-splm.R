@@ -1152,3 +1152,327 @@ test_that("reported ie matches covmatrix() when the estimated ie lands at the nu
   expect_equal(spcov_coefs[["de"]] + spcov_coefs[["ie"]], unname(diag(covmatrix(spmod))[1]))
 })
 
+
+test_that("plot() works for esv()/eacf() when the cutoff exceeds the data's spatial extent", {
+  # a cutoff beyond every observed pairwise distance leaves the outermost
+  # bins empty (np = 0, gamma/acov = NA); the default ylim previously came
+  # from max()/min() without na.rm = TRUE, so plot.window() failed with
+  # "need finite 'ylim' values" -- esv() always hit this (gamma is never
+  # negative, so its ylim branch always fires), while eacf() only hit it
+  # when every non-NA acov value shared the same sign
+  pdf(NULL)
+  on.exit(dev.off())
+
+  expect_error(plot(esv(sulfate ~ 1, sulfate, cutoff = 1e7)), NA)
+  expect_error(plot(esv(sulfate ~ 1, sulfate, cutoff = 1e7, robust = TRUE)), NA)
+  expect_error(plot(eacf(sulfate ~ 1, sulfate, cutoff = 1e7)), NA)
+
+  # force eacf()'s all-positive-acov branch (same NA pattern) to confirm its
+  # latent version of the same bug is fixed too
+  e <- eacf(sulfate ~ 1, sulfate, cutoff = 1e7)
+  e$acov <- abs(e$acov)
+  expect_error(plot(e), NA)
+
+  # sanity: an ordinary (non-empty-bin) cutoff still plots fine
+  expect_error(plot(esv(sulfate ~ 1, sulfate)), NA)
+  expect_error(plot(eacf(sulfate ~ 1, sulfate)), NA)
+})
+
+test_that("esv()/eacf() formula supports . as shorthand for all predictors, excluding coordinates", {
+  # esv()/eacf() build their own model frame/matrix directly (they don't go
+  # through get_data_object_splm()), so . support needs its own coordinate/
+  # geometry exclusion -- see expand_formula_dot() in esv()/eacf()
+  set.seed(14)
+  n <- 30
+  x1 <- rnorm(n)
+  x2 <- rnorm(n)
+  xcoord <- runif(n)
+  ycoord <- runif(n)
+  y <- 1 + 2 * x1 - x2 + rnorm(n, sd = 0.3)
+  d <- data.frame(y = y, x1 = x1, x2 = x2, xcoord = xcoord, ycoord = ycoord)
+
+  esv_dot <- esv(y ~ ., data = d, xcoord = xcoord, ycoord = ycoord)
+  esv_explicit <- esv(y ~ x1 + x2, data = d, xcoord = xcoord, ycoord = ycoord)
+  expect_equal(esv_dot$gamma, esv_explicit$gamma)
+
+  eacf_dot <- eacf(y ~ ., data = d, xcoord = xcoord, ycoord = ycoord)
+  eacf_explicit <- eacf(y ~ x1 + x2, data = d, xcoord = xcoord, ycoord = ycoord)
+  expect_equal(eacf_dot$acov, eacf_explicit$acov)
+
+  # a reserved coordinate column can still be used explicitly alongside .
+  expect_error(esv(y ~ xcoord + ., data = d, xcoord = xcoord, ycoord = ycoord), NA)
+
+  # sf input: . must exclude the coordinates derived from geometry
+  d_sf <- sf::st_as_sf(d, coords = c("xcoord", "ycoord"))
+  esv_sf_dot <- esv(y ~ ., data = d_sf)
+  expect_equal(esv_sf_dot$gamma, esv_explicit$gamma)
+  eacf_sf_dot <- eacf(y ~ ., data = d_sf)
+  expect_equal(eacf_sf_dot$acov, eacf_explicit$acov)
+
+  # dist_matrix supplied directly (no coordinate columns to exclude)
+  dm <- spdist(d, "xcoord", "ycoord")
+  expect_error(esv(y ~ ., data = d, dist_matrix = dm), NA)
+  expect_error(eacf(y ~ ., data = d, dist_matrix = dm), NA)
+})
+
+test_that("local = 'covariance' neighbor selection ranks by |covariance|, not raw covariance", {
+  # spcov_types with negative covariance lobes (e.g. wave) need |covariance|
+  # ranking so a strongly negatively-correlated neighbor isn't passed over in
+  # favor of a weakly positively-correlated one -- verified directly here
+  # since the ranking itself is inline in get_pred_splm() rather than a
+  # separately-callable helper
+  cov_vec <- c(-8, -7, 6, 5, 4, 3, 2, 1, 0.5, 0.1)
+  size <- 3
+  n <- length(cov_vec)
+  old_idx <- order(cov_vec)[seq(n, n - size + 1)] # pre-fix (raw) ranking
+  new_idx <- order(abs(cov_vec))[seq(n, n - size + 1)] # post-fix (|.|) ranking
+  expect_false(setequal(old_idx, new_idx))
+  expect_setequal(cov_vec[new_idx], c(-8, -7, 6))
+
+  # regression check: predict()/decorrelate() with local = "covariance" still
+  # run correctly end-to-end for a negative-lobe spcov_type (wave)
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
+  spmod_wave <- splm(y ~ x, exdata, spcov_type = "wave", xcoord = xcoord, ycoord = ycoord)
+  pred <- predict(spmod_wave, newdata = newexdata, local = list(method = "covariance", size = 10))
+  expect_false(anyNA(pred))
+  expect_true(all(is.finite(pred)))
+  pred_block <- predict(spmod_wave, newdata = newexdata, block = TRUE, local = list(method = "covariance", size = 10))
+  expect_true(is.finite(pred_block))
+})
+
+test_that("predict() errors informatively when newdata is missing coordinate columns", {
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
+
+  spmod1 <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
+
+  # sanity: predict() still works normally when both coordinate columns are present
+  expect_vector(predict(spmod1, newdata = newexdata))
+
+  newexdata_noxcoord <- newexdata
+  newexdata_noxcoord$xcoord <- NULL
+  expect_error(predict(spmod1, newdata = newexdata_noxcoord), "coordinate column")
+  expect_error(predict(spmod1, newdata = newexdata_noxcoord, block = TRUE), "coordinate column")
+
+  newexdata_noycoord <- newexdata
+  newexdata_noycoord$ycoord <- NULL
+  expect_error(predict(spmod1, newdata = newexdata_noycoord), "coordinate column")
+
+  newexdata_nocoord <- newexdata_noxcoord
+  newexdata_nocoord$ycoord <- NULL
+  expect_error(predict(spmod1, newdata = newexdata_nocoord), "coordinate column")
+
+  # a 1D covariance (e.g. triangular) only truly needs xcoord in newdata --
+  # ycoord is auto-filled with 0 and should not be flagged as missing
+  spmod1d <- splm(y ~ x, exdata, spcov_type = "triangular", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
+  expect_vector(predict(spmod1d, newdata = newexdata_noycoord))
+  expect_error(predict(spmod1d, newdata = newexdata_noxcoord), "coordinate column")
+
+  # generic backstop: spdist_vectors() itself also catches a missing coordinate
+  expect_error(
+    spdist_vectors(data.frame(a = 1:3), data.frame(a = 4:5, b = 6:7), xcoord = "a", ycoord = "b", dim_coords = 2),
+    "Coordinate column"
+  )
+})
+
+test_that("predict() errors informatively when newdata has NA in a random-slope-only covariate", {
+  set.seed(11)
+  n <- 60
+  x1 <- rnorm(n)
+  x2 <- rnorm(n) # used only as a random slope, not a fixed effect
+  xcoord <- runif(n)
+  ycoord <- runif(n)
+  grp <- factor(sample(letters[1:5], n, replace = TRUE))
+  y <- 1 + 2 * x1 + rep(rnorm(5), length.out = n)[as.integer(grp)] * x2 + rnorm(n, sd = 0.3)
+  d <- data.frame(y = y, x1 = x1, x2 = x2, grp = grp, xcoord = xcoord, ycoord = ycoord)
+
+  spmod_slope <- splm(y ~ x1, data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~ (x2 | grp))
+
+  newdata_good <- data.frame(
+    x1 = c(0.5, -0.5), x2 = c(0.2, -0.3), grp = factor(c("a", "b"), levels = levels(grp)),
+    xcoord = c(0.3, 0.6), ycoord = c(0.3, 0.6)
+  )
+
+  # sanity: works normally when x2 has no NA
+  expect_vector(predict(spmod_slope, newdata_good))
+
+  newdata_na <- newdata_good
+  newdata_na$x2[1] <- NA
+  expect_error(predict(spmod_slope, newdata_na), "Cannot have NA values in predictors.")
+  expect_error(predict(spmod_slope, newdata_na, se.fit = TRUE), "Cannot have NA values in predictors.")
+  expect_error(predict(spmod_slope, newdata_na, local = TRUE), "Cannot have NA values in predictors.")
+})
+
+test_that("predict() errors informatively when newdata has NA in a random intercept or partition factor grouping column", {
+  set.seed(11)
+  n <- 60
+  x1 <- rnorm(n)
+  xcoord <- runif(n)
+  ycoord <- runif(n)
+  grp <- factor(sample(letters[1:5], n, replace = TRUE))
+  y <- 1 + 2 * x1 + rep(rnorm(5), length.out = n)[as.integer(grp)] + rnorm(n, sd = 0.3)
+  d <- data.frame(y = y, x1 = x1, grp = grp, xcoord = xcoord, ycoord = ycoord)
+
+  newdata_good <- data.frame(
+    x1 = c(0.5, -0.5), grp = factor(c("a", "b"), levels = levels(grp)),
+    xcoord = c(0.3, 0.6), ycoord = c(0.3, 0.6)
+  )
+  newdata_na <- newdata_good
+  newdata_na$grp[1] <- NA
+
+  # NA must error, even though a genuinely new/unseen (non-NA) level is
+  # handled gracefully (silently treated as having zero random effect/
+  # partition factor contribution) -- these are different situations and
+  # only the former should error
+  newdata_newlevel <- newdata_good
+  newdata_newlevel$grp <- factor(c("z", "b"), levels = c(levels(grp), "z"))
+
+  spmod_int <- splm(y ~ x1, data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~ (1 | grp))
+  expect_vector(predict(spmod_int, newdata_good))
+  expect_vector(predict(spmod_int, newdata_newlevel))
+  expect_error(predict(spmod_int, newdata_na), "Cannot have NA values in predictors.")
+  expect_error(predict(spmod_int, newdata_na, se.fit = TRUE), "Cannot have NA values in predictors.")
+  expect_error(predict(spmod_int, newdata_na, local = TRUE), "Cannot have NA values in predictors.")
+  expect_error(predict(spmod_int, newdata_na, interval = "prediction"), "Cannot have NA values in predictors.")
+
+  spmod_part <- splm(y ~ x1, data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, partition_factor = ~grp)
+  expect_vector(predict(spmod_part, newdata_good))
+  expect_vector(predict(spmod_part, newdata_newlevel))
+  expect_error(predict(spmod_part, newdata_na), "Cannot have NA values in predictors.")
+})
+
+test_that("splm() errors informatively when a formula/random/partition_factor variable is not in data", {
+  set.seed(12)
+  n <- 30
+  x1 <- rnorm(n)
+  xcoord <- runif(n)
+  ycoord <- runif(n)
+  grp <- factor(sample(letters[1:3], n, replace = TRUE))
+  y <- 1 + 2 * x1 + rnorm(n, sd = 0.3)
+  d <- data.frame(y = y, x1 = x1, grp = grp, xcoord = xcoord, ycoord = ycoord)
+
+  # a same-named object in the calling environment (but not in data) should
+  # not be silently picked up via ordinary formula scoping -- it should error
+  not_a_col <- rnorm(n)
+  not_a_group <- factor(sample(letters[1:3], n, replace = TRUE))
+
+  expect_error(splm(y ~ not_a_col, data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord), "not_a_col.*not found in data")
+  expect_error(splm(not_a_col ~ x1, data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord), "not_a_col.*not found in data")
+  expect_error(splm(y ~ x1, data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~not_a_group), "not_a_group.*not found in data")
+  expect_error(splm(y ~ x1, data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, partition_factor = ~not_a_group), "not_a_group.*not found in data")
+
+  # sanity: valid calls (including transformed predictors) still work
+  expect_s3_class(splm(y ~ x1, data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord), "splm")
+  expect_s3_class(splm(y ~ poly(x1, 2), data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord), "splm")
+  expect_s3_class(splm(y ~ x1, data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~grp), "splm")
+})
+
+test_that("splm() formula supports . as shorthand for all predictors, excluding coordinates", {
+  set.seed(13)
+  n <- 30
+  x1 <- rnorm(n)
+  x2 <- rnorm(n)
+  xcoord <- runif(n)
+  ycoord <- runif(n)
+  y <- 1 + 2 * x1 - x2 + rnorm(n, sd = 0.3)
+  d <- data.frame(y = y, x1 = x1, x2 = x2, xcoord = xcoord, ycoord = ycoord)
+
+  mod_dot <- splm(y ~ ., data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
+  mod_explicit <- splm(y ~ x1 + x2, data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
+  # . must expand to the non-coordinate predictors only
+  expect_equal(names(coef(mod_dot)), names(coef(mod_explicit)))
+  expect_equal(unname(coef(mod_dot)), unname(coef(mod_explicit)))
+  expect_false(any(c("xcoord", "ycoord") %in% names(coef(mod_dot))))
+
+  # model.frame()/model.matrix() must reuse the same (expanded) formula, not
+  # re-expand . against obdata (which would pull xcoord/ycoord back in)
+  expect_false(any(c("xcoord", "ycoord") %in% colnames(model.matrix(mod_dot))))
+  expect_false("." %in% all.vars(mod_dot$formula))
+
+  # the literal "." is preserved cosmetically in the printed call
+  expect_true("." %in% all.vars(mod_dot$call$formula))
+
+  # a reserved coordinate column can still be used explicitly alongside .
+  mod_trend <- splm(y ~ xcoord + ., data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
+  expect_true("xcoord" %in% names(coef(mod_trend)))
+  expect_true(all(c("x1", "x2") %in% names(coef(mod_trend))))
+
+  # sf input: . must exclude the coordinates derived from geometry, for both
+  # POINT and (centroid-derived) other geometries
+  d_sf <- sf::st_as_sf(d, coords = c("xcoord", "ycoord"))
+  mod_sf_dot <- splm(y ~ ., data = d_sf, spcov_type = "exponential")
+  expect_equal(unname(coef(mod_sf_dot)), unname(coef(mod_explicit)))
+
+  # predict() on a . fit still works and stays consistent with newdata
+  d_na <- d
+  d_na$y[1:3] <- NA
+  mod_dot_na <- splm(y ~ ., data = d_na, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
+  expect_vector(predict(mod_dot_na))
+
+  # random/partition_factor have no "everything else" meaning and must reject .
+  expect_error(
+    splm(y ~ x1, data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~.),
+    "not supported in random"
+  )
+  expect_error(
+    splm(y ~ x1, data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, partition_factor = ~.),
+    "not supported in partition_factor"
+  )
+})
+
+test_that("a user-supplied local$index must match the length of the non-missing response", {
+  # local$index labels each row of obdata (the data actually used for
+  # fitting) with a partition assignment; a row with a missing response is
+  # excluded from obdata entirely (it becomes a prediction location instead),
+  # so local$index must already be sized to the non-missing response vector,
+  # not the original (possibly larger) data -- a mismatch is rejected
+  # outright rather than guessed at, since split.data.frame()/split() don't
+  # themselves validate that the grouping vector's length matches the data
+  set.seed(12)
+  n <- 40
+  x1 <- rnorm(n)
+  xcoord <- runif(n)
+  ycoord <- runif(n)
+  y <- 1 + 2 * x1 + rnorm(n, sd = 0.3)
+  d <- data.frame(y = y, x1 = x1, xcoord = xcoord, ycoord = ycoord)
+
+  na_rows <- c(3, 10, 17, 25, 33)
+  d_na <- d
+  d_na$y[na_rows] <- NA
+  n_obs <- n - length(na_rows)
+
+  full_index <- sample(1:4, n, replace = TRUE) # wrong length: matches original n, not n_obs
+  observed_index <- which(!is.na(d_na$y))
+  correct_index <- full_index[observed_index] # right length: matches n_obs
+
+  expect_error(
+    get_data_object_splm(
+      formula = y ~ x1, data = d_na, spcov_initial = spcov_initial("exponential"),
+      xcoord = "xcoord", ycoord = "ycoord", estmethod = "reml", anisotropy = FALSE,
+      random = NULL, randcov_initial = NULL, partition_factor = NULL,
+      local = list(index = full_index), range_constrain = FALSE
+    ),
+    "local\\$index must have the same length"
+  )
+  expect_error(
+    splm(y ~ x1, data = d_na, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, local = list(index = full_index)),
+    "local\\$index must have the same length"
+  )
+
+  # a correctly-sized index (matching the non-missing response vector) works
+  data_object <- get_data_object_splm(
+    formula = y ~ x1, data = d_na, spcov_initial = spcov_initial("exponential"),
+    xcoord = "xcoord", ycoord = "ycoord", estmethod = "reml", anisotropy = FALSE,
+    random = NULL, randcov_initial = NULL, partition_factor = NULL,
+    local = list(index = correct_index), range_constrain = FALSE
+  )
+  expect_length(data_object$local_index, n_obs)
+  expect_equal(as.vector(data_object$local_index), as.vector(correct_index))
+
+  expect_s3_class(
+    splm(y ~ x1, data = d_na, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, local = list(index = correct_index)),
+    "splm"
+  )
+})
+

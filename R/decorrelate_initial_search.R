@@ -1,3 +1,29 @@
+#' Evaluate a decorrelation parameter grid on one training/test split
+#'
+#' The core of \code{\link{decorrelate}()}'s grid search: for a single
+#' training/test split (one element of the resolved \code{training} list;
+#' see \code{\link{get_training_list}()}), decorrelates the training data
+#' under every candidate parameter set in \code{grid}, fits the machine
+#' learning algorithm to each, decorrelates+predicts the test data, and
+#' recorrelates the predictions to compute test-set fit statistics (bias,
+#' MSPE, RMSPE, cor2) for that parameter set. \code{\link{decorrelate}()}
+#' calls this once per training replicate/fold and averages the results
+#' across calls when there is more than one.
+#'
+#' @param formula,data,spcov_type,spcov_params,algorithm,statistic,anisotropy,random,randcov_params,partition_factor,ordering,local,grid,dense_grid
+#'   See \code{\link{decorrelate}()}.
+#' @param training_list A single \code{list(training_index, test_index)}
+#'   element from a resolved \code{\link{get_training_list}()} result.
+#' @param add_iid Whether to append an untransformed baseline row to the
+#'   grid when one is not already supplied; see \code{\link{decorrelate}()}.
+#' @param ... Additional arguments passed to the machine learning algorithm.
+#'
+#' @return A list with elements \code{params_list} (the grid rows as
+#'   \code{spcov_params}/\code{randcov_params} objects), \code{grid} (the
+#'   grid with \code{bias}/\code{MSPE}/\code{RMSPE}/\code{cor2} columns
+#'   appended), and \code{training} (\code{training_list}, passed through).
+#'
+#' @noRd
 decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, xcoord, ycoord, algorithm, statistic, training_list, anisotropy, random, randcov_params, partition_factor, ordering = "maxmin", local, grid, dense_grid, add_iid, ...) {
 
 
@@ -5,7 +31,9 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
   data_test <- data[training_list$test_index, , drop = FALSE]
   yval <- model.response(model.frame(formula, data = data_test))
 
-
+  # build a default candidate grid unless the user supplied one; a supplied
+  # grid is validated and column-matched against what decorrelate_grid_internal()
+  # would have produced, so downstream code can treat both cases identically
   grid_compare <- decorrelate_grid_internal(
     formula = formula,
     data = data,
@@ -32,6 +60,9 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
 
   params_list <- get_params_list(grid, random, randcov_params)
 
+  # the expensive setup shared by every grid row (data object, ordering,
+  # local approximation) is computed once here via part1 and reused by
+  # part2 inside the lapply() below -- see decorrelate_data_internal_part1()
   decorrelate_part1 <- decorrelate_data_internal_part1(
     formula = formula,
     data = data_training,
@@ -45,6 +76,11 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
     ...
   )
 
+  # for each candidate parameter set: decorrelate the training data, fit the
+  # machine learning algorithm, decorrelate the test data the same way, predict, then
+  # recorrelate the predictions back to the original (response) scale before
+  # comparing to the held-out yval -- fit statistics are always computed on
+  # the recorrelated (original-scale) predictions, not the decorrelated ones
   out <- lapply(params_list, function(x) {
     tdata_training <- decorrelate_data_internal_part2(
       spcov_params = x$spcov_params,
@@ -74,6 +110,25 @@ decorrelate_initial_search <- function(formula, data, spcov_type, spcov_params, 
       )
 }
 
+#' Convert a decorrelation parameter grid's rows into parameter objects
+#'
+#' Each row of a \code{\link{decorrelate_grid}()}-style grid stores spatial
+#' covariance and random effect variance values as plain numeric columns;
+#' this converts every row into the \code{\link{spcov_params}()} object (and,
+#' if random effects are present, named variance vector) that
+#' \code{\link{decorrelate_data_internal_part2}()} and friends expect.
+#'
+#' @param grid A grid as returned by \code{\link{decorrelate_grid}()}/
+#'   \code{\link{decorrelate_grid_internal}()}.
+#' @param random The \code{random} formula, or \code{NULL}.
+#' @param randcov_params A \code{randcov_params} object/vector, or \code{NULL}
+#'   (only used to detect whether random effects are in play; per-row values
+#'   come from \code{grid} itself).
+#'
+#' @return A list (one element per grid row) of
+#'   \code{list(spcov_params, randcov_params)}.
+#'
+#' @noRd
 get_params_list <- function(grid, random, randcov_params) {
   params_list <- lapply(seq(1, NROW(grid)), function(x) {
     x <- grid[x, ]

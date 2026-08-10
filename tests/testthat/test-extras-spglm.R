@@ -290,3 +290,140 @@ test_that("anisotropy = TRUE with fully known covariance and dispersion paramete
   expect_equal(unname(coef(spmod_with_randcov, type = "randcov")[["1 | group"]]), 0.2)
 })
 
+test_that("predict() errors informatively when newdata is missing coordinate columns", {
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
+
+  spmod1 <- spglm(abs(y) ~ x, "Gamma", exdata, spcov_type = "exponential", xcoord = "xcoord", ycoord = "ycoord", estmethod = "reml")
+
+  # sanity: predict() still works normally when both coordinate columns are present
+  expect_vector(predict(spmod1, newdata = newexdata))
+
+  newexdata_nocoord <- newexdata
+  newexdata_nocoord$xcoord <- NULL
+  newexdata_nocoord$ycoord <- NULL
+  expect_error(predict(spmod1, newdata = newexdata_nocoord), "coordinate column")
+})
+
+test_that("predict() errors informatively when newdata has NA in a random intercept grouping column", {
+  set.seed(11)
+  n <- 60
+  x1 <- rnorm(n)
+  xcoord <- runif(n)
+  ycoord <- runif(n)
+  grp <- factor(sample(letters[1:5], n, replace = TRUE))
+  p <- plogis(0.3 * x1)
+  ybin <- rbinom(n, 1, p)
+  d <- data.frame(ybin = ybin, x1 = x1, grp = grp, xcoord = xcoord, ycoord = ycoord)
+
+  gmod <- spglm(ybin ~ x1, family = "binomial", data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~ (1 | grp))
+
+  newdata_good <- data.frame(
+    x1 = c(0.5, -0.5), grp = factor(c("a", "b"), levels = levels(grp)),
+    xcoord = c(0.3, 0.6), ycoord = c(0.3, 0.6)
+  )
+  expect_vector(predict(gmod, newdata_good))
+
+  newdata_na <- newdata_good
+  newdata_na$grp[1] <- NA
+  expect_error(predict(gmod, newdata_na), "Cannot have NA values in predictors.")
+  expect_error(predict(gmod, newdata_na, se.fit = TRUE), "Cannot have NA values in predictors.")
+})
+
+test_that("spglm() errors informatively when a formula/random/partition_factor variable is not in data", {
+  set.seed(12)
+  n <- 30
+  x1 <- rnorm(n)
+  xcoord <- runif(n)
+  ycoord <- runif(n)
+  grp <- factor(sample(letters[1:3], n, replace = TRUE))
+  ybin <- rbinom(n, 1, plogis(0.3 * x1))
+  d <- data.frame(ybin = ybin, x1 = x1, grp = grp, xcoord = xcoord, ycoord = ycoord)
+
+  # a same-named object in the calling environment (but not in data) should
+  # not be silently picked up via ordinary formula scoping -- it should error
+  not_a_col <- rnorm(n)
+  not_a_group <- factor(sample(letters[1:3], n, replace = TRUE))
+
+  expect_error(spglm(ybin ~ not_a_col, family = "binomial", data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord), "not_a_col.*not found in data")
+  expect_error(spglm(not_a_col ~ x1, family = "binomial", data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord), "not_a_col.*not found in data")
+  expect_error(spglm(ybin ~ x1, family = "binomial", data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~not_a_group), "not_a_group.*not found in data")
+  expect_error(spglm(ybin ~ x1, family = "binomial", data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, partition_factor = ~not_a_group), "not_a_group.*not found in data")
+
+  # sanity: a valid call still works
+  expect_s3_class(spglm(ybin ~ x1, family = "binomial", data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord), "spglm")
+})
+
+test_that("spglm() formula supports . as shorthand for all predictors, excluding coordinates", {
+  # see the matching test in test-splm.R for the full rationale
+  set.seed(13)
+  n <- 30
+  x1 <- rnorm(n)
+  xcoord <- runif(n)
+  ycoord <- runif(n)
+  ybin <- rbinom(n, 1, plogis(0.3 * x1))
+  d <- data.frame(ybin = ybin, x1 = x1, xcoord = xcoord, ycoord = ycoord)
+
+  mod_dot <- spglm(ybin ~ ., family = "binomial", data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
+  mod_explicit <- spglm(ybin ~ x1, family = "binomial", data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
+  expect_equal(names(coef(mod_dot)), names(coef(mod_explicit)))
+  expect_equal(unname(coef(mod_dot)), unname(coef(mod_explicit)))
+  expect_false(any(c("xcoord", "ycoord") %in% colnames(model.matrix(mod_dot))))
+
+  d_sf <- sf::st_as_sf(d, coords = c("xcoord", "ycoord"))
+  mod_sf_dot <- spglm(ybin ~ ., family = "binomial", data = d_sf, spcov_type = "exponential")
+  expect_equal(unname(coef(mod_sf_dot)), unname(coef(mod_explicit)))
+
+  expect_error(
+    spglm(ybin ~ x1, family = "binomial", data = d, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~.),
+    "not supported in random"
+  )
+})
+
+test_that("a user-supplied local$index must match the length of the non-missing response", {
+  # see the matching test in test-splm.R for the full rationale
+  set.seed(12)
+  n <- 40
+  x1 <- rnorm(n)
+  xcoord <- runif(n)
+  ycoord <- runif(n)
+  ybin <- rbinom(n, 1, plogis(0.3 * x1))
+  d <- data.frame(ybin = ybin, x1 = x1, xcoord = xcoord, ycoord = ycoord)
+
+  na_rows <- c(3, 10, 17, 25, 33)
+  d_na <- d
+  d_na$ybin[na_rows] <- NA
+  n_obs <- n - length(na_rows)
+
+  full_index <- sample(1:4, n, replace = TRUE) # wrong length: matches original n, not n_obs
+  observed_index <- which(!is.na(d_na$ybin))
+  correct_index <- full_index[observed_index] # right length: matches n_obs
+
+  expect_error(
+    get_data_object_spglm(
+      formula = ybin ~ x1, family = "binomial", data = d_na, spcov_initial = spcov_initial("exponential"),
+      xcoord = "xcoord", ycoord = "ycoord", estmethod = "reml", anisotropy = FALSE,
+      random = NULL, randcov_initial = NULL, partition_factor = NULL,
+      local = list(index = full_index), range_constrain = FALSE
+    ),
+    "local\\$index must have the same length"
+  )
+  expect_error(
+    spglm(ybin ~ x1, family = "binomial", data = d_na, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, local = list(index = full_index)),
+    "local\\$index must have the same length"
+  )
+
+  data_object <- get_data_object_spglm(
+    formula = ybin ~ x1, family = "binomial", data = d_na, spcov_initial = spcov_initial("exponential"),
+    xcoord = "xcoord", ycoord = "ycoord", estmethod = "reml", anisotropy = FALSE,
+    random = NULL, randcov_initial = NULL, partition_factor = NULL,
+    local = list(index = correct_index), range_constrain = FALSE
+  )
+  expect_length(data_object$local_index, n_obs)
+  expect_equal(as.vector(data_object$local_index), as.vector(correct_index))
+
+  expect_s3_class(
+    spglm(ybin ~ x1, family = "binomial", data = d_na, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, local = list(index = correct_index)),
+    "spglm"
+  )
+})

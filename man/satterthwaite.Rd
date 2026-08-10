@@ -18,8 +18,8 @@ satterthwaite(object, ...)
 \item{method}{The method by which to compute gradients. \code{"numeric"}
 for numerical differentiation and \code{"closed"} for closed form solutions.
 The default \code{"closed"} for \code{"exponential"}, \code{"gaussian"},
-and \code{"spherical"} spatial covariance functions (without anisotropy)
-and \code{"numeric"} otherwise.}
+\code{"spherical"}, \code{"none"}, and \code{"ie"} spatial covariance
+functions (without anisotropy) and \code{"numeric"} otherwise.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 }

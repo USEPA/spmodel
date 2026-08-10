@@ -64,15 +64,23 @@ get_grad_g.spautor <- function(Li, method, context, object) {
     # same finite-difference perturbation, same incidental warnings
     grad_g <- suppressWarnings(numDeriv::grad(obj_grad, context$cov_val_free))
   } else if (method == "closed") {
-    # placeholder: see get_vcov_theta.spautor()'s "closed" branch -- not
-    # currently used for car/sar because closed-form derivitaves are not yet
-    # derived, keep structure for future updates
-    # dSig_list <- get_dSig_dtheta_cov(context, object)
-    # X <- context$data_object$X
-    # a <- chol2inv(chol(covmatrix(object))) %*% X %*% vcov(object) %*% Li
-    # grad_g <- vapply(dSig_list, function(d_Sigi) {
-    #   as.numeric(crossprod(a, d_Sigi %*% a))
-    # }, numeric(1))
+    # DEAD CODE (currently unreachable), kept for structural parity with
+    # get_vcov_theta.spautor()'s "closed" branch: a genuinely spautor-classed
+    # object can only ever have spcov_type "car" or "sar" here, since
+    # spautor(spcov_type = "none"/"ie") redirects to splm() and returns an
+    # splm-classed object instead (see spautor(), "call splm if spcov_type is
+    # none") -- so satterthwaite()'s S3 dispatch never reaches this method for
+    # "none"/"ie" at all. car/sar have no dSig_dtheta_spcov.car()/.sar()
+    # implementation yet, and get_satterthwaite_method() already forces those
+    # back to "numeric", so this branch has no live caller today. It mirrors
+    # get_grad_g.splm()'s closed-form identity exactly, so it will start
+    # working immediately if closed-form car/sar derivatives are ever added.
+    dSig_list <- get_dSig_dtheta_cov(context, object)
+    X <- context$data_object$X
+    a <- chol2inv(chol(covmatrix(object))) %*% X %*% vcov(object) %*% Li
+    grad_g <- vapply(dSig_list, function(d_Sigi) {
+      as.numeric(crossprod(a, d_Sigi %*% a))
+    }, numeric(1))
   }
   names(grad_g) <- context$cov_names_free
   grad_g

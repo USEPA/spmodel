@@ -134,7 +134,8 @@ get_local_estimation_index <- function(local, data, xcoord, ycoord, n) {
   } else if (local$method == "kmeans") {
     # any extra elements in local (beyond the reserved names below) are passed
     # straight through to kmeans(), e.g. to control algorithm or nstart
-    kmeans_args <- setdiff(names(local), c("size", "groups", "method", "index", "parallel", "ncores", "var_adjust"))
+    kmeans_arg_names <- setdiff(names(local), c("size", "groups", "method", "index", "parallel", "ncores", "var_adjust"))
+    kmeans_args <- local[kmeans_arg_names]
     # cluster on spatial coordinates so each partition is a compact neighborhood
     x <- cbind(data[[xcoord]], data[[ycoord]])
     index <- do.call("kmeans", c(list(x = x, centers = local$groups, iter.max = 30), kmeans_args))$cluster
@@ -258,6 +259,25 @@ get_local_list_prediction_block <- function(local) {
   local
 }
 
+#' Build the big data approximation settings for \code{\link{sprnorm}()}
+#'
+#' Fills in defaults for (and validates) the \code{local} argument used by
+#' the unconditional simulation big data approximation: a random or
+#' spatially-balanced (GRTS) ordering is used to draw a "base" sample, the
+#' remaining locations are split into blocks (optionally via k-means on
+#' coordinates), and \code{\link{get_conditional_new_from_base}()} later
+#' simulates each block conditional on the base sample alone.
+#'
+#' @param local A logical or list; see the \code{local} argument to
+#'   \code{\link{sprnorm}()}.
+#' @param n The total number of locations to simulate.
+#' @param data A data frame containing \code{...xcoord...}/\code{...ycoord...}
+#'   columns (only used when \code{reorder = "grts"} or \code{kmeans = TRUE}).
+#'
+#' @return A list with the resolved \code{local} settings, including
+#'   \code{index = list(base = ..., new = ...)} when \code{method != "all"}.
+#'
+#' @noRd
 get_local_list_simulation <- function(local, n, data) {
 
   if (is.null(local)) {
@@ -337,10 +357,18 @@ get_local_list_simulation <- function(local, n, data) {
     groups <- ceiling(n_index_new / local$size_new) # consider adding groups as an argument
 
     if (local$kmeans) {
-      kmeans_args <- setdiff(names(local), c("method", "size_base", "size_new", "reorder", "kmeans"))
+      # any extra local list elements beyond the recognized settings are
+      # forwarded to kmeans() (e.g. nstart, algorithm), letting advanced
+      # users tune the clustering without a dedicated argument for each
+      kmeans_arg_names <- setdiff(names(local), c("method", "size_base", "size_new", "reorder", "kmeans", "parallel", "ncores"))
+      kmeans_args <- local[kmeans_arg_names]
       x <- cbind(data[index_new, "...xcoord..."], data[index_new, "...ycoord..."])
       index_new <- split(index_new, do.call("kmeans", c(list(x = x, centers = groups, iter.max = 30), kmeans_args))$cluster)
     } else {
+      # non-kmeans grouping: assign the (already ordered) remaining indices
+      # to `groups` blocks of roughly equal size, distributing the
+      # n_index_new %% groups leftover observations one-per-group among the
+      # first few groups rather than dumping them all in the last group
       index_new <- split(index_new, rep(seq(1, groups), times = c(rep(n_index_new %/% groups + 1, n_index_new %% groups), rep(n_index_new %/% groups, groups - n_index_new %% groups))))
     }
 
@@ -368,6 +396,28 @@ get_local_list_simulation <- function(local, n, data) {
 
 }
 
+#' Build the big data approximation settings for \code{\link{conditional}()}
+#'
+#' Analog of \code{\link{get_local_list_simulation}()} for conditional
+#' simulation, which needs two independent big-data decisions: how to
+#' subsample the *observed* data down to a base sample
+#' (\code{method_base}/\code{size_base}/\code{reorder_base}), and how to
+#' split the *prediction* locations into blocks
+#' (\code{method_new}/\code{size_new}/\code{reorder_new}/\code{kmeans_new}).
+#' Unlike \code{\link{get_local_list_simulation}()}, the base sample and
+#' newdata blocks are independent of each other, so each gets its own
+#' \code{method_}/\code{size_} settings.
+#'
+#' @param local A logical or list; see the \code{local} argument to
+#'   \code{\link{conditional}()}.
+#' @param object A fitted \code{splm} or \code{spglm} model object.
+#' @param newdata A data frame or \code{sf} object of prediction locations.
+#'
+#' @return A list with the resolved \code{local} settings, always including
+#'   \code{index = list(base = ..., new = ...)} (defaulting to the full index
+#'   on whichever side, base or new, its \code{method_*} is \code{"all"}).
+#'
+#' @noRd
 get_local_list_conditional <- function(local, object, newdata) {
 
   n <- object$n
@@ -423,9 +473,13 @@ get_local_list_conditional <- function(local, object, newdata) {
     local$method_new <- "all"
   }
 
-  if (local$method_base != "all") {
+  # default to the full index for whichever side (base/new) ends up not
+  # needing subsetting, so local$index below is always well-formed regardless
+  # of which of method_base/method_new (independently) is "all"
+  index_base <- seq(1, n)
+  index_new <- seq(1, n_pred)
 
-    index_base <- seq(1, n)
+  if (local$method_base != "all") {
 
     if (local$reorder_base == "random") {
       index_base <- sample(index_base)
@@ -445,8 +499,6 @@ get_local_list_conditional <- function(local, object, newdata) {
 
   if (local$method_new != "all") {
 
-    index_new <- seq(1, n_pred)
-
     if (local$reorder_new == "random") {
       index_new <- sample(index_new)
     }
@@ -454,8 +506,12 @@ get_local_list_conditional <- function(local, object, newdata) {
     groups <- ceiling(n_pred / local$size_new) # consider adding groups as an argument
 
     if (local$kmeans_new) {
-      kmeans_args <- setdiff(names(local), c("method_base", "method_new", "size_base", "size_new", "reorder_base", "reorder_new", "kmeans_new"))
+      kmeans_arg_names <- setdiff(names(local), c("method_base", "method_new", "size_base", "size_new", "reorder_base", "reorder_new", "kmeans_new", "parallel", "ncores"))
+      kmeans_args <- local[kmeans_arg_names]
 
+      # kmeans() needs plain x/y coordinate columns; if newdata is an sf
+      # object (possibly polygons), fall back to its centroids and rename the
+      # resulting geometry-derived columns to match object's coordinate names
       if (inherits(newdata, "sf")) {
         newdata <- suppressWarnings(sf::st_centroid(newdata))
         newdata <- sf_to_df(newdata)
@@ -467,11 +523,14 @@ get_local_list_conditional <- function(local, object, newdata) {
     } else {
       index_new <- split(index_new, rep(seq(1, groups), times = c(rep(n_pred %/% groups + 1, n_pred %% groups), rep(n_pred %/% groups, groups - n_pred %% groups))))
     }
-    if (local$method_base == "all") {
-      index_base <- seq(1, n)
-    }
-    local$index <- list(base = index_base, new = index_new)
   }
+
+  # set unconditionally (not just when method_new != "all") so that
+  # local$index$base is always available whenever method_base != "all" --
+  # previously this was nested inside the method_new != "all" block, so
+  # local$index was left unset (NULL) whenever a large observed data set
+  # needed subsetting but a small newdata did not
+  local$index <- list(base = index_base, new = index_new)
 
   if (!"parallel" %in% names_local) {
     local$parallel <- FALSE

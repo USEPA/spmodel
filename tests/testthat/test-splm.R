@@ -94,6 +94,10 @@ test_that("generics work splm point data", {
   expect_vector(loocv(spmod1))
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
 
+  # kcv
+  expect_vector(kcv(spmod1))
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
+
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
 
@@ -264,6 +268,10 @@ test_that("generics work splm point data with missing", {
   expect_vector(loocv(spmod1))
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
 
+  # kcv
+  expect_vector(kcv(spmod1))
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
+
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
 
@@ -429,6 +437,10 @@ test_that("generics work splm polygon data with missing", {
   expect_vector(loocv(spmod1))
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
 
+  # kcv
+  expect_vector(kcv(spmod1))
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
+
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
 
@@ -513,6 +525,29 @@ test_that("splmRF runs", {
   spmod1 <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", num.trees = 100)
   expect_s3_class(spmod1, "splmRF")
   expect_vector(predict(spmod1, newdata = exdata))
+})
+
+test_that("print() and summary() work for splmRF", {
+  skip_if_not_installed("ranger")
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+
+  spmod1 <- splmRF(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", num.trees = 100)
+
+  print_out <- capture.output(print(spmod1))
+  expect_equal(print_out[[1]], "ranger:")
+  expect_true(any(grepl("^splm on ranger residuals:$", print_out)))
+  # everything splm's own print() would show should also be present (spot check)
+  expect_true(any(grepl("Coefficients \\(fixed\\)", print_out)))
+  expect_true(any(grepl("Coefficients \\(exponential spatial covariance\\)", print_out)))
+
+  smod <- summary(spmod1)
+  expect_s3_class(smod, "summary.splmRF")
+  expect_s3_class(smod$splm, "summary.splm")
+
+  summary_out <- capture.output(print(smod))
+  expect_equal(summary_out[[1]], "ranger:")
+  expect_true(any(grepl("^splm on ranger residuals:$", summary_out)))
+  expect_true(any(grepl("Coefficients \\(fixed\\)", summary_out)))
 })
 
 test_that("splmRF_list runs", {

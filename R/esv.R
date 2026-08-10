@@ -3,7 +3,11 @@
 #' @description Compute the empirical semivariogram for varying bin sizes and
 #'   cutoff values.
 #'
-#' @param formula A formula describing the fixed effect structure.
+#' @param formula A formula describing the fixed effect structure. \code{.} on
+#'   the right-hand side represents every variable in \code{data} except the
+#'   response and the x-coordinate/y-coordinate columns (\code{xcoord}/\code{ycoord},
+#'   or, for an \code{sf} object, the geometry column), which are never
+#'   included via \code{.} (though they may still be given explicitly).
 #' @param data A data frame or \code{sf} object containing the variables in \code{formula}
 #'   and geographic information.
 #' @param xcoord Name of the variable in \code{data} representing the x-coordinate.
@@ -66,24 +70,20 @@
 #' \emph{Journal of the International Association for Mathematical Geology},
 #' \strong{12}, 115-125.
 esv <- function(formula, data, xcoord, ycoord, cloud = FALSE, robust = FALSE, bins = 15, cutoff, dist_matrix, partition_factor) {
-  # filter out missing response values
-  na_index <- is.na(data[[all.vars(formula)[1]]])
-  data <- data[!na_index, , drop = FALSE]
-  # finding model frame
-  data_model_frame <- model.frame(formula, data, drop.unused.levels = TRUE, na.action = na.pass)
-  # model matrix with potential NA
-  # na.action = na.pass above keeps NA rows so we can detect and reject them
-  # explicitly here (with a clearer error) rather than silently dropping them
-  ob_predictors <- complete.cases(model.matrix(formula, data_model_frame))
-  if (any(!ob_predictors)) {
-    stop("Cannot have NA values in predictors.", call. = FALSE)
-  }
-
   # covert sp to sf
   attr_sp <- attr(class(data), "package")
   if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
     stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
   }
+
+  # non standard evaluation for the x and y coordinates -- missing() is
+  # checked here, on the original (not yet substituted) argument
+  # as.character(substitute()) normalizes both quoted ("x") and
+  # unquoted (x) column-name references into a plain string. Downstream
+  # code checks is.null(xcoord) (not missing()) to see whether the
+  # argument was supplied.
+  xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
+  ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
 
   ## convert sf to data frame (point geometry) (1d objects obsolete)
   ### see if data has sf class
@@ -98,18 +98,25 @@ esv <- function(formula, data, xcoord, ycoord, cloud = FALSE, robust = FALSE, bi
     ycoord <- ".ycoord"
   }
 
+  # a "." in formula must be expanded before any model.frame()/model.matrix()/
+  # lm() call below, excluding the coordinate columns -- see expand_formula_dot()
+  formula <- expand_formula_dot(formula, data, c(xcoord, ycoord))
+
+  # filter out missing response values
+  na_index <- is.na(data[[all.vars(formula)[1]]])
+  data <- data[!na_index, , drop = FALSE]
+  # finding model frame
+  data_model_frame <- model.frame(formula, data, drop.unused.levels = TRUE, na.action = na.pass)
+  # model matrix with potential NA
+  # na.action = na.pass above keeps NA rows so we can detect and reject them
+  # explicitly here (with a clearer error) rather than silently dropping them
+  ob_predictors <- complete.cases(model.matrix(formula, data_model_frame))
+  if (any(!ob_predictors)) {
+    stop("Cannot have NA values in predictors.", call. = FALSE)
+  }
+
   # compute spatial distances
   if (missing(dist_matrix)) {
-    # non standard evaluation for the x and y coordinates -- missing() is
-    # checked here, on the original (not yet substituted) argument, since
-    # that's the one place missing() can answer this reliably;
-    # as.character(substitute()) then normalizes both quoted ("x") and
-    # unquoted (x) column-name references into a plain string. Downstream
-    # code checks is.null(xcoord) (not missing()) to see whether the
-    # argument was supplied.
-    xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
-    ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
-
     if (is.null(xcoord)) {
       stop("The xcoord argument must be specified.", call. = FALSE)
     }

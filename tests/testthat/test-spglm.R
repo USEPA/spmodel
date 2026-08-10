@@ -102,6 +102,12 @@ test_that("generics work spglm point data", {
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE, type = "response", delta = TRUE), "list")
 
+  # kcv
+  expect_vector(kcv(spmod1))
+  expect_type(kcv(spmod1, cv_predict = TRUE, type = "response"), "list")
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE, type = "response", delta = TRUE), "list")
+
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
 
@@ -273,6 +279,12 @@ test_that("generics work spglm point data with missing", {
   expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
 
+  # kcv
+  expect_vector(kcv(spmod1))
+  expect_type(kcv(spmod1, cv_predict = TRUE, type = "response"), "list")
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
+
+
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
 
@@ -438,6 +450,11 @@ test_that("generics work spglm polygon data with missing", {
   expect_type(loocv(spmod1, cv_predict = TRUE, type = "response"), "list")
   expect_type(loocv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
 
+  # kcv
+  expect_vector(kcv(spmod1))
+  expect_type(kcv(spmod1, cv_predict = TRUE, type = "response"), "list")
+  expect_type(kcv(spmod1, cv_predict = TRUE, se.fit = TRUE, local = TRUE), "list")
+ 
   # model.frame
   expect_s3_class(model.frame(spmod1), "data.frame")
 

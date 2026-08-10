@@ -53,8 +53,7 @@
 #'
 #' @examples
 #' \donttest{
-#' seal$var <- rnorm(NROW(seal)) # add noise variable
-#' sprfmod <- spautorRF(log_trend ~ var, data = seal, spcov_type = "car")
+#' sprfmod <- spautorRF(log_trend ~ stock, data = seal, spcov_type = "car")
 #' predict(sprfmod)
 #' }
 spautorRF <- function(formula, data, ...) {

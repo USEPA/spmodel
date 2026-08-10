@@ -43,6 +43,7 @@
 * Fixed a bug that prevented an informative error message in  `splm()`, `spautor()`, `spglm()`, and `spgautor()` when a variable used in `formula`, `random`, or `partition_factor` was not a column of `data`.
 * Fixed a bug where `predict()` for `spautor()` and`spgautor()` model objects ignored a user-supplied `newdata` argument, instead predicting for `object$newdata`. An informative error message is now returned. 
 * Fixed a bug where `splm()` and `spglm()` did not properly subset `local$index` when there were `NA` values in the response.
+* Fixed a bug where the `precip` variable in `lake` and `lake_preds` was too small by an order of 10. That is, the new values of `precip` are 10 times the old values (in both `lake` and `lake_preds`).
 
 # spmodel 0.13.0
 

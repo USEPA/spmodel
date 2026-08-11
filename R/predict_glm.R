@@ -373,13 +373,13 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
   if (local$method == "distance") {
     n <- length(cov_vector_val)
     # want the smallest distance here and order goes from smallest first to largest last (keep last values with are smallest distance)
-    nn_index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
-    obdata <- obdata[nn_index, , drop = FALSE]
-    cov_vector_val <- cov_vector_val[nn_index]
-    w <- w[nn_index]
-    y <- y[nn_index]
+    keep <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
+    obdata <- obdata[keep, , drop = FALSE]
+    cov_vector_val <- cov_vector_val[keep]
+    w <- w[keep]
+    y <- y[keep]
     if (!is.null(size)) {
-      size <- size[nn_index]
+      size <- size[keep]
     }
   }
 
@@ -387,13 +387,13 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
   if (local$method == "covariance") {
     n <- length(cov_vector_val)
     # use abs here for the most covariance
-    cov_index <- order(abs(as.numeric(cov_vector_val)))[seq(from = n, to = max(1, n - local$size + 1))]
-    obdata <- obdata[cov_index, , drop = FALSE]
-    cov_vector_val <- cov_vector_val[cov_index]
-    w <- w[cov_index]
-    y <- y[cov_index]
+    keep <- order(abs(as.numeric(cov_vector_val)))[seq(from = n, to = max(1, n - local$size + 1))]
+    obdata <- obdata[keep, , drop = FALSE]
+    cov_vector_val <- cov_vector_val[keep]
+    w <- w[keep]
+    y <- y[keep]
     if (!is.null(size)) {
-      size <- size[cov_index]
+      size <- size[keep]
     }
   }
 
@@ -440,12 +440,7 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
     if (local$method %in% c("distance", "covariance")) {
       wtfit <- fit
       fit <- Matrix::Matrix(0, nrow = 1, ncol = n, sparse = TRUE)
-      if (local$method == "distance") {
-        fit[nn_index] <- wtfit
-      }
-      if (local$method == "covariance") {
-        fit[cov_index] <- wtfit
-      }
+      fit[keep] <- wtfit
     }
   } else {
     # universal kriging BLUP on the link scale: the trend x0 %*% betahat plus

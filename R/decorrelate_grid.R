@@ -140,15 +140,13 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
     ycoord <- ".ycoord"
   }
   # storing max halfdist
-  x_range <- range(data[[xcoord]])
   if (spcov_type %in% c("triangular", "cosine")) {
     data[[ycoord]] <- 0
   }
-  y_range <- range(data[[ycoord]])
   # candidate ranges are a shrunk/expanded version of a domain-size-based
   # heuristic starting range (half the domain's diagonal), the same starting
   # range logic splm()/spglm() use for their own optimizers
-  max_halfdist <- sqrt((max(x_range) - min(x_range))^2 + (max(y_range) - min(y_range))^2) / 2
+  max_halfdist <- get_bounding_box_dist(data[[xcoord]], data[[ycoord]]) / 2
   range <- get_initial_range(spcov_type, max_halfdist) * c(0.5, 1.5)
   ## anisotropy
   if (anisotropy) {

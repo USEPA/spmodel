@@ -575,19 +575,19 @@ get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_
     n <- length(cov_vec_new)
     # want the smallest distance here and order goes from smallest first to largest last
     # (keep last values with are smallest distance)
-    nn_index <- order(as.numeric(dists_new))[seq(from = 1, to = min(n, local$size))]
-    X_old <- X_old[nn_index, , drop = FALSE]
-    y_old <- y_old[nn_index, , drop = FALSE]
-    xcoord_val_old <- xcoord_val[nn_index]
-    ycoord_val_old <- ycoord_val[nn_index]
+    keep <- order(as.numeric(dists_new))[seq(from = 1, to = min(n, local$size))]
+    X_old <- X_old[keep, , drop = FALSE]
+    y_old <- y_old[keep, , drop = FALSE]
+    xcoord_val_old <- xcoord_val[keep]
+    ycoord_val_old <- ycoord_val[keep]
     dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
     if (!is.null(randcov_matrix)) {
-      randcov_matrix <- randcov_matrix[nn_index, nn_index, drop = FALSE]
+      randcov_matrix <- randcov_matrix[keep, keep, drop = FALSE]
     }
     if (!is.null(partition_matrix)) {
-      partition_matrix <- partition_matrix[nn_index, nn_index, drop = FALSE]
+      partition_matrix <- partition_matrix[keep, keep, drop = FALSE]
     }
-    cov_vec_new <- cov_vec_new[nn_index]
+    cov_vec_new <- cov_vec_new[keep]
   }
 
   if (local$method == "covariance") { # && index > local$size
@@ -601,19 +601,19 @@ get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_
     # pass over it in favor of weakly positive neighbors. For the (far more
     # common) monotone decreasing spcov_types, covariance is never negative,
     # so abs() has no effect there
-    cov_index <- order(abs(as.numeric(cov_vec_new)))[seq(from = n, to = max(1, n - local$size + 1))]
-    X_old <- X_old[cov_index, , drop = FALSE]
-    y_old <- y_old[cov_index, , drop = FALSE]
-    xcoord_val_old <- xcoord_val[cov_index]
-    ycoord_val_old <- ycoord_val[cov_index]
+    keep <- order(abs(as.numeric(cov_vec_new)))[seq(from = n, to = max(1, n - local$size + 1))]
+    X_old <- X_old[keep, , drop = FALSE]
+    y_old <- y_old[keep, , drop = FALSE]
+    xcoord_val_old <- xcoord_val[keep]
+    ycoord_val_old <- ycoord_val[keep]
     dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
     if (!is.null(randcov_matrix)) {
-      randcov_matrix <- randcov_matrix[cov_index, cov_index, drop = FALSE]
+      randcov_matrix <- randcov_matrix[keep, keep, drop = FALSE]
     }
     if (!is.null(partition_matrix)) {
-      partition_matrix <- partition_matrix[cov_index, cov_index, drop = FALSE]
+      partition_matrix <- partition_matrix[keep, keep, drop = FALSE]
     }
-    cov_vec_new <- cov_vec_new[cov_index]
+    cov_vec_new <- cov_vec_new[keep]
   }
 
   cov_mat_old <- cov_matrix2(spcov_params, dist_matrix = dists_old, randcov_matrix = randcov_matrix, partition_matrix = partition_matrix)

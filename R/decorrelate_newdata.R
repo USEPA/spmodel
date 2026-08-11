@@ -303,11 +303,11 @@ get_decorrelate_newdata <- function(newdata_list, object, cor_lowchol_list, extr
     n <- length(cov_vector_val)
     # want the smallest distance here and order goes from smallest first to largest last
     # (keep last values with are smallest distance)
-    nn_index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, object$local$size))]
-    obdata <- obdata[nn_index, , drop = FALSE]
-    X <- X[nn_index, , drop = FALSE]
-    y <- y[nn_index]
-    cov_vector_val <- cov_vector_val[nn_index]
+    keep <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, object$local$size))]
+    obdata <- obdata[keep, , drop = FALSE]
+    X <- X[keep, , drop = FALSE]
+    y <- y[keep]
+    cov_vector_val <- cov_vector_val[keep]
   }
 
   if (object$local$method == "covariance") {
@@ -317,11 +317,11 @@ get_decorrelate_newdata <- function(newdata_list, object, cor_lowchol_list, extr
     # abs() is used because a few spcov_types (e.g., wave, cosine, jbessel)
     # have negative covariance lobes -- see the matching note in
     # decorrelate_data.R's get_decorrelated_value()
-    cov_index <- order(abs(as.numeric(cov_vector_val)))[seq(from = n, to = max(1, n - object$local$size + 1))]
-    obdata <- obdata[cov_index, , drop = FALSE]
-    X <- X[cov_index, , drop = FALSE]
-    y <- y[cov_index]
-    cov_vector_val <- cov_vector_val[cov_index]
+    keep <- order(abs(as.numeric(cov_vector_val)))[seq(from = n, to = max(1, n - object$local$size + 1))]
+    obdata <- obdata[keep, , drop = FALSE]
+    X <- X[keep, , drop = FALSE]
+    y <- y[keep]
+    cov_vector_val <- cov_vector_val[keep]
   }
 
   if (object$local$method %in% c("distance", "covariance")) {

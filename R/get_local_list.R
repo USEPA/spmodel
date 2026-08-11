@@ -261,21 +261,38 @@ get_local_list_prediction_block <- function(local) {
 
 #' Build the big data approximation settings for \code{\link{sprnorm}()}
 #'
-#' Fills in defaults for (and validates) the \code{local} argument used by
-#' the unconditional simulation big data approximation: a random or
-#' spatially-balanced (GRTS) ordering is used to draw a "base" sample, the
-#' remaining locations are split into blocks (optionally via k-means on
-#' coordinates), and \code{\link{get_conditional_new_from_base}()} later
-#' simulates each block conditional on the base sample alone.
+#' Dispatches on \code{local$approximation} to one of two big-data
+#' approximations for unconditional simulation (see \code{\link{sprnorm}()}'s
+#' \code{local} argument for the full description of each):
+#' \itemize{
+#'   \item \code{"low-rank"} (the default): \code{\link{get_local_list_simulation_lowrank}()}.
+#'     A random or spatially-balanced (GRTS) ordering is used to draw a
+#'     "base" sample, the remaining locations are split into blocks
+#'     (optionally via k-means on coordinates), and
+#'     \code{\link{get_conditional_new_from_base}()} simulates each block
+#'     conditional on the base sample alone (blocks are conditionally
+#'     independent given the base).
+#'   \item \code{"vecchia"}: \code{\link{get_local_list_simulation_vecchia}()}.
+#'     Every location is simulated sequentially, each conditional on every
+#'     earlier-simulated location, optionally truncated to a nearest/most-
+#'     correlated neighbor subset (\code{method}/\code{size} which is the same
+#'     \code{"all"}/\code{"distance"}/\code{"covariance"} neighbor-selection
+#'     convention used elsewhere in the package) (see
+#'     \code{\link{get_sprnorm_vecchia}()}). There is no "base" sample to
+#'     subsample at all here (contrast \code{"low-rank"}'s \code{size_base})
+#'     (see \code{\link{get_local_list_conditional_vecchia}()}'s equivalent
+#'     note for \code{\link{conditional}()}).
+#' }
 #'
 #' @param local A logical or list; see the \code{local} argument to
 #'   \code{\link{sprnorm}()}.
 #' @param n The total number of locations to simulate.
 #' @param data A data frame containing \code{...xcoord...}/\code{...ycoord...}
-#'   columns (only used when \code{reorder = "grts"} or \code{kmeans = TRUE}).
+#'   columns.
 #'
-#' @return A list with the resolved \code{local} settings, including
-#'   \code{index = list(base = ..., new = ...)} when \code{method != "all"}.
+#' @return A list with the resolved \code{local} settings (shape depends on
+#'   \code{approximation} (see \code{\link{get_local_list_simulation_lowrank}()}/
+#'   \code{\link{get_local_list_simulation_vecchia}()})).
 #'
 #' @noRd
 get_local_list_simulation <- function(local, n, data) {
@@ -293,34 +310,66 @@ get_local_list_simulation <- function(local, n, data) {
     if (local) {
       local <- list()
     } else {
-      local <- list(method = "all")
+      local <- list(approximation = "low-rank", method_base = "all")
     }
   }
 
   names_local <- names(local)
 
-  if (!"method" %in% names_local) local$method <- "base"
-  if (!"size_base" %in% names_local) local$size_base <- 3000
-  if (!"size_new" %in% names_local) local$size_new <- 500
-  if (!"reorder" %in% names_local) local$reorder <- "grts"
-  if (!"kmeans" %in% names_local) {
-    if (local$reorder == "none") {
-      local$kmeans <- FALSE
+  if (!"approximation" %in% names_local) local$approximation <- "low-rank"
+  if (!local$approximation %in% c("low-rank", "vecchia")) {
+    stop("local$approximation must be \"low-rank\" or \"vecchia\".", call. = FALSE)
+  }
+
+  if (local$approximation == "vecchia") {
+    local <- get_local_list_simulation_vecchia(local, n, data)
+  } else {
+    local <- get_local_list_simulation_lowrank(local, n, data)
+  }
+
+  local
+}
+
+#' Build the \code{"low-rank"} (base+block) big data approximation settings
+#' for \code{\link{sprnorm}()}
+#'
+#' @param local The partially-resolved \code{local} list (already has
+#'   \code{approximation == "low-rank"}).
+#' @param n The total number of locations to simulate.
+#' @param data A data frame containing \code{...xcoord...}/\code{...ycoord...}
+#'   columns (only used when \code{reorder_base = "grts"} or \code{kmeans_new = TRUE}).
+#'
+#' @return \code{local}, with every \code{"low-rank"} default filled in and
+#'   \code{index = list(base = ..., new = ...)} set when
+#'   \code{method_base != "all"}.
+#'
+#' @noRd
+get_local_list_simulation_lowrank <- function(local, n, data) {
+
+  names_local <- names(local)
+
+  if (!"method_base" %in% names_local) local$method_base <- "base"
+  if (!"size_base" %in% names_local) local$size_base <- 5000
+  if (!"size_new" %in% names_local) local$size_new <- 1000
+  if (!"reorder_base" %in% names_local) local$reorder_base <- "grts"
+  if (!"kmeans_new" %in% names_local) {
+    if (local$reorder_base == "none") {
+      local$kmeans_new <- FALSE
     } else {
-      local$kmeans <- TRUE
+      local$kmeans_new <- TRUE
     }
   }
 
-  if (!local$reorder %in% c("none", "random", "grts")) {
+  if (!local$reorder_base %in% c("none", "random", "grts")) {
     stop("method must be \"random\", \"grts\", or \"none\".", call. = FALSE)
   }
 
 
   if (local$size_base >= n) {
-    local <- list(method = "all")
+    local <- list(approximation = "low-rank", method_base = "all")
   }
 
-  if (local$method != "all") {
+  if (local$method_base != "all") {
 
     if (local$size_base > 10000) {
       warning("size_base exceeds 10,000, which may result in exceedingly long computational times. Consider reducing size_base.", call. = FALSE)
@@ -333,13 +382,13 @@ get_local_list_simulation <- function(local, n, data) {
   }
 
 
-  if (local$method != "all") {
+  if (local$method_base != "all") {
 
     index <- seq(1, n)
 
-    if (local$reorder == "random") {
+    if (local$reorder_base == "random") {
       index <- sample(index)
-    } else if (local$reorder == "grts") {
+    } else if (local$reorder_base == "grts") {
       if (!requireNamespace("spsurvey", quietly = TRUE)) {
         stop("Install the spsurvey package before using local method \"grts\".", call. = FALSE)
       } else {
@@ -356,11 +405,11 @@ get_local_list_simulation <- function(local, n, data) {
     n_index_new <- length(index_new)
     groups <- ceiling(n_index_new / local$size_new) # consider adding groups as an argument
 
-    if (local$kmeans) {
+    if (local$kmeans_new) {
       # any extra local list elements beyond the recognized settings are
       # forwarded to kmeans() (e.g. nstart, algorithm), letting advanced
       # users tune the clustering without a dedicated argument for each
-      kmeans_arg_names <- setdiff(names(local), c("method", "size_base", "size_new", "reorder", "kmeans", "parallel", "ncores"))
+      kmeans_arg_names <- setdiff(names(local), c("approximation", "method_base", "size_base", "size_new", "reorder_base", "kmeans_new", "parallel", "ncores"))
       kmeans_args <- local[kmeans_arg_names]
       x <- cbind(data[index_new, "...xcoord..."], data[index_new, "...ycoord..."])
       index_new <- split(index_new, do.call("kmeans", c(list(x = x, centers = groups, iter.max = 30), kmeans_args))$cluster)
@@ -374,14 +423,14 @@ get_local_list_simulation <- function(local, n, data) {
 
     local$index <- list(base = index_base, new = index_new)
 
-    if (!"parallel" %in% names_local) {
+    if (!"parallel" %in% names(local)) {
       local$parallel <- FALSE
       local$ncores <- NULL
     }
 
     if (local$parallel) {
       n_index <- length(unique(local$index))
-      if ("ncores" %in% names_local) {
+      if ("ncores" %in% names(local)) {
         cores_available <- parallel::detectCores()
         local$ncores <- min(n_index, local$ncores, cores_available)
       } else {
@@ -396,26 +445,101 @@ get_local_list_simulation <- function(local, n, data) {
 
 }
 
+#' Build the \code{"vecchia"} big data approximation settings for
+#' \code{\link{sprnorm}()}
+#'
+#' Unlike \code{"low-rank"}, there is no base sample at all (every location
+#' is simulated, none are treated as already known -- contrast
+#' \code{\link{get_local_list_conditional_vecchia}()}, where observed data
+#' *is* already known), so the only settings needed here are the simulation
+#' order (over all \code{n} locations) and the per-location neighbor
+#' truncation (\code{method}/\code{size}).
+#'
+#' @param local The partially-resolved \code{local} list (already has
+#'   \code{approximation == "vecchia"}).
+#' @param n The total number of locations to simulate.
+#' @param data A data frame containing \code{...xcoord...}/\code{...ycoord...}
+#'   columns.
+#'
+#' @return \code{local}, with every \code{"vecchia"} default filled in and
+#'   \code{order}/\code{inv_order} set (the simulation order from
+#'   \code{\link{get_decorrelate_order}()}, and its inverse).
+#'
+#' @noRd
+get_local_list_simulation_vecchia <- function(local, n, data) {
+
+  names_local <- names(local)
+
+  if (!"size" %in% names_local) local$size <- 30
+  if (!"method" %in% names_local) local$method <- "covariance"
+  if (!local$method %in% c("all", "distance", "covariance")) {
+    stop("local$method must be \"all\", \"distance\", or \"covariance\".", call. = FALSE)
+  }
+  if (!"ordering" %in% names_local) local$ordering <- "maxmin"
+  if (!local$ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
+    stop("local$ordering must be \"maxmin\", \"middleout\", \"outsidein\", \"coordinate\", \"grts\", \"random\", or \"none\".", call. = FALSE)
+  }
+
+  if ("parallel" %in% names_local && isTRUE(local$parallel)) {
+    warning("local$parallel is not used when local$approximation = \"vecchia\" -- the simulation is inherently sequential (each location can depend on earlier-simulated ones), so there is no block-level work to parallelize. Ignoring.", call. = FALSE)
+  }
+
+  # method = "all" disables neighbor truncation entirely, so every location's
+  # conditioning pool grows to include every earlier-simulated location,
+  # unlike the rest of "vecchia" (whose per-location cost is capped by size,
+  # independent of n), this makes the total cost scale roughly like n^4
+  # (each of n sequential steps factors a covariance matrix up to n x n).
+  # It exists to numerically verify the exactness identity against
+  # local = FALSE on modest sample sizes, not as a scalable configuration.
+  if (local$method == "all" && n > 2000) {
+    warning("local$method = \"all\" disables neighbor truncation, so every location's conditioning set grows to include all previously-simulated locations. Unlike local$method = \"distance\"/\"covariance\", this does not scale well (cost grows roughly like n^4) and can be extremely slow for more than a few thousand locations. Consider local$method = \"distance\" or \"covariance\" instead, or reserve local$method = \"all\" for exactness checks on modest sample sizes.", call. = FALSE)
+  }
+
+  ord <- get_decorrelate_order(local$ordering, data[["...xcoord..."]], data[["...ycoord..."]])
+  local$order <- ord$order
+  local$inv_order <- ord$inv_order
+
+  local
+}
+
 #' Build the big data approximation settings for \code{\link{conditional}()}
 #'
-#' Analog of \code{\link{get_local_list_simulation}()} for conditional
-#' simulation, which needs two independent big-data decisions: how to
-#' subsample the *observed* data down to a base sample
-#' (\code{method_base}/\code{size_base}/\code{reorder_base}), and how to
-#' split the *prediction* locations into blocks
-#' (\code{method_new}/\code{size_new}/\code{reorder_new}/\code{kmeans_new}).
-#' Unlike \code{\link{get_local_list_simulation}()}, the base sample and
-#' newdata blocks are independent of each other, so each gets its own
-#' \code{method_}/\code{size_} settings.
+#' Dispatches on \code{local$approximation} to one of two big-data
+#' approximations for conditional simulation (see \code{\link{conditional}()}'s
+#' \code{local} argument for the full description of each):
+#' \itemize{
+#'   \item \code{"low-rank"} (the default): \code{\link{get_local_list_conditional_lowrank}()}.
+#'     Two independent big-data decisions: how to subsample the *observed*
+#'     data down to a base sample (\code{method_base}/\code{size_base}/
+#'     \code{reorder_base}), and how to split the *prediction* locations into
+#'     blocks (\code{method_new}/\code{size_new}/\code{reorder_new}/
+#'     \code{kmeans_new}), treated as conditionally independent given the base.
+#'   \item \code{"vecchia"}: \code{\link{get_local_list_conditional_vecchia}()}.
+#'     Every \code{newdata} location is simulated sequentially, each
+#'     conditional on all observed data plus every earlier-simulated
+#'     \code{newdata} location, optionally truncated to a nearest/most-
+#'     correlated neighbor subset (\code{method}/\code{size} -- matching the
+#'     \code{"all"}/\code{"distance"}/\code{"covariance"} neighbor-selection
+#'     convention used elsewhere in the package, e.g. \code{predict()}'s own
+#'     \code{local$method}) (see \code{\link{get_conditional_vecchia}()}).
+#' }
+#' \code{approximation} is a new top-level key with no analog before
+#' \code{"vecchia"} existed (every big-data \code{local} list in the package
+#' previously had exactly one strategy, so nothing picked between strategies);
+#' it is deliberately not named \code{method} or \code{type} to avoid
+#' colliding with vecchia's own \code{method} (the neighbor-selection rule,
+#' same name/meaning as \code{predict()}/\code{decorrelate()}'s
+#' \code{local$method}) or \code{conditional()}'s own top-level \code{type}
+#' argument (the \code{spglm()} link/response/new scale).
 #'
 #' @param local A logical or list; see the \code{local} argument to
 #'   \code{\link{conditional}()}.
 #' @param object A fitted \code{splm} or \code{spglm} model object.
 #' @param newdata A data frame or \code{sf} object of prediction locations.
 #'
-#' @return A list with the resolved \code{local} settings, always including
-#'   \code{index = list(base = ..., new = ...)} (defaulting to the full index
-#'   on whichever side, base or new, its \code{method_*} is \code{"all"}).
+#' @return A list with the resolved \code{local} settings (shape depends on
+#'   \code{approximation}; see \code{\link{get_local_list_conditional_lowrank}()}/
+#'   \code{\link{get_local_list_conditional_vecchia}()}).
 #'
 #' @noRd
 get_local_list_conditional <- function(local, object, newdata) {
@@ -436,16 +560,76 @@ get_local_list_conditional <- function(local, object, newdata) {
     if (local) {
       local <- list()
     } else {
-      local <- list(method_base = "all", method_new = "all")
+      local <- list(approximation = "low-rank", method_base = "all", method_new = "all")
     }
   }
 
   names_local <- names(local)
 
+  if (!"approximation" %in% names_local) local$approximation <- "low-rank"
+  if (!local$approximation %in% c("low-rank", "vecchia")) {
+    stop("local$approximation must be \"low-rank\" or \"vecchia\".", call. = FALSE)
+  }
+
+  if (local$approximation == "vecchia") {
+    local <- get_local_list_conditional_vecchia(local, object, newdata)
+  } else {
+    local <- get_local_list_conditional_lowrank(local, object, newdata, n, n_pred)
+  }
+
+  if (!"parallel" %in% names(local)) {
+    local$parallel <- FALSE
+    local$ncores <- NULL
+  }
+
+  # vecchia's simulation loop is inherently sequential (each newdata location
+  # can depend on earlier-simulated ones), so there is no block-level index
+  # to parallelize over the way "low-rank" has. get_local_list_conditional_vecchia()
+  # already warns if the user set parallel = TRUE, so this is just a guard
+  if (local$approximation == "low-rank" && local$parallel) {
+    n_index <- length(unique(local$index))
+    if ("ncores" %in% names(local)) {
+      cores_available <- parallel::detectCores()
+      local$ncores <- min(n_index, local$ncores, cores_available)
+    } else {
+      local$ncores <- parallel::detectCores()
+      local$ncores <- min(n_index, local$ncores)
+    }
+  }
+
+  local
+
+}
+
+#' Build the \code{"low-rank"} (base+block) big data approximation settings
+#' for \code{\link{conditional}()}
+#'
+#' The base-sample settings (\code{method_base}/\code{size_base}/
+#' \code{reorder_base}) and the \code{newdata}-blocking settings
+#' (\code{method_new}/\code{size_new}/\code{reorder_new}/\code{kmeans_new})
+#' are independent of one another, so each gets its own \code{method_}/
+#' \code{size_} settings.
+#'
+#' @param local The partially-resolved \code{local} list (already has
+#'   \code{approximation == "low-rank"}).
+#' @param object A fitted \code{splm} or \code{spglm} model object.
+#' @param newdata A data frame or \code{sf} object of prediction locations.
+#' @param n The observed sample size.
+#' @param n_pred The number of \code{newdata} rows.
+#'
+#' @return \code{local}, with every \code{"low-rank"} default filled in and
+#'   \code{index = list(base = ..., new = ...)} set (defaulting to the full
+#'   index on whichever side, base or new, its \code{method_*} is \code{"all"}).
+#'
+#' @noRd
+get_local_list_conditional_lowrank <- function(local, object, newdata, n, n_pred) {
+
+  names_local <- names(local)
+
   if (!"method_base" %in% names_local) local$method_base <- "base"
   if (!"method_new" %in% names_local) local$method_new <- "base"
-  if (!"size_base" %in% names_local) local$size_base <- 3000
-  if (!"size_new" %in% names_local) local$size_new <- 500
+  if (!"size_base" %in% names_local) local$size_base <- 5000
+  if (!"size_new" %in% names_local) local$size_new <- 1000
   if (!"reorder_base" %in% names_local) local$reorder_base <- "grts"
   if (!"reorder_new" %in% names_local) local$reorder_new <- "random"
 
@@ -506,7 +690,7 @@ get_local_list_conditional <- function(local, object, newdata) {
     groups <- ceiling(n_pred / local$size_new) # consider adding groups as an argument
 
     if (local$kmeans_new) {
-      kmeans_arg_names <- setdiff(names(local), c("method_base", "method_new", "size_base", "size_new", "reorder_base", "reorder_new", "kmeans_new", "parallel", "ncores"))
+      kmeans_arg_names <- setdiff(names(local), c("approximation", "method_base", "method_new", "size_base", "size_new", "reorder_base", "reorder_new", "kmeans_new", "parallel", "ncores"))
       kmeans_args <- local[kmeans_arg_names]
 
       # kmeans() needs plain x/y coordinate columns; if newdata is an sf
@@ -532,22 +716,74 @@ get_local_list_conditional <- function(local, object, newdata) {
   # needed subsetting but a small newdata did not
   local$index <- list(base = index_base, new = index_new)
 
-  if (!"parallel" %in% names_local) {
-    local$parallel <- FALSE
-    local$ncores <- NULL
+  local
+}
+
+#' Build the \code{"vecchia"} big data approximation settings for
+#' \code{\link{conditional}()}
+#'
+#' Unlike \code{"low-rank"}, the observed data is never subsampled (see
+#' \code{\link{get_conditional_vecchia}()}), so the only settings needed here
+#' are the \code{newdata} simulation order and the per-location neighbor
+#' truncation (\code{method}/\code{size} -- \code{"all"}/\code{"distance"}/
+#' \code{"covariance"}, the same neighbor-selection convention \code{predict()}/
+#' \code{decorrelate()} already use for their own \code{local$method}).
+#'
+#' @param local The partially-resolved \code{local} list (already has
+#'   \code{approximation == "vecchia"}).
+#' @param object A fitted \code{splm} or \code{spglm} model object.
+#' @param newdata A data frame or \code{sf} object of prediction locations.
+#'
+#' @return \code{local}, with every \code{"vecchia"} default filled in and
+#'   \code{order}/\code{inv_order} set (the \code{newdata} simulation order
+#'   from \code{\link{get_decorrelate_order}()}, and its inverse).
+#'
+#' @noRd
+get_local_list_conditional_vecchia <- function(local, object, newdata) {
+
+  names_local <- names(local)
+
+  if (!"size" %in% names_local) local$size <- 30
+  if (!"method" %in% names_local) local$method <- "covariance"
+  if (!local$method %in% c("all", "distance", "covariance")) {
+    stop("local$method must be \"all\", \"distance\", or \"covariance\".", call. = FALSE)
+  }
+  if (!"ordering" %in% names_local) local$ordering <- "maxmin"
+  if (!local$ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
+    stop("local$ordering must be \"maxmin\", \"middleout\", \"outsidein\", \"coordinate\", \"grts\", \"random\", or \"none\".", call. = FALSE)
   }
 
-  if (local$parallel) {
-    n_index <- length(unique(local$index))
-    if ("ncores" %in% names_local) {
-      cores_available <- parallel::detectCores()
-      local$ncores <- min(n_index, local$ncores, cores_available)
-    } else {
-      local$ncores <- parallel::detectCores()
-      local$ncores <- min(n_index, local$ncores)
-    }
+  if ("parallel" %in% names_local && isTRUE(local$parallel)) {
+    warning("local$parallel is not used when local$approximation = \"vecchia\". Ignoring.", call. = FALSE)
   }
+
+  # method = "all" disables neighbor truncation entirely, so every newdata
+  # location's conditioning pool always includes ALL observed data (never
+  # subsampled for "vecchia") plus every earlier-simulated newdata location --
+  # unlike the rest of "vecchia" (whose per-location cost is capped by size,
+  # independent of the observed sample size), this makes the total cost scale
+  # roughly like n_pred * n_obs^3 (each of n_pred sequential steps factors a
+  # covariance matrix close to n_obs x n_obs in size). It exists to
+  # numerically verify the exactness identity against local = FALSE on modest
+  # sample sizes, not as a scalable configuration.
+  if (local$method == "all" && object$n > 2000) {
+    warning("local$method = \"all\" should not be used with \"vecchia\" for large sample sizes because of exceedingly long computational times.", call. = FALSE)
+  }
+
+  # newdata coordinates for ordering only -- sf objects fall back to
+  # centroids, matching the "low-rank" path's kmeans_new handling
+  if (inherits(newdata, "sf")) {
+    newdata <- suppressWarnings(sf::st_centroid(newdata))
+    newdata <- sf_to_df(newdata)
+    names(newdata)[[which(names(newdata) == ".xcoord")]] <- as.character(object$xcoord)
+    names(newdata)[[which(names(newdata) == ".ycoord")]] <- as.character(object$ycoord)
+  }
+  xcoord_new <- newdata[[object$xcoord]]
+  ycoord_new <- newdata[[object$ycoord]]
+
+  ord <- get_decorrelate_order(local$ordering, xcoord_new, ycoord_new)
+  local$order <- ord$order
+  local$inv_order <- ord$inv_order
 
   local
-
 }

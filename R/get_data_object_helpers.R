@@ -237,9 +237,7 @@ get_range_constrain_setup <- function(obdata, xcoord, ycoord, spcov_initial, ran
   # box of observed coordinates -- used below to put a sensible upper bound
   # on the range parameter, since ranges much larger than the domain itself
   # are not identifiable from the data
-  x_range <- range(obdata[[xcoord]])
-  y_range <- range(obdata[[ycoord]])
-  max_halfdist <- sqrt((max(x_range) - min(x_range))^2 + (max(y_range) - min(y_range))^2) / 2
+  max_halfdist <- get_bounding_box_dist(obdata[[xcoord]], obdata[[ycoord]]) / 2
 
   max_range_scale <- 4
   range_constrain_value <- 2 * max_halfdist * max_range_scale

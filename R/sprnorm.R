@@ -27,35 +27,86 @@
 #'   \code{local} is also set to \code{FALSE} when \code{spcov_type} is \code{"none"}
 #'   and there are no random effects specified via \code{random}.
 #'   If \code{FALSE}, no big data approximation is implemented.
-#'   If a list is provided, the following arguments detail the big
-#'   data approximation:
+#'   If a list is provided, \code{local$approximation} selects which big data
+#'   approximation is used and can take on the values
 #'   \itemize{
-#'     \item \code{reorder}: The data reordering approached used prior to splitting
-#'       into base and new sets. If \code{reorder = "none"}, no reordering
-#'       is applied to the data. If \code{reorder = "random"}, the data order is
-#'       randomly reshuffled. If \code{reorder = "grts"}, the data order is
-#'       randomly generated using the GRTS algorithm for spatially balanced
-#'       sampling via \code{spsurvey::grts()}. The default is \code{"grts"}.
-#'     \item \code{size_base}: The number of data observations used for the base sample.
-#'       The default is 3,000. See Details for more.
-#'     \item \code{kmeans}: For observations outside the base sample, whether
-#'       they should be assigned to blocks based on k-means clustering
-#'       on the coordinates, with clusters of size approximately equal to
-#'       \code{size_new}. The default is \code{FALSE} when \code{reorder = "none"}
-#'       and \code{TRUE} otherwise.
-#'     \item \code{size_new}: The (approximate) number of observations used
-#'       for each block. The default is 500. See Details for more.
-#'       The default is 500.
-#'     \item \code{parallel}: If \code{TRUE}, parallel processing via the
-#'       parallel package is automatically used. The default is \code{FALSE}.
-#'     \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
-#'       parallelize over. The default is the number of available cores on your machine.
+#'     \item \code{"low-rank"}: a base sample is drawn from the data, the
+#'       remaining locations are split into blocks, and each block is
+#'       simulated conditional on the base sample alone. Blocks are
+#'       assumed conditionally independent of one another given the base
+#'       sample.
+#'       \itemize{
+#'         \item \code{method_base}: Whether the data simulated is restricted
+#'           to a base sample at all. If \code{method_base = "all"}, no big
+#'           data approximation is applied (equivalent to \code{local = FALSE});
+#'           this happens automatically whenever \code{size_base} is at least
+#'           the desired sample size. If \code{method_base = "base"}, the data
+#'           is subset to \code{size_base} locations (ordered via
+#'           \code{reorder_base}) to form the base sample. The default is
+#'           \code{"base"}.
+#'         \item \code{reorder_base}: The data reordering approach used prior to splitting
+#'           into base and new sets. If \code{reorder_base = "none"}, no reordering
+#'           is applied to the data. If \code{reorder_base = "random"}, the data order is
+#'           randomly reshuffled. If \code{reorder_base = "grts"}, the data order is
+#'           randomly generated using the GRTS algorithm for spatially balanced
+#'           sampling via \code{spsurvey::grts()}. The default is \code{"grts"}.
+#'         \item \code{size_base}: The number of data observations used for the base sample.
+#'           The default is 5,000. See Details for more.
+#'         \item \code{kmeans_new}: For observations outside the base sample, whether
+#'           they should be assigned to blocks based on k-means clustering
+#'           on the coordinates, with clusters of size approximately equal to
+#'           \code{size_new}. The default is \code{FALSE} when \code{reorder_base = "none"}
+#'           and \code{TRUE} otherwise.
+#'         \item \code{size_new}: The (approximate) number of observations used
+#'           for each block. The default is 1,000. See Details for more.
+#'         \item \code{parallel}: If \code{TRUE}, parallel processing via the
+#'           parallel package is automatically used. The default is \code{FALSE}.
+#'         \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
+#'           parallelize over. The default is the number of available cores on your machine.
+#'       }
+#'       If \code{local$approximation} is \code{"low-rank"} (either explicitly or via
+#'       \code{local = TRUE}), defaults for the remaining \code{"low-rank"}
+#'       settings are chosen such that \code{local} is transformed into
+#'       \code{list(approximation = "low-rank", method_base = "base", size_base = 5000,
+#'       reorder_base = "grts", size_new = 1000, kmeans_new = TRUE, parallel = FALSE)}.
+#'     \item \code{"vecchia"}: every location is simulated one at a time (in
+#'       some order), each conditional on \strong{all} already-simulated
+#'       locations (not a single shared base sample. Locations are
+#'       never assumed conditionally independent of one another. This is
+#'       exact (matches \code{local = FALSE}) when \code{method = "all"};
+#'       \code{method = "distance"}/\code{"covariance"} truncate the conditioning set to a fixed number of neighbors
+#'       sorted by distance or covariance with the new observation. No parallelization
+#'       exists because the algorithm is inherently sequential, as each new observation
+#'       depends on previous ones.
+#'       \itemize{
+#'         \item \code{method}: The neighbor-selection rule used to build each
+#'           location's conditioning set once it exceeds \code{size}
+#'           already-simulated candidates. Values are \code{"all"} (no truncation,
+#'           exact), \code{"distance"} (the \code{size} nearest candidates),
+#'           or \code{"covariance"} (the \code{size} candidates with the
+#'           highest covariance, in absolute value, with the location being
+#'           simulated). Same convention as \code{predict()}'s own
+#'           \code{local$method}. The default is \code{"covariance"}. \code{method = "all"} is very computationally
+#'           intensive and \code{local = FALSE} should almost always be used instead. 
+#'           (\code{method = "all"} primarily exists for numerical verification).
+#'         \item \code{size}: The number of neighbors used when \code{method}
+#'           is \code{"distance"} or \code{"covariance"}. The default is 30.
+#'         \item \code{ordering}: The order locations are simulated in --
+#'           \code{"maxmin"}, \code{"middleout"}, \code{"outsidein"},
+#'           \code{"coordinate"}, \code{"grts"}, \code{"random"}, or
+#'           \code{"none"} (same options as \code{decorrelate()}'s
+#'           \code{ordering} argument). The default is \code{"maxmin"}.
+#'       }
+#'       \code{parallel}/\code{ncores} are not used when \code{local$approximation} is
+#'       \code{"vecchia"}.
 #'   }
-#'   When \code{local} is a list, at least one list element must be provided to
-#'   initialize default arguments for the other list elements.
-#'   If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
-#'   that \code{local} is transformed into
-#'   \code{list(reoder = "grts", size_base = 3000, size_new = 500, kmeans = TRUE, parallel = FALSE)}.
+#' 
+#'       When \code{local = TRUE}, \code{local} is transformed into
+#'       \code{list(approximation = "low-rank", method_base = "base", size_base = 5000,
+#'       reorder_base = "grts", method_new = "base", size_new = 1000,
+#'       reorder_new = "random", kmeans_new = TRUE, parallel = FALSE)}.
+#'       When \code{local} is a list, at least one list element must be provided to
+#'       initialize default arguments for the other list elements. See Details for more.
 #' @param W Weight matrix specifying the neighboring structure used for car and
 #'   sar models. Not required if \code{data} are an \code{sf}
 #'   polygon object and \code{W} should be calculated internally (using queen contiguity).
@@ -72,9 +123,7 @@
 #'
 #' @details Random variables are simulated via the product of the covariance matrix's
 #'   square (Cholesky) root and independent standard normal random variables
-#'   with mean 0 and variance 1. Computing the square root is a significant
-#'   computational burden and likely unfeasible for sample sizes much past 10,000.
-#'   Because this square root only needs to be computed once, however, it is
+#'   with mean 0 and variance 1, with big data approximations available. It is
 #'   nearly the sample computational cost to call \code{sprnorm()} for any value
 #'   of \code{samples}.
 #'
@@ -90,14 +139,17 @@
 #'   \code{extra} parameter for car and sar models is ignored when all observations have
 #'   neighbors.
 #'
-#'   \code{local} Details: The big data approximation works by assigning \code{size_base}
+#'   \code{local} Details: When \code{local$approximation} is \code{"low-rank"}, the big
+#'   data approximation works by assigning \code{size_base}
 #'   observations to a base sample and then simulating data for the base sample.
 #'   The remaining observations are assigned to blocks. For each block, data
 #'   are simulated from the conditional distribution given the base sample.
 #'   Observations from the same block share conditional covariance while
 #'   observations from distinct blocks are assumed conditionally independent
 #'   (given the base sample). Parallelization generally further speeds up
-#'   computations.
+#'   computations. When \code{local$approximation} is \code{"vecchia"}, no such
+#'   independence assumption is made and each new observation is simulated by
+#'   conditioning on prior observations.
 #'
 #' @return If \code{samples} is 1, a vector of random variables for each row of \code{data}
 #'   is returned. If \code{samples} is greater than one, a matrix of random variables
@@ -201,38 +253,57 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
     if (missing(local)) local <- NULL
     local_list <- get_local_list_simulation(local, n, data)
 
-    if (local_list$method != "all") {
-      newdata <- lapply(local_list$index$new, function(x) data[x, , drop = FALSE])
-      data <- data[local_list$index$base, , drop = FALSE]
-      n <- NROW(data)
-    }
-
-    object <- splm(
-      formula = ...response... ~ 1,
-      data = data,
-      spcov_initial = spcov_init,
-      randcov_initial = randcov_init,
-      partition_factor = partition_factor,
-      xcoord = "...xcoord...",
-      ycoord = "...ycoord...",
-      local = TRUE
-    )
-
-    cov_lowchol_base <- t(chol(covmatrix(object)))
-    base_val <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_base %*% rnorm(n)), numeric(n))
-
-    if (local_list$method != "all") {
-
-      if (local_list$parallel) {
-        cl <- parallel::makeCluster(local_list$ncores)
-        new_val <- parLapply(cl, newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
-        cl <- parallel::stopCluster(cl)
-      } else {
-        new_val <- lapply(newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
+    if (local_list$approximation == "vecchia") {
+      # vecchia: every location is simulated sequentially, conditional on
+      # every earlier-simulated location so there is no base sample to
+      # subset data down to at all (the object is built on all the data
+      # and splm()'s own local = TRUE keeps that fit itself scalable; the
+      # simulation is separately scalable via neighbor truncation)
+      object <- splm(
+        formula = ...response... ~ 1,
+        data = data,
+        spcov_initial = spcov_init,
+        randcov_initial = randcov_init,
+        partition_factor = partition_factor,
+        xcoord = "...xcoord...",
+        ycoord = "...ycoord...",
+        local = TRUE
+      )
+      base_val <- get_sprnorm_vecchia(object, local_list, samples)
+    } else {
+      if (local_list$method_base != "all") {
+        newdata <- lapply(local_list$index$new, function(x) data[x, , drop = FALSE])
+        data <- data[local_list$index$base, , drop = FALSE]
+        n <- NROW(data)
       }
-      base_val <- rbind(base_val, do.call("rbind", new_val))
-      index <- c(local_list$index$base, do.call("c", local_list$index$new))
-      base_val <- base_val[order(index), , drop = FALSE]
+
+      object <- splm(
+        formula = ...response... ~ 1,
+        data = data,
+        spcov_initial = spcov_init,
+        randcov_initial = randcov_init,
+        partition_factor = partition_factor,
+        xcoord = "...xcoord...",
+        ycoord = "...ycoord...",
+        local = TRUE
+      )
+
+      cov_lowchol_base <- t(chol(covmatrix(object)))
+      base_val <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_base %*% rnorm(n)), numeric(n))
+
+      if (local_list$method_base != "all") {
+
+        if (local_list$parallel) {
+          cl <- parallel::makeCluster(local_list$ncores)
+          new_val <- parLapply(cl, newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
+          cl <- parallel::stopCluster(cl)
+        } else {
+          new_val <- lapply(newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
+        }
+        base_val <- rbind(base_val, do.call("rbind", new_val))
+        index <- c(local_list$index$base, do.call("c", local_list$index$new))
+        base_val <- base_val[order(index), , drop = FALSE]
+      }
     }
   }
 

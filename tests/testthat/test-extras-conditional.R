@@ -15,7 +15,8 @@ exdata_pois$count <- round(abs(exdata_pois$y) * 3)
 # conditional() is only implemented for splm()/spglm(): for spautor()/spgautor(),
 # the conditional simulation locations would need to be known ahead of fitting
 # (they affect the areal neighborhood structure), so a base-and-block big-data
-# approximation like the one used here is not feasible -- there is intentionally
+# approximation like the one used here is not feasible
+# there is intentionally
 # no conditional.spautor()/conditional.spgautor() method.
 test_that("conditional() has no method for spautor/spgautor (out of scope by design)", {
   load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
@@ -169,8 +170,8 @@ test_that("local = TRUE / list() runs the big-data block-processing path without
 test_that("local kmeans partitioning correctly forwards extra list elements like parallel/ncores to kmeans() (regression test)", {
   # regression test for a bug in get_local_list.R where the extra local list
   # elements left over after removing the recognized names (e.g. "parallel",
-  # "ncores") were passed to kmeans() as bare *names* (a character vector)
-  # instead of their *values* (local[names]); do.call() then supplied those
+  # "ncores") were passed to kmeans() as bare names (a character vector)
+  # instead of their values (local[names]); do.call() then supplied those
   # name strings as unnamed positional arguments, landing in kmeans()'s
   # nstart/algorithm slots and crashing with a match.arg() error as soon as
   # kmeans-based block partitioning ran alongside parallel = TRUE
@@ -208,11 +209,11 @@ test_that("conditional() SD is close to predict() se.fit under ordinary (non-ext
 test_that("conditional.splm() no longer double-counts fixed effect uncertainty (regression test)", {
   # get_conditional_new_from_base_adjust() used to add an analytic
   # H %*% cov_betahat %*% t(H) term on top of conditional draws that were
-  # already built from simulated beta draws -- double-counting fixed effect
+  # already built from simulated beta draws and double-counting fixed effect
   # uncertainty. That term scales with the newdata design point x0 (via H),
   # so a covariate value far outside the observed range makes it dominate the
   # (otherwise small, since this point is spatially coincident with an
-  # observed location) kriging variance -- turning a subtle miscalibration
+  # observed location) kriging variance and turning a subtle miscalibration
   # into an unmistakable one if the bug ever returns.
   spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
   expect_true(50 > max(exdata$x) + 10) # confirm x = 50 is well outside the observed range
@@ -259,3 +260,272 @@ test_that("conditional.splm() draws are unchanged from a known-good seeded snaps
     c(2.164, -0.8827, 1.665, 0.8597, -0.4249, -1.1588, 0.5448, -0.3535)
   )
 })
+
+test_that("conditional() local$approximation = 'vecchia' works for splm", {
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
+
+  spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
+
+  cond1 <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 50)
+  expect_true(is.matrix(cond1))
+  expect_equal(dim(cond1), c(NROW(newexdata), 50))
+  expect_true(all(is.finite(cond1)))
+
+  # method = "all" (no truncation) should closely match the exact (local =
+  # FALSE) conditional distribution -- a Cholesky-decomposition-as-
+  # sequential-conditioning identity, not an approximation (see
+  # get_conditional_vecchia())
+  R <- 4000
+  set.seed(1)
+  cond_exact <- conditional(spmod, newdata = newexdata, local = FALSE, samples = R)
+  set.seed(2)
+  cond_vecchia_all <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", method = "all"), samples = R)
+  expect_equal(rowMeans(cond_exact), rowMeans(cond_vecchia_all), tolerance = 0.1)
+  expect_equal(apply(cond_exact, 1, sd), apply(cond_vecchia_all, 1, sd), tolerance = 0.15)
+
+  # neighbor-selection rules and distance/covariance truncation both run
+  expect_vector(conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 5, method = "distance"), samples = 20)[, 1])
+  expect_vector(conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 5, method = "covariance"), samples = 20)[, 1])
+
+  # random effects/partition factor supported via covmatrix() reuse
+  exdata_re <- exdata
+  exdata_re$grp <- factor(sample(letters[1:4], NROW(exdata_re), replace = TRUE))
+  newexdata_re <- newexdata
+  newexdata_re$grp <- factor(sample(letters[1:4], NROW(newexdata_re), replace = TRUE))
+  spmod_re <- splm(y ~ x, exdata_re, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~grp)
+  cond_re <- conditional(spmod_re, newdata = newexdata_re, local = list(approximation = "vecchia", size = 10), samples = 30)
+  expect_true(all(is.finite(cond_re)))
+
+  # invalid local$approximation errors informatively
+  expect_error(conditional(spmod, newdata = newexdata, local = list(approximation = "bogus")), "local\\$approximation must be")
+})
+
+test_that("conditional() local$approximation = 'vecchia' works for spglm", {
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
+
+  exdata_pois <- exdata
+  exdata_pois$count <- round(abs(exdata_pois$y) * 3)
+  spmod <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
+
+  cond1 <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 50)
+  expect_true(is.matrix(cond1))
+  expect_equal(dim(cond1), c(NROW(newexdata), 50))
+  expect_true(all(is.finite(cond1)))
+
+  # method = "all" (no truncation) should closely match the exact (local =
+  # FALSE) conditional distribution, including the var_adj correction for the
+  # latent process's own estimation uncertainty -- see
+  # get_conditional_vecchia_glm()
+  R <- 4000
+  set.seed(1)
+  cond_exact <- conditional(spmod, newdata = newexdata, local = FALSE, samples = R)
+  set.seed(2)
+  cond_vecchia_all <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", method = "all"), samples = R)
+  expect_equal(rowMeans(cond_exact), rowMeans(cond_vecchia_all), tolerance = 0.1)
+  expect_equal(apply(cond_exact, 1, sd), apply(cond_vecchia_all, 1, sd), tolerance = 0.15)
+
+  # neighbor-selection rules and distance/covariance truncation both run
+  expect_vector(conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 5, method = "distance"), samples = 20)[, 1])
+  expect_vector(conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 5, method = "covariance"), samples = 20)[, 1])
+
+  # type = "response"/"new" both work on top of the vecchia link-scale draws
+  cond_response <- conditional(spmod, newdata = newexdata, type = "response", local = list(approximation = "vecchia", size = 10), samples = 20)
+  expect_true(all(cond_response >= 0))
+  cond_new <- conditional(spmod, newdata = newexdata, type = "new", local = list(approximation = "vecchia", size = 10), samples = 20)
+  expect_true(all(cond_new == round(cond_new)))
+
+  # random effects/partition factor supported via covmatrix() reuse
+  exdata_re <- exdata_pois
+  exdata_re$grp <- factor(sample(letters[1:4], NROW(exdata_re), replace = TRUE))
+  newexdata_re <- newexdata
+  newexdata_re$grp <- factor(sample(letters[1:4], NROW(newexdata_re), replace = TRUE))
+  spmod_re <- spglm(count ~ x, exdata_re, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~grp)
+  cond_re <- conditional(spmod_re, newdata = newexdata_re, local = list(approximation = "vecchia", size = 10), samples = 30)
+  expect_true(all(is.finite(cond_re)))
+
+  # invalid local$approximation errors informatively
+  expect_error(conditional(spmod, newdata = newexdata, local = list(approximation = "bogus")), "local\\$approximation must be")
+
+  # a message is printed above 10,000 observed observations, since var_adj's
+  # global Hessian factorization does not benefit from neighbor truncation
+  spmod_fake <- spmod
+  spmod_fake$n <- 20000
+  expect_message(
+    conditional(spmod_fake, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 5),
+    "one-time factorization"
+  )
+  expect_no_message(
+    conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 5)
+  )
+})
+
+test_that("conditional() simulate_covparams = TRUE works for splm", {
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
+
+  spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
+  expect_false(is.null(spmod$vcov$cov)) # ddf = "satterthwaite" default for n <= 500
+
+  cond1 <- conditional(spmod, newdata = newexdata, samples = 50, simulate_covparams = TRUE)
+  expect_true(is.matrix(cond1))
+  expect_equal(dim(cond1), c(NROW(newexdata), 50))
+  expect_true(all(is.finite(cond1)))
+
+  cond_all <- conditional(spmod, newdata = newexdata, output = "all", samples = 30, simulate_covparams = TRUE)
+  expect_named(cond_all, c("newdata", "beta", "object"))
+  expect_equal(dim(cond_all$newdata), c(NROW(newexdata), 30))
+  expect_equal(dim(cond_all$beta), c(length(coef(spmod)), 30))
+  expect_equal(dim(cond_all$object), c(spmod$n, 30))
+
+  # samples defaults to 500 (not 10,000) under simulate_covparams = TRUE
+  expect_equal(ncol(conditional(spmod, newdata = newexdata, simulate_covparams = TRUE)), 1000)
+  expect_equal(ncol(conditional(spmod, newdata = newexdata)), 10000)
+
+  # propagating covariance parameter uncertainty should not shrink the
+  # marginal variance of the conditional draws relative to holding covariance
+  # parameters fixed
+  R <- 6000
+  set.seed(1)
+  cond_cp <- conditional(spmod, newdata = newexdata, samples = R, simulate_covparams = TRUE)
+  set.seed(2)
+  cond_fixed <- conditional(spmod, newdata = newexdata, samples = R, simulate_covparams = FALSE)
+  expect_true(all(apply(cond_cp, 1, sd) > apply(cond_fixed, 1, sd)))
+
+  # random effects and anisotropy both work through the per-draw covmatrix()
+  # reuse (object_b's coefficients substituted in)
+  exdata_re <- exdata
+  exdata_re$grp <- factor(sample(letters[1:4], NROW(exdata_re), replace = TRUE))
+  newexdata_re <- newexdata
+  newexdata_re$grp <- factor(sample(letters[1:4], NROW(newexdata_re), replace = TRUE))
+  spmod_re <- splm(y ~ x, exdata_re, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~grp)
+  cond_re <- conditional(spmod_re, newdata = newexdata_re, samples = 20, simulate_covparams = TRUE)
+  expect_true(all(is.finite(cond_re)))
+
+  spmod_anis <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, anisotropy = TRUE)
+  cond_anis <- conditional(spmod_anis, newdata = newexdata, samples = 20, simulate_covparams = TRUE)
+  expect_true(all(is.finite(cond_anis)))
+
+  # forced back to FALSE (with a message) whenever a big-data local
+  # approximation is actually active
+  expect_message(
+    conditional(spmod, newdata = newexdata, samples = 20, simulate_covparams = TRUE,
+      local = list(method_base = "base", size_base = 40)
+    ),
+    "simulate_covparams = TRUE is not used"
+  )
+  # local = FALSE resolves to the exact path and leaves simulate_covparams alone
+  expect_no_message(
+    conditional(spmod, newdata = newexdata, samples = 20, simulate_covparams = TRUE, local = FALSE)
+  )
+
+  # a strongly-worded warning is issued above n = 500 (faking n avoids fitting
+  # an actually-large model just for this check, matching the spmod_fake$n <-
+  # 20000 pattern used above for vecchia's var_adj message)
+  spmod_fake <- spmod
+  spmod_fake$n <- 600
+  expect_warning(
+    conditional(spmod_fake, newdata = newexdata, samples = 2, simulate_covparams = TRUE),
+    "exceedingly long"
+  )
+  expect_no_warning(
+    conditional(spmod, newdata = newexdata, samples = 2, simulate_covparams = TRUE)
+  )
+
+  # requires object$vcov$cov (i.e. ddf = "satterthwaite") -- a clear error,
+  # not a cryptic one, when that covariance matrix was never computed
+  spmod_asymp <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, ddf = "asymptotic")
+  expect_error(
+    conditional(spmod_asymp, newdata = newexdata, samples = 2, simulate_covparams = TRUE),
+    "requires object\\$vcov\\$cov"
+  )
+
+  # simulate_covparams must be a single logical
+  expect_error(conditional(spmod, newdata = newexdata, simulate_covparams = "yes"), "simulate_covparams must be")
+})
+
+test_that("conditional() output = 'cov'/'spcov'/'randcov' works for splm", {
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
+
+  spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
+  spcov_names <- names(coef(spmod, type = "spcov"))
+
+  cov_out <- conditional(spmod, newdata = newexdata, samples = 30, simulate_covparams = TRUE, output = "cov")
+  expect_equal(dim(cov_out), c(length(spcov_names), 30))
+  expect_equal(rownames(cov_out), spcov_names)
+  expect_true(all(is.finite(cov_out)))
+
+  # no random effects in this model -- "spcov" and "cov" coincide, "randcov" is NULL
+  spcov_out <- conditional(spmod, newdata = newexdata, samples = 30, simulate_covparams = TRUE, output = "spcov")
+  expect_equal(dim(spcov_out), c(length(spcov_names), 30))
+  randcov_out <- conditional(spmod, newdata = newexdata, samples = 30, simulate_covparams = TRUE, output = "randcov")
+  expect_null(randcov_out)
+
+  # combining with the pre-existing outputs still works, in any combination
+  combo <- conditional(spmod, newdata = newexdata,
+    samples = 30, simulate_covparams = TRUE, output = c("newdata", "beta", "cov", "spcov")
+  )
+  expect_named(combo, c("newdata", "beta", "cov", "spcov"))
+  expect_equal(dim(combo$newdata), c(NROW(newexdata), 30))
+  expect_equal(dim(combo$beta), c(length(coef(spmod)), 30))
+  expect_equal(dim(combo$cov), c(length(spcov_names), 30))
+  expect_equal(dim(combo$spcov), c(length(spcov_names), 30))
+
+  # requesting these without simulate_covparams = TRUE errors clearly
+  expect_error(
+    conditional(spmod, newdata = newexdata, samples = 5, output = "cov"),
+    "only include \"cov\", \"spcov\", or \"randcov\" when simulate_covparams = TRUE"
+  )
+
+  # random effects: "randcov" is populated, and "cov" stacks spcov then randcov rows
+  exdata_re <- exdata
+  exdata_re$grp <- factor(sample(letters[1:4], NROW(exdata_re), replace = TRUE))
+  newexdata_re <- newexdata
+  newexdata_re$grp <- factor(sample(letters[1:4], NROW(newexdata_re), replace = TRUE))
+  spmod_re <- splm(y ~ x, exdata_re, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~grp)
+  randcov_names <- names(coef(spmod_re, type = "randcov"))
+
+  randcov_out2 <- conditional(spmod_re, newdata = newexdata_re, samples = 30, simulate_covparams = TRUE, output = "randcov")
+  expect_equal(dim(randcov_out2), c(length(randcov_names), 30))
+  expect_equal(rownames(randcov_out2), randcov_names)
+
+  cov_out2 <- conditional(spmod_re, newdata = newexdata_re, samples = 30, simulate_covparams = TRUE, output = "cov")
+  expect_equal(rownames(cov_out2), c(names(coef(spmod_re, type = "spcov")), randcov_names))
+})
+
+test_that("simulate_theta_draw()'s clamp-to-boundary fallback is always valid", {
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+
+  spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
+  spcov_params_full <- coef(spmod, type = "spcov")
+  spcov_type <- class(spcov_params_full)
+  spcov_names_free <- names(spmod$is_known$spcov)[!spmod$is_known$spcov]
+  theta_hat_free <- spcov_params_full[spcov_names_free]
+
+  # a huge covariance matrix forces essentially every reject-and-redraw
+  # attempt to fail, exercising the clamp-to-boundary fallback
+  huge_vcov <- diag(1e6, length(theta_hat_free))
+  dimnames(huge_vcov) <- list(spcov_names_free, spcov_names_free)
+  huge_lowchol <- t(chol(huge_vcov))
+
+  set.seed(42)
+  draws <- lapply(1:30, function(i) {
+    simulate_theta_draw(
+      theta_hat_free, huge_lowchol, spcov_type, spcov_names_free,
+      character(0), spcov_params_full, NULL,
+      max_attempts = 5
+    )
+  })
+  de_vals <- vapply(draws, function(x) x$spcov_params_b[["de"]], numeric(1))
+  ie_vals <- vapply(draws, function(x) x$spcov_params_b[["ie"]], numeric(1))
+  range_vals <- vapply(draws, function(x) x$spcov_params_b[["range"]], numeric(1))
+
+  expect_true(all(is.finite(c(de_vals, ie_vals, range_vals))))
+  expect_true(all(de_vals >= 0) && all(ie_vals >= 0) && all(range_vals >= 0))
+  # a clamped range of exactly 0 must also force de to 0 (avoids
+  # division-by-zero in exp(-d/range)-style formulas downstream)
+  expect_true(all(de_vals[range_vals == 0] == 0))
+})
+

@@ -179,20 +179,20 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
       if (local$method == "distance") {
         dist_vector <- spdist_vectors(newdata, obdata, xcoord, ycoord, object$dim_coords)
         dist_vector <- colMeans(dist_vector)
-        index <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
+        keep <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
       } else if (local$method == "covariance") {
         # use abs() here for negative covariance types
-        index <- order(abs(as.numeric(c0)))[seq(from = n, to = max(1, n - local$size + 1))]
+        keep <- order(abs(as.numeric(c0)))[seq(from = n, to = max(1, n - local$size + 1))]
       }
-      obdata <- obdata[index, , drop = FALSE]
-      c0 <- c0[index]
-      Xmat <- Xmat[index, , drop = FALSE]
-      y <- y[index]
+      obdata <- obdata[keep, , drop = FALSE]
+      c0 <- c0[keep]
+      Xmat <- Xmat[keep, , drop = FALSE]
+      y <- y[keep]
       if (!is.null(offset)) {
-        offset <- offset[index]
+        offset <- offset[keep]
         y <- y - offset
       }
-      cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(Sig[index, index, drop = FALSE])))
+      cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(Sig[keep, keep, drop = FALSE])))
     }
 
     SqrtSigInv_X <- forwardsolve(cov_lowchol, Xmat)

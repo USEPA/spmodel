@@ -34,6 +34,17 @@ test_that("splm and spglm type sims work", {
   expect_true(inherits(sprinvgauss(spcov_params_val, mean = rnorm(NROW(exdata_Upoly)), samples = 3, data = exdata_Upoly, xcoord = xcoord, ycoord = ycoord), "matrix"))
 })
 
+test_that("sprnorm() local$approximation = 'vecchia' works", {
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+
+  spcov_params_val <- spcov_params("exponential", de = 1, ie = 0.05, range = 1.5)
+
+  sim1 <- sprnorm(spcov_params_val, samples = 20, data = exdata, xcoord = xcoord, ycoord = ycoord, local = list(approximation = "vecchia", size = 10))
+  expect_true(inherits(sim1, "matrix"))
+  expect_equal(dim(sim1), c(NROW(exdata), 20))
+  expect_true(all(is.finite(sim1)))
+})
+
 test_that("spautor and spgautor type sims work", {
   load(system.file("extdata", "exdata_poly.rda", package = "spmodel"))
   load(system.file("extdata", "exdata_Upoly.rda", package = "spmodel"))

@@ -23,7 +23,7 @@
 #'   the mean on the response scale and dispersion equal to the dispersion parameter
 #'   from \code{object}. The default is \code{"link"}.
 #' @param samples  The number of conditional simulations. The default is
-#'   \code{10,000}.
+#'   \code{1,000}.
 #' @param local An optional logical or list controlling the big data approximation.
 #'   If omitted, \code{local} is set
 #'   to \code{TRUE} or \code{FALSE} based on the whether the observed
@@ -111,7 +111,7 @@
 #'           value, with the location being simulated). Same convention as
 #'           \code{predict()}'s own \code{local$method}. The default is
 #'           \code{"covariance"}. \code{method = "all"} is very computationally
-#'           intensive and \code{local = FALSE} should almost always be used instead. 
+#'           intensive and \code{local = FALSE} should almost always be used instead.
 #'           (\code{method = "all"} primarily exists for numerical verification).
 #'         \item \code{size}: The number of neighbors used when \code{method}
 #'           is \code{"distance"} or \code{"covariance"}. The default is 30.
@@ -133,7 +133,7 @@
 #'   simulate new covariance parameters for each sample. \code{simulate_covparams}
 #'   requires \code{object$vcov$cov} to be specified during model fitting by
 #'   selecting \code{ddf = "satterthwaite"}. \code{simulate_covparams = TRUE}
-#'   should generally not be used for sample sizes greater than 500 
+#'   should generally not be used for sample sizes greater than 500
 #'   given its computational inefficiencies. The default is
 #'   \code{FALSE}.
 #' @param ... Other arguments. Not used (needed for generic consistency).
@@ -241,7 +241,7 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
 
   # simulate_covparams cannot reuse a single shared covariance factorization
   # across samples the way the rest of conditional() does, so it is only
-  # supported when no big-data approximation is actually in effect -- once
+  # supported when no big-data approximation is actually in effect. Once
   # local_list$method_base/method_new are both "all" (guaranteed here), the
   # simulate_covparams path below always operates on the full observed data
   # and all of newdata as one block, with no base-subsampling/blocking to
@@ -341,9 +341,11 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
       # base covariance matrix factorized below stays a manageable size
       if (local_list$method_base != "all") {
         object$obdata <- object$obdata[local_list$index$base, , drop = FALSE]
-        base_val <- new_resid[local_list$index$base, , drop = FALSE]
+        y_base <- y[local_list$index$base]
+        X_base <- X[local_list$index$base, , drop = FALSE]
       } else {
-        base_val <- new_resid
+        y_base <- y
+        X_base <- X
       }
       # low-rank, part 2: split newdata into blocks so each block's
       # observed-by-prediction covariance is computed and factorized
@@ -363,16 +365,22 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
       # the base covariance matrix is diagonal, so a plain sqrt() gives its
       # (lower triangular) Cholesky factor without paying for a full chol()
       if (spcov_val[["de"]] == 0 && is.null(coef(object, type = "randcov"))) {
-        cov_lowchol_base <- Matrix::Diagonal(n = object$n, x = sqrt(spcov_val[["ie"]]))
+        # object$n is the full sample size not the base sample size
+        cov_lowchol_base <- Matrix::Diagonal(n = NROW(object$obdata), x = sqrt(spcov_val[["ie"]]))
       } else {
         cov_lowchol_base <- t(chol(covmatrix(object)))
       }
+      # solved once and shared across every block instead of re-solving a
+      # full n_base x samples residual matrix inside each block's call (see
+      # get_conditional_new_from_base_adjust())
+      SqrtSigInv_y <- forwardsolve(cov_lowchol_base, cbind(y_base))
+      SqrtSigInv_X <- forwardsolve(cov_lowchol_base, X_base)
       if (local_list$parallel) {
         cl <- parallel::makeCluster(local_list$ncores)
-        new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust, object, base_val, cov_lowchol_base, samples)
+        new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust, object, SqrtSigInv_y, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples)
         cl <- parallel::stopCluster(cl)
       } else {
-        new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust, object, base_val, cov_lowchol_base, samples)
+        new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust, object, SqrtSigInv_y, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples)
       }
 
 
@@ -529,6 +537,10 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   SigInv <- chol2inv(t(cov_lowchol_base))
   SqrtSigInv_X <- forwardsolve(cov_lowchol_base, X)
   SigInv_X <- backsolve(t(cov_lowchol_base), SqrtSigInv_X)
+  # solved once and reused for every block's conditional mean below (see
+  # get_conditional_new_from_base_adjust_glm()). SqrtSigInv_X
+  # above can be used for var_adj
+  SqrtSigInv_w <- forwardsolve(cov_lowchol_base, cbind(w))
   cov_betahat <- vcov(object, var_correct = FALSE)
   Ptheta <- SigInv - SigInv_X %*% tcrossprod(cov_betahat, SigInv_X)
   D <- get_D(object$family, w, y, size, as.vector(object$coefficients$dispersion))
@@ -561,10 +573,10 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
 
     if (local_list$parallel) {
       cl <- parallel::makeCluster(local_list$ncores)
-      new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust_glm, object, base_val, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
+      new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust_glm, object, SqrtSigInv_w, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
       cl <- parallel::stopCluster(cl)
     } else {
-      new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust_glm, object, base_val, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
+      new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust_glm, object, SqrtSigInv_w, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
     }
 
 

@@ -381,7 +381,7 @@ test_that("conditional() simulate_covparams = TRUE works for splm", {
 
   # samples defaults to 500 (not 10,000) under simulate_covparams = TRUE
   expect_equal(ncol(conditional(spmod, newdata = newexdata, simulate_covparams = TRUE)), 1000)
-  expect_equal(ncol(conditional(spmod, newdata = newexdata)), 10000)
+  expect_equal(ncol(conditional(spmod, newdata = newexdata)), 1000)
 
   # propagating covariance parameter uncertainty should not shrink the
   # marginal variance of the conditional draws relative to holding covariance

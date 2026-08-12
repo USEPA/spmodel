@@ -52,24 +52,41 @@ get_conditional_new_from_base <- function(newdata, object, base_val, cov_lowchol
 #' \code{splm} models
 #'
 #' Variant of \code{\link{get_conditional_new_from_base}()} used by
-#' \code{conditional.splm()}. \code{base_val} there holds observed-data
-#' residuals computed against simulated draws of beta rather than a single
-#' fixed betahat. Because betahat's estimation uncertainty is already
-#' propagated by that upstream simulation (drawing a new beta and adding its
-#' trend back in is, by the law of total variance, equivalent to adding an
-#' analytic fixed-effect-uncertainty term to a fixed-betahat conditional
-#' covariance -- see the comments in \code{conditional.splm()}), the ordinary
-#' kriging conditional covariance is used here as-is, with no separate
-#' analytic correction. Adding one on top of the simulated beta draws would
-#' double-count the same uncertainty.
+#' \code{conditional.splm()}. Observed-data residuals against simulated draws
+#' of beta play the role that a single fixed \code{base_val} plays in
+#' \code{get_conditional_new_from_base()}. Because betahat's estimation
+#' uncertainty is already propagated by that upstream simulation (drawing a
+#' new beta and adding its trend back in is, by the law of total variance,
+#' equivalent to adding an analytic fixed-effect-uncertainty term to a
+#' fixed-betahat conditional covariance -- see the comments in
+#' \code{conditional.splm()}), the ordinary kriging conditional covariance is
+#' used here as-is, with no separate analytic correction. Adding one on top
+#' of the simulated beta draws would double-count the same uncertainty.
+#'
+#' The conditional mean is linear in the per-draw residual \code{y_base - X_base
+#' \%*\% beta_b}, so rather than solving/crossprod-ing an \code{n_base x
+#' samples} residual matrix against the base covariance (repeating that
+#' \code{O(n_base^2 * samples)}/\code{O(n_base * n_new * samples)} work for
+#' every block, since \code{y_base}/\code{X_base}/\code{cov_lowchol_base} are
+#' identical across blocks), the code solves against \code{y_base}
+#' (\code{n_base x 1}) and \code{X_base} (\code{n_base x p}) once up front and
+#' then recombines with each block's own \code{new_betahat} only
+#' after the (block-specific, but \code{samples}-independent) crossprod with
+#' \code{SqrtSigInv_c0}, an \code{O(n_new * p * samples)} recombination
+#' instead, with \code{p} (the number of fixed effects) typically far smaller
+#' than \code{samples}.
 #'
 #' @param newdata_list A list with elements \code{x0} (the newdata design
 #'   matrix for this block; unused here, kept for a consistent calling
 #'   convention with \code{\link{get_conditional_new_from_base_adjust_glm}()})
 #'   and \code{newdata} (the newdata rows for this block).
 #' @param object A fitted \code{splm} model object.
-#' @param base_val A matrix of simulated base-sample residuals (one column
-#'   per simulated beta draw; see Details above).
+#' @param SqrtSigInv_y \code{forwardsolve(cov_lowchol_base, y_base)}, computed
+#'   once by the caller (shared across every block).
+#' @param SqrtSigInv_X \code{forwardsolve(cov_lowchol_base, X_base)}, computed
+#'   once by the caller (shared across every block).
+#' @param new_betahat A matrix of simulated beta draws, one column per
+#'   simulation.
 #' @param cov_lowchol_base The lower triangular Cholesky factor of the base
 #'   locations' covariance matrix.
 #' @param samples The number of simulations.
@@ -78,7 +95,7 @@ get_conditional_new_from_base <- function(newdata, object, base_val, cov_lowchol
 #'   rows, one column per simulation.
 #'
 #' @noRd
-get_conditional_new_from_base_adjust <- function(newdata_list, object, base_val, cov_lowchol_base, samples) {
+get_conditional_new_from_base_adjust <- function(newdata_list, object, SqrtSigInv_y, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples) {
 
   newdata <- newdata_list$newdata
 
@@ -89,7 +106,6 @@ get_conditional_new_from_base_adjust <- function(newdata_list, object, base_val,
 
 
   SqrtSigInv_c0 <- forwardsolve(cov_lowchol_base, cov_base_new)
-  SqrtSigInv_base_val <- forwardsolve(cov_lowchol_base, base_val)
 
   # ordinary kriging conditional covariance -- betahat uncertainty is already
   # supplied by the caller's simulated beta draws, so it is not added here
@@ -107,7 +123,12 @@ get_conditional_new_from_base_adjust <- function(newdata_list, object, base_val,
 
   new_val <- vapply(seq_len(samples), function(x) as.numeric(chol_cond_cov %*% rnorm(newdata_n)), numeric(newdata_n))
 
-  cond_mu <- crossprod(SqrtSigInv_c0, SqrtSigInv_base_val)
+  # conditional mean: Sigma_{new,base} Sigma_base^-1 (y_base - X_base %*%
+  # beta_b) == crossprod(SqrtSigInv_c0, SqrtSigInv_y) - crossprod(SqrtSigInv_c0,
+  # SqrtSigInv_X) %*% beta_b
+  cond_mu_y <- crossprod(SqrtSigInv_c0, SqrtSigInv_y)
+  cond_mu_X <- crossprod(SqrtSigInv_c0, SqrtSigInv_X)
+  cond_mu <- as.numeric(cond_mu_y) - cond_mu_X %*% new_betahat
   new_val <- new_val + cond_mu
 }
 
@@ -125,12 +146,25 @@ get_conditional_new_from_base_adjust <- function(newdata_list, object, base_val,
 #' implied by that approximation. Simulating a new \code{w} upstream and
 #' including \code{var_adj} here would double-count the same uncertainty.
 #'
+#' As in \code{\link{get_conditional_new_from_base_adjust}()}, the conditional
+#' mean is linear in the per-draw residual \code{w_base - X_base \%*\% beta_b},
+#' so the code solves \code{cov_lowchol_base} against \code{w_base} and
+#' \code{X_base} once (the latter, \code{SqrtSigInv_X}, is already computed by
+#' \code{conditional.spglm()} for \code{var_adj} and simply reused here) and
+#' this function recombines with each block's own \code{new_betahat} only
+#' after crossprod-ing with \code{SqrtSigInv_c0}.
+#'
 #' @param newdata_list A list with elements \code{x0} (the newdata design
 #'   matrix for this block) and \code{newdata} (the newdata rows for this
 #'   block).
 #' @param object A fitted \code{spglm} model object.
-#' @param base_val A matrix of simulated base-sample link-scale residuals
-#'   (one column per simulated beta draw).
+#' @param SqrtSigInv_w \code{forwardsolve(cov_lowchol_base, w_base)}, computed
+#'   once by the caller (shared across every block).
+#' @param SqrtSigInv_X \code{forwardsolve(cov_lowchol_base, X_base)}, computed
+#'   once by the caller for \code{var_adj} and reused here (shared across
+#'   every block).
+#' @param new_betahat A matrix of simulated beta draws, one column per
+#'   simulation.
 #' @param cov_lowchol_base The lower triangular Cholesky factor of the base
 #'   locations' covariance matrix.
 #' @param samples The number of simulations.
@@ -148,7 +182,7 @@ get_conditional_new_from_base_adjust <- function(newdata_list, object, base_val,
 #'   \code{newdata} rows, one column per simulation.
 #'
 #' @noRd
-get_conditional_new_from_base_adjust_glm <- function(newdata_list, object, base_val, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH) {
+get_conditional_new_from_base_adjust_glm <- function(newdata_list, object, SqrtSigInv_w, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH) {
 
   x0 <- newdata_list$x0
   newdata <- newdata_list$newdata
@@ -159,7 +193,6 @@ get_conditional_new_from_base_adjust_glm <- function(newdata_list, object, base_
 
 
   SqrtSigInv_c0 <- forwardsolve(cov_lowchol_base, cov_base_new)
-  SqrtSigInv_base_val <- forwardsolve(cov_lowchol_base, base_val)
 
   # ordinary kriging conditional covariance -- betahat uncertainty is already
   # supplied by the caller's simulated beta draws, so it is not added here
@@ -187,6 +220,10 @@ get_conditional_new_from_base_adjust_glm <- function(newdata_list, object, base_
   chol_cond_cov <- t(chol(cond_cov))
   new_val <- vapply(seq_len(samples), function(x) as.numeric(chol_cond_cov %*% rnorm(newdata_n)), numeric(newdata_n))
 
-  cond_mu <- crossprod(SqrtSigInv_c0, SqrtSigInv_base_val)
+  # conditional mean, split into a fixed (not-per-sample) piece against
+  # w_base and a cheap p-column piece against X_base
+  cond_mu_w <- crossprod(SqrtSigInv_c0, SqrtSigInv_w)
+  cond_mu_X <- crossprod(SqrtSigInv_c0, SqrtSigInv_X)
+  cond_mu <- as.numeric(cond_mu_w) - cond_mu_X %*% new_betahat
   new_val <- new_val + cond_mu
 }

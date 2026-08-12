@@ -90,14 +90,21 @@ get_conditional_vecchia <- function(object, newdata, base_val, local_list, sampl
   Y_ordered <- matrix(NA_real_, n_new, samples)
   Z <- matrix(rnorm(n_new * samples), n_new, samples)
 
+  # DO NOT USE RBIND IT IS EXTREMELY SLOW,
+  # instead pre-allocate the obs-then-new pool once and write each drawn row
+  # in place, so a given iteration's pool is always just a slice/subset of
+  # this one matrix.
+  pool_val_full <- matrix(NA_real_, n_obs + n_new, samples)
+  pool_val_full[seq_len(n_obs), ] <- base_val
+
   for (k in seq_len(n_new)) {
     # conditioning pool: all observed data plus every earlier-drawn newdata
     # location (in the simulation order) and not subsampled, per the design
     # decision that distinguishes "vecchia" from "low-rank"
     n_new_pool <- k - 1
+    pool_n <- n_obs + n_new_pool
     pool_x <- if (n_new_pool > 0) c(xcoord_obs, xo[seq_len(n_new_pool)]) else xcoord_obs
     pool_y <- if (n_new_pool > 0) c(ycoord_obs, yo[seq_len(n_new_pool)]) else ycoord_obs
-    pool_val <- if (n_new_pool > 0) rbind(base_val, Y_ordered[seq_len(n_new_pool), , drop = FALSE]) else base_val
     # tracks provenance (observed row vs. earlier-drawn newdata row) so the
     # has_randstruct branch below can slice the right source data frame,
     # kept in lockstep with pool_x/pool_y/pool_val through truncation
@@ -121,10 +128,12 @@ get_conditional_vecchia <- function(object, newdata, base_val, local_list, sampl
       }
       pool_x <- pool_x[keep]
       pool_y <- pool_y[keep]
-      pool_val <- pool_val[keep, , drop = FALSE]
+      pool_val <- pool_val_full[keep, , drop = FALSE]
       dist_target_pool <- dist_target_pool[keep]
       pool_is_obs <- pool_is_obs[keep]
       pool_idx <- pool_idx[keep]
+    } else {
+      pool_val <- pool_val_full[seq_len(pool_n), , drop = FALSE]
     }
 
     if (has_randstruct) {
@@ -159,6 +168,7 @@ get_conditional_vecchia <- function(object, newdata, base_val, local_list, sampl
     cond_mean <- as.numeric(crossprod(w, pool_val))
 
     Y_ordered[k, ] <- cond_mean + sqrt(cond_var) * Z[k, ]
+    pool_val_full[n_obs + k, ] <- Y_ordered[k, ]
   }
 
   Y <- matrix(NA_real_, n_new, samples)

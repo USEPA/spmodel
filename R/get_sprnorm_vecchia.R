@@ -70,7 +70,6 @@ get_sprnorm_vecchia <- function(object, local_list, samples) {
     n_pool <- k - 1
     pool_x <- xo[seq_len(n_pool)]
     pool_y <- yo[seq_len(n_pool)]
-    pool_val <- Y_ordered[seq_len(n_pool), , drop = FALSE]
     pool_idx <- ord[seq_len(n_pool)]
 
     dist_target_pool <- as.numeric(spdist_vectors2(xo[k], yo[k], pool_x, pool_y, sparse = FALSE))
@@ -89,9 +88,11 @@ get_sprnorm_vecchia <- function(object, local_list, samples) {
       }
       pool_x <- pool_x[keep]
       pool_y <- pool_y[keep]
-      pool_val <- pool_val[keep, , drop = FALSE]
+      pool_val <- Y_ordered[keep, , drop = FALSE]
       dist_target_pool <- dist_target_pool[keep]
       pool_idx <- pool_idx[keep]
+    } else {
+      pool_val <- Y_ordered[seq_len(n_pool), , drop = FALSE]
     }
 
     if (has_randstruct) {

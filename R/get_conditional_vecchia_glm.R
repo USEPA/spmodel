@@ -113,11 +113,18 @@ get_conditional_vecchia_glm <- function(object, newdata, newdata_model, base_val
   Y_ordered <- matrix(NA_real_, n_new, samples)
   Z <- matrix(rnorm(n_new * samples), n_new, samples)
 
+  # DO NOT USE RBIND IT IS EXTREMELY SLOW,
+  # instead pre-allocate the obs-then-new pool once and write each drawn row
+  # in place, so a given iteration's pool is always just a slice/subset of
+  # this one matrix.
+  pool_val_full <- matrix(NA_real_, n_obs + n_new, samples)
+  pool_val_full[seq_len(n_obs), ] <- base_val
+
   for (k in seq_len(n_new)) {
     n_new_pool <- k - 1
+    pool_n <- n_obs + n_new_pool
     pool_x <- if (n_new_pool > 0) c(xcoord_obs, xo[seq_len(n_new_pool)]) else xcoord_obs
     pool_y <- if (n_new_pool > 0) c(ycoord_obs, yo[seq_len(n_new_pool)]) else ycoord_obs
-    pool_val <- if (n_new_pool > 0) rbind(base_val, Y_ordered[seq_len(n_new_pool), , drop = FALSE]) else base_val
     pool_is_obs <- c(rep(TRUE, n_obs), rep(FALSE, n_new_pool))
     # for pool members that are earlier-drawn newdata rows, pool_idx holds
     # their (unordered) newdata row index and this lines up directly with
@@ -136,10 +143,12 @@ get_conditional_vecchia_glm <- function(object, newdata, newdata_model, base_val
       }
       pool_x <- pool_x[keep]
       pool_y <- pool_y[keep]
-      pool_val <- pool_val[keep, , drop = FALSE]
+      pool_val <- pool_val_full[keep, , drop = FALSE]
       dist_target_pool <- dist_target_pool[keep]
       pool_is_obs <- pool_is_obs[keep]
       pool_idx <- pool_idx[keep]
+    } else {
+      pool_val <- pool_val_full[seq_len(pool_n), , drop = FALSE]
     }
 
     if (has_randstruct) {
@@ -180,6 +189,7 @@ get_conditional_vecchia_glm <- function(object, newdata, newdata_model, base_val
     cond_mean <- as.numeric(crossprod(w, pool_val))
 
     Y_ordered[k, ] <- cond_mean + sqrt(cond_var) * Z[k, ]
+    pool_val_full[n_obs + k, ] <- Y_ordered[k, ]
   }
 
   Y <- matrix(NA_real_, n_new, samples)

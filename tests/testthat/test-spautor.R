@@ -447,14 +447,10 @@ test_that("print() and summary() work for splmRF via spautorRF none/ie delegatio
   skip_if_not_installed("ranger")
   load(file = system.file("extdata", "exdata_Mpoly.rda", package = "spmodel"))
 
-  # spautor() with spcov_type = "none"/"ie" delegates internally to splm(),
-  # so spautorRF() produces a "splmRF"-classed object whose residual model
-  # element is named "spautor" (not "splm") -- print.splmRF()/summary.splmRF()
-  # must still find it
   spmod1 <- spautorRF(y ~ x, exdata_Mpoly, spcov_type = "none", num.trees = 100)
   expect_s3_class(spmod1, "splmRF")
-  expect_true(is.null(spmod1$splm))
-  expect_s3_class(spmod1$spautor, "splm")
+  expect_true(is.null(spmod1$spautor))
+  expect_s3_class(spmod1$splm, "splm")
 
   print_out <- capture.output(print(spmod1))
   expect_equal(print_out[[1]], "ranger:")

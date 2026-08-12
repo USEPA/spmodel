@@ -48,7 +48,7 @@ the output type can also be any subset of \code{c("cov", "spcov", "randcov")}.
 The default is \code{"newdata"}. See Details for more.}
 
 \item{samples}{The number of conditional simulations. The default is
-\code{10,000}.}
+\code{1,000}.}
 
 \item{local}{An optional logical or list controlling the big data approximation.
 If omitted, \code{local} is set

@@ -17,6 +17,8 @@
 \alias{print.anova.spgautor}
 \alias{print.splmRF}
 \alias{print.summary.splmRF}
+\alias{print.spautorRF}
+\alias{print.summary.spautorRF}
 \title{Print values}
 \usage{
 \method{print}{splm}(x, digits = max(3L, getOption("digits") - 3L), ...)
@@ -93,6 +95,15 @@
   signif.stars = getOption("show.signif.stars"),
   ...
 )
+
+\method{print}{spautorRF}(x, digits = max(3L, getOption("digits") - 3L), ...)
+
+\method{print}{summary.spautorRF}(
+  x,
+  digits = max(3L, getOption("digits") - 3L),
+  signif.stars = getOption("show.signif.stars"),
+  ...
+)
 }
 \arguments{
 \item{x}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, \code{\link[=spgautor]{spgautor()}}, \code{\link[=splmRF]{splmRF()}}, \code{\link[=spautorRF]{spautorRF()}}
@@ -121,6 +132,10 @@ print(anova(spmod))
 \donttest{
 sulfate$var <- rnorm(NROW(sulfate)) # add noise variable
 sprfmod <- splmRF(sulfate ~ var, data = sulfate, spcov_type = "exponential")
+print(sprfmod)
+}
+\donttest{
+sprfmod <- spautorRF(log_trend ~ stock, data = seal, spcov_type = "car")
 print(sprfmod)
 }
 }

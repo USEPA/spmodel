@@ -6,16 +6,23 @@
 #' @method kcv spglm
 #' @order 4
 #' @export
-kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, ...) {
+kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, folds_index, ...) {
   # match type argument so the two display
   type <- match.arg(type)
 
-  check_kcv_k(k, object$n)
-
   if (missing(local)) local <- NULL
+  if (missing(folds_index)) folds_index <- NULL
+  
+  if (is.null(folds_index)) {
+    check_kcv_k(k, object$n)
 
-  if (k == object$n) {
-    return(loocv(object, cv_predict = cv_predict, type = type, se.fit = se.fit, delta = delta, local = local, ...))
+    if (k == object$n) {
+      return(loocv(object, cv_predict = cv_predict, type = type, se.fit = se.fit, delta = delta, local = local, ...))
+    }
+    fold_id <- get_kcv_folds(k, object$n)
+  } else {
+    check_kcv_folds_index(folds_index, object$n)
+    fold_id <- folds_index
   }
 
   if (is.null(local)) {
@@ -28,7 +35,6 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
   }
   local_list <- get_local_list_prediction(local)
 
-  fold_id <- get_kcv_folds(k, object$n)
   fold_list <- split(seq_len(object$n), fold_id)
 
   y <- object$y
@@ -120,7 +126,7 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
       # xcoord/ycoord must go through do.call() -- see kcv.splm()'s local
       # branch for why a direct call would break
       refit <- do.call("spglm", list(
-        formula = object$formula, family = object$family, data = data_train,
+        formula = object$formula, data = data_train,
         spcov_initial = spcov_initial_val, dispersion_initial = dispersion_initial_val,
         xcoord = object$xcoord, ycoord = object$ycoord, estmethod = object$estmethod,
         anisotropy = object$anisotropy, random = object$random,
@@ -189,17 +195,25 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
 #' @method kcv spgautor
 #' @order 5
 #' @export
-kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, ...) {
+kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, folds_index, ...) {
   # match type argument so the two display
   type <- match.arg(type)
 
   if (missing(k)) k <- 5
-  check_kcv_k(k, object$n)
 
   if (missing(local)) local <- NULL
+  if (missing(folds_index)) folds_index <- NULL
 
-  if (k == object$n) {
-    return(loocv(object, cv_predict = cv_predict, type = type, se.fit = se.fit, delta = delta, local = local, ...))
+  if (is.null(folds_index)) {
+    check_kcv_k(k, object$n)
+
+    if (k == object$n) {
+      return(loocv(object, cv_predict = cv_predict, type = type, se.fit = se.fit, delta = delta, local = local, ...))
+    }
+    fold_id <- get_kcv_folds(k, object$n)
+  } else {
+    check_kcv_folds_index(folds_index, object$n)
+    fold_id <- folds_index
   }
 
   # spgautor() has no big-data local approximation path -- local is only ever
@@ -207,7 +221,6 @@ kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "respon
   # convention
   local_list <- get_local_list_prediction(local)
 
-  fold_id <- get_kcv_folds(k, object$n)
   fold_list <- split(seq_len(object$n), fold_id)
 
   cov_matrix_val <- covmatrix(object) # already subsets by observed

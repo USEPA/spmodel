@@ -7,6 +7,7 @@
 \alias{summary.spglm}
 \alias{summary.spgautor}
 \alias{summary.splmRF}
+\alias{summary.spautorRF}
 \title{Summarize a fitted model object}
 \usage{
 \method{summary}{splm}(object, ...)
@@ -18,6 +19,8 @@
 \method{summary}{spgautor}(object, ...)
 
 \method{summary}{splmRF}(object, ...)
+
+\method{summary}{spautorRF}(object, ...)
 }
 \arguments{
 \item{object}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, \code{\link[=spgautor]{spgautor()}}, \code{\link[=splmRF]{splmRF()}}, or \code{\link[=spautorRF]{spautorRF()}}.}
@@ -46,6 +49,10 @@ spmod <- splm(z ~ water + tarp,
 summary(spmod)
 \donttest{
 sprfmod <- splmRF(log_cond ~ temp + precip, data = lake, spcov_type = "exponential")
+summary(sprfmod)
+}
+\donttest{
+sprfmod <- spautorRF(log_trend ~ stock, data = seal, spcov_type = "car")
 summary(sprfmod)
 }
 }

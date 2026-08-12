@@ -10,18 +10,11 @@
 #' print(sprfmod)
 #' }
 print.splmRF <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
-  # splmRF() always names the residual model element "splm"; spautorRF()
-  # can also produce a "splmRF"-classed object (spautor() delegates to splm()
-  # internally when spcov_type is "none"/"ie"), but keeps calling that element
-  # "spautor" for consistency with its own output naming -- fall back to it
-  # so this method works for either constructor
-  splm_out <- if (!is.null(x$splm)) x$splm else x$spautor
-
   cat("ranger:\n")
   print(x$ranger)
 
   cat("\nsplm on ranger residuals:\n")
-  print(splm_out, digits = digits, ...)
+  print(x$splm, digits = digits, ...)
 
   invisible(x)
 }
@@ -37,6 +30,41 @@ print.summary.splmRF <- function(x, digits = max(3L, getOption("digits") - 3L),
 
   cat("\nsplm on ranger residuals:\n")
   print(x$splm, digits = digits, signif.stars = signif.stars, ...)
+
+  invisible(x)
+}
+
+#' @rdname print.spmodel
+#' @method print spautorRF
+#' @order 15
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' sprfmod <- spautorRF(log_trend ~ stock, data = seal, spcov_type = "car")
+#' print(sprfmod)
+#' }
+print.spautorRF <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
+  cat("ranger:\n")
+  print(x$ranger)
+
+  cat("\nspautor on ranger residuals:\n")
+  print(x$spautor, digits = digits, ...)
+
+  invisible(x)
+}
+
+#' @rdname print.spmodel
+#' @method print summary.spautorRF
+#' @order 16
+#' @export
+print.summary.spautorRF <- function(x, digits = max(3L, getOption("digits") - 3L),
+                                     signif.stars = getOption("show.signif.stars"), ...) {
+  cat("ranger:\n")
+  print(x$ranger)
+
+  cat("\nspautor on ranger residuals:\n")
+  print(x$spautor, digits = digits, signif.stars = signif.stars, ...)
 
   invisible(x)
 }

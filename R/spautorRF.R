@@ -131,8 +131,8 @@ spautorRF <- function(formula, data, ...) {
       sprf_out <- structure(list(call = match.call(), ranger = ranger_out, spautor = spautor_out, newdata = newdata), class = "spautorRF")
     } else if (inherits(spautor_out, c("splm"))) { # splm for none and ie covariance
       spautor_out$call <- NA
-      # output list with names and class
-      sprf_out <- structure(list(call = match.call(), ranger = ranger_out, spautor = spautor_out, newdata = newdata), class = "splmRF")
+      # the class here is "splmRF", so generics all expect object$splm, not object$spautor
+      sprf_out <- structure(list(call = match.call(), ranger = ranger_out, splm = spautor_out, newdata = newdata), class = "splmRF")
     } else {
       spautor_out <- lapply(spautor_out, function(x) {
         x$call <- NA

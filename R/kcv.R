@@ -9,7 +9,15 @@
 #' @param k The number of folds. Must be a whole number at least 2 and no more
 #'   than the sample size (the number of non-missing observations in \code{object}).
 #'   The default is \code{5}. If \code{k} equals the sample size, \code{kcv()}
-#'   is equivalent to (and calls) [loocv()].
+#'   is equivalent to (and calls) [loocv()]. Ignored when \code{folds_index}
+#'   is supplied.
+#' @param folds_index An optional vector, the same length as the number of
+#'   non-missing observations in \code{object} and in the same order,
+#'   assigning each observation to a fold (at least two distinct values
+#'   required). When supplied, this fold assignment is used as-is, implying \code{k}
+#'   is ignored and no random fold assignment is performed. The default is
+#'   \code{NULL}, which randomly assigns \code{k} (approximately) equally
+#'   sized folds.
 #' @param cv_predict A logical indicating whether the k-fold cross validation fitted values
 #'   should be returned. Defaults to \code{FALSE}. If \code{object} is from [spglm()] or [spgautor()],
 #'   the fitted values returned are on the link scale.
@@ -87,17 +95,24 @@ kcv <- function(object, ...) {
 #' @method kcv splm
 #' @order 2
 #' @export
-kcv.splm <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local, interval = c("none", "prediction"), level = 0.95, ...) {
+kcv.splm <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local, interval = c("none", "prediction"), level = 0.95, folds_index, ...) {
   interval <- match.arg(interval)
 
-  check_kcv_k(k, object$n)
-
   if (missing(local)) local <- NULL
+  if (missing(folds_index)) folds_index <- NULL
 
-  # k = n is exactly leave-one-out -- delegate rather than duplicating loocv()'s
-  # own fast paths (e.g. the closed-form iid shortcut)
-  if (k == object$n) {
-    return(loocv(object, cv_predict = cv_predict, se.fit = se.fit, local = local, interval = interval, level = level, ...))
+  if (is.null(folds_index)) {
+    check_kcv_k(k, object$n)
+
+    # k = n is exactly leave-one-out -- delegate rather than duplicating loocv()'s
+    # own fast paths (e.g. the closed-form iid shortcut)
+    if (k == object$n) {
+      return(loocv(object, cv_predict = cv_predict, se.fit = se.fit, local = local, interval = interval, level = level, ...))
+    }
+    fold_id <- get_kcv_folds(k, object$n)
+  } else {
+    check_kcv_folds_index(folds_index, object$n)
+    fold_id <- folds_index
   }
 
   if (is.null(local)) {
@@ -110,7 +125,6 @@ kcv.splm <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local, i
   }
   local_list <- get_local_list_prediction(local)
 
-  fold_id <- get_kcv_folds(k, object$n)
   fold_list <- split(seq_len(object$n), fold_id)
 
   model_frame <- model.frame(object)
@@ -245,15 +259,22 @@ kcv.splm <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local, i
 #' @method kcv spautor
 #' @order 3
 #' @export
-kcv.spautor <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local, interval = c("none", "prediction"), level = 0.95, ...) {
+kcv.spautor <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local, interval = c("none", "prediction"), level = 0.95, folds_index, ...) {
   interval <- match.arg(interval)
 
-  check_kcv_k(k, object$n)
-
   if (missing(local)) local <- NULL
+  if (missing(folds_index)) folds_index <- NULL
 
-  if (k == object$n) {
-    return(loocv(object, cv_predict = cv_predict, se.fit = se.fit, local = local, interval = interval, level = level, ...))
+  if (is.null(folds_index)) {
+    check_kcv_k(k, object$n)
+
+    if (k == object$n) {
+      return(loocv(object, cv_predict = cv_predict, se.fit = se.fit, local = local, interval = interval, level = level, ...))
+    }
+    fold_id <- get_kcv_folds(k, object$n)
+  } else {
+    check_kcv_folds_index(folds_index, object$n)
+    fold_id <- folds_index
   }
 
   # spautor() has no big-data local approximation path (areal neighborhood
@@ -265,7 +286,6 @@ kcv.spautor <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local
   # when the caller didn't request se.fit in the return value
   se_needed <- se.fit || interval == "prediction"
 
-  fold_id <- get_kcv_folds(k, object$n)
   fold_list <- split(seq_len(object$n), fold_id)
 
   cov_matrix_obs_val <- covmatrix(object)
@@ -367,4 +387,29 @@ check_kcv_k <- function(k, n) {
 #' @noRd
 get_kcv_folds <- function(k, n) {
   sample(rep(seq_len(k), length.out = n))
+}
+
+#' Validate the \code{folds_index} argument to \code{kcv()}
+#'
+#' Same convention as \code{decorrelate()}'s \code{training$folds_index}
+#' (\code{R/decorrelate.R}): a length-\code{n} vector, in the same row order
+#' as the fitted data, assigning each observation to a fold.
+#'
+#' @param folds_index The user-supplied \code{folds_index} argument
+#' @param n The fitted model's sample size
+#'
+#' @return Invisibly \code{NULL}; called for its error-checking side effect
+#'
+#' @noRd
+check_kcv_folds_index <- function(folds_index, n) {
+  if (length(folds_index) != n) {
+    stop("folds_index must have length equal to the number of non-missing observations in object.", call. = FALSE)
+  }
+  if (anyNA(folds_index)) {
+    stop("folds_index cannot contain missing values.", call. = FALSE)
+  }
+  if (length(unique(folds_index)) < 2) {
+    stop("folds_index must assign observations to at least two distinct folds.", call. = FALSE)
+  }
+  invisible(NULL)
 }

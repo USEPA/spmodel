@@ -18,6 +18,7 @@ kcv(object, ...)
   local,
   interval = c("none", "prediction"),
   level = 0.95,
+  folds_index,
   ...
 )
 
@@ -29,6 +30,7 @@ kcv(object, ...)
   local,
   interval = c("none", "prediction"),
   level = 0.95,
+  folds_index,
   ...
 )
 
@@ -40,6 +42,7 @@ kcv(object, ...)
   se.fit = FALSE,
   delta = FALSE,
   local,
+  folds_index,
   ...
 )
 
@@ -51,6 +54,7 @@ kcv(object, ...)
   se.fit = FALSE,
   delta = FALSE,
   local,
+  folds_index,
   ...
 )
 }
@@ -62,7 +66,8 @@ kcv(object, ...)
 \item{k}{The number of folds. Must be a whole number at least 2 and no more
 than the sample size (the number of non-missing observations in \code{object}).
 The default is \code{5}. If \code{k} equals the sample size, \code{kcv()}
-is equivalent to (and calls) \code{\link[=loocv]{loocv()}}.}
+is equivalent to (and calls) \code{\link[=loocv]{loocv()}}. Ignored when \code{folds_index}
+is supplied.}
 
 \item{cv_predict}{A logical indicating whether the k-fold cross validation fitted values
 should be returned. Defaults to \code{FALSE}. If \code{object} is from \code{\link[=spglm]{spglm()}} or \code{\link[=spgautor]{spgautor()}},
@@ -87,6 +92,14 @@ available for \code{splm()}/\code{spautor()} objects.}
 \item{level}{The prediction interval level (e.g. 0.95) used to compute
 prediction interval coverage when \code{interval = "prediction"}. Ignored otherwise. The
 default is \code{0.95}.}
+
+\item{folds_index}{An optional vector, the same length as the number of
+non-missing observations in \code{object} and in the same order,
+assigning each observation to a fold (at least two distinct values
+required). When supplied, this fold assignment is used as-is, implying \code{k}
+is ignored and no random fold assignment is performed. The default is
+\code{NULL}, which randomly assigns \code{k} (approximately) equally
+sized folds.}
 
 \item{type}{The scale (\code{response} or \code{link}) of predictions obtained
 when \code{cv_predict = TRUE} and using \code{spglm()} or \code{spgautor} objects.}

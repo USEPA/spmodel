@@ -9,8 +9,21 @@
 #' summary(sprfmod)
 #' }
 summary.splmRF <- function(object, ...) {
-  # see print.splmRF() for why both element names are checked
-  splm_out <- if (!is.null(object$splm)) object$splm else object$spautor
-  summary_list <- list(ranger = object$ranger, splm = summary(splm_out))
+  summary_list <- list(ranger = object$ranger, splm = summary(object$splm))
   structure(summary_list, class = "summary.splmRF")
+}
+
+#' @rdname summary.spmodel
+#' @method summary spautorRF
+#' @order 6
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' sprfmod <- spautorRF(log_trend ~ stock, data = seal, spcov_type = "car")
+#' summary(sprfmod)
+#' }
+summary.spautorRF <- function(object, ...) {
+  summary_list <- list(ranger = object$ranger, spautor = summary(object$spautor))
+  structure(summary_list, class = "summary.spautorRF")
 }

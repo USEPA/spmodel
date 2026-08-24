@@ -11,6 +11,9 @@ articles:
   - articles/SPGLMs
   - articles/emmeans
   - articles/block
+  - articles/simulation
+  - articles/conditional
+  - articles/decorrelate
   - articles/technical
 
 # toc broken in bootstrap 5, pkgdown 2.1.0

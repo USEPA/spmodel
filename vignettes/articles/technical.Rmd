@@ -4,6 +4,8 @@ author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
 bibliography: '`r system.file("references.bib", package="spmodel")`'
 output:
   html_document:
+    includes:
+      in_header: mathjax-equation-numbers.html
 ---
 
 ```{r setup, include = FALSE}
@@ -61,6 +63,12 @@ A hat indicates the parameters are estimated (i.e., $\hat{\boldsymbol{\beta}}$) 
 \end{equation*}
 Later we discuss how to obtain $\boldsymbol{\Sigma}^{1/2}$.
 
+A tilde or a dot is also used at various points throughout this vignette (e.g.,
+$\tilde{\boldsymbol{\beta}}$, $\tilde{\boldsymbol{\Sigma}}$, $\dot{\mathbf{y}}_u$,
+$\dot{\boldsymbol{\Sigma}}_u$). Unlike a hat, which always means "estimated"
+everywhere it appears, a tilde or a dot does not have one fixed meaning across the
+whole vignette, varying by context.
+
 Additional notation is used in the `predict()` section: \begin{equation*}
   \begin{split}
    \mathbf{y}_o & = \text{Observed response vector} \\
@@ -71,7 +79,7 @@ Additional notation is used in the `predict()` section: \begin{equation*}
    \boldsymbol{\Sigma}_u & = \text{Covariance matrix of $\mathbf{y}_u$ evaluated at } \boldsymbol{\theta} \\
    \boldsymbol{\Sigma}_{uo} & = \text{A matrix of covariances between $\mathbf{y}_u$ and $\mathbf{y}_o$ evaluated at } \boldsymbol{\theta} \\
    \mathbf{w}_o & = \text{Latent $\mathbf{w}$ for each observation in $\mathbf{y}_o$} \\
-   \mathbf{w}_u & = \text{Latent $\mathbf{w}$ for each observation in $\mathbf{y}_o$} \\
+   \mathbf{w}_u & = \text{Latent $\mathbf{w}$ for each observation in $\mathbf{y}_u$} \\
    \mathbf{G}_o & = \text{Hessian for $\mathbf{w}_o$} \\
   \end{split}
 \end{equation*}
@@ -89,11 +97,11 @@ The model $\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}$ a
 The model $\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\tau} + \boldsymbol{\epsilon}$ is called the spatial linear model. The spatial linear model applies to both point-referenced and areal (i.e., lattice) data. Spatial data are point-referenced when the elements in $\mathbf{y}$ are observed at point-locations indexed by x-coordinates and y-coordinates on a spatially continuous surface with an infinite number of locations. The `splm()` function is used to fit spatial linear models for point-referenced data (these are sometimes called geostatistical models). One spatial covariance function available in `splm()` is the exponential spatial covariance function, which has an $\mathbf{R}$ matrix given by \begin{equation*}
   \mathbf{R} = \exp(-\mathbf{M} / \phi),
 \end{equation*}\
-where $\mathbf{M}$ is a matrix of Euclidean distances among observations. Recall that $\phi$ is the range parameter, controlling the behavior of of the covariance function as a function of distance. Parameterizations for `splm()` spatial covariance types and their $\mathbf{R}$ matrices can be seen by running `help("splm", "spmodel")` or `vignette("technical", "spmodel")`. Some of these spatial covariance types (e.g., Matérn) depend on an extra parameter beyond $\sigma^2_{de}$, $\sigma^2_{ie}$, and $\phi$.
+where $\mathbf{M}$ is a matrix of Euclidean distances among observations. Recall that $\phi$ is the range parameter, controlling the behavior of the covariance function as a function of distance. Parameterizations for `splm()` spatial covariance types and their $\mathbf{R}$ matrices can be seen by running `help("splm", "spmodel")` or in the `splm()` Spatial Covariance Functions section below. Some of these spatial covariance types (e.g., Matérn) depend on an extra parameter beyond $\sigma^2_{de}$, $\sigma^2_{ie}$, and $\phi$.
 
 Spatial data are areal when the elements in $\mathbf{y}$ are observed as part of a finite network of polygons whose connections are indexed by a neighborhood structure. For example, the polygons may represent counties in a state that are neighbors if they share at least one boundary. Areal data are often equivalently called lattice data [@cressie1993statistics]. The `spautor()` function is used to fit spatial linear models for areal data (these are sometimes called spatial autoregressive models). One spatial autoregressive covariance function available in `spautor()` is the simultaneous autoregressive spatial covariance function, which has an $\mathbf{R}$ matrix given by \begin{equation*}
   \mathbf{R} = [(\mathbf{I} - \phi \mathbf{W})(\mathbf{I} - \phi \mathbf{W})^\top]^{-1},
-\end{equation*} where $\mathbf{W}$ is a weight matrix describing the neighborhood structure in $\mathbf{y}$. Parameterizations for `spautor()` spatial covariance types and their $\mathbf{R}$ matrices can be seen by running `help("spautor", "spmodel")` or `vignette("technical", "spmodel")`.
+\end{equation*} where $\mathbf{W}$ is a weight matrix describing the neighborhood structure in $\mathbf{y}$. Parameterizations for `spautor()` spatial covariance types and their $\mathbf{R}$ matrices can be seen by running `help("spautor", "spmodel")` or in the `spautor()` Spatial Covariance Functions section below.
 
 One way to define $\mathbf{W}$ is through queen contiguity [@anselin2010geoda]. Two observations are queen contiguous if they share a boundary. The $ij$th element of $\mathbf{W}$ is then one if observation $i$ and observation $j$ are queen contiguous and zero otherwise. Observations are not considered neighbors with themselves, so each diagonal element of $\mathbf{W}$ is zero.
 
@@ -113,16 +121,16 @@ AIC comparisons between a model fit using restricted maximum likelihood and a mo
 ## `anova()` {#sec:anova-lm}
 
 Test statistics from `anova()` are formed using the general linear hypothesis test. Let $\mathbf{L}$ be an $l \times p$ contrast matrix and $l_0$ be an $l \times 1$ vector. The null hypothesis is that $\mathbf{L} \boldsymbol{\hat{\beta}} = l_0$ and the alternative hypothesis is that $\mathbf{L} \boldsymbol{\hat{\beta}} \neq l_0$. Usually, $l_0$ is the zero vector (in `spmodel`, this is assumed). The test statistic is denoted $Chi2$ and is given by \begin{equation*}\label{eq:glht}
-  Chi2 = [(\mathbf{L} \boldsymbol{\hat{\beta}} - l_0)^\top(\mathbf{L} (\mathbf{X}^\top \mathbf{\hat{\Sigma}} \mathbf{X})^{-1} \mathbf{L}^\top)^{-1}(\mathbf{L} \boldsymbol{\hat{\beta}} - l_0)]
+  Chi2 = [(\mathbf{L} \boldsymbol{\hat{\beta}} - l_0)^\top(\mathbf{L} (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1} \mathbf{L}^\top)^{-1}(\mathbf{L} \boldsymbol{\hat{\beta}} - l_0)]
 \end{equation*} By default, $\mathbf{L}$ is chosen such that each variable in the data used to fit the model is tested marginally (i.e., controlling for the other variables) against $l_0 = \mathbf{0}$. If this default is not desired, the `Terms` and `L` arguments can be used to pass user-defined $\mathbf{L}$ matrices to `anova()`. They must be constructed in such a way that $l_0 = \mathbf{0}$.
 
 It is notoriously difficult to determine appropriate p-values for linear mixed models based on the general linear hypothesis test. lme4, for example, does not report p-values by default. A few reasons why obtaining p-values is so challenging:
 
 -   The first (and often most important) challenge is that when estimating $\boldsymbol{\theta}$ using a finite sample, it is usually not clear what the null distribution of $Chi2$ is. In certain cases such as ordinary least squares regression or some experimental designs (e.g., blocked design, split plot design, etc.), $Chi2 / rank(\mathbf{L})$ is F-distributed with known numerator and denominator degrees of freedom. But outside of these well-studied cases, no general results exist.
 -   The second challenge is that the standard error of $Chi2$ does not account for the uncertainty in $\boldsymbol{\hat{\theta}}$. For some approaches to addressing this problem, see @kackar1984approximations, @prasad1990estimation, @harville1992mean, and @kenward1997small.
--   The third challenge is in determining denominator degrees of freedom. Again, in some cases, these are known -- but this is not true in general. For some approaches to addressing this problem, see @satterthwaite1946approximate, @schluchter1990small, @hrong1996approximate, @kenward1997small, @littell2006sas, @pinheiro2006mixed, and @kenward2009improved.
+-   The third challenge is in determining denominator degrees of freedom. Again, in some cases, these are known -- but this is not true in general. For some approaches to addressing this problem, see @satterthwaite1946approximate, @schluchter1990small, @fai1996approximate, @kenward1997small, @littell2006sas, @pinheiro2006mixed, and @kenward2009improved.
 
-For these reasons, `spmodel` uses an asymptotic (i.e., large sample) Chi-squared test when calculating p-values using `anova()`. This approach addresses the three points above by assuming that with a large enough sample size:
+For these reasons, `spmodel` uses generally an asymptotic (i.e., large sample) Chi-squared test when calculating p-values using `anova()` (unless sample sizes are small, see further below for a discussion on `ddf` and `satterthwaite()`). This approach addresses the three points above by assuming that with a large enough sample size:
 
 -   $Chi2$ is asymptotically Chi-squared (under certain conditions) with $rank(\mathbf{L})$ degrees of freedom when the null hypothesis is true.
 -   The uncertainty from estimating $\boldsymbol{\hat{\theta}}$ is small enough to be safely ignored.
@@ -131,9 +139,13 @@ Because the approximation is asymptotic, degree of freedom adjustments can be ig
 
 Note that when comparing full and reduced models, the general linear hypothesis test is analogous to an extra sum of (whitened) squares approach [@myers2012generalized].
 
-A second approach to determining p-values is a likelihood ratio test. Let $\ell(\boldsymbol{\hat{\Theta}})$ be the log-likelihood for some full model and $\ell(\boldsymbol{\hat{\Theta}}_0)$ be the log-likelihood for some reduced model. For the likelihood ratio test to be valid, the reduced model must be nested in the full model, which means that $\ell(\boldsymbol{\hat{\Theta}}_0)$ is obtained by fixing some parameters in $\boldsymbol{\Theta}$. When the likelihood ratio test is valid, $X^2 = 2\ell(\boldsymbol{\hat{\Theta}}) - 2\ell(\boldsymbol{\hat{\Theta}}_0)$ is asymptotically Chi-squared with degrees of freedom equal to the difference in estimated parameters between the full and reduced models.
+An alternative to the asymptotic Chi-squared test above (for `splm()`/`spautor()` model objects, via the `ddf` argument to `anova()`) directly addresses the second and third challenges by using Satterthwaite denominator degrees of freedom (`satterthwaite()`) instead of assuming $n$ is large enough to ignore them. The Chi-squared test statistic is rescaled into an $F$ statistic and compared to an $F$ reference distribution instead of a Chi-squared one: $F = Chi2 / rank(\mathbf{L})$, with $rank(\mathbf{L})$ numerator degrees of freedom and a Satterthwaite-based denominator degrees of freedom, $\nu_{\mathbf{L}}$. A Chi-squared statistic on $q$ degrees of freedom divided by $q$ is equivalently an $F(q, \infty)$ statistic, so this $F$ test is a strict generalization of the asymptotic Chi-squared test, which is recovered as $\nu_{\mathbf{L}} \to \infty$.
 
-For restricted maximum likelihood estimation, likelihood ratio tests can only be used to compare nested models with the same explanatory variables. To use likelihood ratio tests for comparing different explanatory variable structures, parameters must be estimated using maximum likelihood estimation. When using likelihood ratio tests to assess the importance of parameters on the boundary of a parameter space (e.g., a variance parameter being zero), p-values tend to be too large [@self1987asymptotic; @stram1994variance; @goldman2000statistical; @pinheiro2006mixed].
+When $\mathbf{L}$ has a single row ($rank(\mathbf{L}) = 1$), $\nu_{\mathbf{L}}$ is exactly the single-coefficient Satterthwaite denominator degrees of freedom described in `satterthwaite()`. When $\mathbf{L}$ has multiple rows (a joint hypothesis on more than one linear combination of $\boldsymbol{\beta}$ simultaneously), a single denominator degrees of freedom for the whole test is obtained using the approach of @fai1996approximate. First $\mathbf{L}$'s $q$ rows are rotated into $q$ uncorrelated linear combinations $\boldsymbol{\eta} = \mathbf{U}^\top \mathbf{L} \boldsymbol{\hat\beta}$, where $\mathbf{U}$ contains the eigenvectors of $\text{Cov}(\mathbf{L}\boldsymbol{\hat\beta}) = \mathbf{L}(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1}\mathbf{X})^{-1}\mathbf{L}^\top$. Each rotated combination $\eta_i$ gets its own single-coefficient Satterthwaite degrees of freedom, $\nu_i$, computed exactly as in `satterthwaite()`. These $q$ individual degrees of freedom are then combined via \begin{equation*}
+  \nu_{\mathbf{L}} = \begin{cases} 2E / (E - q) & \text{if } E > q \\ \text{undefined} & \text{otherwise} \end{cases}, \qquad E = \sum_{i = 1}^q \frac{\nu_i}{\nu_i - 2},
+\end{equation*} which is undefined whenever any $\nu_i \le 2$ (that component's covariance-parameter uncertainty is too large, relative to its own variance estimate, to support a joint test) and reduces to $\nu_1$ itself when $q = 1$.
+
+A fundamentally different approach to `anova()` is determining p-values via a likelihood ratio test. Let $\ell(\boldsymbol{\hat{\Theta}})$ be the log-likelihood for some full model and $\ell(\boldsymbol{\hat{\Theta}}_0)$ be the log-likelihood for some reduced model. For the likelihood ratio test to be valid, the reduced model must be nested in the full model, which means that $\ell(\boldsymbol{\hat{\Theta}}_0)$ is obtained by fixing some parameters in $\boldsymbol{\Theta}$. When the likelihood ratio test is valid, $X^2 = 2\ell(\boldsymbol{\hat{\Theta}}) - 2\ell(\boldsymbol{\hat{\Theta}}_0)$ is asymptotically Chi-squared with degrees of freedom equal to the difference in estimated parameters between the full and reduced models. For restricted maximum likelihood estimation, likelihood ratio tests can only be used to compare nested models with the same explanatory variables. To use likelihood ratio tests for comparing different explanatory variable structures, parameters must be estimated using maximum likelihood estimation. When using likelihood ratio tests to assess the importance of parameters on the boundary of a parameter space (e.g., a variance parameter being zero), p-values tend to be too large [@self1987asymptotic; @stram1994variance; @goldman2000statistical; @pinheiro2006mixed].
 
 ## `BIC()` {#sec:bic-lm}
 
@@ -153,22 +165,24 @@ BIC comparisons between a model fit using restricted maximum likelihood and a mo
 
 ## `confint()` {#sec:confint-lm}
 
-`confint()` returns confidence intervals for estimated parameters. Currently, `confint()` only returns confidence intervals for $\boldsymbol{\beta}$. The $(1 - \alpha)$% confidence interval for $\beta_i$ is
+`confint()` returns confidence intervals for estimated parameters. Currently, `confint()` only returns confidence intervals for $\boldsymbol{\beta}$. For `splm()`/`spautor()` model objects fit with `ddf = "asymptotic"` (or for `spglm()`/`spgautor()` model objects, which have no `ddf` argument), the $(1 - \alpha)$% confidence interval for $\beta_i$ is
 \begin{equation*}
 \hat{\beta}_i \pm z^* \sqrt{(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}_{i, i}},
 \end{equation*}
 where $(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}_{i, i}$ is the $i$th diagonal element in $(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}$, $\Phi(z^*) = 1 - \alpha / 2$, $\Phi(\cdot)$ is the standard normal (Gaussian) cumulative distribution function, and $\alpha = 1 -$ `level`, where `level` is an argument to `confint()`. The default for `level` is 0.95, which corresponds to a $z^*$ of approximately 1.96.
 
+For `splm()`/`spautor()` model objects fit with `ddf = "satterthwaite"` (the default when $n \le 500$; see `satterthwaite()`), $z^*$ is instead replaced by $t^*$, the $(1 - \alpha/2)$ quantile of a $t$-distribution with $\nu_i$ (the $i$th fixed effect's Satterthwaite denominator degrees of freedom) degrees of freedom: $\hat{\beta}_i \pm t^* \sqrt{(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}_{i, i}}$. Because a $t$-distribution has heavier tails than a standard normal distribution, Satterthwaite confidence intervals are wider than asymptotic confidence intervals, appropriately reflecting the extra uncertainty from estimating $\boldsymbol{\theta}$ in a finite sample.
+
 ## `cooks.distance()` {#sec:cooks-lm}
 
 Cook's distance measures the influence of an observation [@cook1979influential; @cook1982residuals]. An influential observation has a large impact on the model fit. The vector of Cook's distances for the spatial linear model is given by \begin{equation} \label{eq:cooksd}
-\frac{\mathbf{e}_p^2}{p} \odot diag(\mathbf{H}_s) \odot \frac{1}{1 - diag(\mathbf{H}_s)},
-\end{equation} where $\mathbf{e}_p$ are the Pearson residuals and $diag(\mathbf{H}_s)$ is the diagonal of the spatial hat matrix, $\mathbf{H}_s \equiv \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}$ [@montgomery2021introduction], and $\odot$ denotes the Hadmard (element-wise) product. The larger the Cook's distance, the larger the influence.
+\frac{\mathbf{e}_s^2}{p} \odot diag(\mathbf{H}_s) \odot \frac{1}{1 - diag(\mathbf{H}_s)},
+\end{equation} where $\mathbf{e}_s$ are the standardized residuals and $diag(\mathbf{H}_s)$ is the diagonal of the spatial hat matrix, $\mathbf{H}_s \equiv \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}$ [@montgomery2021introduction], and $\odot$ denotes the Hadamard (element-wise) product. The larger the Cook's distance, the larger the influence.
 
-To better understand the previous form, recall that the the non-spatial linear model $\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}$ assumes elements of $\boldsymbol{\epsilon}$ are independent and identically distributed (iid) with constant variance. In this context the vector of non-spatial Cook's distances is given by 
+To better understand the previous form, recall that the non-spatial linear model $\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}$ assumes elements of $\boldsymbol{\epsilon}$ are independent and identically distributed (iid) with constant variance. In this context the vector of non-spatial Cook's distances is given by
 \begin{equation*}
-\frac{\mathbf{e}_p^2}{p} \odot diag(\mathbf{H}) \odot \frac{1}{1 - diag(\mathbf{H})},
-\end{equation*} 
+\frac{\mathbf{e}_s^2}{p} \odot diag(\mathbf{H}) \odot \frac{1}{1 - diag(\mathbf{H})},
+\end{equation*}
 where $diag(\mathbf{H})$ is the diagonal of the non-spatial hat matrix, $\mathbf{H} \equiv \mathbf{X} (\mathbf{X}^{\top} \mathbf{X})^{-1} \mathbf{X}^{\top}$. When the elements of $\boldsymbol{\epsilon}$ are not iid or do not have constant variance or both, the spatial Cook's distance cannot be calculated using $\mathbf{H}$. First the linear model must be whitened according to $\mathbf{y}^* = \mathbf{X}^* \boldsymbol{\beta} + \boldsymbol{\epsilon}^*$, where $\boldsymbol{\epsilon}^*$ is the whitened version of the sum of all random errors in the model. Then the spatial Cook's distance follows using $\mathbf{X}^*$, the whitened version of $\mathbf{X}$.
 
 ## `deviance()` {#sec:deviance-lm}
@@ -191,7 +205,7 @@ Fitted values can be obtained for the response, spatial random errors, and rando
 Fitted values for spatial random errors (`type = "spcov"`) and random effects (`type = "randcov"`) are linked to best linear unbiased predictors from linear mixed model theory. Consider the standard random effects parameterization \begin{equation*}
   \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \mathbf{u} + \boldsymbol{\epsilon},
 \end{equation*} where $\mathbf{Z}$ denotes the random effects design matrix, $\mathbf{u}$ denotes the random effects, and $\boldsymbol{\epsilon}$ denotes independent random error. @henderson1975best states that the best linear unbiased predictor (BLUP) of a single random effect vector $\mathbf{u}$, denoted $\mathbf{\hat{u}}$, is given by \begin{equation}\label{eq:blup_mm}
-  \mathbf{\hat{u}} = \sigma^2_u \mathbf{Z}^\top \mathbf{\Sigma}^{-1}(\mathbf{y} - \mathbf{X} \boldsymbol{\hat{\beta}}),
+  \mathbf{\hat{u}} = \sigma^2_u \mathbf{Z}^\top \boldsymbol{\Sigma}^{-1}(\mathbf{y} - \mathbf{X} \boldsymbol{\hat{\beta}}),
 \end{equation} where $\sigma^2_u$ is the variance of $\mathbf{u}$.
 
 @searle2009variance generalize this idea by showing that for a random vector $\boldsymbol{\alpha}$ in a linear model, the best linear unbiased predictor (based on the response, $\mathbf{y}$) of $\boldsymbol{\alpha}$, denoted $\boldsymbol{\hat{\alpha}}$, is given by \begin{equation}\label{eq:blup_gen}
@@ -204,7 +218,7 @@ Recall that the spatial linear model with random effects is
 \end{equation*} 
 Building from previous results, we can find BLUPs for each random term in the spatial linear model ($\mathbf{u}$, $\boldsymbol{\tau}$, and $\boldsymbol{\epsilon}$). For example, the BLUP of $\mathbf{u}$ is found by noting that $\text{E}(\mathbf{u}) = \mathbf{0}$ and 
 \begin{equation*}
-  \mathbf{\Sigma}_u = \text{Cov}(\mathbf{u}, \mathbf{y}) = \text{Cov}(\mathbf{u}, \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \mathbf{u} + \boldsymbol{\tau} + \boldsymbol{\epsilon}) = \text{Cov}(\mathbf{u}, \mathbf{Z}\mathbf{u}) = \text{Cov}(\mathbf{u}, \mathbf{u})\mathbf{Z}^\top = \sigma^2_u \mathbf{Z}^\top,
+  \boldsymbol{\Sigma}_u = \text{Cov}(\mathbf{u}, \mathbf{y}) = \text{Cov}(\mathbf{u}, \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \mathbf{u} + \boldsymbol{\tau} + \boldsymbol{\epsilon}) = \text{Cov}(\mathbf{u}, \mathbf{Z}\mathbf{u}) = \text{Cov}(\mathbf{u}, \mathbf{u})\mathbf{Z}^\top = \sigma^2_u \mathbf{Z}^\top,
 \end{equation*} 
 where the result follows because the random terms in $\mathbf{y}$ are independent and $\text{Cov}(\mathbf{u}, \mathbf{u}) = \sigma^2_u \mathbf{I}$. Then it follows that 
 \begin{equation*}
@@ -212,14 +226,14 @@ where the result follows because the random terms in $\mathbf{y}$ are independen
 \end{equation*} 
 which matches the previous form of the BLUP. Similarly, the BLUP of $\boldsymbol{\tau}$ is found by noting that $\text{E}(\boldsymbol{\tau}) = \mathbf{0}$ and 
 \begin{equation*}
-  \mathbf{\Sigma}_{de} = \text{Cov}(\boldsymbol{\tau}, \mathbf{y}) = \text{Cov}(\boldsymbol{\tau}, \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \mathbf{u} + \boldsymbol{\tau} + \boldsymbol{\epsilon}) = \text{Cov}(\boldsymbol{\tau}, \boldsymbol{\tau}) = \sigma^2_{de} \mathbf{R},
+  \boldsymbol{\Sigma}_{de} = \text{Cov}(\boldsymbol{\tau}, \mathbf{y}) = \text{Cov}(\boldsymbol{\tau}, \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \mathbf{u} + \boldsymbol{\tau} + \boldsymbol{\epsilon}) = \text{Cov}(\boldsymbol{\tau}, \boldsymbol{\tau}) = \sigma^2_{de} \mathbf{R},
 \end{equation*} 
 where the result follows because the random terms in $\mathbf{y}$ are independent and $\text{Cov}(\boldsymbol{\tau}, \boldsymbol{\tau}) = \sigma^2_{de} \mathbf{R}$, and $\sigma^2_{de}$ is the variance of $\boldsymbol{\tau}$. Then it follows that \begin{equation}\label{eq:blup_sp}
   \hat{\boldsymbol{\tau}} = \text{E}(\boldsymbol{\tau}) + \boldsymbol{\Sigma}_{de} \boldsymbol{\Sigma}^{-1}(\mathbf{y} - \mathbf{X} \boldsymbol{\hat{\beta}}) = \sigma^2_{de} \mathbf{R} \boldsymbol{\Sigma}^{-1}(\mathbf{y} - \mathbf{X} \boldsymbol{\hat{\beta}}).
 \end{equation}
 Fitted values for $\boldsymbol{\epsilon}$ are obtained using similar arguments. Evaluating these equations at the plug-in (empirical) estimates of the covariance parameters yields EBLUPs.
 
-When partition factors are used, the covariance matrix of all random effects (spatial and non-spatial) can be viewed as the interaction between the non-partitioned covariance matrix and the partition matrix, $\mathbf{P}$. The $ij$th entry in $\mathbf{P}$ equals one if observation $i$ and observation $j$ share the same level of the partition factor and zero otherwise. For spatial random effects, an adjustment is straightforward, as each column in $\boldsymbol{\Sigma}_{de}$ corresponds to a distinct spatial random effect. Thus with partition factors, $\boldsymbol{\Sigma}_{de}^* = \boldsymbol{\Sigma}_{de} \odot \mathbf{P} = \sigma^2_{de} \mathbf{R} \odot \mathbf{P}$, where $\odot$ denotes the Hadmart (element-wise) product, is used instead of $\boldsymbol{\Sigma}_{de}$. Note that $\boldsymbol{\Sigma}_{ie}$ is unchanged as it is proportional to the identity matrix. For non-spatial random effects, however, the situation is more complicated. Applying the BLUP formula directly yields BLUPs of random effects corresponding to the interaction between random effect levels and partition levels. Thus a logical approach is to average the non-zero BLUPs for each random effect level across partition levels, yielding a prediction for the random effect level. This does not imply, however, that these estimates are BLUPs of the random effect.
+When partition factors are used, the covariance matrix of all random effects (spatial and non-spatial) can be viewed as the interaction between the non-partitioned covariance matrix and the partition matrix, $\mathbf{P}$. The $ij$th entry in $\mathbf{P}$ equals one if observation $i$ and observation $j$ share the same level of the partition factor and zero otherwise. For spatial random effects, an adjustment is straightforward, as each column in $\boldsymbol{\Sigma}_{de}$ corresponds to a distinct spatial random effect. Thus with partition factors, $\boldsymbol{\Sigma}_{de}^* = \boldsymbol{\Sigma}_{de} \odot \mathbf{P} = \sigma^2_{de} \mathbf{R} \odot \mathbf{P}$, where $\odot$ denotes the Hadamard (element-wise) product, is used instead of $\boldsymbol{\Sigma}_{de}$. Note that $\boldsymbol{\Sigma}_{ie}$ is unchanged as it is proportional to the identity matrix. For non-spatial random effects, however, the situation is more complicated. Applying the BLUP formula directly yields BLUPs of random effects corresponding to the interaction between random effect levels and partition levels. Thus a logical approach is to average the non-zero BLUPs for each random effect level across partition levels, yielding a prediction for the random effect level. This does not imply, however, that these estimates are BLUPs of the random effect.
 
 For big data without partition factors, the local indexes act as partition factors. That is, the BLUPs correspond to random effects interacted with each local index. For big data with partition factors, an adjusted partition factor is created as the interaction between each local index and the partition factor. Then this adjusted partition factor is applied to yield $\hat{\boldsymbol{\alpha}}$.
 
@@ -230,7 +244,7 @@ Hat values measure the leverage of an observation. An observation has high lever
  \mathbf{H}_s = \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}.
 \end{equation} The diagonal of this matrix yields the leverage (hat) values for each observation [@montgomery2021introduction]. The larger the hat value, the larger the leverage.
 
-To better understand the previous form, recall that the the non-spatial linear model $\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}$ assumes elements of $\boldsymbol{\epsilon}$ are independent and identically distributed (iid) with constant variance. In this context, the leverage (hat) matrix is given by \begin{equation*}
+To better understand the previous form, recall that the non-spatial linear model $\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}$ assumes elements of $\boldsymbol{\epsilon}$ are independent and identically distributed (iid) with constant variance. In this context, the leverage (hat) matrix is given by \begin{equation*}
 \mathbf{H} \equiv \mathbf{X} (\mathbf{X}^{\top} \mathbf{X})^{-1} \mathbf{X}^{\top},
 \end{equation*} 
 When the elements of $\boldsymbol{\epsilon}$ are not iid or do not have constant variance or both, the spatial leverage (hat) matrix is not $\mathbf{H}$. First the linear model must be whitened according to $\mathbf{y}^* = \mathbf{X}^* \boldsymbol{\beta} + \boldsymbol{\epsilon}^*$, where $\boldsymbol{\epsilon}^*$ is the whitened version of the sum of all random errors in the model. Then the spatial leverage (hat) matrix follows using $\mathbf{X}^*$, the whitened version of $\mathbf{X}$.
@@ -239,9 +253,9 @@ When the elements of $\boldsymbol{\epsilon}$ are not iid or do not have constant
 
 The log-likelihood is given by $\ell(\boldsymbol{\hat{\Theta}})$.
 
-## `loocv()` {#sec:loocv-lm}
+## `loocv()` and `kcv()` {#sec:loocv-lm}
 
-$k$-fold cross validation is a useful tool for evaluating model fits using "hold-out" data. The data are split into $k$ sets. One-by-one, one of the $k$ sets is held out, the model is fit to the remaining $k - 1$ sets, and predictions at each observation in the hold-out set are compared to their true values. The closer the predictions are to the true observations, the better the model fit. A special case where $k = n$ is known as leave-one-out cross validation (loocv), as each observation is left out one-by-one. Computationally efficient solutions exist for leave-one-out cross validation in the non-spatial linear model (with iid, constant variance errors). Outside of this case, however, fitting $n$ separate models can be computationally infeasible. `loocv()` makes a compromise that balances an approximation to the true solution with computational feasibility. First $\boldsymbol{\theta}$ is estimated using all of the data. Then for each of the $n$ model fits, `loocv()` does not re-estimate $\boldsymbol{\theta}$ but does re-estimate $\boldsymbol{\beta}$. This approach relies on the assumption that the covariance parameter estimates obtained using $n - 1$ observations are approximately the same as the covariance parameter estimates obtained using all $n$ observations. For a large enough sample size, this is a reasonable assumption.
+$k$-fold cross validation is a useful tool for evaluating model fits using "hold-out" data. The data are split into $k$ sets, called folds. One-by-one, one of the $k$ folds is held out, the model is fit to the remaining $k - 1$ folds, and predictions at each observation in the hold-out fold are compared to their true values. The closer the predictions are to the true observations, the better the model fit. A special case where $k = n$ (each fold contains a single observation) is known as leave-one-out cross validation (loocv), as each observation is left out one-by-one; `kcv()` generalizes this to $k < n$, and calls `loocv()` directly whenever $k = n$ is requested. Computationally efficient solutions exist for leave-one-out cross validation in the non-spatial linear model (with iid, constant variance errors). Outside of this case, however, fitting $n$ (or, for `kcv()`, $k$) separate models can be computationally infeasible. `loocv()`/`kcv()` make a compromise that balances an approximation to the true solution with computational feasibility. First $\boldsymbol{\theta}$ is estimated using all of the data. Then for each fold's model fit, `loocv()`/`kcv()` do not re-estimate $\boldsymbol{\theta}$ but do re-estimate $\boldsymbol{\beta}$. This approach relies on the assumption that the covariance parameter estimates obtained using the data with a single fold removed are approximately the same as the covariance parameter estimates obtained using all the data. For a large enough sample size (relative to the fold size), this is a reasonable assumption.
 
 First define $\boldsymbol{\Sigma}_{-i, -i}$ as $\boldsymbol{\Sigma}$ with the $i$th row and column deleted, $\boldsymbol{\Sigma}_{i, -i}$ as the $i$th row of $\boldsymbol{\Sigma}$ with the $i$th column deleted, $\boldsymbol{\Sigma}_{i, i}$ as the $i$th diagonal element of $\boldsymbol{\Sigma}$, $\mathbf{X}_{-i}$ as $\mathbf{X}$ with the $i$th row deleted, $\mathbf{X}_{i}$ as the $i$th row of $\mathbf{X}$, $y_{-i}$ as $\mathbf{y}$ with the $i$th element deleted, and $\mathbf{y}_i$ as the $i$th element of $\mathbf{y}$. @wolf1978helmert shows that given $\boldsymbol{\Sigma}^{-1}$, a computationally efficient form for $\boldsymbol{\Sigma}^{-1}_{-i}$ exists. First observe that $\boldsymbol{\Sigma}^{-1}$ can be represented blockwise as 
 \begin{equation*}
@@ -260,11 +274,17 @@ where the dimensions of each $\tilde{\boldsymbol{\Sigma}}$ match the respective 
 where $\boldsymbol{\beta}_i$ is the estimate of $\boldsymbol{\beta}$ constructed without the $i$th observation.
 
 The loocv prediction of $y_i$ is then given by \begin{equation*}
-  \hat{y}_i = \mathbf{X}_i \hat{\boldsymbol{\beta}}_{-i} + \hat{\boldsymbol{\Sigma}}_{i, -i}\hat{\boldsymbol{\Sigma}}_{-i, -i}(\mathbf{y}_i - \mathbf{X}_{-i} \hat{\boldsymbol{\beta}}_{-i})
+  \hat{y}_i = \mathbf{X}_i \hat{\boldsymbol{\beta}}_{-i} + \hat{\boldsymbol{\Sigma}}_{i, -i}\hat{\boldsymbol{\Sigma}}_{-i, -i}^{-1}(\mathbf{y}_{-i} - \mathbf{X}_{-i} \hat{\boldsymbol{\beta}}_{-i})
 \end{equation*} and the prediction variance of the loocv prediction of $y_i$ is given by \begin{equation*}
   \dot{\sigma}^2_i = \hat{\boldsymbol{\Sigma}}_{i, i} - \hat{\boldsymbol{\Sigma}}_{i, - i} \hat{\boldsymbol{\Sigma}}^{-1}_{-i, -i} \hat{\boldsymbol{\Sigma}}_{i, - i}^\top + \mathbf{Q}_i(\mathbf{X}_{-i}^\top \hat{\boldsymbol{\Sigma}}_{-i, -i}^{-1} \mathbf{X}_{-i})^{-1}\mathbf{Q}_i^\top ,
 \end{equation*}
-where $\mathbf{Q}_i = \mathbf{X}_i - \hat{\boldsymbol{\Sigma}}_{i, -i} \hat{\boldsymbol{\Sigma}}^{-1}_{-i, -i} \mathbf{X}_{-i}$. These formulas are analogous to the formulas used to obtain linear unbiased predictions of unobserved data and prediction variances. Model fits are evaluated using several statistics: bias, mean-squared-prediction error (MSPE), root-mean-squared-prediction error (RMSPE), and the squared correlation (cor2) between the observed data and leave-one-out predictions (regarded as a prediction version of r-squared appropriate for comparing across spatial and nonspatial models). 
+where $\mathbf{Q}_i = \mathbf{X}_i - \hat{\boldsymbol{\Sigma}}_{i, -i} \hat{\boldsymbol{\Sigma}}^{-1}_{-i, -i} \mathbf{X}_{-i}$. These formulas are analogous to the formulas used to obtain linear unbiased predictions of unobserved data and prediction variances. Model fits are evaluated using several statistics: bias, mean-squared-prediction error (MSPE), root-mean-squared-prediction error (RMSPE), and the squared correlation (cor2) between the observed data and leave-one-out predictions (regarded as a prediction version of r-squared appropriate for comparing across spatial and nonspatial models).
+
+### `kcv()`: Block Generalization {#sec:kcv-lm}
+
+`kcv()` replaces each single held-out observation $i$ above with a held-out fold $F$, a set of (approximately $n / k$) row indices held out together, so $-i$ becomes $-F$ throughout (e.g., $\hat{\boldsymbol{\Sigma}}_{F, -F}$ is the covariance between the held-out fold and every other observation). The Helmert-Wolf-Blocking result of @wolf1978helmert used above is a general block-partitioned-matrix identity, so it generalizes to a fold of any size the same way: only the scalar $\tilde{\boldsymbol{\Sigma}}_{i, i}^{-1}$ becomes an $m \times m$ matrix inverse, where $m = |F|$ is the fold size, and \begin{equation*}
+  \boldsymbol{\Sigma}^{-1}_{-F, -F} = \tilde{\boldsymbol{\Sigma}}_{-F, -F} - \tilde{\boldsymbol{\Sigma}}_{F,-F}^\top \tilde{\boldsymbol{\Sigma}}_{F, F}^{-1}\tilde{\boldsymbol{\Sigma}}_{F,-F}.
+\end{equation*} The prediction $\hat{\mathbf{y}}_F$ and prediction covariance matrix $\dot{\boldsymbol{\Sigma}}_F$ (not just a prediction variance, since the $m$ held-out predictions in a fold are correlated with one another) follow by substituting $F$ for $i$ throughout the single-observation loocv equations above -- e.g. $\dot{\boldsymbol{\Sigma}}_F = \hat{\boldsymbol{\Sigma}}_{F, F} - \hat{\boldsymbol{\Sigma}}_{F, -F}\hat{\boldsymbol{\Sigma}}_{-F, -F}^{-1}\hat{\boldsymbol{\Sigma}}_{F, -F}^\top + \mathbf{Q}_F(\mathbf{X}_{-F}^\top \hat{\boldsymbol{\Sigma}}_{-F, -F}^{-1}\mathbf{X}_{-F})^{-1}\mathbf{Q}_F^\top$, with $\mathbf{Q}_F = \mathbf{X}_F - \hat{\boldsymbol{\Sigma}}_{F, -F}\hat{\boldsymbol{\Sigma}}_{-F, -F}^{-1}\mathbf{X}_{-F}$; only the diagonal of $\dot{\boldsymbol{\Sigma}}_F$ (the per-observation prediction variance, matching `loocv()`'s output shape) is returned by default. At $m = 1$ ($k = n$), every quantity above reduces exactly to `loocv()`'s corresponding single-observation formula. Fold assignment is either random (`k` approximately-equally-sized folds) or user-supplied (`folds_index`), and bias, MSPE, RMSPE, and cor2 are computed identically to `loocv()`, aggregating the prediction error across every observation regardless of which fold it fell in.
 
 Bias is formally defined as
 \begin{equation*}
@@ -287,37 +307,41 @@ cor2 is formally defined as
 \end{equation*} 
 where Cor$(\cdot)$ is the correlation function. cor2 is only returned for spatial linear models, as it is not applicable for spatial generalized linear models (we are predicting a latent mean parameter, which is unknown and not on the same scale as the original data).
 
-Generally, bias should be near zero for well-fitting models. The lower the MSPE and RMSPE, the better the model fit. The higher the cor2, the better the model fit.
+Generally, bias should be near zero for well-fitting models. The lower the MSPE and RMSPE, the better the model fit. The higher the cor2, the better the model fit. 
+
+Prediction intervals are also available upon request. Setting `interval = "prediction"` (for `splm()`/`spautor()` model objects only, since `spglm()`/`spgautor()` have no observed-scale latent mean to compare a prediction interval against) additionally reports the empirical coverage of the (100 $\times$ `level`)% cross validation prediction interval: the proportion of held-out observations whose true value falls within $\hat{y}_i \pm z^* \dot{\sigma}_i$ (for `loocv()`) or the analogous fold-level interval (for `kcv()`), using the same normal-quantile convention `predict()` uses by default (`interval = "prediction"`). Generally, empirical coverage should be close to the nominal `level` for well-fitting models.
 
 ### Big Data {#sec:bigdata-loocv-lm}
 
-Options for big data leave-one-out cross validation rely on the `local` argument, which is passed to `predict()`. The `local` list for `predict()` is explained in detail in the `predict()` section, but we provide a short summary of how `local` interacts with `loocv()` here.
+Options for big data leave-one-out cross validation rely on the `local` argument, which is passed to `predict()`. The `local` list for `predict()` is explained in detail in the `predict()` section, but we provide a short summary of how `local` interacts with `loocv()` and `kcv()` here.
 
 For `splm()` and `spautor()` objects, the `local` method can be `"all"`. When the `local` method is`"all"`, all of the data are used for leave-one-out cross validation (i.e., it is implemented exactly as previously described). Parallelization is implemented when setting `parallel = TRUE` in `local`, and the number of cores to use for parallelization is specified via `ncores`.
 
-For `splm()` objects, additional options for the `local` method are `"covariance"` and `"distance"`. When the `local` method is `"covariance"`, then a number of observations (specified via the `size` argument) having the highest covariance with the held-out observation are used in the local neighborhood prediction approach. When the `local` method is `"distance"`, then a number of observations (specified via the `size` argument) closest to the held-out observation are used in the local neighborhood prediction approach. When no random effects are used, no partition factor is used, and the spatial covariance function is monotone decreasing, `"covariance"` and `"distance"` are equivalent. The local neighborhood approach only uses the observations in the local neighborhood of the held-out observation to perform prediction, and is thus an approximation to the true solution. Its computational efficiency derives from using $\boldsymbol{\Sigma}_{l, l}$ (the covariance matrix of the observations in the local neighborhood) instead of $\boldsymbol{\Sigma}$ (the covariance matrix of all the observations). Parallelization is implemented when setting `parallel = TRUE` in `local`, and the number of cores to use for parallelization is specified via `ncores`.
+For `splm()` objects, additional options for the `local` method are `"covariance"` and `"distance"`. When the `local` method is `"covariance"`, then a number of observations (specified via the `size` argument) having the highest covariance with the held-out observation are used in the local neighborhood prediction approach. When the `local` method is `"distance"`, then a number of observations (specified via the `size` argument) closest to the held-out observation are used in the local neighborhood prediction approach. When no random effects are used, no partition factor is used, and the spatial covariance function is monotone decreasing, `"covariance"` and `"distance"` are equivalent for monotone-decreasing covariance functions. The local neighborhood approach only uses the observations in the local neighborhood of the held-out observation to perform prediction, and is thus an approximation to the true solution. Its computational efficiency derives from using $\boldsymbol{\Sigma}_{l, l}$ (the covariance matrix of the observations in the local neighborhood) instead of $\boldsymbol{\Sigma}$ (the covariance matrix of all the observations). Parallelization is implemented when setting `parallel = TRUE` in `local`, and the number of cores to use for parallelization is specified via `ncores`.
+
+`kcv()` avoids ever forming the full $n \times n$ covariance matrix, and for each fold, `kcv()` refits the model with $\boldsymbol{\theta}$ held fixed at its full-data estimate $\boldsymbol{\hat\theta}$ (so no numerical optimization is required, regardless of $n$) on the data with that fold set to missing, genuinely re-estimating $\boldsymbol{\beta}$ for the fold (unlike `loocv()`'s local approximation, which holds $\boldsymbol{\hat\beta}$ fixed too, a negligible approximation for a single held-out observation, but not necessarily for an entire held-out fold), and then predicts the fold via `predict()`, which passes `local` through to its own big data approximation.
 
 ## `predict()` {#sec:predict-lm}
 
 ### `interval = "none"` {#sec:predict-none-lm}
 
 The empirical best linear unbiased predictions (i.e., empirical Kriging predictor) of $\mathbf{y}_u$ are given by \begin{equation}\label{eq:blup}
-  \mathbf{\dot{y}}_u =  \mathbf{X}_u \hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}^{-1}_{o} (\mathbf{y}_o - \mathbf{X}_o \hat{\boldsymbol{\beta}}) .
+  \dot{\mathbf{y}}_u =  \mathbf{X}_u \hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}^{-1}_{o} (\mathbf{y}_o - \mathbf{X}_o \hat{\boldsymbol{\beta}}) .
 \end{equation}
 
 This equation sometimes called an empirical universal Kriging predictor, a Kriging with external drift predictor, or a regression Kriging predictor.
 
-The covariance matrix of $\mathbf{\dot{y}}_u$ 
+The covariance matrix of $\dot{\mathbf{y}}_u$ is 
 \begin{equation}\label{eq:blup_cov}
   \dot{\boldsymbol{\Sigma}}_u = \hat{\boldsymbol{\Sigma}}_u - \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}^{-1}_o \hat{\boldsymbol{\Sigma}}^\top_{uo} + \mathbf{Q}(\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o)^{-1}\mathbf{Q}^\top ,
 \end{equation} 
 where $\mathbf{Q} = \mathbf{X}_u - \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}^{-1}_o \mathbf{X}_o$.
 
-When `se.fit = TRUE`, standard errors are returned by taking the square root of the diagonal of $\dot{\boldsymbol{\Sigma}}_u$.
+When `se.fit = TRUE`, standard errors are returned by taking the square root of the diagonal of $\dot{\boldsymbol{\Sigma}}_u$ (in fact, only this diagonal is calculated and off-diagonal terms are ignored).
 
 ### `interval = "prediction"` {#sec:predict-predict-lm}
 
-The empirical best linear unbiased predictions are returned as $\mathbf{\dot{y}}_u$. The (100 $\times$ `level`)% prediction interval for $(y_u)_i$ is $(\dot{y}_u)_i \pm z^* \sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$, where $\sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$ is the standard error of $(\dot{y}_u)_i$ obtained from `se.fit = TRUE`, $\Phi(z^*) = 1 - \alpha / 2$, $\Phi(\cdot)$ is the standard normal (Gaussian) cumulative distribution function, $\alpha = 1 -$ `level`, and `level` is an argument to `predict()`. The default for `level` is 0.95, which corresponds to a $z^*$ of approximately 1.96.
+The empirical best linear unbiased predictions are returned as $\dot{\mathbf{y}}_u$. The (100 $\times$ `level`)% prediction interval for $(y_u)_i$ is $(\dot{y}_u)_i \pm z^* \sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$, where $\sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$ is the standard error of $(\dot{y}_u)_i$ obtained from `se.fit = TRUE`, $\Phi(z^*) = 1 - \alpha / 2$, $\Phi(\cdot)$ is the standard normal (Gaussian) cumulative distribution function, $\alpha = 1 -$ `level`, and `level` is an argument to `predict()`. The default for `level` is 0.95, which corresponds to a $z^*$ of approximately 1.96.
 
 ### `interval = "confidence"` {#sec:predict-conf-lm}
 
@@ -325,54 +349,40 @@ The best linear unbiased estimates of $\text{E}[(y_u)_i]$ ($\text{E}(\cdot)$ den
 
 ### `spautor()` extra steps {#sec:predict-spautor-lm}
 
-For spatial autoregressive models, an extra step is required to obtain $\hat{\boldsymbol{\Sigma}}^{-1}_o$, $\hat{\boldsymbol{\Sigma}}_u$, and $\hat{\boldsymbol{\Sigma}}_{uo}$ as they depend on one another through the neighborhood structure of $\mathbf{y}_o$ and $\mathbf{y}_u$. Recall that for autoregressive models, it is $\boldsymbol{\Sigma}^{-1}$ that is straightforward to obtain, not $\boldsymbol{\Sigma}$.
-
-Let $\boldsymbol{\Sigma}^{-1}$ be the inverse covariance matrix of the observed and unobserved data, $\mathbf{y}_o$ and $\mathbf{y}_u$. One approach to obtain $\boldsymbol{\Sigma}_o$ and $\boldsymbol{\Sigma}_{uo}$ is to directly invert $\boldsymbol{\Sigma}^{-1}$ and then subset $\boldsymbol{\Sigma}$ appropriately. This inversion can be prohibitive when $n_o + n_u$ is large. A faster way to obtain $\boldsymbol{\Sigma}_o$ and $\boldsymbol{\Sigma}_{uo}$ exists. Represent $\boldsymbol{\Sigma}^{-1}$ blockwise as 
-\begin{equation*}\label{eq:auto_hw}
-  \boldsymbol{\Sigma}^{-1} =
-  \begin{bmatrix}
-    \tilde{\boldsymbol{\Sigma}}_{o} & \tilde{\boldsymbol{\Sigma}}^{\top}_{uo} \\
-    \tilde{\boldsymbol{\Sigma}}_{uo} & \tilde{\boldsymbol{\Sigma}}_{u}
-  \end{bmatrix},
-\end{equation*} 
-where the dimensions of the blocks match the relevant dimensions of $\boldsymbol{\Sigma}$. All of the terms required for prediction can be obtained from this block representation. @wolf1978helmert shows that
-\begin{equation*}\label{eq:hw_forms}
-  \begin{split}
-    \boldsymbol{\Sigma}^{-1}_o & = \tilde{\boldsymbol{\Sigma}}_{o} - \tilde{\boldsymbol{\Sigma}}^{ \top}_{uo} (\tilde{\boldsymbol{\Sigma}}_{u})^{-1} \tilde{\boldsymbol{\Sigma}}_{uo} \\
-    \boldsymbol{\Sigma}_u & = (\tilde{\boldsymbol{\Sigma}}_{u} - \tilde{\boldsymbol{\Sigma}}_{uo} (\tilde{\boldsymbol{\Sigma}}_{o})^{-1} \tilde{\boldsymbol{\Sigma}}^\top_{uo})^{-1} \\
-    \boldsymbol{\Sigma}_{uo} & = - \boldsymbol{\Sigma}_u \tilde{\boldsymbol{\Sigma}}_{uo} \tilde{\boldsymbol{\Sigma}}^{-1}_{o}
-  \end{split}
-\end{equation*} Evaluating these expressions at $\hat{\boldsymbol{\theta}}$ yields $\hat{\boldsymbol{\Sigma}}^{-1}_o$, and $\hat{\boldsymbol{\Sigma}}_u$, and $\hat{\boldsymbol{\Sigma}}_{uo}$.
-
-A similar result exists for the log determinant of $\boldsymbol{\Sigma}_o$, which is not required for prediction but is required for restricted maximum likelihood and maximum likelihood estimation.
+For spatial autoregressive models, an extra step is required to obtain $\hat{\boldsymbol{\Sigma}}_o$, $\hat{\boldsymbol{\Sigma}}_u$, and $\hat{\boldsymbol{\Sigma}}_{uo}$, since these describe the joint covariance of the observed and unobserved data, $\mathbf{y}_o$ and $\mathbf{y}_u$, together. Recall that for autoregressive models, it is $\boldsymbol{\Sigma}^{-1}$ that is straightforward to obtain, not $\boldsymbol{\Sigma}$: the precision matrix has a simple closed form directly in terms of the neighborhood weight matrix (e.g., $\boldsymbol{\Sigma}^{-1} \propto \mathbf{I} - \phi \mathbf{W}$ for a CAR covariance), regardless of which locations happen to be observed. `spmodel` builds this precision matrix once for the combined set of observed and unobserved locations, using the neighborhood structure among all of them together, as is required. Subsetting the rows and columns of this joint $\boldsymbol{\Sigma}$ by whether each location is observed or unobserved then yields $\hat{\boldsymbol{\Sigma}}_o$, $\hat{\boldsymbol{\Sigma}}_u$, and $\hat{\boldsymbol{\Sigma}}_{uo}$ directly, and a second, smaller Cholesky factorization of $\hat{\boldsymbol{\Sigma}}_o$ alone (as described in A Note on Covariance Square Roots and Inverse Products) provides $\hat{\boldsymbol{\Sigma}}_o^{-1}$ without ever forming $\hat{\boldsymbol{\Sigma}}_o^{-1}$ directly.
 
 ### Big Data {#sec:predict-bigdata-lm}
 
 When the number of observations in the fitted model (observed data) are large or there are many locations to predict or both, it is often necessary to implement computationally efficient big data approximations. Big data approximations are implemented in `spmodel` using the `local` argument to `predict()`. When the `local` method is `"all"`, all of the fitted model data are used to make predictions. In this context, computational efficiency is only gained by parallelizing each prediction. The only available `local` method for `spautor()` fitted models is `"all"`. This is because the neighborhood structure of `spautor()` fitted models does not permit the subsetting used by the `"covariance"` and `"distance"` methods that we discuss next.
 
-When the `local` method is `"covariance"`, $\hat{\boldsymbol{\Sigma}}_{uo}$ is computed between the observation being predicted ($\mathbf{y}_u$) and the rest of the observed data. This vector is then ordered and a number of observations (specified via the `size` argument) having the highest covariance with $\mathbf{y}_u$ are subset, yielding $\check{\boldsymbol{\Sigma}}_{uo}$, which has dimension $1 \times size$. Then similarly $\hat{\boldsymbol{\Sigma}}_o$, $\mathbf{y}_o$, and $\mathbf{X}_u$ are also subset by these `size` observations, yielding $\check{\boldsymbol{\Sigma}}_{o}$, $\check{\mathbf{y}}_o$, and $\check{\mathbf{X}}_u$, respectively. The previous prediction equations can be evaluated at $\check{\boldsymbol{\Sigma}}_{uo}$, $\check{\boldsymbol{\Sigma}}_{o}$, $\check{\mathbf{y}}_o$, and $\check{\mathbf{X}}_u$ (except for the quantity $(\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o)^{-1}$, which is evaluated using all the observed data) to yield predictions and standard errors. When the `local` method is `"distance"`, a similar approach is used except a number of observations (specified via the `size` argument) closest (in terms of Euclidean distance) to $\mathbf{y}_u$ are subset instead. When random effects are not used, partition factors are not used, and the spatial covariance function is monotone decreasing, `"covariance"` and `"distance"` are equivalent. This approach of subsetting the observed data by the set of locations closest in covariance or proximity to $\mathbf{y}_u$ is known as the local neighborhood approach. As long as `size` is relatively small (the default is 100), the local neighborhood approach is very computationally efficient, mainly because $\check{\boldsymbol{\Sigma}}_{o}^{-1}$ is easy to compute. Additional computational efficiency is gained by parallelizing each prediction.
+When the `local` method is `"covariance"`, $\hat{\boldsymbol{\Sigma}}_{uo}$ is computed between the observation being predicted ($\mathbf{y}_u$) and the rest of the observed data. This vector is then ordered by absolute value and a number of observations (specified via the `size` argument) having the highest absolute covariance with $\mathbf{y}_u$ are subset, yielding $\check{\boldsymbol{\Sigma}}_{uo}$, which has dimension $1 \times size$. Ranking by absolute value (rather than the raw, signed covariance) matters only for spatial covariance functions that are not monotone-decreasing with distance (e.g., cosine, wave, jbessel), which can have negative covariance; for a strongly negatively correlated neighbor is just as informative for prediction as a strongly positively correlated one. Then similarly $\hat{\boldsymbol{\Sigma}}_o$, $\mathbf{y}_o$, and $\mathbf{X}_u$ are also subset by these `size` observations, yielding $\check{\boldsymbol{\Sigma}}_{o}$, $\check{\mathbf{y}}_o$, and $\check{\mathbf{X}}_u$, respectively. The previous prediction equations can be evaluated at $\check{\boldsymbol{\Sigma}}_{uo}$, $\check{\boldsymbol{\Sigma}}_{o}$, $\check{\mathbf{y}}_o$, and $\check{\mathbf{X}}_u$ (except for the quantity $(\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o)^{-1}$, which is evaluated using all the observed data) to yield predictions and standard errors. When the `local` method is `"distance"`, a similar approach is used except a number of observations (specified via the `size` argument) closest (in terms of Euclidean distance) to $\mathbf{y}_u$ are subset instead. When random effects are not used, partition factors are not used, and the spatial covariance function is monotone decreasing, `"covariance"` and `"distance"` are equivalent. This approach of subsetting the observed data by the set of locations closest in covariance or proximity to $\mathbf{y}_u$ is known as the local neighborhood approach. As long as `size` is relatively small (the default is 100), the local neighborhood approach is very computationally efficient, mainly because $\check{\boldsymbol{\Sigma}}_{o}^{-1}$ is easy to compute. Additional computational efficiency is gained by parallelizing each prediction. When a random effect or partition factor is used, observed-by-prediction covariance matrices are, by default, computed one prediction row at a time; when the product of the observed and prediction sample sizes is smaller than the `byrow_threshold` list element of `local` (default $10000^2$), they are instead computed all at once, which can improve computational efficiency because repeated calls to form the model matrix of random effects or partition factors are substantially reduced.
+
+Predictions (i.e., Kriging) can also be returned on the weight scale (`type = "weight"`). Every prediction discussed above is a linear combination of $\mathbf{y}_o$: $\dot{y}_u = \mathbf{c}_0^\top \mathbf{y}_o$ for some weight vector $\mathbf{c}_0$ that depends on $\mathbf{x}_0$, $\hat{\boldsymbol{\Sigma}}_{uo}$, $\hat{\boldsymbol{\Sigma}}_o$, and $\mathbf{X}_o$ but not on $\mathbf{y}_o$ itself. `type = "weight"` returns $\mathbf{c}_0^\top$ instead of $\dot{y}_u$, letting a user inspect which observations (and how strongly) contribute to a given prediction. Writing $\mathbf{B} = (\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o)^{-1} \mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_o^{-1}$, the weight vector is \begin{equation*}
+  \mathbf{c}_0^\top = \mathbf{x}_0^\top \mathbf{B} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}_o^{-1} - \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o \mathbf{B},
+\end{equation*}
+ confirming $\dot{y}_u = \mathbf{c}_0^\top \mathbf{y}_o = \mathbf{x}_0^\top\hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}(\mathbf{y}_o - \mathbf{X}_o\hat{\boldsymbol{\beta}})$, matching the BLUP given previously.
 
 ### Block Prediction {#sec:predict-block-lm}
 
 Rather than making predictions at point-referenced locations, Block Prediction (i.e., Block Kriging) is a technique used to predict an average (or total) in some region (i.e., spatial domain). When `interval = "none"` or `interval = "prediction"`, the (empirical) Block Prediction (BP) is given by
 \begin{equation}\label{eq:bp_pred}
-  \mathbf{\dot{y}}_B =  \mathbf{X}_{B} \hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\Sigma}}_{B} \hat{\boldsymbol{\Sigma}}^{-1}_{o} (\mathbf{y}_o - \mathbf{X}_o \hat{\boldsymbol{\beta}}).
+  \dot{\mathbf{y}}_B =  \mathbf{X}_{B} \hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\Sigma}}_{B} \hat{\boldsymbol{\Sigma}}^{-1}_{o} (\mathbf{y}_o - \mathbf{X}_o \hat{\boldsymbol{\beta}}).
 \end{equation}
 The quantity $\mathbf{X}_{B} = [\mathbf{x}_{1, B}, \mathbf{x}_{2, B}, ... , \mathbf{x}_{k, B}]^\top$ where $j = 1, 2, ..., k$ indexes the columns of $\mathbf{X}_{B}$ and $\mathbf{x}_{j, B} = \frac{1}{|B|}\int_B \mathbf{x}_j d\mathbf{s}$ for the $\mathbf{s}$ points in the region. The total area (volume) of the region is $|B|$ . The quantity $\hat{\boldsymbol{\Sigma}}_{B} = [\hat{\boldsymbol{\Sigma}}_1, \hat{\boldsymbol{\Sigma}}_2, ... , \hat{\boldsymbol{\Sigma}}_n]^\top$ where $i = 1, 2, ... , n$ indexes each element in $\mathbf{y}_o$ and $\hat{\boldsymbol{\Sigma}}_i = \frac{1}{|B|}\int_B \text{Cov}(\mathbf{y}_B, \text{y}_i) d\mathbf{s}$. The quantity $\text{Cov}(\mathbf{y}_B, \text{y}_i)$ represents the covariance between $\text{y}_i$ and all other points in the region. In practice, the Block Prediction integrals are approximated using summation on a fine grid of $G$ points, similar to other numerical integration techniques. That is, $\mathbf{x}_{j, B} \approx \frac{1}{|B|}\sum_{g = 1}^G \mathbf{x}_g$ and similarly for $\hat{\boldsymbol{\Sigma}}_i$, where $g$ indexes the points on the fine grid. Intuitively, these summations approximate average values in the entire region. 
 
-When `interval = "prediction"`, the (100 $\times$ `level`)% prediction interval for $\mathbf{\dot{y}}_B$ is $\mathbf{\dot{y}}_B \pm z^* \sqrt{\sigma^2_B}$, where $\sigma^2_B = \sigma^{2*}_B - \hat{\boldsymbol{\Sigma}}_{B} \hat{\boldsymbol{\Sigma}}^{-1}_{o}\hat{\boldsymbol{\Sigma}}_{B}^\top + \mathbf{Q}_B (\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o)^{-1} \mathbf{Q}_B^\top$. The quantity $\sigma^{2*}_B = \frac{1}{|B|^2}\int_B \int_B \text{Cov}(\text{y}_\mathbf{s}, \text{y}_\mathbf{u}) d\mathbf{s}d\mathbf{u}$, where $\mathbf{s}$ and $\mathbf{u}$ represent points in the region (the product of $\mathbf{s}$ and $\mathbf{u}$ contains all possible pairs of points in the region). Intuitively, $\sigma^{2*}_B$ approximates the average covariance between any two points in the region though summation over the fine grid. That is, $\sigma^{2*}_B \approx \frac{1}{|B|^2}\sum_{g_i = 1}^G \sum_{g_j = 1}^G \text{Cov}(\text{y}_{g_i}, \text{y}_{g_j})$. The quantity $\mathbf{Q}_B = \mathbf{X}_B - \hat{\boldsymbol{\Sigma}}_B \hat{\boldsymbol{\Sigma}}^{-1}_o \mathbf{X}_o$.
+When `interval = "prediction"`, the (100 $\times$ `level`)% prediction interval for $\dot{\mathbf{y}}_B$ is $\dot{\mathbf{y}}_B \pm z^* \sqrt{\sigma^2_B}$, where $\sigma^2_B = \sigma^{2*}_B - \hat{\boldsymbol{\Sigma}}_{B} \hat{\boldsymbol{\Sigma}}^{-1}_{o}\hat{\boldsymbol{\Sigma}}_{B}^\top + \mathbf{Q}_B (\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o)^{-1} \mathbf{Q}_B^\top$. The quantity $\sigma^{2*}_B = \frac{1}{|B|^2}\int_B \int_B \text{Cov}(\text{y}_\mathbf{s}, \text{y}_\mathbf{u}) d\mathbf{s}d\mathbf{u}$, where $\mathbf{s}$ and $\mathbf{u}$ represent points in the region (the product of $\mathbf{s}$ and $\mathbf{u}$ contains all possible pairs of points in the region). Intuitively, $\sigma^{2*}_B$ approximates the average covariance between any two points in the region though summation over the fine grid. That is, $\sigma^{2*}_B \approx \frac{1}{|B|^2}\sum_{g_i = 1}^G \sum_{g_j = 1}^G \text{Cov}(\text{y}_{g_i}, \text{y}_{g_j})$. The quantity $\mathbf{Q}_B = \mathbf{X}_B - \hat{\boldsymbol{\Sigma}}_B \hat{\boldsymbol{\Sigma}}^{-1}_o \mathbf{X}_o$.
 
 When `interval = "confidence"`, the average process mean (i.e., not the realized mean) and uncertainties are returned from the underlying model. The (process) mean estimate is $\mathbf{X}_{B} \hat{\boldsymbol{\beta}}$ and a (100 $\times$ `level`)% confidence interval is $\mathbf{X}_{B} \hat{\boldsymbol{\beta}} \pm z^* \sqrt{\mathbf{X}_{B} (\mathbf{X}^\top_o \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o)^{-1} \mathbf{X}_{B}^\top}$.
 
-For Big Data, when `local = TRUE`, the same approach is applied as for point prediction but adjusted slightly to accommodate the averaging necessary for Block Prediction. Thus, when `method = "covariance"` (the default), the `size` observations of $\mathbf{y}_o$ having the highest average covariance with elements of the fine grid are used to find the subsets $\check{\mathbf{X}}_o$, $\check{\boldsymbol{\Sigma}}_o$, and $\check{\mathbf{y}}_o$. When `method = "distance"`, the `size` observations of of $\mathbf{y}_o$ having the smallest average distance to elements of the fine grid are used to find the subsets $\check{\mathbf{X}}_o$, $\check{\boldsymbol{\Sigma}}_o$, and $\check{\mathbf{y}}_o$. Recall that these two methods are equivalent for processes without anisotropy, random effects, or partition factors, but can differ otherwise. The default is `size = 1000`, which is much larger than for point prediction. This is because for Block Prediction, the Cholesky decomposition of $\check{\boldsymbol{\Sigma}}_o$ needs to only be computed once (rather than separately for each $\check{\boldsymbol{\Sigma}}_o$ associated with each prediction location, as for point prediction).
+For Big Data, when `local = TRUE`, the same approach is applied as for point prediction but adjusted slightly to accommodate the averaging necessary for Block Prediction. Thus, when `method = "covariance"` (the default), the `size` observations of $\mathbf{y}_o$ having the highest average covariance with elements of the fine grid are used to find the subsets $\check{\mathbf{X}}_o$, $\check{\boldsymbol{\Sigma}}_o$, and $\check{\mathbf{y}}_o$. When `method = "distance"`, the `size` observations of $\mathbf{y}_o$ having the smallest average distance to elements of the fine grid are used to find the subsets $\check{\mathbf{X}}_o$, $\check{\boldsymbol{\Sigma}}_o$, and $\check{\mathbf{y}}_o$. Recall that these two methods are equivalent for processes without anisotropy, random effects, or partition factors, but can differ otherwise. The default is `size = 1000`, which is much larger than for point prediction. This is because for Block Prediction, the Cholesky decomposition of $\check{\boldsymbol{\Sigma}}_o$ needs to only be computed once (rather than separately for each $\check{\boldsymbol{\Sigma}}_o$ associated with each prediction location, as for point prediction).
 
 Currently, the fine grid used to obtain Block Predictions is supplied by the user via `newdata`. For an overview of Block Prediction, see @cressie1993statistics. For applications to a finite population (i.e., a region with a finite number of point locations), see @ver2008spatial and @dumelle2022comparison. 
 
 ### `splmRF()` and `spautorRF()` {#sec:rf_pred-lm}
 
 Random forest spatial residual model predictions are obtained by combining random forest predictions and spatial linear model predictions (i.e., Kriging) of the random forest residuals. Formally, the random forest spatial residual model predictions of $\mathbf{y}_u$ are given by \begin{equation*}
-  \mathbf{\dot{y}}_u = \mathbf{\dot{y}}_{u, rf} + \mathbf{\dot{e}}_{u, slm},
-\end{equation*} where $\mathbf{\dot{y}}_{u, rf}$ are the random forest predictions for $\mathbf{y}_u$ and $\mathbf{\dot{e}}_{u, slm}$ are the spatial linear model predictions of the random forest residuals for $\mathbf{y}_u$. This process of obtaining predictions is sometimes analogously called random forest regression Kriging [@fox2020comparing].
+  \dot{\mathbf{y}}_u = \dot{\mathbf{y}}_{u, rf} + \mathbf{\dot{e}}_{u, slm},
+\end{equation*} where $\dot{\mathbf{y}}_{u, rf}$ are the random forest predictions for $\mathbf{y}_u$ and $\mathbf{\dot{e}}_{u, slm}$ are the spatial linear model predictions of the random forest residuals for $\mathbf{y}_u$. This process of obtaining predictions is sometimes analogously called random forest regression Kriging [@fox2020comparing].
 
 Uncertainty quantification in a random forest context has been studied [@meinshausen2006quantile] but is not currently available in `spmodel`. Big data are accommodated by supplying the `local` argument to `predict()`.
 
@@ -424,7 +434,7 @@ When `type = "standardized"`, standardized residuals are returned:
 \begin{equation*}
  \mathbf{e}_{s} = \mathbf{e}_{p} \odot \frac{1}{\sqrt{1 - diag(\mathbf{H}^*)}},
 \end{equation*}
-where $diag(\mathbf{H}^*)$ is the diagonal of the spatial hat matrix, $\mathbf{H}_s \equiv \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}$, and $\odot$ denotes the Hadmard (element-wise) product. This residual transformation "standardizes" the Pearson residuals. As such, the standardized residuals should also have mean zero and variance \begin{equation*}
+where $diag(\mathbf{H}^*)$ is the diagonal of the spatial hat matrix, $\mathbf{H}_s \equiv \mathbf{X}^* (\mathbf{X}^{* \top} \mathbf{X}^*)^{-1} \mathbf{X}^{* \top}$, and $\odot$ denotes the Hadamard (element-wise) product. This residual transformation "standardizes" the Pearson residuals. As such, the standardized residuals should also have mean zero and variance \begin{equation*}
   \begin{split}
   \text{Cov}(\mathbf{e}_{s}) & = \text{Cov}((\mathbf{I} - \mathbf{H}^*) \hat{\boldsymbol{\Sigma}}^{-1/2}\mathbf{y}) \\
   & \approx \text{Cov}((\mathbf{I} - \mathbf{H}^*) \boldsymbol{\Sigma}^{-1/2}\mathbf{y}) \\
@@ -434,6 +444,21 @@ where $diag(\mathbf{H}^*)$ is the diagonal of the spatial hat matrix, $\mathbf{H
   & = (\mathbf{I} - \mathbf{H}^*),
   \end{split}
 \end{equation*} because $(\mathbf{I} - \mathbf{H}^*)$ is symmetric and idempotent. Note that the average value of $diag(\mathbf{H}^*)$ is $p / n$, so $(\mathbf{I} - \mathbf{H}^*) \approx \mathbf{I}$ for large sample sizes.
+
+## `satterthwaite()` {#sec:satterthwaite-lm}
+
+Asymptotic (z-based) inference for $\hat{\boldsymbol{\beta}}$ treats $\boldsymbol{\hat\theta}$ as if it were known exactly rather than estimated. This is a reasonable approximation for large samples but can meaningfully understate uncertainty and inflate Type I error rates for small samples. Satterthwaite degrees of freedom [@satterthwaite1946approximate] address this by treating the reported variance $\widehat{\text{Var}}(\hat\beta_i) = g(\boldsymbol{\hat\theta})$ as approximately $g(\boldsymbol{\theta}) \chi^2_{\nu_i} / \nu_i$ for some unknown degrees of freedom $\nu_i$, then choosing $\nu_i$ by moment-matching: a $g(\boldsymbol{\theta})\chi^2_{\nu_i}/\nu_i$ random variable has variance $2g(\boldsymbol{\theta})^2/\nu_i$, and equating this to a delta-method estimate of $\text{Var}[g(\boldsymbol{\hat\theta})]$ and solving for $\nu_i$ yields \begin{equation}\label{eq:satt-df}
+  \hat\nu_i = \frac{2 g(\boldsymbol{\hat\theta})^2}{\nabla g(\boldsymbol{\hat\theta})^\top \widehat{\text{Var}}(\boldsymbol{\hat\theta}) \nabla g(\boldsymbol{\hat\theta})},
+\end{equation} where $\nabla g(\boldsymbol{\hat\theta})$ is the gradient of $g(\boldsymbol{\theta}) = \text{Var}(\mathbf{L}_i \boldsymbol{\hat\beta}) = \mathbf{L}_i(\mathbf{X}^\top\boldsymbol{\Sigma}^{-1}\mathbf{X})^{-1}\mathbf{L}_i^\top$ with respect to the unknown (estimated, as opposed to fixed/known) covariance parameters, $\mathbf{L}_i$ is the $i$th row of the identity matrix (picking out $\hat\beta_i$ alone), and $\widehat{\text{Var}}(\boldsymbol{\hat\theta})$ is the estimated variance-covariance matrix of $\boldsymbol{\hat\theta}$ (available via `vcov(object, type = "cov")`). A larger delta-method variance (i.e., more uncertain covariance parameters, relative to the size of $g$) implies a smaller $\hat\nu_i$ and hence a heavier-tailed $t$ reference distribution; $\hat\nu_i \to \infty$ recovers the asymptotic z-based interval as a limiting case.
+
+Two components are needed to evaluate \eqref{eq:satt-df}: $\widehat{\text{Var}}(\boldsymbol{\hat\theta})$ and $\nabla g(\boldsymbol{\hat\theta})$. Both are available via two methods, controlled by the `method` argument to `satterthwaite()` (`"closed"` or `"numeric"`):
+
+- `method = "numeric"`: $\widehat{\text{Var}}(\boldsymbol{\hat\theta})$ is obtained by numerically differentiating the fitted log-likelihood (on its unconstrained optimizer scale) to approximate the observed Fisher information, inverting it, and then delta-method mapping the result onto the original (constrained) covariance parameter scale. $\nabla g(\boldsymbol{\hat\theta})$ is likewise obtained via numerical differentiation of $g(\boldsymbol{\theta})$ itself.
+- `method = "closed"`: both quantities use closed-form derivatives $\partial \boldsymbol{\Sigma}/\partial \theta_j$ instead. The expected (Fisher) information is $I_{jk} = \frac{1}{2}\text{tr}(\mathbf{P}\frac{\partial\boldsymbol{\Sigma}}{\partial\theta_j}\mathbf{P}\frac{\partial\boldsymbol{\Sigma}}{\partial\theta_k})$, where $\mathbf{P} = \boldsymbol{\Sigma}^{-1}$ for maximum likelihood and $\mathbf{P} = \boldsymbol{\Sigma}^{-1} - \boldsymbol{\Sigma}^{-1}\mathbf{X}(\mathbf{X}^\top\boldsymbol{\Sigma}^{-1}\mathbf{X})^{-1}\mathbf{X}^\top\boldsymbol{\Sigma}^{-1}$ for restricted maximum likelihood (accounting for the marginalization of $\boldsymbol{\beta}$), and $\widehat{\text{Var}}(\boldsymbol{\hat\theta}) \approx \mathbf{I}^{-1}$. $\nabla g(\boldsymbol{\hat\theta})$ is obtained analytically from the same $\partial\boldsymbol{\Sigma}/\partial\theta_j$ derivatives. Closed-form derivatives are only implemented for the exponential, Gaussian, spherical, and none, and ie (equivalent to none for linear models) spatial covariance functions without anisotropy; every other covariance type or an anisotropic fit falls back to `method = "numeric"`. The default is `"closed"` when available and `"numeric"` otherwise.
+
+Because `method = "numeric"` differentiates the log-likelihood itself, and `method = "closed"`'s expected information also requires $\boldsymbol{\Sigma}^{-1}$, Satterthwaite degrees of freedom are only available for models fit using restricted maximum likelihood or maximum likelihood estimation (not the semivariogram-based methods, which have no likelihood to differentiate) and without a big data `local` approximation (which represents $\boldsymbol{\Sigma}$ piecewise rather than as a single well-defined matrix to differentiate; given the large sample size necessitating `local`, the degrees of freedom should be very large anyways). Because both methods require an $O(n^3)$ operation (a Hessian or an expected-information matrix) evaluated potentially many times (once per finite-difference perturbation for `method = "numeric"`), Satterthwaite degrees of freedom can be slow for large samples; `splm()`/`spautor()` default to `ddf = "satterthwaite"` only when $n \le 500$ and `ddf = "asymptotic"` otherwise (a user can always request `ddf = "satterthwaite"` explicitly for larger $n$, with a corresponding warning about computation time).
+
+`satterthwaite()` returns one $\hat\nu_i$ per fixed effect coefficient. `anova()`'s `ddf` argument and `emmeans::joint_tests()` (via `spmodel`'s `emmeans` support) generalize this to joint hypotheses spanning more than one coefficient using the same underlying $g(\boldsymbol{\theta})$/$\nabla g(\boldsymbol{\theta})$/$\widehat{\text{Var}}(\boldsymbol{\hat\theta})$ machinery, combined via the Fai-Cornelius approach described in `anova()`. `confint()` and ordinary `emmeans()`/`contrast()` t-based inference use $\hat\nu_i$ directly, exactly as `summary()`/`tidy()` do.
 
 ## `spautor()` and `splm()` {#sec:spmod}
 
@@ -479,15 +504,15 @@ For point-referenced data, the spatial covariance is given by \begin{equation*}
 | `"circular"`       | $(1 - \frac{2}{\pi}[m\sqrt{1 - m^2} + sin^{-1}\{m\}])\mathcal{I}\{h \leq \phi \}, m = min(\eta, 1)$                                              |
 | `"cubic"`       | $(1 - 7\eta^2 + 8.75\eta^3 - 3.5\eta^5 + 0.75 \eta^7)\mathcal{I}\{h \leq \phi \}$ \\                                                             |
 | `"pentaspherical"` | $(1 - 1.875\eta + 1.250\eta^3 - 0.375\eta^5)\mathcal{I}\{h \leq \phi \}$ \\                                                                      |
-| `"cosine"`         | $ cos(\eta) $                                                                                                                                  |
-| `"wave"`          | $\frac{sin(\eta)}{\eta}\mathcal{I}\{h > 0 \} + \mathcal{I}\{h = 0 \}$                                                                            |
+| `"cosine"`         | $\cos(\eta)$                                                                                                                                  |
+| `"wave"`          | $\frac{\sin(\eta)}{\eta}\mathcal{I}\{h > 0 \} + \mathcal{I}\{h = 0 \}$                                                                            |
 | `"jbessel"`        | $B_j(h\phi), B_j$ is Bessel-J                                                                                                                    |
 | `"gravity"`       | $(1 + \eta^2)^{-1/2}$                                                                                                                            |
 | `"rquad"`        | $(1 + \eta^2)^{-1}$                                                                                                                              |
 | `"magnetic"`       | $(1 + \eta^2)^{-3/2}$                                                                                                                            |
-| `"matern"`         | $\frac{2^{(1 - \xi)}}{\Gamma(\xi)} \alpha^\xi B_k(\alpha, \xi), \alpha = \sqrt{2\xi \eta}, B_k$ is Bessel-K with order $\xi$, $\xi \in [1/5, 5]$ |
+| `"matern"`         | $\frac{2^{(1 - \xi)}}{\Gamma(\xi)} \alpha^\xi B_k(\alpha, \xi), \alpha = \sqrt{2\xi}\, \eta, B_k$ is Bessel-K with order $\xi$, $\xi \in [1/5, 5]$ |
 | `"cauchy"`       | $(1 + \eta^2)^{-\xi}$, $\xi > 0$                                                                                                                 |
-| `"pexponential"`  | $exp(-h^\xi / \phi)$, $\xi \in (0, 2]$                                                                                                           |
+| `"pexponential"`  | $\exp(-h^\xi / \phi)$, $\xi \in (0, 2]$                                                                                                           |
 | `"none"`      | $0$                                                                                                                                              |
 | `"ie"`      | $0$                                                                                                                                              |
 
@@ -499,7 +524,7 @@ For point-referenced data, the spatial covariance is given by \begin{equation*}
 
 Minus twice a profiled (by $\boldsymbol{\beta}$) Gaussian log-likelihood is given by \begin{equation}\label{eq:ml-lik}
   -2\ell_p(\boldsymbol{\theta}) = \ln{|\boldsymbol{\Sigma}|} + (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})^\top \boldsymbol{\Sigma}^{-1} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}}) + n \ln{2\pi},
-\end{equation} where $\tilde{\boldsymbol{\beta}} = (\mathbf{X}^\top \mathbf{\Sigma}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \mathbf{\Sigma}^{-1} \mathbf{y}$. Minimizing this equation yields $\boldsymbol{\hat{\theta}}_{ml}$, the maximum likelihood estimates for $\boldsymbol{\theta}$. Then a closed form solution exists for $\boldsymbol{\hat{\beta}}_{ml}$, the maximum likelihood estimates for $\boldsymbol{\beta}$: $\boldsymbol{\hat{\beta}}_{ml} = \tilde{\boldsymbol{\beta}}_{ml}$, where $\tilde{\boldsymbol{\beta}}_{ml}$ is $\tilde{\boldsymbol{\beta}}$ evaluated at $\boldsymbol{\hat{\theta}}_{ml}$. To reduce bias in that variances of $\boldsymbol{\hat{\beta}}_{ml}$ that can occur due to the simultaneous estimation of $\boldsymbol{\beta}$ and $\boldsymbol{\theta}$, restricted maximum likelihood estimation (REML) [@patterson1971recovery; @harville1977maximum; @wolfinger1994computing] has been shown to be better than maximum likelihood estimation. Integrating $\boldsymbol{\beta}$ out of a Gaussian likelihood yields the restricted Gaussian likelihood. Minus twice a restricted Gaussian log-likelihood is given by \begin{equation}\label{eq:reml-lik}
+\end{equation} where $\tilde{\boldsymbol{\beta}} = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{y}$. Minimizing this equation yields $\boldsymbol{\hat{\theta}}_{ml}$, the maximum likelihood estimates for $\boldsymbol{\theta}$. Then a closed form solution exists for $\boldsymbol{\hat{\beta}}_{ml}$, the maximum likelihood estimates for $\boldsymbol{\beta}$: $\boldsymbol{\hat{\beta}}_{ml} = \tilde{\boldsymbol{\beta}}_{ml}$, where $\tilde{\boldsymbol{\beta}}_{ml}$ is $\tilde{\boldsymbol{\beta}}$ evaluated at $\boldsymbol{\hat{\theta}}_{ml}$. To reduce bias in that variances of $\boldsymbol{\hat{\beta}}_{ml}$ that can occur due to the simultaneous estimation of $\boldsymbol{\beta}$ and $\boldsymbol{\theta}$, restricted maximum likelihood estimation (REML) [@patterson1971recovery; @harville1977maximum; @wolfinger1994computing] has been shown to be better than maximum likelihood estimation. Integrating $\boldsymbol{\beta}$ out of a Gaussian likelihood yields the restricted Gaussian likelihood. Minus twice a restricted Gaussian log-likelihood is given by \begin{equation}\label{eq:reml-lik}
   -2\ell_R(\boldsymbol{\theta}) = -2\ell_p(\boldsymbol{\theta})  + \ln{|\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X}|} - p \ln{2\pi} ,
 \end{equation} where $p$ equals the dimension of $\boldsymbol{\beta}$. Minimizing this equation yields $\boldsymbol{\hat{\theta}}_{reml}$, the restricted maximum likelihood estimates for $\boldsymbol{\theta}$. Then a closed for solution exists for $\boldsymbol{\hat{\beta}}_{reml}$, the restricted maximum likelihood estimates for $\boldsymbol{\beta}$: $\boldsymbol{\hat{\beta}}_{reml} = \tilde{\boldsymbol{\beta}}_{reml}$, where $\tilde{\boldsymbol{\beta}}_{reml}$ is $\tilde{\boldsymbol{\beta}}$ evaluated at $\boldsymbol{\hat{\theta}}_{reml}$.
 
@@ -507,11 +532,11 @@ The covariance matrix can often be written as $\boldsymbol{\Sigma} = \sigma^2 \b
 \begin{equation*}\label{eq:ml-plik}
   -2\ell_p^*(\boldsymbol{\theta}^*) = \ln{|\boldsymbol{\Sigma^*}|} + n\ln[(\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})^\top \boldsymbol{\Sigma}^{* -1} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] + n + n\ln{2\pi / n}.
 \end{equation*}
-After finding $\hat{\boldsymbol{\theta}}^*_{ml}$, a closed form solution for $\hat{\sigma}^2_{ml}$ exists: $\hat{\sigma}^2_{ml} = [(\mathbf{y} - \mathbf{X} \boldsymbol{\tilde{\beta}})^\top \mathbf{\Sigma}^{* -1} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] / n$. Then $\boldsymbol{\hat{\theta}}^*_{ml}$ is combined with $\hat{\sigma}^2_{ml}$ to yield $\boldsymbol{\hat{\theta}}_{ml}$ and subsequently $\boldsymbol{\hat{\beta}}_{ml}$. A similar result holds for restricted maximum likelihood estimation. Further profiling out $\sigma^2$ yields
+After finding $\hat{\boldsymbol{\theta}}^*_{ml}$, a closed form solution for $\hat{\sigma}^2_{ml}$ exists: $\hat{\sigma}^2_{ml} = [(\mathbf{y} - \mathbf{X} \boldsymbol{\tilde{\beta}})^\top \boldsymbol{\Sigma}^{* -1} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] / n$. Then $\boldsymbol{\hat{\theta}}^*_{ml}$ is combined with $\hat{\sigma}^2_{ml}$ to yield $\boldsymbol{\hat{\theta}}_{ml}$ and subsequently $\boldsymbol{\hat{\beta}}_{ml}$. A similar result holds for restricted maximum likelihood estimation. Further profiling out $\sigma^2$ yields
 \begin{equation*}\label{eq:reml-plik}
   -2\ell_R^*(\boldsymbol{\Theta}) = \ln{|\boldsymbol{\Sigma}^*|} + (n - p)\ln[(\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})^\top \boldsymbol{\Sigma}^{* -1} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] + \ln{|\mathbf{X}^\top \boldsymbol{\Sigma}^{* -1} \mathbf{X}|} + (n - p) + (n - p)\ln2\pi / (n - p).
 \end{equation*}
-After finding $\hat{\boldsymbol{\theta}}^*_{reml}$, a closed form solution for $\hat{\sigma}^2_{reml}$ exists: $\hat{\sigma}^2_{reml} = [(\mathbf{y} - \mathbf{X} \boldsymbol{\tilde{\beta}})^\top \mathbf{\Sigma}^{* -1} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] / (n - p)$. Then $\boldsymbol{\hat{\theta}}^*_{reml}$ is combined with $\hat{\sigma}^2_{reml}$ to yield $\boldsymbol{\hat{\theta}}_{reml}$ and subsequently $\boldsymbol{\hat{\beta}}_{reml}$. For more on profiling Gaussian likelihoods, see @wolfinger1994computing.
+After finding $\hat{\boldsymbol{\theta}}^*_{reml}$, a closed form solution for $\hat{\sigma}^2_{reml}$ exists: $\hat{\sigma}^2_{reml} = [(\mathbf{y} - \mathbf{X} \boldsymbol{\tilde{\beta}})^\top \boldsymbol{\Sigma}^{* -1} (\mathbf{y} - \mathbf{X} \tilde{\boldsymbol{\beta}})] / (n - p)$. Then $\boldsymbol{\hat{\theta}}^*_{reml}$ is combined with $\hat{\sigma}^2_{reml}$ to yield $\boldsymbol{\hat{\theta}}_{reml}$ and subsequently $\boldsymbol{\hat{\beta}}_{reml}$. For more on profiling Gaussian likelihoods, see @wolfinger1994computing.
 
 Both maximum likelihood and restricted maximum likelihood estimation rely on the $n \times n$ covariance matrix inverse. Inverting an $n \times n$ matrix is an enormous computational demand that scales cubically with the sample size. For this reason, maximum likelihood and restricted maximum likelihood estimation have historically been infeasible to implement in their standard form with data larger than a few thousand observations. This motivates the use for big data approaches.
 
@@ -529,7 +554,7 @@ The empirical semivariogram is a moment-based estimate of the semivariogram deno
 
 @cressie1985fitting proposed estimating $\boldsymbol{\theta}$ by minimizing an objective function that involves $\gamma(h)$ and $\hat{\gamma}(h)$ and is based on a weighted least squares criterion. This criterion is defined as \begin{equation}\label{eq:svwls}
   \sum_i w_i [\hat{\gamma}(h)_i - \gamma(h)_i]^2,
-\end{equation} where $w_i$, $\hat{\gamma}(h)_i$, and $\gamma(h)_i$ are the weights, empirical semivariogram, and semivariogram for the $i$th distance class, respectively. Minimizing this loss function yields $\boldsymbol{\hat{\theta}}_{wls}$, the semivariogram weighted least squares estimate of $\boldsymbol{\theta}$. After estimating $\boldsymbol{\theta}$, $\boldsymbol{\beta}$ estimates are constructed using (empirical) generalized least squares: $\boldsymbol{\hat{\beta}}_{wls} = (\mathbf{X}^\top \hat{\mathbf{\Sigma}}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \hat{\mathbf{\Sigma}}^{-1} \mathbf{y}$.
+\end{equation} where $w_i$, $\hat{\gamma}(h)_i$, and $\gamma(h)_i$ are the weights, empirical semivariogram, and semivariogram for the $i$th distance class, respectively. Minimizing this loss function yields $\boldsymbol{\hat{\theta}}_{wls}$, the semivariogram weighted least squares estimate of $\boldsymbol{\theta}$. After estimating $\boldsymbol{\theta}$, $\boldsymbol{\beta}$ estimates are constructed using (empirical) generalized least squares: $\boldsymbol{\hat{\beta}}_{wls} = (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{y}$.
 
 @cressie1985fitting recommends setting $w_i = |N(h)| / \gamma(h)_i^2$, which gives more weight to distance classes with more observations ($|N(h)|$) and shorter distances ($1 / \gamma(h)_i^2$). The default in `spmodel` is to use these $w_i$, known as Cressie weights, though several other options for $w_i$ exist and are available via the `weights` argument. The following table contains all $w_i$ available via the `weights` argument.
 
@@ -540,8 +565,8 @@ The empirical semivariogram is a moment-based estimate of the semivariogram deno
 | Cressie No Pairs                    | $1 / \gamma(h)_i^2$        | `"cressie-nopairs"`    |
 | Cressie (Denominator) Root No Pairs | $1 / \gamma(h)_i$           | `"cressie-dr-nopairs"` |
 | Pairs                               | $|N(h)|$                    | `"pairs"`               |
-| Pairs Inverse Distance              | $|N(h)| / h^2$             | `"pairs-invd"`         |
-| Pairs Inverse (Root) Distance       | $|N(h)| / h$                | `"pairs-invrd"`       |
+| Pairs Inverse Distance              | $|N(h)| / h$             | `"pairs-invd"`         |
+| Pairs Inverse (Root) Distance       | $|N(h)| / h^2$                | `"pairs-invrd"`       |
 | Ordinary Least Squares              | 1                               | `"ols"`               |
 
 : Table of values for the weights argument in splm() when estmethod = "sv-wls".
@@ -554,7 +579,7 @@ Recall that the semivariogram is defined for a constant-mean process. Generally,
 
 Composite likelihood approaches involve constructing likelihoods based on conditional or marginal events for which likelihoods are available and then adding together these individual components. Composite likelihoods are attractive because they behave very similar to likelihoods but are easier to handle, both from a theoretical and from a computational perspective. @curriero1999composite derive a particular composite likelihood for estimating semivariogram parameters. The negative log of this composite likelihood, denoted $\text{CL}(h)$, is given by \begin{equation}\label{eq:svcl}
   \text{CL}(h) = \sum_{i = 1}^{n - 1} \sum_{j > i} \left( \frac{(y_i - y_j)^2}{2\gamma(h)} + \ln(\gamma(h)) \right)
-\end{equation} where $\gamma(h)$ is the semivariogram. Minimizing this loss function yields $\boldsymbol{\hat{\theta}}_{cl}$, the semivariogram composite likelihood estimates of $\boldsymbol{\theta}$. After estimating $\boldsymbol{\theta}$, $\boldsymbol{\beta}$ estimates are constructed using (empirical) generalized least squares: $\boldsymbol{\hat{\beta}}_{cl} = (\mathbf{X}^\top \hat{\mathbf{\Sigma}}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \hat{\mathbf{\Sigma}}^{-1} \mathbf{y}$.
+\end{equation} where $\gamma(h)$ is the semivariogram. Minimizing this loss function yields $\boldsymbol{\hat{\theta}}_{cl}$, the semivariogram composite likelihood estimates of $\boldsymbol{\theta}$. After estimating $\boldsymbol{\theta}$, $\boldsymbol{\beta}$ estimates are constructed using (empirical) generalized least squares: $\boldsymbol{\hat{\beta}}_{cl} = (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{y}$.
 
 An advantage of the composite likelihood approach to semivariogram estimation is that it does not require arbitrarily specifying empirical semivariogram bins and cutoffs. It does tend to be more computationally demanding than weighted least squares, however. The composite likelihood is constructed from $\binom{n}{2}$ pairs for a sample size $n$, whereas the weighted least squares approach only requires calculating $\binom{|N(h)|}{2}$ pairs for each distance bin $N(h)$. As with the weighted least squares approach, the composite likelihood approach requires a constant-mean process, so typically the residuals from an ordinary least squares regression of $\mathbf{y}$ on $\mathbf{X}$ are used to estimate $\boldsymbol{\theta}$.
 
@@ -564,7 +589,7 @@ Parameter estimation is performed using `stats::optim()`. The default estimation
 
 #### Grid Search {#sec:grid-lm}
 
-`spmodel` uses a grid search to find suitable initial values for use in optimization. For spatial linear models without random effects, the spatially dependent variance ($\sigma^2_{de}$) and spatially independent variance ($\sigma^2_{ie}$) parameters are given "low", "medium", and "high" values. The sample variance of a non-spatial linear model is slightly inflated by a factor of 1.2 (non-spatial models can underestimate the variance when there is spatial dependence) and these "low", "medium", and "high" values correspond to 10%, 50%, and 90% of the inflated sample variance. Only combinations of $\sigma^2_{de}$ and $\sigma^2_{ie}$ whose proportions sum to 100% are considered. The range ($\phi$) and extra ($\xi$) parameters are given "low" and "high" values that are unique to each spatial covariance function. For example, when using an exponential covariance function, the "low" value of $\phi$ is one-half the diagonal of the domain's bounding box divided by three. This particular value is chosen so that the effective range (the distance at which the covariance is approximately zero), which equals $3\phi$ for the exponential covariance function, is is reached at one-half the diagonal of the domain's bounding box. Analogously, the "high" value of $\phi$ is three-halves the diagonal of the domain's bounding box divided by three. The anisotropy rotation parameter ($\alpha$) is given six values that correspond to 0, $\pi/6$, $2\pi/6$, $4\pi/6$, $5\pi/6$, and $\pi$ radians. The anisotropy scale parameter ($S$) is given "low", "medium", and "high" values that correspond to scaling factors of 0.25, 0.75, and 1. Note that the anisotropy parameters are only used during grid searches for point-referenced data.
+`spmodel` uses a grid search to find suitable initial values for use in optimization. For spatial linear models without random effects, the spatially dependent variance ($\sigma^2_{de}$) and spatially independent variance ($\sigma^2_{ie}$) parameters are given "low", "medium", and "high" values. The sample variance of a non-spatial linear model is slightly inflated by a factor of 1.2 (non-spatial models can underestimate the variance when there is spatial dependence) and these "low", "medium", and "high" values correspond to 10%, 50%, and 90% of the inflated sample variance. Only combinations of $\sigma^2_{de}$ and $\sigma^2_{ie}$ whose proportions sum to 100% are considered. The range ($\phi$) and extra ($\xi$) parameters are given "low" and "high" values that are unique to each spatial covariance function. For example, when using an exponential covariance function, a base value of $\phi$ is first set to one-half the diagonal of the domain's bounding box, divided by three. This base value is chosen so that the effective range (the distance at which the covariance is approximately zero), which equals $3\phi$ for the exponential covariance function, is reached at one-half the diagonal of the domain's bounding box. The "low" value of $\phi$ is then one-half of this base value, and the "high" value is three-halves of this base value. The anisotropy rotation parameter ($\alpha$) is given six values that correspond to 0, $\pi/6$, $2\pi/6$, $4\pi/6$, $5\pi/6$, and $\pi$ radians. The anisotropy scale parameter ($S$) is given "low", "medium", and "high" values that correspond to scaling factors of 0.25, 0.75, and 1. Note that the anisotropy parameters are only used during grid searches for point-referenced data.
 
 The crossing of all appropriate parameter values is considered. If initial values are used for a parameter, the initial value replaces all values of the parameter in this crossing. Duplicate crossings are then omitted. The parameter configuration that yields the smallest value of the objective function is then used as an initial value for optimization. Suppose the inflated sample variance is 10, the exponential covariance is used assuming isotropy, and the diagonal of the bounding box is 180 distance units. The parameter configurations evaluated are shown in the following table.
 
@@ -575,7 +600,7 @@ The crossing of all appropriate parameter values is considered. If initial value
 | 5               | 5               | 15     | 0        | 1   |
 | 9               | 1               | 45     | 0        | 1   |
 | 1               | 9               | 45     | 0        | 1   |
-| 5               | 5               | 15     | 0        | 1   |
+| 5               | 5               | 45     | 0        | 1   |
 
 : Grid search parameter configurations for an isotropic exponential spatial covariance with inflated sample variance equal to 10 and diagonal of the bounding box equal to 180 distance units.
 
@@ -605,11 +630,11 @@ This grid search approach balances a thorough exploration of the parameter space
 
 ### Hypothesis Testing {#sec:testing-lm}
 
-The hypothesis tests for $\hat{\boldsymbol{\beta}}$ returned by `summary()` or `tidy()` of an `splm` or `spautor` object are asymptotic z-tests based on the normal (Gaussian) distribution (Wald tests). The null hypothesis for the test associated with each $\hat{\beta}_i$ is that $\beta_i = 0$. Then the test statistic is given by
+The hypothesis test for each $\hat{\beta}_i$ returned by `summary()` or `tidy()` of an `splm` or `spautor` object has null hypothesis $\beta_i = 0$ and test statistic
 \begin{equation*}
-  \tilde{z} = \frac{\hat{\beta}_i}{\text{SE}(\hat{\beta}_i)},
-\end{equation*} 
-where $\text{SE}(\hat{\beta}_i)$ is the standard error of $\hat{\beta}_i$, which equals the square root of the $i$th diagonal element of $(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}$. The p-value is given by $2 * (1 - \Phi(|\tilde{z}|))$, which corresponds to an equal-tailed, two-sided hypothesis test of level $\alpha$ where $\Phi(\cdot)$ denotes the standard normal (Gaussian) cumulative distribution function and $|\cdot|$ denotes the absolute value.
+  \tilde{t} = \frac{\hat{\beta}_i}{\text{SE}(\hat{\beta}_i)},
+\end{equation*}
+where $\text{SE}(\hat{\beta}_i)$ is the standard error of $\hat{\beta}_i$, which equals the square root of the $i$th diagonal element of $(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}$. When `ddf = "asymptotic"` (or for `spglm()`/`spgautor()` objects, which have no `ddf`), this is an asymptotic z-test based on the normal (Gaussian) distribution (a Wald test), and the p-value is $2(1 - \Phi(|\tilde{t}|))$, where $\Phi(\cdot)$ is the standard normal (Gaussian) cumulative distribution function. When `ddf = "satterthwaite"` (the default when $n \le 500$; `satterthwaite()`), this is instead a $t$-test with $\nu_i$ (the $i$th fixed effect's Satterthwaite denominator degrees of freedom) degrees of freedom, and the p-value is $2(1 - t_{\nu_i}(|\tilde{t}|))$, where $t_{\nu_i}(\cdot)$ is the cumulative distribution function of a $t$-distribution with $\nu_i$ degrees of freedom. Both cases correspond to an equal-tailed, two-sided hypothesis test of level $\alpha$, and a $t$-distribution with infinite degrees of freedom is the standard normal distribution, so the asymptotic z-test is a limiting case of the Satterthwaite t-test as $\nu_i \to \infty$.
 
 ### Random Effects (`splm()` only and `"reml"` or `"ml"` `estmethod` only) {#sec:random-lm}
 
@@ -781,9 +806,9 @@ Anisotropy parameters cannot be estimated in `spmodel` when `estmethod` is `sv-w
 
 ### Partition Factors {#sec:partition-lm}
 
-A partition factor is a factor (or categorical) variable in which observations from different levels of the partition factor are assumed uncorrelated. A partition matrix $\mathbf{P}$ of dimension $n \times n$ can be constructed to represent the partition factor. The $ij$th element of $\mathbf{P}$ equals one if the observation in the $i$th row and $j$th column are from the same level of the partition factor and zero otherwise. Then the initial covariance matrix (ignoring the partition factor) is updated by taking the Hadmard (element-wise) product with the partition matrix: \begin{equation*}
+A partition factor is a factor (or categorical) variable in which observations from different levels of the partition factor are assumed uncorrelated. A partition matrix $\mathbf{P}$ of dimension $n \times n$ can be constructed to represent the partition factor. The $ij$th element of $\mathbf{P}$ equals one if the observation in the $i$th row and $j$th column are from the same level of the partition factor and zero otherwise. Then the initial covariance matrix (ignoring the partition factor) is updated by taking the Hadamard (element-wise) product with the partition matrix: \begin{equation*}
  \boldsymbol{\Sigma}_{updated} = \boldsymbol{\Sigma}_{initial} \odot \mathbf{P},
-\end{equation*} where $\odot$ indicates the Hadmard product. Partition factors impose a block structure in $\boldsymbol{\Sigma}$, which allows for efficient computation of $\boldsymbol{\Sigma}^{-1}$ used for estimation and prediction.
+\end{equation*} where $\odot$ indicates the Hadamard product. Partition factors impose a block structure in $\boldsymbol{\Sigma}$, which allows for efficient computation of $\boldsymbol{\Sigma}^{-1}$ used for estimation and prediction.
 
 When computing the empirical semivariogram using `esv()`, semivariances are ignored when observations are from different levels of the partition factor. For the `sv-wls` and `sv-cl` estimation methods, semivariances are ignored when observations are from different levels of the partition factor.
 
@@ -818,7 +843,7 @@ The estimate of $\boldsymbol{\beta}$ when using $\boldsymbol{\Sigma}_{bd}$ is gi
 `spmodel` has four approaches for estimating the covariance matrix of $\hat{\boldsymbol{\beta}}_{bd}$. The choice is determined by the `var_adjust` argument to `local`. The first approach is implements no adjustment (`var_adjust = "none"`) and simply uses $\mathbf{T}_{xx}^{-1}$, which is the covariance matrix of $\hat{\boldsymbol{\beta}}_{bd}$ using $\boldsymbol{\Sigma}_{bd}$. While computationally efficient, this approach ignores the covariance across indexes. It can be shown that the covariance of $\hat{\boldsymbol{\beta}}_{bd}$ using $\boldsymbol{\Sigma}$, the full covariance matrix, is given by \begin{equation}\label{eq:var_theo}
   \mathbf{T}_{xx}^{-1} + \mathbf{T}_{xx}^{-1} \mathbf{W}_{xx}\mathbf{T}_{xx}^{-1},
 \end{equation} where \begin{equation*}
-\mathbf{W} = \sum_{i = 1}^{m - 1} \sum_{j = i + 1}^m (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \hat{\boldsymbol{\Sigma}}_{i, j} \hat{\boldsymbol{\Sigma}}^{-1}_{j, j} \mathbf{X}_j) + (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \hat{\boldsymbol{\Sigma}}_{i, j} \hat{\boldsymbol{\Sigma}}^{-1}_{j, j} \mathbf{X}_j)^\top
+\mathbf{W} = \sum_{i = 1}^{m - 1} \sum_{j = i + 1}^m (\mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \hat{\boldsymbol{\Sigma}}_{i, j} \hat{\boldsymbol{\Sigma}}^{-1}_{j, j} \mathbf{X}_j) + (\mathbf{X}_i^\top \hat{\boldsymbol{\Sigma}}^{-1}_{i, i} \hat{\boldsymbol{\Sigma}}_{i, j} \hat{\boldsymbol{\Sigma}}^{-1}_{j, j} \mathbf{X}_j)^\top
 \end{equation*} 
 This equation can be viewed as the sum of the unadjusted covariance matrix of $\hat{\boldsymbol{\beta}}_{bd}$ ($\mathbf{T}_{xx}^{-1}$) and a correction that incorporates the covariance across indexes ($\mathbf{T}_{xx}^{-1} \mathbf{W}_{xx}\mathbf{T}_{xx}^{-1}$). This adjustment is known as the "theoretically-correct" (`var_adjust = "theoretical"`) adjustment because it uses $\boldsymbol{\Sigma}$. The theoretical adjustment is the default adjustment in `spmodel` because it is theoretically correct, but it is the most computationally expensive adjustment. Two alternative adjustments are also provided, and while not equal to the theoretical adjustment, they are easier to compute. They are the empirical (`var_adjust = "empirical"`) and pooled (`var_adjust = "pooled"`) adjustments. The empirical adjustment is given by \begin{equation*}
 \frac{1}{m(m -1)} \sum_{i = 1}^m (\boldsymbol{\hat{\beta}}_i - \boldsymbol{\hat{\beta}}_{bd})(\boldsymbol{\hat{\beta}}_i - \boldsymbol{\hat{\beta}}_{bd})^\top,
@@ -830,7 +855,7 @@ where $\boldsymbol{\hat{\beta}}_i = (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{
 ## `splmRF()` and `spautorRF()` {#sec:rf-lm}
 
 `splmRF()` and `spautorRF()` fit random forest spatial residual models designed for prediction. These models are fit by combining aspects of random forest and spatial linear modeling. First, a random forest model [@breiman2001random; @james2013introduction] is fit using the `ranger` **R** package [@wright2015ranger]. Then random forest fitted values are obtained for each data observation and used to compute a residual (by subtracting the fitted value from the observed value). Then an intercept-only spatial linear model is fit to these residuals: \begin{equation*}
-  \mathbf{e}_{rf} = \beta_0 + \mathbf{\tau} + \mathbf{\epsilon},
+  \mathbf{e}_{rf} = \beta_0 + \boldsymbol{\tau} + \boldsymbol{\epsilon},
 \end{equation*} where $\mathbf{e}_{rf}$ are the random forest residuals. Random forest spatial residual models can significantly improve predictive accuracy for new data compared to standard random forest models by formally incorporating spatial covariance in the random forest residuals [@fox2020comparing]. 
 
 Different estimation methods, different spatial covariance functions, fixing spatial covariance parameter values, random effects, anisotropy, partition factors, and big data are accommodated in the spatial linear model portion of the random forest spatial residual models by supplying their respective named arguments to `splmRF()` and `spautorRF()`.
@@ -846,9 +871,24 @@ Spatial normal (Gaussian) random variables are simulated by taking the sum of a 
   \end{split}
 \end{equation*}
 
+## `varcomp()` {#sec:varcomp-lm}
+
+`varcomp()` decomposes the total variability in the response into a portion attributable to the fixed effects and a portion attributable to each variance parameter in the fitted covariance structure. The fixed effects are credited with the pseudo r-squared (`pseudoR2()`), and the remaining $1 - PR2$ is split among $\sigma^2_{de}$, $\sigma^2_{ie}$, and any random effect variances $\sigma^2_{u_k}$ in proportion to their share of the total variance:
+\begin{equation*}
+  \begin{split}
+    \text{proportion}_{\text{covariates}} & = PR2 \\
+    \text{proportion}_{de} & = (1 - PR2)\frac{\sigma^2_{de}}{\sigma^2_{de} + \sigma^2_{ie} + \sum_k \sigma^2_{u_k}} \\
+    \text{proportion}_{ie} & = (1 - PR2)\frac{\sigma^2_{ie}}{\sigma^2_{de} + \sigma^2_{ie} + \sum_k \sigma^2_{u_k}} \\
+    \text{proportion}_{u_k} & = (1 - PR2)\frac{\sigma^2_{u_k}}{\sigma^2_{de} + \sigma^2_{ie} + \sum_k \sigma^2_{u_k}}.
+  \end{split}
+\end{equation*}
+For `spautor()` model objects with unconnected sites (i.e., a nonzero $\xi$; see `spautor()` Spatial Covariance Functions), this decomposition is instead computed separately for the connected and unconnected sites, with $\xi$ taking the place of $\sigma^2_{de}$ and $\sigma^2_{ie}$ in the unconnected sites' decomposition (unconnected sites have no spatial dependence structure to attribute variance to). A third quantity, the ratio of the connected sites' total variance to the unconnected sites' total variance, is also returned in this case.
+
 ## `vcov()` {#sec:vcov-lm}
 
-`vcov()` returns the variance-covariance matrix of estimated parameters. Currently, `vcov()` only returns the variance-covariance matrix of $\hat{\boldsymbol{\beta}}$, the fixed effects. The variance-covariance matrix of the fixed effects is given by $(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}$.
+`vcov()` returns the variance-covariance matrix of estimated parameters. When `type = "fixed"` (the default), `vcov()` returns the variance-covariance matrix of $\hat{\boldsymbol{\beta}}$, given by $(\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}^{-1} \mathbf{X})^{-1}$.
+
+For `splm()`/`spautor()` model objects fit with `ddf = "satterthwaite"` (`satterthwaite()`), `vcov()` can also return $\widehat{\text{Var}}(\hat{\boldsymbol{\theta}})$, the estimated variance-covariance matrix of the covariance parameters themselves (the matrix Satterthwaite degrees of freedom are built from). When `type = "cov"`, the full matrix (spatial and, if present, random effect variance parameters together) is returned. When `type = "spcov"` or `type = "randcov"`, only the spatial or only the random effect block of that matrix is returned, respectively. These are only available when `object$ddf` is non-`NULL` (i.e., Satterthwaite degrees of freedom were successfully computed when the model was fit).
 
 # Spatial Generalized Linear Models {#sec:spglms}
 
@@ -871,7 +911,7 @@ If $\mathbf{a}$ is the value at which $\mathbf{g} = \mathbf{0}$, then \begin{equ
   \int_\mathbf{w} \exp(\ell_\mathbf{w}) d\mathbf{w} \approx \exp(\ell_\mathbf{a}) \int_\mathbf{w} \exp \left(-\frac{1}{2} (\mathbf{w} - \mathbf{a})^\top (- \mathbf{G})(\mathbf{w} - \mathbf{a}) \right) d\mathbf{w} = \exp(\ell_\mathbf{a}) (2 \pi)^{n/2} |-\mathbf{G}_a|^{-1/2}, 
 \end{equation*} 
 where $\mathbf{G}_a$ is the Hessian evaluated at $\mathbf{a}$ and $|\cdot|$ is the determinant operator. The previous result follows from the normalizing constant of a Gaussian distribution with kernel $\exp(\frac{1}{2} (\mathbf{w} - \mathbf{a})^\top [(- \mathbf{G})^{-1}]^{-1}(\mathbf{w} - \mathbf{a}))$. Finally, we arrive at \begin{equation*}
-  \int_\mathbf{w} \exp(\ell_\mathbf{w}) d\mathbf{w} \approx [\mathbf{y} | g^{-1}(\mathbf{a}), \varphi] [\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}] (2 \pi)^{n/2} |-\mathbf{G}_a|^{-1/2}|,
+  \int_\mathbf{w} \exp(\ell_\mathbf{w}) d\mathbf{w} \approx [\mathbf{y} | g^{-1}(\mathbf{a}), \varphi] [\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}] (2 \pi)^{n/2} |-\mathbf{G}_a|^{-1/2},
 \end{equation*} which is a distribution that has been marginalized over the latent $\mathbf{w}$ and depends only on the data, a dispersion parameter, and the covariance parameters. The approach we outlined to solve this integral is known as the Laplace approximation.
 
 ## `AIC()` and `AICc()` {#sec:aic-glm}
@@ -884,7 +924,7 @@ where $\mathbf{G}_a$ is the Hessian evaluated at $\mathbf{a}$ and $|\cdot|$ is t
 
 ## `AUROC()` {#sec:auroc}
 
-`AUROC()` is the area under the receiver operating characteristic curve and is relevant for binomial (i.e., logistic) regression models where each response represents a single success or failure (i.e.., is binary). The AUROC ranges from zero to one and is a measure of the model's
+`AUROC()` is the area under the receiver operating characteristic curve and is relevant for binomial (i.e., logistic) regression models where each response represents a single success or failure (i.e., is binary). The AUROC ranges from zero to one and is a measure of the model's
 classification accuracy averaged over all possible threshold values. More formally,
 it represents the probability that a randomly chosen success (datum value of one) has
 a larger fitted value than the fitted value of a randomly chosen failure (datum value of zero), with an adjustment for ties in the fitted values [@muschelli2020roc]. `AUROC()` in `spmodel` leverages the `auc()` function in `pROC` @robin2011proc. For more on the AUROC, see @hanley1982meaning and @fawcett2006introduction.
@@ -904,8 +944,8 @@ a larger fitted value than the fitted value of a randomly chosen failure (datum 
 ## `cooks.distance()` {#sec:cooks-glm}
 
 The Cook's distance is defined as the standard generalized linear model Cook's distance after conditioning on $\mathbf{w}$. That is, after conditioning on $\mathbf{w}$, the Cook's distance is \begin{equation}
-\frac{\mathbf{e}_p^2}{p} \odot diag(\mathbf{H}_c) \odot \frac{1}{1 - diag(\mathbf{H}_c)},
-\end{equation} where $\mathbf{e}_p^2$ are the Pearson residuals, $diag(\mathbf{H}_c)$ is the diagonal of the leverage (hat) matrix conditional on $\mathbf{w}$ and given by $\mathbf{H}_c = \mathbf{X}_v (\mathbf{X}_v^\top\mathbf{X}_v)^{-1} \mathbf{X}_v^\top$, where $\mathbf{X}_v = \mathbf{V}^{1/2}\mathbf{X}$ and $\mathbf{V}$ is a diagonal matrix with $i$th diagonal element equal to $\text{Var}(w_i)$, and $\odot$ denotes the Hadmard (element-wise) product.
+\frac{\mathbf{e}_s^2}{p} \odot diag(\mathbf{H}_c) \odot \frac{1}{1 - diag(\mathbf{H}_c)},
+\end{equation} where $\mathbf{e}_s^2$ are the standardized residuals, $diag(\mathbf{H}_c)$ is the diagonal of the leverage (hat) matrix conditional on $\mathbf{w}$ and given by $\mathbf{H}_c = \mathbf{X}_v (\mathbf{X}_v^\top\mathbf{X}_v)^{-1} \mathbf{X}_v^\top$, where $\mathbf{X}_v = \mathbf{V}^{1/2}\mathbf{X}$ is defined as in `hatvalues()`, and $\odot$ denotes the Hadamard (element-wise) product.
 
 ## `deviance()` {#sec:deviance-glm}
 
@@ -913,27 +953,27 @@ The deviance is defined conditional on $\mathbf{w}$ (i.e., we find the deviance 
 
 ## `fitted()` {#sec:fitted-glm}
 
-The fitted values on the link scale (`type = "link"`) are given by $\mathbf{w}$. The fitted values on the response scale (`type = "response"`) are given by $g^{-1}(\mathbf{w})$. The fitted values for the spatial random errors (`type = "spcov"`) and random effects (`type = "randcov"`) are derived similarly as for spatial linear models but treat $\mathbf{w}$ as the response instead of $\mathbf{y}$ (and are on the link scale).
+The fitted values on the link scale (`type = "link"`) are given by $\hat{\mathbf{w}}$. The fitted values on the response scale (`type = "response"`) are given by $g^{-1}(\hat{\mathbf{w}})$. The fitted values for the spatial random errors (`type = "spcov"`) and random effects (`type = "randcov"`) are derived similarly as for spatial linear models but treat $\hat{\mathbf{w}}$ as the response instead of $\mathbf{y}$ (and are on the link scale).
 
 ## `hatvalues()` {#sec:hatvalues-glm}
 
 The leverage (hat) matrix is obtained by finding the standard generalized linear model leverage (hat) matrix after conditioning on $\mathbf{w}$. That is, after conditioning on $\mathbf{w}$ the leverage (hat) matrix, $\mathbf{H}_c$, is \begin{equation}
   \mathbf{H}_c = \mathbf{X}_v (\mathbf{X}_v^\top\mathbf{X}_v)^{-1} \mathbf{X}_v^\top,
-\end{equation} where $\mathbf{X}_v = \mathbf{V}^{1/2}\mathbf{X}$ and $\mathbf{V}$ is a diagonal matrix with $i$th diagonal element equal to $\text{Var}(\text{w}_i)$.
+\end{equation} where $\mathbf{X}_v = \mathbf{V}^{1/2}\mathbf{X}$ and $\mathbf{V}$ is a diagonal matrix with $i$th diagonal element equal to the family's variance function evaluated at $\hat{\mathbf{w}}$.
 
 ## `logLik()` {#sec:loglik-glm}
 
 `logLik()` for spatial generalized linear models is defined the same as for spatial linear models, in that the log-likelihood is returned. The log-likelihood for spatial generalized linear models is given by \begin{equation*}
-  \ell_p(\varphi, \boldsymbol{\theta}) = \ln([\mathbf{y} | g^{-1}(\mathbf{a}), \varphi]) + \ln([\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}]) + \frac{n}{2} \ln(2 \pi) - \frac{1}{2} \ln(|- \mathbf{G}_{\mathbf{a}}|).
+  \ell_p(\varphi, \boldsymbol{\theta}) = \ln([\mathbf{y} | g^{-1}(\mathbf{a}), \varphi]) + \ln([\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}]) - \frac{1}{2} \ln(|- \mathbf{G}_{\mathbf{a}}|).
 \end{equation*}
 
-## `loocv()` {#sec:loocv-glm}
+## `loocv()` and `kcv()` {#sec:loocv-glm}
 
-`loocv()` for spatial generalized linear models is defined similarly as for spatial linear models, except that $\mathbf{w}$ is predicted instead of $\mathbf{y}$. Then $g^{-1}(\mathbf{w})$ is compared to $\mathbf{y}$ to compute mean-squared-prediction-error. That is, \begin{equation*}
- mspe = \frac{1}{n}\sum_{i = 1}^n(y_i - g^{-1}(w_i))^2.
+`loocv()` and `kcv()` for spatial generalized linear models are defined similarly as for spatial linear models, except that $\mathbf{w}$ is predicted instead of $\mathbf{y}$ (with $\mathbf{w}_{-i}$/$\mathbf{w}_{-F}$ in place of $\mathbf{y}_{-i}$/$\mathbf{y}_{-F}$ throughout). Then $g^{-1}(\hat{\mathbf{w}})$ (the held-out prediction, on the response scale) is compared to $\mathbf{y}$ to compute mean-squared-prediction-error. That is, \begin{equation*}
+ mspe = \frac{1}{n}\sum_{i = 1}^n(y_i - g^{-1}(\hat{w}_i))^2.
 \end{equation*}
 
-When `cv_fitted = TRUE`, the predictions of held-out $\mathbf{w}$ are returned. The standard errors of these predictions (of held-out $\mathbf{w}$) are returned when `se.fit = TRUE`. Note that $\mathbf{G}_{-i}$ is determined from $\mathbf{G}$ using Helmert-Wolf blocking as is done for $\boldsymbol{\Sigma}_{-i}$ and $\boldsymbol{\Sigma}$.
+When `cv_predict = TRUE`, the predictions of held-out $\mathbf{w}$ (on the link scale) are returned. The standard errors of these predictions are returned when `se.fit = TRUE`; setting `type = "response"` and `delta = TRUE` additionally returns these on the response scale via the same delta-method transform used by `predict()` (`interval = "prediction"`). Note that $\mathbf{G}_{-i}$ (or, for `kcv()`, $\mathbf{G}_{-F}$) is determined from $\mathbf{G}$ using Helmert-Wolf blocking as is done for $\boldsymbol{\Sigma}_{-i}$/$\boldsymbol{\Sigma}_{-F}$ and $\boldsymbol{\Sigma}$. `interval`/`level` prediction interval coverage (`loocv()` and `kcv()`) is not available here, since `spglm()`/`spgautor()` have no observed-scale latent mean to compare a prediction interval against.
 
 ### Big Data {#sec:bigdata-loocv-glm}
 
@@ -944,10 +984,10 @@ When `cv_fitted = TRUE`, the predictions of held-out $\mathbf{w}$ are returned. 
 ### `interval = "none"` {#sec:predict-none-glm}
 
 Building from the previously defined empirical best linear unbiased predictions (i.e., empirical Kriging predictions), predictions of $\mathbf{w}_u$ are given on the link scale (`type = "link"`) by \begin{equation}\label{eq:glm_blup}
-  \mathbf{\dot{w}}_u = \mathbf{X}_u \hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}^{-1}_{o} (\hat{\mathbf{w}}_o - \mathbf{X}_o \hat{\boldsymbol{\beta}}) .
-\end{equation} These predictions are given on the response (inverse link) scale (`type = "response"`) as $g^{-1}(\mathbf{\dot{w}}_u)$.
+  \dot{\mathbf{w}}_u = \mathbf{X}_u \hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}^{-1}_{o} (\hat{\mathbf{w}}_o - \mathbf{X}_o \hat{\boldsymbol{\beta}}) .
+\end{equation} These predictions are given on the response (inverse link) scale (`type = "response"`) as $g^{-1}(\dot{\mathbf{w}}_u)$.
 
-Similar to the covariance matrix of $\hat{\boldsymbol{\beta}}$, the covariance matrix of $\mathbf{\dot{w}}_u$ requires an adjustment to account for the fact that the $\mathbf{w}$ are not actually observed. First let $\boldsymbol{\Lambda} = \mathbf{X}_u \mathbf{B} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}_o^{-1} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o \mathbf{B}$ and $\mathbf{B} = (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \hat{\boldsymbol{\Sigma}}_o^{-1}$, and note that $\mathbf{\dot{w}}_u = \Lambda \hat{\mathbf{w}}_o$. Using the law of conditional variance and conditioning on $\mathbf{w}_o$ as if we had observed them, it follows that \begin{equation*}
+Similar to the covariance matrix of $\hat{\boldsymbol{\beta}}$, the covariance matrix of $\dot{\mathbf{w}}_u$ requires an adjustment to account for the fact that the $\mathbf{w}$ are not actually observed. First let $\boldsymbol{\Lambda} = \mathbf{X}_u \mathbf{B} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}_o^{-1} - \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o \mathbf{B}$ and $\mathbf{B} = (\mathbf{X}^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \hat{\boldsymbol{\Sigma}}_o^{-1}$, and note that $\dot{\mathbf{w}}_u = \Lambda \hat{\mathbf{w}}_o$ (using $\hat{\boldsymbol{\beta}} = \mathbf{B}\hat{\mathbf{w}}_o$, this reduces to $\mathbf{X}_u \hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}(\hat{\mathbf{w}}_o - \mathbf{X}_o\hat{\boldsymbol{\beta}})$, matching the previous equation). Using the law of conditional variance and conditioning on $\mathbf{w}_o$ as if we had observed them, it follows that \begin{equation*}
   \text{Cov}(\hat{\mathbf{w}}_u - \mathbf{w}_u) = \text{Cov}(\Lambda \hat{\mathbf{w}}_o - \mathbf{w}_u) = \text{E}_{\mathbf{w}_o}[\text{Cov}(\Lambda \hat{\mathbf{w}}_o - \mathbf{w}_u | \mathbf{w}_o)] + \text{Cov}_{\mathbf{w}_o}[\text{E}(\Lambda \hat{\mathbf{w}}_o - \mathbf{w}_u | \mathbf{w}_o)],
 \end{equation*} We assume $\hat{\mathbf{w}}_o$ is unbiased for $\mathbf{w}_o$ (i.e., $\text{E}(\hat{\mathbf{w}}_o | \mathbf{w}_o) = \mathbf{w}_o$). Then $\text{Cov}_{\mathbf{w}_o}[\text{E}(\Lambda \hat{\mathbf{w}}_o - \mathbf{w}_u | \mathbf{w}_o)] = \text{Cov}_{\mathbf{w}_o}(\Lambda \mathbf{w}_o - \mathbf{w}_u) = \hat{\boldsymbol{\Sigma}}_u - \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}^{-1}_o \hat{\boldsymbol{\Sigma}}^\top_{uo} + \mathbf{Q}(\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o)^{-1}\mathbf{Q}^\top$, where $\mathbf{Q} = \mathbf{X}_u - \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}^{-1}_o \mathbf{X}_o$, the usual form for the mean squared prediction error of $\hat{\mathbf{w}}_u$. Next note that (viewing $\mathbf{w}_u$ as a constant) $\text{E}_{\mathbf{w}_o}[\text{Cov}(\Lambda \hat{\mathbf{w}}_o - \mathbf{w}_u | \mathbf{w}_o)]$ can be viewed as the observed Fisher Information inverse, $- \mathbf{G}^{-1}$. Evaluating $\mathbf{G}$ at $\mathbf{a}$ eventually yields the adjusted covariance matrix of $\Lambda \hat{\mathbf{w}}_o - \mathbf{w}_u$ (`var_correct = TRUE`) given by \begin{equation}\label{eq:glm_blup_cov}
   \text{Cov}(\Lambda \hat{\mathbf{w}}_o - \mathbf{w}_u) = \dot{\boldsymbol{\Sigma}}_u = \Lambda (-\mathbf{G}_\mathbf{a})^{-1} \Lambda^\top + \hat{\boldsymbol{\Sigma}}_u - \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}^{-1}_o \hat{\boldsymbol{\Sigma}}^\top_{uo} + \mathbf{Q}(\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_o^{-1} \mathbf{X}_o)^{-1}\mathbf{Q}^\top .
@@ -959,9 +999,11 @@ The unadjusted covariance matrix of $\Lambda \hat{\mathbf{w}}_o - \mathbf{w}_u$ 
 
 When `se.fit = TRUE`, standard errors are returned on the link scale by taking the square root of the diagonal of the relevant $\dot{\boldsymbol{\Sigma}}_u$.
 
+Predictions (i.e., Kriging) can also be returned on the weight scale (`type = "weight"`), analogous to `type = "weight"` for `splm()`/`spautor()`. Because $\dot{\mathbf{w}}_u = \Lambda \hat{\mathbf{w}}_o$ is already a linear combination of $\hat{\mathbf{w}}_o$, `type = "weight"` simply returns the relevant row of $\Lambda$ itself.
+
 ### `interval = "prediction"` {#sec:predict-predict-glm}
 
-Predictions of $\mathbf{w}_u$ are returned on the link scale (`type = "link"`) by evaluating $\mathbf{\dot{w}}_u$. The (100 $\times$ `level`)% prediction interval for $(w_u)_i$ is $(\dot{w}_u)_i \pm z^* \sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$, where $\sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$ is the standard error of $(\dot{w}_u)_i$ obtained from `se.fit = TRUE`, $\Phi(z^*) = 1 - \alpha / 2$, $\Phi(\cdot)$ is the standard normal (Gaussian) cumulative distribution function, $\alpha = 1 -$ `level`, and `level` is an argument to `predict()`. The default for `level` is 0.95, which corresponds to a $z^*$ of approximately 1.96. These predictions and corresponding prediction intervals are returned on the response scale (`type = "response"`) by applying $g^{-1}(\cdot)$ (inverse link) to $(\dot{w}_u)_i$ (the prediction), $(\dot{w}_u)_i - z^* \sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$ (the prediction interval lower bound), and $(\dot{w}_u)_i + z^* \sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$ (the prediction interval upper bound). Note that the prediction intervals are symmetric on the link scale but are not generally symmetric on the response scale. One could obtain symmetric prediction intervals on the response scale using the delta method [@ver2012invented].
+Predictions of $\mathbf{w}_u$ are returned on the link scale (`type = "link"`) by evaluating $\dot{\mathbf{w}}_u$. The (100 $\times$ `level`)% prediction interval for $(w_u)_i$ is $(\dot{w}_u)_i \pm z^* \sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$, where $\sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$ is the standard error of $(\dot{w}_u)_i$ obtained from `se.fit = TRUE`, $\Phi(z^*) = 1 - \alpha / 2$, $\Phi(\cdot)$ is the standard normal (Gaussian) cumulative distribution function, $\alpha = 1 -$ `level`, and `level` is an argument to `predict()`. The default for `level` is 0.95, which corresponds to a $z^*$ of approximately 1.96. These predictions and corresponding prediction intervals are returned on the response scale (`type = "response"`) by applying $g^{-1}(\cdot)$ (inverse link) to $(\dot{w}_u)_i$ (the prediction), $(\dot{w}_u)_i - z^* \sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$ (the prediction interval lower bound), and $(\dot{w}_u)_i + z^* \sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$ (the prediction interval upper bound). Note that the prediction intervals are symmetric on the link scale but are not generally symmetric on the response scale. One could instead obtain (approximately) symmetric standard errors on the response scale using the delta method [@ver2012invented] (`delta = TRUE`): $\text{SE}[g^{-1}((\dot{w}_u)_i)] \approx |g^{-1 \prime}((\dot{w}_u)_i)| \sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$, where $g^{-1 \prime}(\cdot)$ is the derivative of the inverse link function. For the log link (Poisson, negative binomial, gamma, inverse Gaussian), $g^{-1 \prime}(w) = \exp(w)$; for the logit link (binomial, beta), $g^{-1 \prime}(w) = \frac{\exp(w)}{(1 + \exp(w))^2} = \mu(1 - \mu)$, further multiplied by the number of trials $m$ for the binomial family (whose response is a count, not a proportion). `loocv()` supports the same `delta` argument for its response-scale cross-validation standard errors.
 
 ### `interval = "confidence"` {#sec:predict-conf-glm}
 
@@ -973,7 +1015,7 @@ The extra step required to obtain $\hat{\boldsymbol{\Sigma}}^{-1}_o$, $\hat{\bol
 
 ### Big Data {#sec:bigdata-predict-glm}
 
-`predict()` for big data spatial generalized linear models is defined similarly as for big data spatial linear models, except that $\mathbf{w}$ are subset or predicted (instead of $\mathbf{y}$) to find $\check{\mathbf{w}}_o$ (instead of $\check{\mathbf{y}}_o$). It standard errors are required, $\check{\mathbf{G}}_o$ is also found.
+`predict()` for big data spatial generalized linear models is defined similarly as for big data spatial linear models, except that $\hat{\mathbf{w}}$ are subset or predicted (instead of $\mathbf{y}$) to find $\check{\hat{\mathbf{w}}}_o$ (instead of $\check{\mathbf{y}}_o$). If standard errors are required, $\check{\mathbf{G}}_o$ is also found.
 
 ## `pseudoR2()` {#sec:pr2-glm}
 
@@ -984,20 +1026,20 @@ The extra step required to obtain $\hat{\boldsymbol{\Sigma}}^{-1}_o$, $\hat{\bol
 The residuals are obtained by applying standard generalized linear model definitions after conditioning on $\mathbf{w}$.
 
 When `type = "response"`, response residuals are returned: \begin{equation*}
- \mathbf{e}_{r} = \mathbf{y} - g^{-1}(\mathbf{w}).
+ \mathbf{e}_{r} = \mathbf{y} - g^{-1}(\hat{\mathbf{w}}).
 \end{equation*}
 
 When `type = "pearson"`, Pearson residuals are returned: \begin{equation*}
  \mathbf{e}_{p} = \mathbf{V}^{-1/2}\mathbf{e}_{r},
-\end{equation*} where $\mathbf{V}$ is a diagonal matrix with $i$th diagonal element equal to $\text{Var}(w_i)$.
+\end{equation*} where $\mathbf{V}$ is a diagonal matrix with $i$th diagonal element equal to $\text{Var}(y_i)$, the (dispersion-adjusted) response-scale variance implied by the family evaluated at $\hat{\mathbf{w}}$. Note this $\mathbf{V}$ is different from the one used by `hatvalues()`, which is not adjusted for dispersion).
 
 When `type = "deviance"`, deviance residuals are returned: \begin{equation*}
  \mathbf{e}_{d} = \text{sign}(\mathbf{e}_r) \odot \sqrt{\text{deviance}_i},
-\end{equation*} where $\text{deviance}_i$ is the deviance of $y_i$ (conditional on $w_i$) and $\odot$ denotes the Hadmard (element-wise) product.
+\end{equation*} where $\text{deviance}_i$ is the deviance of $y_i$ (conditional on $w_i$) and $\odot$ denotes the Hadamard (element-wise) product.
 
 When `type = "standardized"`, standardized residuals are returned: \begin{equation*}
  \mathbf{e}_{s} = \mathbf{e}_{d} \odot \frac{1}{\sqrt{1 - diag(\mathbf{H}_c)}},
-\end{equation*} where $diag(\mathbf{H}_c)$ is the diagonal of the leverage (hat) matrix conditional on $\mathbf{w}$ and given by $\mathbf{H}_c \equiv \mathbf{X}_v (\mathbf{X}_v^\top\mathbf{X}_v)^{-1} \mathbf{X}_v^\top$, where $\mathbf{X}_v = \mathbf{V}^{1/2}\mathbf{X}$, and $\odot$ denotes the Hadmard (element-wise) product.
+\end{equation*} where $diag(\mathbf{H}_c)$ is the diagonal of the leverage (hat) matrix conditional on $\mathbf{w}$ and given by $\mathbf{H}_c \equiv \mathbf{X}_v (\mathbf{X}_v^\top\mathbf{X}_v)^{-1} \mathbf{X}_v^\top$, where $\mathbf{X}_v = \mathbf{V}^{1/2}\mathbf{X}$, and $\odot$ denotes the Hadamard (element-wise) product.
 
 ## `spgautor()` and `spglm()` {#sec:spgmod}
 
@@ -1015,12 +1057,12 @@ Covariance functions for `spglm()` are defined the same as covariance functions 
 
 Recall that the likelihood of interest is 
 \begin{equation*}
-  \int_\mathbf{w} \exp(\ell_\mathbf{w}) d\mathbf{w} \approx [\mathbf{y} | g^{-1}(\mathbf{a}), \varphi] [\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}] (2 \pi)^{n/2} |-\mathbf{G}_a|^{-1/2}|,
+  \int_\mathbf{w} \exp(\ell_\mathbf{w}) d\mathbf{w} \approx [\mathbf{y} | g^{-1}(\mathbf{a}), \varphi] [\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}] (2 \pi)^{n/2} |-\mathbf{G}_a|^{-1/2},
 \end{equation*} 
 and that $\mathbf{a}$ is the value at which the gradient, $\mathbf{g}$, equals zero. Given $\mathbf{a}$, minus twice a profiled (by $\boldsymbol{\beta}$) marginal Laplace log-likelihood is given by \begin{equation*}
-  -2\ell_p(\varphi, \boldsymbol{\theta}) = -2\ln([\mathbf{y} | g^{-1}(\mathbf{a}), \varphi]) -2\ln([\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}]) -n \ln(2 \pi) + \ln(|- \mathbf{G}_{\mathbf{a}}|).
-\end{equation*} 
-Note that $\ln[\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}]$ are the ML or REML log-likelihood equations the spatial linear model, respectively, where now $\tilde{\boldsymbol{\beta}} = (\mathbf{X}^\top \mathbf{\Sigma}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \mathbf{\Sigma}^{-1} \mathbf{a}$.
+  -2\ell_p(\varphi, \boldsymbol{\theta}) = -2\ln([\mathbf{y} | g^{-1}(\mathbf{a}), \varphi]) -2\ln([\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}]) + \ln(|- \mathbf{G}_{\mathbf{a}}|).
+\end{equation*}
+Note that $-2\ln[\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}]$ is exactly \eqref{eq:ml-lik} (for maximum likelihood) or \eqref{eq:reml-lik} (for restricted maximum likelihood), the spatial linear model log-likelihood equations, evaluated with $\mathbf{a}$ in place of $\mathbf{y}$, where now $\tilde{\boldsymbol{\beta}} = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{a}$. The $(2\pi)^{n/2}$ term from the Laplace approximation is a constant that may be ignored during optimization.
 
 Assuming $\mathbf{y}$ and $g^{-1}(\mathbf{w})$ are conditionally independent and $\varphi$ and $\boldsymbol{\theta}$ are known, it can be shown that maximizing $\ell_{\mathbf{w}}$ (with respect to $\mathbf{w}$) amounts to maximizing (up to a constant) \begin{equation*}
   \sum_{i = 1}^N \ln[y_i | w_i, \varphi] - \frac{1}{2}(\mathbf{w} - \mathbf{X} \hat{\boldsymbol{\beta}})^\top \boldsymbol{\Sigma}^{-1}(\mathbf{w} - \mathbf{X}\hat{\boldsymbol{\beta}}).
@@ -1031,9 +1073,9 @@ where $d_i = \partial \ln[y_i | g^{-1}(w_i), \varphi] / \partial w_i$ and $\math
   \mathbf{G} = \mathbf{D} - \mathbf{P},
 \end{equation*} where $D_{i, i} = \partial^2 \ln[y_i | g^{-1}(w_i), \varphi] / \partial w_i^2$. Note that $D_{i, j} = 0$ for $i \neq j$ because of conditional independence.
 
-Next the Newton-Rhapson algorithm can be used to maximize $\ell_{\mathbf{w}}$, where an update is given by \begin{equation*}
+Next the Newton-Raphson algorithm can be used to maximize $\ell_{\mathbf{w}}$, where an update is given by \begin{equation*}
  \mathbf{w}^{k + 1} = \mathbf{w}^k - \alpha \mathbf{G}^{-1}\mathbf{g}.
-\end{equation*} where $0 < \alpha \leq 1$. Typically, $\alpha = 1$, but it can be lowered if the $\mathbf{g}$ is unstable. Generally, the Newton-Rhapson converges rapidly. The value of $\mathbf{w}$ at convergence is defined as $\mathbf{a}$.
+\end{equation*} where $0 < \alpha \leq 1$. Typically, $\alpha = 1$, but it can be lowered if the $\mathbf{g}$ is unstable. Generally, the Newton-Raphson converges rapidly. The value of $\mathbf{w}$ at convergence is defined as $\mathbf{a}$.
 
 It follows that finding $\varphi$ and $\boldsymbol{\theta}$ for unknown $\mathbf{a}$ requires a doubly-iterative algorithm. First, a value of $\mathbf{a}$ is proposed (e.g., $\mathbf{a} = \mathbf{0}$). Then given $\mathbf{a}_0$, the Laplace log-likelihood is maximized, yielding $\hat{\varphi}_0$ and $\hat{\boldsymbol{\theta}}_0$. Then given $\hat{\varphi}_0$ and $\hat{\boldsymbol{\theta}}_0$, $\ell_{\mathbf{w}}$ is maximized, yielding $\mathbf{a}_1$. Then given $\mathbf{a}_1$, the Laplace log-likelihood is maximized, yielding $\hat{\varphi}_1$ and $\hat{\boldsymbol{\theta}}_1$. Then given $\hat{\varphi}_1$ and $\hat{\boldsymbol{\theta}}_1$, $\ell_{\mathbf{w}}$ is maximized, yielding $\mathbf{a}_2$. This process continues until convergence, yielding optimized values for $\varphi$ and $\boldsymbol{\theta}$ and, using these optimized values, a value of $\mathbf{a}$.
 
@@ -1041,7 +1083,7 @@ Note that the Laplace approximation incorporates a likelihood, and as a result, 
 
 ### Optimization {#sec:optim-glm}
 
-Optimization for `spglm()` and `spgautor()` works as it does for `splm()` and `spautor()`, with one additional step. The convergence criteria for $\mathbf{w}$ (within each covariance parameter iteration) is achieved when the largest absolute value of $\mathbf{w}_k - \mathbf{w}_{k - 1}$ is less than $1/10^4$ or $k > 50$ ($k$ indexes the Newton-Rhapson iterations).
+Optimization for `spglm()` and `spgautor()` works as it does for `splm()` and `spautor()`, with one additional step. The convergence criteria for $\mathbf{w}$ (within each covariance parameter iteration) is achieved when the largest absolute value of $\mathbf{w}_k - \mathbf{w}_{k - 1}$ is less than $1/10^4$ or $k > 50$ ($k$ indexes the Newton-Raphson iterations).
 
 #### Grid Search {#sec:grid-glm}
 
@@ -1049,7 +1091,7 @@ The grid search for `spglm()` and `spgautor()` works as it does for `splm()` and
 
 ### Hypothesis Testing {#sec:testing-glm}
 
-Hypothesis testing for spatial generalized linear models is defined the same as for spatial linear models. That is, the hypothesis tests are asymptotic z-tests based on the normal (Gaussian) distribution (Wald tests). The null hypothesis for the test associated with each $\hat{\beta}_i$ is that $\beta_i = 0$. The spatial generalized linear models, $\text{Cov}(\hat{\boldsymbol{\beta}})$ requires an adjustment to account for the fact that the $\mathbf{w}$ are not actually observed. First let $\mathbf{B} = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \boldsymbol{\Sigma}^{-1}$ and note that $\hat{\boldsymbol{\beta}} = \mathbf{B}\mathbf{w}$. Using the law of conditional variance and conditioning on $\mathbf{w}$ as if we had observed them, it follows that \begin{equation*}
+Hypothesis testing for spatial generalized linear models is defined the same as for spatial linear models. That is, the hypothesis tests are asymptotic z-tests based on the normal (Gaussian) distribution (Wald tests). The null hypothesis for the test associated with each $\hat{\beta}_i$ is that $\beta_i = 0$. The spatial generalized linear models, $\text{Cov}(\hat{\boldsymbol{\beta}})$ requires an adjustment to account for the fact that the $\mathbf{w}$ are not actually observed. First let $\mathbf{B} = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \boldsymbol{\Sigma}^{-1}$ and note that $\hat{\boldsymbol{\beta}} = \mathbf{B}\hat{\mathbf{w}}$. Using the law of conditional variance and conditioning on $\mathbf{w}$ as if we had observed them, it follows that \begin{equation*}
   \text{Cov}(\mathbf{B} \hat{\mathbf{w}}) = \text{E}_\mathbf{w}[\text{Cov}(\mathbf{B}\hat{\mathbf{w}} | \mathbf{w})] + \text{Cov}_\mathbf{w}[\text{E}(\mathbf{B}\hat{\mathbf{w}} | \mathbf{w})]
 \end{equation*} 
 We assume $\hat{\mathbf{w}}$ is unbiased for $\mathbf{w}$ (i.e., $\text{E}(\hat{\mathbf{w}} | \mathbf{w}) = \mathbf{w}$). Then $\text{Cov}(\text{E}(\mathbf{B} \hat{\mathbf{w}} | \mathbf{w})) = \text{Cov}(\mathbf{B}\mathbf{w}) = \mathbf{B} \boldsymbol{\Sigma} \mathbf{B}^\top$, which reduces to $(\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1}$, the usual form for $\text{Cov}(\hat{\boldsymbol{\beta}})$. Next note that $\text{Cov}(\hat{\mathbf{w}} | \mathbf{w})$ can be viewed as the inverse of the observed Fisher Information, which is $-\mathbf{G}^{-1}$, which depends on $\mathbf{w}$ through the diagonal elements in $\mathbf{D}$. Evaluating $-\mathbf{G}$ at $\mathbf{a}$ yields the adjusted covariance matrix of $\hat{\boldsymbol{\beta}}$ given by \begin{equation*}
@@ -1090,13 +1132,17 @@ As previously mentioned, fitting big data spatial generalized linear models requ
 
 Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian random variables can be simulated using `sprpois()`, `sprnbinom()`, `sprbinom()`, `sprbeta()`, `sprgamma()`, and `sprinvgauss()`, respectively. All of these functions work similarly. First, relevant arguments are passed to `sprnorm()` to simulate $\mathbf{w}$ on the link scale. Then using $\mathbf{w}$ and the dispersion parameter (when required), relevant generalized linear model random variables are simulated independently for each $w_i$. Note that the dispersion parameter is not required for `sprpois()` and `sprbinom()`.
 
+## `varcomp()` {#sec:varcomp-glm}
+
+`varcomp()` for spatial generalized linear models is defined the same as for spatial linear models but is applied on the link scale.
+
 ## `vcov()` {#sec:vcov-glm}
 
 The corrected variance-covariance matrix of the fixed effects (`var_correct = TRUE`) is given by $\mathbf{B} (-\mathbf{G}_a)^{-1} \mathbf{B}^\top + (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1}$. The uncorrected variance-covariance matrix (`var_correct = FALSE`) is given by $\text{Cov}(\hat{\boldsymbol{\beta}}) = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1}$.
 
 ## Distribution Parameterizations {#sec:distributions-glm}
 
-Below we provide definitions associated with each of the six generalized linear models families available in `spmodel`. Note that the poisson, binomial, gamma, and inverse Gaussian distributions are members of the exponential family, and their deviance is typically expressed as twice the difference in log-likelihoods between the saturated and fitted model times the dispersion parameter (consistent with `glm()`). The negative binomial and beta distributions are members of the exponential family when the dispersion parameter ($\varphi$) is known, and their deviance is typically expressed as just twice the difference in log-likelihoods between the saturated and fitted model (consistent with `glm.nb()` from `MASS` [@venables2002mass] for negative binomial regression and `betareg()` from `betareg` [@cribari2010beta] for beta regression).
+Below we provide definitions associated with each of the six generalized linear models families available in `spmodel`. Note that the poisson, binomial, gamma, and inverse Gaussian distributions are members of the exponential family, and their deviance is typically expressed as twice the difference in log-likelihoods between the saturated and fitted model divided by the dispersion parameter (consistent with `glm()`). The negative binomial and beta distributions are members of the exponential family when the dispersion parameter ($\varphi$) is known, and their deviance is typically expressed as just twice the difference in log-likelihoods between the saturated and fitted model (consistent with `glm.nb()` from `MASS` [@venables2002mass] for negative binomial regression and `betareg()` from `betareg` [@cribari2010beta] for beta regression). A table of inverse link functions and the $d_i$ and $D_{i,i}$ quantities derived below for all six families is also provided for reference at the end of this section.
 
 ### Poisson Distribution {#sec:poisson}
 
@@ -1120,16 +1166,16 @@ The second derivative of the Poisson distribution with respect to $w$ is \begin{
   \frac{d^2}{d w^2} \ln f(y | \mu) = - \exp(w).
 \end{equation*}
 
-Twice the log-likelihood of the saturated model is \begin{equation*}
-  2 \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i y_i \ln(y_i) - y_i - \ln(y_i!).
+The log-likelihood of the saturated model is \begin{equation*}
+  \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i y_i \ln(y_i) - y_i - \ln(y_i!).
 \end{equation*}
 
-Twice the log-likelihood of the fitted (observed) model is \begin{equation*}
-  2 \ln f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i y_i \ln(\hat{\mu}_i) - \hat{\mu}_i - \ln(y_i!).
+The log-likelihood of the fitted (observed) model is \begin{equation*}
+  \ln f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i y_i \ln(\hat{\mu}_i) - \hat{\mu}_i - \ln(y_i!).
 \end{equation*}
 
 Thus the deviance is \begin{equation*}
-  2 \sum_i y_i log(y_i / \hat{\mu}_i) - (y_i - \hat{\mu}_i).
+  2 \sum_i \left[y_i \log(y_i / \hat{\mu}_i) - (y_i - \hat{\mu}_i)\right].
 \end{equation*}
 
 ### Negative Binomial Distribution {#sec:nbinomial}
@@ -1158,16 +1204,16 @@ The second derivative of the negative binomial distribution with respect to $w$ 
   \frac{d^2}{d w^2} \ln f(y | \mu) = - \frac{\varphi \exp(w) (y + \varphi)}{(\varphi + \exp(w))^2}
 \end{equation*}
 
-Twice the log-likelihood of the saturated model is \begin{equation*}
-  2 \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \ln(\Gamma(y_i + \varphi)) - \ln(\Gamma(\varphi)) - \ln(y_i!) + y_i \ln(y_i) - y_i \ln(y_i + \varphi) + \varphi \ln(\varphi) - \varphi \ln(y_i + \varphi).
+The log-likelihood of the saturated model is \begin{equation*}
+  \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \ln(\Gamma(y_i + \varphi)) - \ln(\Gamma(\varphi)) - \ln(y_i!) + y_i \ln(y_i) - y_i \ln(y_i + \varphi) + \varphi \ln(\varphi) - \varphi \ln(y_i + \varphi).
 \end{equation*}
 
-Twice the log-likelihood of the fitted (observed) model is \begin{equation*}
-  2 \ln f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i \ln(\Gamma(y_i + \varphi)) - \ln(\Gamma(\varphi)) - \ln(y_i!) + y_i \ln(\hat{\mu}_i) - y_i \ln(\hat{\mu}_i + \varphi) + \varphi \ln(\varphi) - \varphi \ln(\hat{\mu}_i + \varphi).
+The log-likelihood of the fitted (observed) model is \begin{equation*}
+  \ln f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i \ln(\Gamma(y_i + \varphi)) - \ln(\Gamma(\varphi)) - \ln(y_i!) + y_i \ln(\hat{\mu}_i) - y_i \ln(\hat{\mu}_i + \varphi) + \varphi \ln(\varphi) - \varphi \ln(\hat{\mu}_i + \varphi).
 \end{equation*}
 
 Thus the deviance is \begin{equation*}
-  2 \sum_i y_i [\ln(y_i) - \ln(y_i + \varphi) - \ln(\hat{\mu}_i) + \ln(\hat{\mu}_i + \varphi)] + \varphi [ - \ln(y_i + \varphi) + \ln(\hat{\mu}_i + \varphi)].
+  2 \sum_i \left\{y_i [\ln(y_i) - \ln(y_i + \varphi) - \ln(\hat{\mu}_i) + \ln(\hat{\mu}_i + \varphi)] + \varphi [ - \ln(y_i + \varphi) + \ln(\hat{\mu}_i + \varphi)]\right\}.
 \end{equation*}
 
 ### Binomial Distribution {#sec:binomial}
@@ -1192,16 +1238,16 @@ The second derivative of the binomial distribution with respect to $w$ is \begin
   \frac{d^2}{d w^2} \ln f(y | \mu) = - \frac{m \exp(w)}{(1 + \exp(w))^2}.
 \end{equation*}
 
-Twice the log-likelihood of the saturated model is \begin{equation*}
-  2 \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \ln \left[ \binom{m_i}{y_i} \right] + y_i \ln(y_i) + (m_i - y_i) \ln(m_i - y_i).
+The log-likelihood of the saturated model is \begin{equation*}
+  \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \ln \left[ \binom{m_i}{y_i} \right] + y_i \ln(y_i) + (m_i - y_i) \ln(m_i - y_i) - m_i \ln(m_i).
 \end{equation*}
 
-Twice the log-likelihood of the fitted (observed) model is \begin{equation*}
-  2 \ln f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i \ln \left[ \binom{m_i}{y_i} \right] + y_i \ln(m_i\hat{\mu}_i) + (m_i - y_i) \ln(m_i - m_i \hat{\mu}_i).
+The log-likelihood of the fitted (observed) model is \begin{equation*}
+  \ln f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i \ln \left[ \binom{m_i}{y_i} \right] + y_i \ln(\hat{\mu}_i) + (m_i - y_i) \ln(1 - \hat{\mu}_i).
 \end{equation*}
 
 Thus the deviance is \begin{equation*}
-  2 \sum_i y_i[ \ln(y_i) - \ln(m_i \hat{\mu}_i)] + (m_i - y_i)[ \ln(m_i - y_i) - \ln(m_i - m_i \hat{\mu}_i) ]
+  2 \sum_i \left\{y_i[ \ln(y_i) - \ln(m_i \hat{\mu}_i)] + (m_i - y_i)[ \ln(m_i - y_i) - \ln(m_i - m_i \hat{\mu}_i) ]\right\}.
 \end{equation*}
 
 ### Beta Distribution {#sec:beta}
@@ -1229,16 +1275,16 @@ It can be shown that the second derivative of the beta distribution with respect
   \frac{d^2}{d w^2} \ln f(y | \mu) = - \frac{\varphi \exp(2w) k_1(w | y, \varphi)}{(1 + \exp(w))^4},
 \end{equation*} where $k_1(w | y, \varphi) = \varphi [\psi^{(1)}(\frac{\varphi \exp(w)}{1 + \exp(w)}) + \psi^{(1)}( \frac{\varphi}{1 + \exp(w)})] - 2\sinh(w)[k_0(w | y, \varphi) + 2\tanh^{-1}(1 - 2y)]$ and $\psi^{(n)}$ is the $nth$ derivative of the digamma function.
 
-Twice the log-likelihood of the saturated model is \begin{equation*}
-  2 \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \ln(\Gamma(\varphi)) - \ln(\Gamma(y_i \varphi)) - \ln(\Gamma((1 - y_i)\varphi)) +  (y_i \varphi - 1) \ln(y_i) + ((1 - y_i)\varphi - 1) \ln(1 - y_i).
+The log-likelihood of the saturated model is \begin{equation*}
+  \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \ln(\Gamma(\varphi)) - \ln(\Gamma(y_i \varphi)) - \ln(\Gamma((1 - y_i)\varphi)) +  (y_i \varphi - 1) \ln(y_i) + ((1 - y_i)\varphi - 1) \ln(1 - y_i).
 \end{equation*}
 
-Twice the log-likelihood of the fitted (observed) model is \begin{equation*}
-  2 \ln f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \ln(\Gamma(\varphi)) - \ln(\Gamma(\hat{\mu}_i \varphi)) - \ln(\Gamma((1 - \hat{\mu}_i)\varphi)) +  (\hat{\mu}_i \varphi - 1) \ln(y_i) + ((1 - \hat{\mu}_i)\varphi - 1) \ln(1 - y_i).
+The log-likelihood of the fitted (observed) model is \begin{equation*}
+  \ln f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i \ln(\Gamma(\varphi)) - \ln(\Gamma(\hat{\mu}_i \varphi)) - \ln(\Gamma((1 - \hat{\mu}_i)\varphi)) +  (\hat{\mu}_i \varphi - 1) \ln(y_i) + ((1 - \hat{\mu}_i)\varphi - 1) \ln(1 - y_i).
 \end{equation*}
 
 Thus the deviance is \begin{equation*}
-  2 \sum_i - \ln(\Gamma(y_i \varphi)) - \ln(\Gamma((1 - y_i) \varphi )) + \ln(\Gamma(\hat{\mu}_i \varphi)) + \ln(\Gamma((1 - \hat{\mu}_i) \varphi )) + (y_i - \hat{\mu}_i) \varphi \ln(y_i) + (\hat{\mu}_i - y_i) \varphi \ln(1 - y_i)
+  2 \sum_i \left\{- \ln(\Gamma(y_i \varphi)) - \ln(\Gamma((1 - y_i) \varphi )) + \ln(\Gamma(\hat{\mu}_i \varphi)) + \ln(\Gamma((1 - \hat{\mu}_i) \varphi )) + (y_i - \hat{\mu}_i) \varphi \ln(y_i) + (\hat{\mu}_i - y_i) \varphi \ln(1 - y_i)\right\}.
 \end{equation*}
 
 Sometimes the deviance contribution from the $i$th observation can be computationally unstable and yield a negative value [@espinheira2008beta]. This can happen, for example, when $y_i$ is close to zero or one. When this happens, the deviance contribution is truncated to zero to reflect the fact that the theoretical deviance contribution must be non-negative.
@@ -1254,7 +1300,7 @@ The log-likelihood (of a single observation) is defined as \begin{equation*}
 \end{equation*}
 
 Using the inverse log link and writing in terms of $\mu = \exp(w)$, the log-likelihood can be written as \begin{equation*}
-  \ln f(y | \mu) = - \ln(\Gamma(\varphi)) \varphi [\ln(\varphi) - w] + (\varphi - 1) \ln(y) - \frac{y \varphi}{\exp(w)}.
+  \ln f(y | \mu) = - \ln(\Gamma(\varphi)) + \varphi [\ln(\varphi) - w] + (\varphi - 1) \ln(y) - \frac{y \varphi}{\exp(w)}.
 \end{equation*}
 
 The derivative of the gamma distribution with respect to $w$ is \begin{equation*}
@@ -1265,70 +1311,120 @@ The second derivative of the gamma distribution with respect to $w$ is \begin{eq
   \frac{d^2}{d w^2} \ln f(y | \mu) = - \frac{\varphi y}{\exp(w)}.
 \end{equation*}
 
-Twice the log-likelihood of the saturated model is \begin{equation*}
-  2 \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = - \ln(\Gamma(\varphi)) + \varphi [\ln(\varphi) - \ln(y_i)] + (\varphi - 1) \ln(y_i) - \frac{y_i \varphi}{y_i}.
+The log-likelihood of the saturated model is \begin{equation*}
+  \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i - \ln(\Gamma(\varphi)) + \varphi [\ln(\varphi) - \ln(y_i)] + (\varphi - 1) \ln(y_i) - \frac{y_i \varphi}{y_i}.
 \end{equation*}
 
-Twice the log-likelihood of the fitted (observed) model is \begin{equation*}
-  2 \ln f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i y_i - \ln(\Gamma(\varphi)) + \varphi [\ln(\varphi) - \ln(\hat{\mu}_i)] + (\varphi - 1) \ln(y_i) - \frac{y_i \varphi}{\hat{\mu}_i}.
+The log-likelihood of the fitted (observed) model is \begin{equation*}
+  \ln f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i - \ln(\Gamma(\varphi)) + \varphi [\ln(\varphi) - \ln(\hat{\mu}_i)] + (\varphi - 1) \ln(y_i) - \frac{y_i \varphi}{\hat{\mu}_i}.
 \end{equation*}
 
 Thus the deviance is \begin{equation*}
-  2 \sum_i - \ln(\frac{y}{\hat{\mu}_i}) + \frac{y - \hat{\mu}_i}{\hat{\mu}_i}
-\end{equation*} after scaling by $\varphi$.
+  2 \sum_i \left[- \ln\left(\frac{y_i}{\hat{\mu}_i}\right) + \frac{y_i - \hat{\mu}_i}{\hat{\mu}_i}\right].
+\end{equation*}
 
 ### Inverse Gaussian Distribution {#sec:invgauss}
 
 The inverse Gaussian distribution is defined as \begin{equation*}
-  f(y | \mu, \varphi) = \sqrt{\frac{\varphi \mu}{2 \pi y^3}} \exp \left( - \frac{\varphi (y - \mu^2)}{2 \mu y} \right),
+  f(y | \mu, \varphi) = \sqrt{\frac{\varphi \mu}{2 \pi y^3}} \exp \left( - \frac{\varphi (y - \mu)^2}{2 \mu y} \right),
 \end{equation*} where $y > 0$, $\mu > 0$, $\text{E}(y) = \mu$, and $\text{Var}(y) = \mu^2/\varphi$.
 
 The log-likelihood (of a single observation) is defined as \begin{equation*}
-  \ln f(y | \mu) = \frac{1}{2}[\ln(\varphi / 2 \pi y^3)  + \ln(\mu)] - \varphi \frac{(y - \mu)^2}{2 \mu y}.
+  \ln f(y | \mu) = \frac{1}{2}\left[\ln\left(\frac{\varphi}{2 \pi y^3}\right)  + \ln(\mu)\right] - \varphi \frac{(y - \mu)^2}{2 \mu y}.
 \end{equation*}
 
 Using the inverse log link and writing in terms of $\mu = \exp(w)$, the log-likelihood can be written as \begin{equation*}
-  \ln f(y | \mu) = \frac{1}{2}[\ln(\varphi / 2 \pi y^3)  + w] - \varphi \frac{(y - \exp(w))^2}{2 \exp(w) y}.
+  \ln f(y | \mu) = \frac{1}{2}\left[\ln\left(\frac{\varphi}{2 \pi y^3}\right)  + w\right] - \varphi \frac{(y - \exp(w))^2}{2 \exp(w) y}.
 \end{equation*}
 
-The derivative of the gamma distribution with respect to $w$ is \begin{equation*}
+The derivative of the inverse Gaussian distribution with respect to $w$ is \begin{equation*}
   \frac{d}{d w} \ln f(y | \mu) = \varphi \left( \frac{y}{2 \exp(w)} - \frac{\exp(w)}{2y} \right) + \frac{1}{2}.
 \end{equation*}
 
-The second derivative of the gamma distribution with respect to $w$ is \begin{equation*}
+The second derivative of the inverse Gaussian distribution with respect to $w$ is \begin{equation*}
   \frac{d^2}{d w^2} \ln f(y | \mu) = - \frac{\varphi(\exp(2w) + y^2)}{2y\exp(w)}.
 \end{equation*}
 
 Note that this is not a typical parameterization of the inverse Gaussian distribution. The typical parameterization of the inverse Gaussian distribution is \begin{equation*}
- f(y | \mu, \lambda) = \sqrt{\frac{\lambda}{2 \pi y^3}} \exp \left( - \frac{\lambda(y - \mu)^2}{2u^2y} \right),
+ f(y | \mu, \lambda) = \sqrt{\frac{\lambda}{2 \pi y^3}} \exp \left( - \frac{\lambda(y - \mu)^2}{2\mu^2y} \right),
 \end{equation*} where $y > 0$, $\mu > 0$, $\text{E}(y) = \mu$, and $\text{Var}(y) = \mu^3/\lambda$, and $\lambda = \mu \varphi$.
 
-Twice the log-likelihood of the saturated model is \begin{equation*}
-  2 \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \frac{1}{2} \left( \frac{\lambda}{2 \pi y_i^3} \right)
+The log-likelihood of the saturated model is \begin{equation*}
+  \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \frac{1}{2} \ln\left( \frac{\lambda}{2 \pi y_i^3} \right)
 \end{equation*}
 
-Twice the log-likelihood of the fitted (observed) model is \begin{equation*}
-  2 \ln f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \frac{1}{2} \left( \frac{\lambda}{2 \pi y_i^3} \right) - \frac{\lambda (y_i - \hat{\mu}_i)^2}{2 \hat{\mu}_i^2 y_i}.
+The log-likelihood of the fitted (observed) model is \begin{equation*}
+  \ln f(\mathbf{y} | \hat{\boldsymbol{\mu}}) = \sum_i \frac{1}{2} \ln\left( \frac{\lambda}{2 \pi y_i^3} \right) - \frac{\lambda (y_i - \hat{\mu}_i)^2}{2 \hat{\mu}_i^2 y_i}.
 \end{equation*}
 
 Thus the deviance is \begin{equation*}
- \sum_i (y_i - \hat{\mu}_i)^2 / (\hat{\mu}_i^2 y_i),
-\end{equation*} after scaling by $\lambda$.
+ \sum_i (y_i - \hat{\mu}_i)^2 / (\hat{\mu}_i^2 y_i).
+\end{equation*}
 
 ### Table of Inverse Link Functions, $d_i$, and $D_{i, i}$ {#sec:di_and_Di}
 
 The following table contains a table of inverse link functions, $d_i$, and $D_{i, i}$ for each spatial generalized linear model family. See more details for each family in the previous subsections.
 
-| Family            | $u = g^{-1}(w)$                           | $d_i$ | $D_{i,i}$ |
-|-------------------|-------------------------------------------|-------|-----------|
-| Poisson           | $\mu = \exp(w)$                       |       $y_i - \exp(w_i)$ | $- \exp(w_i)$           |
-| Negative Binomial | $\mu = \exp(w)$                       |       $\frac{\varphi (y_i - \exp(w_i))}{\exp(w_i) + \varphi}$ | $- \frac{\varphi \exp(w_i) (y_i + \varphi)}{(\varphi + \exp(w_i))^2}$           |
-| Binomial          | $\mu = \frac{\exp(w)}{1 + \exp(w)}$ |       $y_i - \frac{m_i \exp(w_i)}{1 + \exp(w_i)}$ | $- \frac{m_i \exp(w_i)}{(1 + \exp(w_i))^2}$          |
-| Beta              | $\mu = \frac{\exp(w)}{1 + \exp(w)}$ |       $- \frac{\varphi \exp(w_i) k_0(w_i | y_i, \varphi)}{(1 + \exp(w_i))^2}$ | $- \frac{\varphi \exp(2w_i) k_1(w_i | y_i, \varphi)}{(1 + \exp(w_i))^4}$           |
-| Gamma             | $\mu = \exp(w)$                       |       $-\varphi + \frac{\varphi y_i}{\exp(w_i)}$ | $- \frac{\varphi y_i}{\exp(w_i)}$           |
-| Inverse Gaussian  | $\mu = \exp(w)$                       |       $\varphi \left( \frac{y_i}{2 \exp(w_i)} - \frac{\exp(w_i)}{2y_i} \right) + \frac{1}{2}$ | $- \frac{\varphi(\exp(2w_i) + y_i^2)}{2y_i\exp(w_i)}$           |
+| Family | $u = g^{-1}(w)$ | Quantity | Value |
+|:-----------------|:---------------------|:------------|:--------------------------------------------------|
+| Poisson | $\mu = \exp(w)$ | $d_i$ | $y_i - \exp(w_i)$ |
+| | | $D_{i,i}$ | $- \exp(w_i)$ |
+| Negative Binomial | $\mu = \exp(w)$ | $d_i$ | $\frac{\varphi (y_i - \exp(w_i))}{\exp(w_i) + \varphi}$ |
+| | | $D_{i,i}$ | $- \frac{\varphi \exp(w_i) (y_i + \varphi)}{(\varphi + \exp(w_i))^2}$ |
+| Binomial | $\mu = \frac{\exp(w)}{1 + \exp(w)}$ | $d_i$ | $y_i - \frac{m_i \exp(w_i)}{1 + \exp(w_i)}$ |
+| | | $D_{i,i}$ | $- \frac{m_i \exp(w_i)}{(1 + \exp(w_i))^2}$ |
+| Beta | $\mu = \frac{\exp(w)}{1 + \exp(w)}$ | $d_i$ | $- \frac{\varphi \exp(w_i) k_0(w_i \mid y_i, \varphi)}{(1 + \exp(w_i))^2}$ |
+| | | $D_{i,i}$ | $- \frac{\varphi \exp(2w_i) k_1(w_i \mid y_i, \varphi)}{(1 + \exp(w_i))^4}$ |
+| Gamma | $\mu = \exp(w)$ | $d_i$ | $-\varphi + \frac{\varphi y_i}{\exp(w_i)}$ |
+| | | $D_{i,i}$ | $- \frac{\varphi y_i}{\exp(w_i)}$ |
+| Inverse Gaussian | $\mu = \exp(w)$ | $d_i$ | $\varphi \left( \frac{y_i}{2 \exp(w_i)} - \frac{\exp(w_i)}{2y_i} \right) + \frac{1}{2}$ |
+| | | $D_{i,i}$ | $- \frac{\varphi(\exp(2w_i) + y_i^2)}{2y_i\exp(w_i)}$ |
 
 : A table of inverse link functions and relevant quantities for each spatial generalized linear model family.
+
+# Conditional Simulation (`conditional()`) {#sec:conditional}
+
+`predict()` (`predict()`, `predict()`) returns a single best linear unbiased prediction (and its uncertainty) at each new location. `conditional()` instead draws `samples` full realizations of $\mathbf{y}_u$ (or, for `spglm()`, $\mathbf{w}_u$) from its predictive distribution, jointly across every location in `newdata`, conditional on the observed data. This is useful whenever a nonlinear function of the entire predicted surface (e.g., a quantile, the proportion of `newdata` locations exceeding a threshold) is of interest, as the marginal prediction intervals of `interval = "prediction"` are not sufficient because they do not quantify how predictions at different locations vary together (i.e., co-vary).
+
+Every variant of `conditional()` uses the same two-step composition sampling algorithm. For each of $b = 1, \dots, B$ (`samples`) draws:
+
+1. Simulate $\hat{\boldsymbol{\beta}}_b \sim N(\hat{\boldsymbol{\beta}}, \text{Var}(\hat{\boldsymbol{\beta}}))$, using the same $\text{Var}(\hat{\boldsymbol{\beta}})$ `vcov()` returns.
+2. Simulate the predictions for `newdata` conditional on the observed data, using $\hat{\boldsymbol{\beta}}_b$ (not $\hat{\boldsymbol{\beta}}$) to form prediction.
+
+By the law of total variance, this correctly propagates $\hat{\boldsymbol{\beta}}$'s own estimation uncertainty into the simulated draws without double-counting: step 2's conditional covariance ignores uncertainty about $\hat{\boldsymbol{\beta}}$ (no additive correction is made for $\hat{\boldsymbol{\beta}}$ uncertainty, omitting the $\dot{\boldsymbol{\Sigma}}_u$'s $\mathbf{Q}(\mathbf{X}_o^\top\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X}_o)^{-1}\mathbf{Q}^\top$ term from \eqref{eq:blup_cov}) because this uncertainty is already accommodated through resampling $\hat{\boldsymbol{\beta}}_b$ in step 1.
+
+## `splm()` {#sec:conditional-splm}
+
+### Exact Conditional Simulation
+
+Conditional on $\hat{\boldsymbol{\beta}}_b$, conditioning yields the prediction \begin{equation}\label{eq:cond_splm}
+  \mathbf{y}_{u, b} = \mathbf{X}_u \hat{\boldsymbol{\beta}}_b + \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}(\mathbf{y}_o - \mathbf{X}_o\hat{\boldsymbol{\beta}}_b) + \hat{\boldsymbol{\Sigma}}_u^{*1/2}\mathbf{e}_b,
+\end{equation} where $\mathbf{e}_b$ is a standard normal random vector and $\hat{\boldsymbol{\Sigma}}_u^* = \hat{\boldsymbol{\Sigma}}_u - \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}\hat{\boldsymbol{\Sigma}}_{uo}^\top$ is the  conditional covariance. Because $\hat{\boldsymbol{\Sigma}}_u^{*1/2}$ and the Cholesky factor of $\hat{\boldsymbol{\Sigma}}_o$ do not depend on $b$, they only must be computed once and are then reused across every draw. Thus only $\hat{\boldsymbol{\beta}}_b$ and $\mathbf{e}_b$ change from draw to draw, which is what enables `conditional()` to remain computationally efficient, even at `samples` = 1,000 (the default).
+
+### Big Data: Low-Rank and Vecchia Approximations {#sec:conditional-bigdata-splm}
+
+As in Big Data, factorizing $\hat{\boldsymbol{\Sigma}}_o$ is infeasible for large $n$, and `conditional()` offers two approximations via the `local` argument:
+
+- Low-rank: the observed data conditioned on in \eqref{eq:cond_splm} is restricted to a size-`size_base` spatially-representative subsample of the observed data (the "base" sample); `newdata` may additionally be split into blocks, each simulated conditional on the base sample alone (blocks are assumed conditionally independent of one another given the base sample). This is exactly \eqref{eq:cond_splm}, just evaluated with a smaller $\mathbf{X}_o$/$\mathbf{y}_o$/$\hat{\boldsymbol{\Sigma}}_o$.
+- Vecchia: no subsampling of the observed data. Instead, every `newdata` location is simulated one at a time (in some order, e.g. maxmin; see more in the Spatial Decorrelation Transformation section for information on ordering), each conditional on *all* observed data plus every already-simulated `newdata` location and optionally truncated to the `size` most-correlated neighbors once the conditioning set exceeds that size. Sequential conditioning via the chain rule for Gaussian distributions reproduces the same joint distribution as one large joint draw, so this is exact when untruncated (`method = "all"`, equivalent to `local = FALSE`) and an approximation when truncated. This avoids low-rank's conditional-independence-across-blocks assumption but is less comptuationally efficient because it is inherently sequential (and thus, not easily parallelizable; though see @katzfuss2024GPvecchia and references therein).
+
+### Propagating Covariance-Parameter Uncertainty {#sec:conditional-covparams}
+
+By default, every draw in \eqref{eq:cond_splm} shares the same fitted covariance parameters $\hat{\boldsymbol{\theta}}$ and only $\hat{\boldsymbol{\beta}}$ and the predictions are resimulated. `simulate_covparams = TRUE` (`splm()` model objects only) additionally resamples $\boldsymbol{\theta}$ itself, once per draw:
+
+1. Simulate $\boldsymbol{\theta}_b \sim N(\hat{\boldsymbol{\theta}}, \widehat{\text{Var}}(\hat{\boldsymbol{\theta}}))$, the same variance-covariance matrix `vcov(object, type = "cov")` returns and `satterthwaite()` uses. Draws for which $\boldsymbol{\theta}_b$ is not a valid covariance parameter vector (e.g. a negative variance) are rejected and redrawn, up to a maximum number of attempts, after which $\boldsymbol{\theta}_b$ is instead clamped componentwise to the nearest valid value (e.g., zero).
+2. Rebuild $\hat{\boldsymbol{\Sigma}}_{o, b}$ at $\boldsymbol{\theta}_b$, and redraw $\hat{\boldsymbol{\beta}}_b \sim N(\hat{\boldsymbol{\beta}}, (\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_{o, b}^{-1} \mathbf{X}_o)^{-1})$ -- i.e., $\hat{\boldsymbol{\beta}}_b$'s own sampling covariance is now evaluated at $\boldsymbol{\theta}_b$, not at $\hat{\boldsymbol{\theta}}$.
+3. Evaluate \eqref{eq:cond_splm} at $\boldsymbol{\theta}_b$ and $\hat{\boldsymbol{\beta}}_b$.
+
+Because $\boldsymbol{\theta}$ changes on every draw, nothing can be shared across draws the way it is in `splm()` and hence, every draw requires its own $O(n^3)$ factorization of $\hat{\boldsymbol{\Sigma}}_{o, b}$ (and, if `newdata` is large, of $\hat{\boldsymbol{\Sigma}}_{u, b}^*$ as well). This is substantially more computationally expensive than the default which treats $\boldsymbol{\theta}$ as fixed. Because $\widehat{\text{Var}}(\hat{\boldsymbol{\theta}})$ is required, `simulate_covparams = TRUE` requires `object$ddf` to be non-`NULL` (i.e., the model was fit with `ddf = "satterthwaite"`) and is automatically forced to `FALSE` when big data approximations are desired.
+
+## `spglm()` {#sec:conditional-spglm}
+
+`conditional.spglm()` treats $\mathbf{w}$ similarly as `conditional.splm()` treats $\mathbf{y}$, although it is critical that $\mathbf{w}$ is not directly observed (only $\mathbf{y}$ is directly observed). Rather than simulating a new draw of $\mathbf{w}_o$ on top of resampling $\hat{\boldsymbol{\beta}}_b$ (which would double-count $\mathbf{w}_o$'s estimation uncertainty), $\mathbf{w}_o$ is held fixed at its fitted value $\mathbf{a}$ and its uncertainty is instead incorporated analytically, extending \eqref{eq:glm_blup} to \begin{equation}\label{eq:cond_spglm}
+  \mathbf{w}_{u, b} = \mathbf{X}_u \hat{\boldsymbol{\beta}}_b + \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}(\mathbf{a} - \mathbf{X}_o\hat{\boldsymbol{\beta}}_b) + \left(\hat{\boldsymbol{\Sigma}}_u^* + \Lambda(-\mathbf{G}_{\mathbf{a}})^{-1}\Lambda^\top\right)^{1/2}\mathbf{e}_b,
+\end{equation} where $\hat{\boldsymbol{\Sigma}}_u^*$ is the same conditional covariance as \eqref{eq:cond_splm}, and $\Lambda(-\mathbf{G}_{\mathbf{a}})^{-1}\Lambda^\top$ is the same `var_correct = TRUE` correction term from \eqref{eq:glm_blup_cov}, reusing $\Lambda$ exactly as defined there. Since $\Lambda\mathbf{a} = \dot{\mathbf{w}}_u$ (the point prediction), this correction is the extra predictive variance that comes from $\mathbf{a}$ itself being an estimate of $\mathbf{w}_o$ rather than a direct observation. Consistently, $\hat{\boldsymbol{\beta}}_b$ is drawn from the full, `var_correct = TRUE` $\text{Var}(\hat{\boldsymbol{\beta}}) = \mathbf{B}(-\mathbf{G}_{\mathbf{a}})^{-1}\mathbf{B}^\top + (\mathbf{X}^\top\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X})^{-1}$, not the naive (uncorrected) $(\mathbf{X}^\top\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X})^{-1}$ alone. Omitting this correction would understate the condition simulation variances. `simulate_covparams` is not available for `spglm()` model objects.
+
+Simulations from \eqref{eq:cond_spglm} are on the link scale (`type = "link"`, the default). Setting `type = "response"` instead returns $g^{-1}(\mathbf{w}_{u, b})$, and `type = "new"` additionally simulates a new observation from the response distribution with mean $g^{-1}(\mathbf{w}_{u, b})$ and dispersion $\hat\varphi$.
 
 # The Empirical Semivariogram and Autocovariance (`esv()` and `eacf()`) {#sec:esv}
 
@@ -1336,13 +1432,43 @@ The empirical semivariogram is a moment-based estimate of the theoretical semiva
   \hat{\gamma}(h) = \frac{1}{2|N(h)|} \sum_{N(h)} (y_i - y_j)^2, 
 \end{equation} where $N(h)$ is the set of observations in $\mathbf{y}$ that are $h$ distance apart (distance classes) and $|N(h)|$ is the cardinality of $N(h)$ [@cressie1993statistics]. Often the set $N(h)$ contains observations that are $h \pm c$ apart, where $c$ is some constant. This approach is known as "binning" the empirical semivariogram. The default in `spmodel` is to construct the semivariogram using 15 equally spaced bins where $h$ is contained in $(0, h_{max}]$, and $h_{max}$ is known as a "distance cutoff". Distance cutoffs are commonly used when constructing $\hat{\gamma}(h)$ because there tend to be few pairs with large distances. The default in `spmodel` is to use a cutoff of half the maximum distance (hypotenuse) of the domain's bounding box. Because we are typically interested in characterizing residual semivariance, $y_i$ and $y_j$ tend to represent residuals from an ordinary least squares fit given some fixed effects design matrix, $\mathbf{X}$, and fixed effects, $\hat{\boldsymbol{\beta}}$.
 
+Setting `robust = TRUE` instead returns the Cressie-Hawkins robust empirical semivariogram [@cressie1980robust], which is less sensitive to outlier pairs than $\hat{\gamma}(h)$:
+\begin{equation*}
+  \hat{\gamma}_R(h) = \frac{1}{2}\frac{\left(\frac{1}{|N(h)|}\sum_{N(h)} |y_i - y_j|^{1/2}\right)^4}{0.457 + 0.494 / |N(h)|}.
+\end{equation*}
+Averaging square roots of absolute differences (rather than squared differences) before raising back to the fourth power downweights the influence of any single extreme pair, and the denominator corrects the resulting bias.
+
 The main purpose of the empirical semivariogram is its use in semivariogram weighted least squares estimation for spatial linear models, though it can also be used as a visual diagnostic to assess the fit of a spatial covariance function.
 
 The empirical semivariogram is closely related to the empirical autocovariance [@zimmerman2024spatial]. The empirical autocovariance quantifies the average covariance among observations in several distance classes. Using similar notation as for the empirical semivariogram,
 \begin{equation}\label{eq:eacf}
   \hat{eacf}(h) = \frac{1}{|N(h)|} \sum_{N(h)} (y_i - \hat{y})(y_j - \hat{y}), 
 \end{equation}
-where $\hat{y} = \bar{y}$, the sample mean of all the observations. Like with `esv()`, the default is to use 15 equally spaced bins with a distance cutoff of half the maximum distance (hypotenuse) of the domain's bounding box. Because we are typically interested in characterizing residual autocovariance, $y_i - \hat{y}$ and $y_j - \hat{y}$ tend to represent residuals from an ordinary least squares fit given some fixed effects design matrix, $\mathbf{X}$, and fixed effects, $\hat{\boldsymbol{\beta}}$.
+where often, $\hat{y} = \bar{y}$, the sample mean of all the observations. Like with `esv()`, the default is to use 15 equally spaced bins with a distance cutoff of half the maximum distance (hypotenuse) of the domain's bounding box. Because we are typically interested in characterizing residual autocovariance, $y_i - \hat{y}$ and $y_j - \hat{y}$ tend to represent residuals from an ordinary least squares fit given some fixed effects design matrix, $\mathbf{X}$, and fixed effects, $\hat{\boldsymbol{\beta}}$.
+
+# The Spatial Decorrelation Transformation (`decorrelate()`) {#sec:decorrelate}
+
+The spatial decorrelation transformation is a preprocessing/postprocessing approach that lets an arbitrary machine learning algorithm (e.g., random forest, gradient boosting) account for spatial covariance, even though most such algorithms have no native mechanism for doing so [@heaton2025adjusting]. The core idea is to transform (i.e., "decorrelate") $\mathbf{X}$ and $\mathbf{y}$ onto a scale where they are (approximately) uncorrelated before passing them to the machine learning algorithm, then transform (i.e., "recorrelate") that algorithm's predictions back onto the original scale. `decorrelate()` selects transformation parameters via a cross-validated grid search and performs both steps together; `decorrelate_data()`, `decorrelate_newdata()`, and `recorrelate_newdata()` implement the individual steps directly for a known (rather than estimated) set of covariance parameters.
+
+## Sequential Whitening: The Transformation {#sec:decorrelate-transform}
+
+The decorrelation transform is a sequential, Vecchia-style application of the whitening transform defined in the Notation Guide (Notation Guide): $\mathbf{A}^* = \boldsymbol{\Sigma}^{-1/2}\mathbf{A}$, applied jointly to $\mathbf{X}$ and $\mathbf{y}$, but computed one observation at a time via local conditioning rather than by factorizing $\boldsymbol{\Sigma}$ all at once. First, observations are placed in some order (`ordering`) -- the default is `"maxmin"` [@katzfuss2024GPvecchia], which places each successive observation as far as possible from all previous ones (the same ordering used by Vecchia/NNGP likelihood approximations), or `"grts"` [@dumelle2023spsurvey] when coincident locations are present (e.g., repeated measures at a site); `"middleout"`, `"outsidein"`, `"coordinate"`, `"random"`, and `"none"` are also available.
+
+Given this order, let $\mathcal{N}_i \subseteq \{1, \dots, i - 1\}$ be observation $i$'s neighbor set: every earlier-ordered observation by default, or (for big data) only the `size` nearest (`local$method = "distance"`) or most correlated in absolute value (`local$method = "covariance"`, the default) of them. Writing $\mathbf{r}_i = \hat{\boldsymbol{\Sigma}}_{i, \mathcal{N}_i} / \hat\sigma^2_{total}$ and $\mathbf{R}_{\mathcal{N}_i} = \hat{\boldsymbol{\Sigma}}_{\mathcal{N}_i, \mathcal{N}_i} / \hat\sigma^2_{total}$ (i.e., correlations rather than covariances, where $\hat\sigma^2_{total} = \hat\sigma^2_{de} + \hat\sigma^2_{ie}$ plus any random effect variances), the transformed values are \begin{equation}\label{eq:decorrelate}
+  \tilde{\mathbf{x}}_i = \frac{\mathbf{x}_i - \mathbf{r}_i^\top \mathbf{R}_{\mathcal{N}_i}^{-1} \mathbf{X}_{\mathcal{N}_i}}{\sqrt{w_i}}, \qquad \tilde{y}_i = \frac{y_i - \mathbf{r}_i^\top \mathbf{R}_{\mathcal{N}_i}^{-1} \mathbf{y}_{\mathcal{N}_i}}{\sqrt{w_i}}, \qquad w_i = 1 - \mathbf{r}_i^\top \mathbf{R}_{\mathcal{N}_i}^{-1} \mathbf{r}_i.
+The quantity $w_i$ is the fraction of observation $i$'s variance not explained by its neighbors. This is the same conditional relationships underlying a Vecchia-type likelihood factorization, but here, they are used applied here to produce transformed explanatory/response values (for input to a machine learning algorithm) rather than a likelihood contribution. The first observation in the order has no neighbors and passes through untransformed ($\tilde{\mathbf{x}}_1 = \mathbf{x}_1$, $\tilde{y}_1 = y_1$).
+
+## Prediction: Decorrelating and Recorrelating `newdata` {#sec:decorrelate-predict}
+
+A fitted machine learning algorithm predict new observations on the decorrelated scale, so predicting for a new observation requires the same transformation \eqref{eq:decorrelate} applied to that observation, followed by the inverse transformation applied to the resulting prediction. Because a new location has no fixed position in the observed data's sequential order, its neighbor set $\mathcal{N}_u$ is instead drawn directly from the full observed data set , either using every observation (`local$method = "all"`) or the `size` nearest/most correlated (`local$method = "distance"`/`"covariance"`, as above). The explanatory variables are transformed exactly as in \eqref{eq:decorrelate} (with $u$ replacing $i$ and $\mathcal{N}_u$ replacing $\mathcal{N}_i$), yielding $\tilde{\mathbf{x}}_u$, which is passed to the fitted machine learning algorithm to obtain a prediction $\tilde{y}_u$ on the decorrelated scale. Since $\mathbf{y}_u$ is unobserved, $\tilde y_u$'s own formula in \eqref{eq:decorrelate} cannot be evaluated directly; instead, `decorrelate_newdata()` records $\text{yscale}_u = \sqrt{w_u}$ and $\text{ycenter}_u = \mathbf{r}_u^\top \mathbf{R}_{\mathcal{N}_u}^{-1} \mathbf{y}_{\mathcal{N}_u}$, and `recorrelate_newdata()` inverts the transform on the machine learning algorithm's prediction via \begin{equation*}
+  \dot{y}_u = \tilde{y}_u \cdot \text{yscale}_u + \text{ycenter}_u.
+\end{equation*}
+
+## Grid Search and Cross-Validated Parameter Selection {#sec:decorrelate-grid}
+
+`decorrelate()` does not estimate spatial covariance parameters by maximizing a likelihood or minimizing a semivariogram objective function but rather selects covariance parameters by cross-validated predictive performance, using a candidate grid built the same way as `splm()`'s own initial-value grid search: proportions of an overall (data-driven) variance estimate crossed with candidate spatial ranges (and, if requested, anisotropy/random effect parameters).
+
+By default, observations are split once into a training set (`p = 0.8` of the data) and a test set (the remainder); the `training` argument also supports repeated splits or $k$-fold cross validation (the default is 5 folds, matching the 80/20 default split), in which case fit statistics are averaged across splits/folds. For each grid point, the spatial decorrelation transformation is applied to the training data, a machine learning model is fit to the transformed training data, predictions are made for the (transformed) test data and recorrelated, and a fit statistic (bias, MSPE, RMSPE, or cor2, defined identically to `loocv()` and `kcv()`; the default is MSPE) is computed by comparing recorrelated test-set predictions to the true (held-out) test-set response. An additional "untransformed" grid row (no spatial covariance or random effects applied at all) is always evaluated as a baseline. The grid point with the best (e.g., lowest MSPE) test-set fit statistic is treated as the estimated set of decorrelation parameters and used to transform all of the data and fit the final machine learning model. The final machine learning model is then used for inference (e.g., via variable importance) and/or prediction at new locations.
 
 # A Note on Covariance Square Roots and Inverse Products {#sec:iprod}
 
@@ -1361,6 +1487,8 @@ So not only does the eigendecomposition approach give us the inverse products, i
 The Cholesky decomposition decomposes $\boldsymbol{\Sigma}$ into the product between $\mathbf{C}$ and $\mathbf{C}^\top$ ($\boldsymbol{\Sigma} = \mathbf{C}\mathbf{C}^\top$), where $\mathbf{C}$ is a lower triangular matrix. Note that $\mathbf{C}$ is generally not equal to $\boldsymbol{\Sigma}^{1/2}$. Taking $\mathbf{S}$ to be $\mathbf{C}$, we see that finding the inverse products requires solving $\mathbf{C}^{-1}\mathbf{X}$. Observe that $\mathbf{C}^{-1}\mathbf{X} = \mathbf{A}$ for some matrix $\mathbf{A}$. This implies $\mathbf{X} = \mathbf{C}\mathbf{A}$, which for $\mathbf{A}$ can be efficiently solved using forward substitution because $\mathbf{C}$ is lower triangular.
 
 The products in this document that involve $\boldsymbol{\Sigma}^{1/2}$ and $\boldsymbol{\Sigma}^{-1}$ are generally implemented in `spmodel` using $\mathbf{C}$ and $\mathbf{C}^{-1}$. The products in this document that involve $\boldsymbol{\Sigma}^{-1/2}$ still rely on an eigendecomposition (because recall that generally, $\mathbf{C}^{-1} \mathbf{A} \neq \boldsymbol{\Sigma}^{-1/2} \mathbf{A}$). An example is computing the Pearson residuals.
+
+In practice this choice is made once per computation stage rather than formula-by-formula. While optimizing $\boldsymbol{\theta}$, the likelihood is evaluated many times but never needs $\boldsymbol{\Sigma}^{-1/2}$ (only $\boldsymbol{\Sigma}^{-1}$ and $\ln|\boldsymbol{\Sigma}|$, both available from a single Cholesky factor), so this stage relies exclusively on Cholesky factorizations. Once optimization converges, assembling the final model object needs $\boldsymbol{\Sigma}^{-1/2}$ for Pearson residuals, so `spmodel` computes a single eigendecomposition and reuses it for other final fitted-model quantities (e.g., $\hat{\boldsymbol{\beta}}$, leverage, deviance), as the Cholesky and eigendecompositions are equivalent when $\boldsymbol{\Sigma}^{-1}$ is used directly in relevant products.
 
 # A Note on Computational Stability {#sec:computational}
 

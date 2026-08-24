@@ -4,7 +4,7 @@ author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
 bibliography: '`r system.file("references.bib", package="spmodel")`'
 output:
   html_document:
-editor_options: 
+editor_options:
   chunk_output_type: console
 ---
 
@@ -18,23 +18,37 @@ knitr::opts_chunk$set(collapse = FALSE, comment = "#>", warning = FALSE, message
 
 # loading
 library(spmodel)
-library(sf)
 library(ggplot2)
 ```
 
-# Background
+# Introduction {#sec:introduction}
 
-# Base
+`spmodel` is an **R** package used to fit, summarize, and
+predict for a variety of spatial statistical models. This vignette explores `sprnorm()`, which simulates spatially correlated normal (Gaussian) random variables, and the big data approximations available for simulating them efficiently at large sample sizes. Before proceeding, we
+load `spmodel` and `ggplot2` by running
+```{r, eval = FALSE}
+library(spmodel)
+library(ggplot2)
+```
+
+If using `spmodel` in a formal publication or report, please cite it. Citing `spmodel` lets us devote more resources to it in the future. We view the `spmodel` citation by running
+
 ```{r}
-set.seed(2)
+citation(package = "spmodel")
+```
+
+Before proceeding, we set a reproducible seed:
+```{r}
+set.seed(0)
 ```
 
 
+# Simulating Spatially Correlated Data
+
+`sprnorm()` is `spmodel`'s spatial analagoue to base-**R**'s `rnorm()` for simulating spatially correlated normal (i.e., Gaussian) data. `sprnorm()` requires an [spcov_params()] object that specifies the (known) spatial covariance parameters and a `data` argument with the locations to simulate at. We define an exponential spatial covariance with dependent variance (`de`) of 2, independent variance (`ie`) of 0.1, and range of 2, and simulate 3,000 locations completely at random on the unit square:
 ```{r}
 n <- 3000
-xc <- runif(n)
-yc <- runif(n)
-sim_dat <- data.frame(xc, yc)
+sim_dat <- data.frame(xc = runif(n), yc = runif(n))
 
 params <- spcov_params(
   spcov_type = "exponential",
@@ -44,6 +58,7 @@ params <- spcov_params(
 )
 ```
 
+We simulate a single spatially correlated realization by running
 ```{r}
 sim_dat$val <- sprnorm(params, data = sim_dat, xcoord = xc, ycoord = yc)
 ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
@@ -52,66 +67,99 @@ ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
   theme_bw(base_size = 14)
 ```
 
+`sprnorm()` simulates data with mean zero by default; a non-constant mean can be supplied via the `mean` argument. Multiple independent realizations can be simulated at once via the `samples` argument, which returns a matrix (one column per sample) instead of a vector. Generating many samples via `samples` this way costs nearly the same (computationally) as generating a single sample, as the primary cost of factoring an $n \times n$ covariance matrix occurs only once and is reused for each sample. For technical details regarding simulating data in `spmodel`, see the Techincal Details vignette.
+
+# Big Data Approximations
+
+Simulating exact spatially correlated data requires factoring an $n \times n$ covariance matrix, which becomes computationally prohibitive for large $n$. `sprnorm()`'s `local` argument enables the same kind of big data approximation used by `conditional()` -- a low-rank approximation and a Vecchia approximation are available. The current default when `local = TRUE` is the low-rank approximation.
+
+First we generate coordinates for 10,000 locations at which we desire simulations:
+
 ```{r}
-sim_dat$val <- sprnorm(params, data = sim_dat, xcoord = xc, ycoord = yc)
-ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
-  geom_point(size = 1) +
-  scale_color_viridis_c() +
-  theme_bw(base_size = 14)
+n <- 10000
+sim_dat <- data.frame(xc = runif(n), yc = runif(n))
 ```
 
+## The Low-Rank Approximation
+
+The low-rank approximation works in two steps. First, a base sample of `size_base` locations (5,000 by default) is drawn from the data and simulated exactly. Then every remaining location is assigned to a block of `size_new` locations (1,000 by default) and simulated conditional on the base sample alone, with locations in different blocks assumed conditionally independent of one another given the base sample. We illustrate this by marking which of our 10,000 locations would fall in the base sample:
 ```{r}
-n <- 20000
-xc <- runif(n)
-yc <- runif(n)
-sim_dat <- data.frame(xc, yc)
-```
-
-```{r}
-sim_dat$val <- sprnorm(params, data = sim_dat, xcoord = xc, ycoord = yc, local = TRUE)
-
-ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
-  geom_point(size = 1) +
-  scale_color_viridis_c() +
-  theme_bw(base_size = 14)
-```
-
-# Walking Through
-
-```{r}
-index <- sample(seq(1, n))
-sim_dat$in_base <- ifelse(index <= 3000, "Yes", "No")
-sim_dat$in_base <- factor(sim_dat$in_base, levels = c("Yes", "No"))
+index <- sample(seq_len(n))
+sim_dat$in_base <- factor(ifelse(index <= 5000, "Yes", "No"), levels = c("Yes", "No"))
 ggplot(sim_dat, aes(x = xc, y = yc, color = in_base)) +
-  geom_point(size = 0.8) +
-  scale_color_manual(values = c("Yes" = "blue", "No" = "orange")) +
+  geom_point(size = 0.5) +
+  scale_color_manual(values = c("Yes" = "black", "No" = "pink")) +
   facet_wrap(~ in_base, ncol = 1) +
   theme_bw(base_size = 14)
 ```
 
+By default, the base sample is actually selected using the GRTS algorithm for spatially balanced sampling [@dumelle2023spsurvey] (`reorder_base = "grts"`) rather than random sampling. This helps ensure the base sample is well spread out across the spatial domain rather than clustered as a random sample could produce. The locations outside the base sample are then split into blocks using k-means clustering (by default) on their coordinates:
 ```{r}
 sim_dat_not_in_base <- sim_dat[sim_dat$in_base == "No", ]
-sim_dat_not_in_base$cluster <- as.factor(kmeans(sim_dat_not_in_base[, c("xc", "yc")], centers = 5)$cluster)
+sim_dat_not_in_base$block <- as.factor(kmeans(sim_dat_not_in_base[, c("xc", "yc")], centers = 5)$cluster)
 
-ggplot(sim_dat_not_in_base, aes(x = xc, y = yc, color = cluster)) +
+ggplot(sim_dat_not_in_base, aes(x = xc, y = yc, color = block)) +
   geom_point(size = 0.8) +
-  theme_bw(base_size = 14)
+  theme_bw(base_size = 14) +
+  theme(legend.position = "none")
 ```
 
+Each block above is simulated independently (optionally in parallel) conditional on the same base sample, making the approximation scale well to large $n$.
 
-# Other Options
+Now we simulate at the 10,000 locations using the low-rank approximation and visualize the sample:
 ```{r}
-sim_dat$val <- sprnorm(params, data = sim_dat, xcoord = xc, ycoord = yc, local = list(reorder = "none", parallel = TRUE, ncores = 2))
+sim_dat$val <- sprnorm(params, data = sim_dat, xcoord = xc, ycoord = yc, local = TRUE)
 
-ggplot(sim_dat[seq(1, 3000), ], aes(x = xc, y = yc, color = val)) +
-  geom_point(size = 1) +
+ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
+  geom_point(size = 0.8) +
   scale_color_viridis_c() +
   theme_bw(base_size = 14)
 ```
 
+## The Vecchia Approximation
+
+An alternative (`local$approximation = "vecchia"`) simulates one location at a time, each conditional on some number of previously-simulated locations (rather than a single, shared base sample). This makes no assumption of conditional independence across blocks. This is more accurate than the low-rank approximation, at the cost of being inherently sequential (and therefore not parallelizable). Because of this, the Vecchia approximation is generally slower than the low-rank approximation at large $n$. Now we simulate 10,000 locations using the Vecchia approximation and visualize the sample:
 ```{r}
+sim_dat$val <- sprnorm(
+  params,
+  data = sim_dat, xcoord = xc, ycoord = yc,
+  local = list(approximation = "vecchia")
+)
+
+ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
+  geom_point(size = 0.8) +
+  scale_color_viridis_c() +
+  theme_bw(base_size = 14)
+```
+
+By default, 30 previously-simulated neighbors are used to condition upon for each new location being simulated.
+
+# Simulating Non-Gaussian Data
+
+`spmodel` also provides `sprpois()`, `sprnbinom()`, `sprbinom()`, `sprbeta()`, `sprgamma()`, and `sprinvgauss()` for simulating other spatially correlated random variables (Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian, respectively). Each works by first simulating a latent process with `sprnorm()` and then simulating the requested distribution conditional on that latent process, and each accepts the same `local` argument described here.
+
+We simulate a single spatially correlated realization of binomial data by running
+```{r}
+n <- 3000
+sim_dat <- data.frame(xc = runif(n), yc = runif(n))
+sim_dat$val <- as.factor(sprbinom(params, data = sim_dat, xcoord = xc, ycoord = yc))
 ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
   geom_point(size = 1) +
-  scale_color_viridis_c() +
+  scale_color_manual(values = c("blue", "orange")) +
   theme_bw(base_size = 14)
 ```
+
+For a larger data set, we can run, for example
+```{r}
+n <- 10000
+sim_dat <- data.frame(xc = runif(n), yc = runif(n))
+sim_dat$val <- as.factor(sprbinom(params, data = sim_dat, xcoord = xc, ycoord = yc, local = TRUE))
+ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
+  geom_point(size = 0.8) +
+  scale_color_manual(values = c("blue", "orange")) +
+  theme_bw(base_size = 14)
+```
+
+# References {.unnumbered}
+
+<div id="refs"></div>

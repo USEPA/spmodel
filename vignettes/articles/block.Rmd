@@ -27,7 +27,7 @@ set.seed(0)
 
 `spmodel` is a **R** package used to fit, summarize, and
 predict for a variety of spatial statistical models. This vignette
-explores tools for predicting the average value of a response variable in a particular geographic region, an approach known as Block Prediction (i.e., Block Kriging) [@cressie1993statistics; @ver2008spatial]. Before proceeding, we
+explores tools for predicting the average value of a response variable in a particular geographic region, an approach known as Block Prediction (i.e., Block Kriging) [@cressie1993statistics; @ver2008spatial]. Full technical details are provided in the [Block Prediction](https://usepa.github.io/spmodel/articles/technical.html#sec:predict-block-lm) section of the Technical Details vignette. Before proceeding, we
 load  `spmodel`, `sf`, and `ggplot2` by running
 ```{r, eval = FALSE}
 library(spmodel)

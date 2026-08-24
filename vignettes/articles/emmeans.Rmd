@@ -23,8 +23,8 @@ library(emmeans)
 # Introduction {#sec:introduction}
 
 `spmodel` is an **R** package used to fit, summarize, and
-predict for a variety of spatial statistical models. The vignette
-provides an estimating marginal means (i.e., least-squares means) of `spmodel` objects using the `emmeans`.
+predict for a variety of spatial statistical models. This vignette
+demonstrates estimating marginal means (i.e., least-squares means) of `spmodel` objects using the `emmeans`
 **R** package [@lenth2024emmeans]. Before proceeding, we
 load `spmodel` and `emmeans` by running
 
@@ -234,6 +234,10 @@ anova(spmod5)
 ```
 
 The analysis of variance suggests a significant intercept, temperature effect, and state-by-temperature interaction (p-values < 0.01) but no other significant effects (p-values > 0.1).
+
+# Uncertainty Quantification
+
+Standard errors and confidence intervals returned by `emmeans` for `spmodel` objects use the fixed effect covariance matrix (returned by `vcov()`), accounting for spatial dependence. For `splm()` and `spautor()` model objects fit with `ddf = "satterthwaite"` (the default when the sample size is 500 or fewer), `emmeans` also uses Satterthwaite denominator degrees of freedom. Otherwise, asymptotic (`Inf`) degrees of freedom are used. For `spglm()` and `spgautor()`, asymptotic degrees of freedom are always used.
 
 # Additional Tools
 

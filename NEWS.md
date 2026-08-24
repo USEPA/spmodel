@@ -25,6 +25,7 @@
 * Added `interval` and `level` arguments to `loocv()` to evaluate prediciton interval coverage.
 * Added support for `.` in `formula`, which represents the variables in `data` except the response and coordinate/geometry columns (`xcoord`, `ycoord`, `geometry`).
 * `predict()` for large data now and `method = "covariance"` now ranks potential neighbors by the absolute value of the covariance rather than the raw value. This only affects spatial covariance types that are not monotone decreasing with distance (e.g., cosine, wave).
+* Added `nobs()` support for `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects, which returns the observed data sample size from the model.
 * Minor (internal) documentation, code clarity, and code efficiency updates.
 * Minor (external) documentation updates.
 

@@ -1,6 +1,14 @@
 url: https://usepa.github.io/spmodel/
 template:
   bootstrap: 3
+  math-rendering: mathjax
+  includes:
+    in_header: |
+      <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+      </script>
 
 articles:
 - title: Articles

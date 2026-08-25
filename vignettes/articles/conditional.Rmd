@@ -25,7 +25,7 @@ library(ggplot2)
 # Introduction {#sec:introduction}
 
 `spmodel` is an **R** package used to fit, summarize, and
-predict for a variety of spatial statistical models. This vignette explores `conditional()`, which many plausible random samples of model parameters and `newdata`, an approach known as conditional simulation. Before proceeding, we
+predict for a variety of spatial statistical models. This vignette explores `conditional()`, which draws many plausible random samples of model parameters and `newdata`, an approach known as conditional simulation. Before proceeding, we
 load `spmodel`, `sf`, and `ggplot2` by running
 ```{r, eval = FALSE}
 library(spmodel)
@@ -46,7 +46,7 @@ set.seed(0)
 
 # Conditional Simulation in `spmodel`
 
-`predict()` returns a single best prediction (and its standard error) at each new location, one location at a time. However, `predict()` does not tell us how predictions at different locations may relate to one another. Suppose we instead want to know something about the entire predicted surface at once (e.g., quantiles, extreme values, threshold exceedances, etc.). Answering these types of questions requires jointly simulating the predicted surface, not just each location's pointwise mean and standard error. `conditional()` provides exactly this: repeated draws from the joint distribution of the response (or, for `spglm()`/`spgautor()` models, the latent process) at a set of new locations, conditional on the observed data. Though typically the focus on conditional simulation is on predictions at new locations, `conditional()` also provides simulated values of covariance and fixed effect model parameters. For technical details regarding conditional simulation, see @zimmerman2024spatial and the Techincal Details vignette.
+`predict()` returns a single best prediction (and its standard error) at each new location, one location at a time. However, `predict()` does not tell us how predictions at different locations may relate to one another. Suppose we instead want to know something about the entire predicted surface at once (e.g., quantiles, extreme values, threshold exceedances, etc.). Answering these types of questions requires jointly simulating the predicted surface, not just each location's pointwise mean and standard error. `conditional()` provides exactly this: repeated draws from the joint distribution of the response (or, for `spglm()`/`spgautor()` models, the latent process) at a set of new locations, conditional on the observed data. Though typically the focus on conditional simulation is on predictions at new locations, `conditional()` also provides simulated values of covariance and fixed effect model parameters. For technical details regarding conditional simulation, see @zimmerman2024spatial and the Technical Details vignette.
 
 The `sulfate` data is an `sf` object that contains sulfate measurements in the conterminous United States (CONUS). We first visualize the distribution of the sulfate data by running
 ```{r}

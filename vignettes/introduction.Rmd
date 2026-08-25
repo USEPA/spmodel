@@ -414,12 +414,6 @@ Note that `?generic.spmodel` is shorthand for `help("generic.spmodel", "spmodel"
 2. The `emmeans` **R** package [@lenth2024emmeans] applied to `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects from `spmodel`.
 3. Various other **R** functions including `formula()`, `model.frame()`, `update()`, `terms()`, `car::vif()`, `car::Anova()`, and `effects::predictorEffect()`.
 
-# Other Compatible **R** Functions
-
-Beyond the functions listed above, `spmodel` objects implement several standard **R** generics under the hood -- `formula()`, `model.frame()`, `model.matrix()`, and `logLik()`, among others. Many general-purpose **R** and other-package functions that only rely on these pieces work on `spmodel` objects even though `spmodel` never defines a method for them directly. Confirmed examples include `update()` (refit a model with a modified formula), `terms()`, `car::vif()` and `car::Anova()` from the `car` package, and `effects::predictorEffect()` from the `effects` package. The default `AIC()` and `BIC()` also work this way: `spmodel` does not define dedicated `AIC()`/`BIC()` methods, relying instead on **R**'s own default methods, which only require a working `logLik()`.
-
-This pattern does not extend to every generic, however. A few notable functions that do *not* currently work on `spmodel` objects include `stats::simulate()`, the base `effects()` generic (distinct from `effects::predictorEffect()`, which does work), and `extractAIC()` (and, by extension, `add1()`/`drop1()`, which depend on it).
-
 # References {.unnumbered}
 
 <div id="refs"></div>

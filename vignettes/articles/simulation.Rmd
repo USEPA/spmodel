@@ -45,7 +45,7 @@ set.seed(0)
 
 # Simulating Spatially Correlated Data
 
-`sprnorm()` is `spmodel`'s spatial analagoue to base-**R**'s `rnorm()` for simulating spatially correlated normal (i.e., Gaussian) data. `sprnorm()` requires an [spcov_params()] object that specifies the (known) spatial covariance parameters and a `data` argument with the locations to simulate at. We define an exponential spatial covariance with dependent variance (`de`) of 2, independent variance (`ie`) of 0.1, and range of 2, and simulate 3,000 locations completely at random on the unit square:
+`sprnorm()` is `spmodel`'s spatial analogue to base-**R**'s `rnorm()` for simulating spatially correlated normal (i.e., Gaussian) data. `sprnorm()` requires an [spcov_params()] object that specifies the (known) spatial covariance parameters and a `data` argument with the locations to simulate at. We define an exponential spatial covariance with dependent variance (`de`) of 2, independent variance (`ie`) of 0.1, and range of 2, and simulate 3,000 locations completely at random on the unit square:
 ```{r}
 n <- 3000
 sim_dat <- data.frame(xc = runif(n), yc = runif(n))
@@ -67,7 +67,7 @@ ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
   theme_bw(base_size = 14)
 ```
 
-`sprnorm()` simulates data with mean zero by default; a non-constant mean can be supplied via the `mean` argument. Multiple independent realizations can be simulated at once via the `samples` argument, which returns a matrix (one column per sample) instead of a vector. Generating many samples via `samples` this way costs nearly the same (computationally) as generating a single sample, as the primary cost of factoring an $n \times n$ covariance matrix occurs only once and is reused for each sample. For technical details regarding simulating data in `spmodel`, see the Techincal Details vignette.
+`sprnorm()` simulates data with mean zero by default; a non-constant mean can be supplied via the `mean` argument. Multiple independent realizations can be simulated at once via the `samples` argument, which returns a matrix (one column per sample) instead of a vector. Generating many samples via `samples` this way costs nearly the same (computationally) as generating a single sample, as the primary cost of factoring an $n \times n$ covariance matrix occurs only once and is reused for each sample. For technical details regarding simulating data in `spmodel`, see the Technical Details vignette.
 
 # Big Data Approximations
 

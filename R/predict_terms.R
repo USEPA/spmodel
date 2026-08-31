@@ -70,7 +70,7 @@ predict_terms <- function(object, X_newdata, se.fit, scale, df, interval, level,
       X_newdata_cent_sub <- X_newdata_cent[, X_index, drop = FALSE]
       vc_sub <- vc[X_index, X_index, drop = FALSE]
       # the fits are just linear combinations, so standard variance rules apply
-      se[, i] <- sqrt(diag(X_newdata_cent_sub %*% tcrossprod(vc_sub, X_newdata_cent_sub)))
+      se[, i] <- sqrt(get_diag_XVXt(X_newdata_cent_sub, vc_sub))
     }
   }
 

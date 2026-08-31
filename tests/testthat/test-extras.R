@@ -182,7 +182,17 @@ test_that("augment works geo", {
 test_that("augment works auto", {
   spmod <- spautor(y ~ x, exdata_Mpoly, "car")
   expect_error(augment(spmod), NA)
-  expect_error(augment(spmod, se_fit = TRUE), NA)
+  # se_fit is only defined at the prediction locations set aside when the model
+  # was fit: for an autoregressive model those locations are part of the
+  # neighbor structure, so the covariance of the observed data depends on them.
+  # object$newdata is therefore the only value newdata can take, and augment()
+  # supplies it (with a message) rather than demanding it.
+  expect_message(aug_se <- augment(spmod, se_fit = TRUE), "object\\$newdata")
+  expect_equal(nrow(aug_se), nrow(spmod$newdata))
+  expect_true(".se.fit" %in% names(aug_se))
+  expect_equal(aug_se, suppressMessages(augment(spmod, newdata = spmod$newdata, se_fit = TRUE)))
+  expect_message(aug_ci <- augment(spmod, interval = "confidence"), "object\\$newdata")
+  expect_true(all(c(".lower", ".upper") %in% names(aug_ci)))
   expect_s3_class(augment(spmod), "tbl")
   expect_s3_class(augment(spmod), "sf")
   expect_error(augment(spmod, newdata = spmod$newdata), NA)
@@ -193,6 +203,71 @@ test_that("augment works auto", {
   augment(spmod, newdata = spmod$newdata, interval = "prediction", se_fit = TRUE)
   expect_s3_class(augment(spmod, newdata = spmod$newdata), "tbl")
   expect_s3_class(augment(spmod, newdata = spmod$newdata), "sf")
+})
+
+test_that("augment works auto glm", {
+  exdata_Mpoly$count <- as.integer(round(abs(exdata_Mpoly$y) * 2))
+  spmod <- spgautor(count ~ x, family = "poisson", exdata_Mpoly, "car")
+  expect_error(augment(spmod), NA)
+  expect_error(augment(spmod, type.predict = "response"), NA)
+  expect_message(aug_se <- augment(spmod, se_fit = TRUE), "object\\$newdata")
+  expect_equal(nrow(aug_se), nrow(spmod$newdata))
+  expect_true(".se.fit" %in% names(aug_se))
+  expect_s3_class(augment(spmod), "tbl")
+  expect_s3_class(augment(spmod), "sf")
+  expect_error(augment(spmod, newdata = spmod$newdata), NA)
+  expect_error(augment(spmod, newdata = spmod$newdata, se_fit = TRUE), NA)
+  expect_true(".se.fit" %in% names(augment(spmod, newdata = spmod$newdata, se_fit = TRUE)))
+  augment(spmod, newdata = spmod$newdata, interval = "confidence")
+  augment(spmod, newdata = spmod$newdata, interval = "prediction")
+  expect_s3_class(augment(spmod, newdata = spmod$newdata), "sf")
+})
+
+test_that("augment se_fit and interval without newdata: point-referenced models", {
+  # For splm()/spglm() the covariance does not depend on where predictions are
+  # made, so the standard error of the fitted mean is well defined at the
+  # observed locations and a confidence interval brackets it there. A prediction
+  # interval is not, since it needs a location that has not been observed.
+  spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
+  n <- spmod$n
+  X <- model.matrix(spmod)
+  se_ref <- sqrt(diag(X %*% tcrossprod(vcov(spmod), X)))
+
+  aug <- augment(spmod, se_fit = TRUE)
+  expect_equal(nrow(aug), n)
+  expect_equal(aug$.se.fit, unname(se_ref))
+
+  aug_ci <- augment(spmod, se_fit = TRUE, interval = "confidence")
+  expect_equal(nrow(aug_ci), n)
+  expect_true(all(c(".lower", ".upper") %in% names(aug_ci)))
+  tstar <- qnorm(0.975)
+  expect_equal(aug_ci$.lower, aug_ci$.fitted - tstar * aug_ci$.se.fit)
+  expect_equal(aug_ci$.upper, aug_ci$.fitted + tstar * aug_ci$.se.fit)
+  # level is honored
+  aug_90 <- augment(spmod, se_fit = TRUE, interval = "confidence", level = 0.90)
+  expect_equal(aug_90$.lower, aug_90$.fitted - qnorm(0.95) * aug_90$.se.fit)
+
+  expect_warning(aug_pi <- augment(spmod, interval = "prediction"), "prediction\" is ignored")
+  expect_false(any(c(".lower", ".upper") %in% names(aug_pi)))
+  expect_equal(nrow(aug_pi), n)
+  expect_silent(augment(spmod))
+
+  # spglm: .se.fit and the interval are built on the link scale, and the
+  # interval is back-transformed when type.predict = "response"
+  spmod <- spglm(abs(y) ~ x, family = "Gamma", exdata, "exponential", xcoord, ycoord)
+  X <- model.matrix(spmod)
+  se_ref <- sqrt(diag(X %*% tcrossprod(vcov(spmod), X)))
+  aug_link <- augment(spmod, se_fit = TRUE, interval = "confidence")
+  expect_equal(aug_link$.se.fit, unname(se_ref))
+  expect_equal(aug_link$.lower, aug_link$.fitted - qnorm(0.975) * aug_link$.se.fit)
+
+  aug_resp <- augment(spmod, se_fit = TRUE, interval = "confidence", type.predict = "response")
+  expect_equal(aug_resp$.se.fit, aug_link$.se.fit) # se stays on the link scale
+  expect_equal(aug_resp$.lower, exp(aug_link$.lower))
+  expect_equal(aug_resp$.upper, exp(aug_link$.upper))
+  expect_true(all(aug_resp$.lower > 0))
+
+  expect_warning(augment(spmod, interval = "prediction"), "prediction\" is ignored")
 })
 
 test_that("augment works with drop", {

@@ -7,9 +7,8 @@
 #'
 #' @noRd
 get_hatvalues <- function(cov_betahat, SqrtSigInv_X) {
-  # the hat matrix of the whitened residuals
-  # only the diagonal (per-observation leverage) is needed, so the full
-  # n x n hat matrix is never formed -- diag(A %*% B %*% t(A)) is computed via
-  # tcrossprod/diag rather than materializing the dense product
-  diag(SqrtSigInv_X %*% tcrossprod(cov_betahat, SqrtSigInv_X))
+  # the hat matrix of the whitened residuals; only its diagonal (the
+  # per-observation leverage) is needed, so get_diag_XVXt() forms it without
+  # ever materializing the n x n product
+  get_diag_XVXt(SqrtSigInv_X, cov_betahat)
 }

@@ -310,8 +310,8 @@ predict.splm <- function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf
     if (!is.null(offset)) {
       fit <- fit + offset
     }
-    newdata_model_list <- split(newdata_model, seq_len(NROW(newdata_model)))
-    vars <- as.numeric(vapply(newdata_model_list, function(x) crossprod(x, vcov(object) %*% x), numeric(1)))
+    # diag(X0 vcov X0'), computed efficiently; -- see get_diag_XVXt()
+    vars <- get_diag_XVXt(newdata_model, vcov(object))
     se <- sqrt(vars)
     if (!is.null(scale)) {
       se <- se * scale
@@ -396,7 +396,15 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = 
 
     # find X observed
     X <- model.matrix(object)
-    y <- model.response(model.frame(object))
+    model_frame <- model.frame(object)
+    y <- model.response(model_frame)
+    # the observed-data offset comes out of y before the kriging residuals are
+    # formed, so betahat is not asked to explain it; the prediction locations'
+    # own offsets go back on below
+    model_offset <- model.offset(model_frame)
+    if (!is.null(model_offset)) {
+      y <- y - as.vector(model_offset)
+    }
     SqrtSigInv_X <- forwardsolve(cov_matrix_lowchol, X)
     SqrtSigInv_y <- forwardsolve(cov_matrix_lowchol, y)
 
@@ -485,7 +493,8 @@ predict.spautor <- function(object, newdata, se.fit = FALSE, scale = NULL, df = 
     if (!is.null(offset)) {
       fit <- fit + offset
     }
-    vars <- as.numeric(vapply(newdata_model_list, function(x) crossprod(x, vcov(object) %*% x), numeric(1)))
+    # see get_diag_XVXt()
+    vars <- get_diag_XVXt(newdata_model, vcov(object))
     se <- sqrt(vars)
     if (!is.null(scale)) {
       se <- se * scale

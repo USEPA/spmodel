@@ -459,11 +459,12 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   if (length(output) == 1 && output == "object") {
     return(base_val_w)
   }
-  # handle offset
+  # handle offset: everything below that is built from Sigma (SqrtSigInv_w,
+  # base_val, i.e., the conditional draws) uses the offset-free w, while get_D() below
+  # is a derivative of the data model and so must stay on the offset-inclusive
+  # linear predictor; see w_offset_free()
   offset_obdata <- model.offset(model.frame(object))
-  if (!is.null(offset_obdata)) {
-    w <- w - offset_obdata
-  }
+  w <- w_offset_free(w, offset_obdata)
 
 
   local_list <- get_local_list_conditional(local, object, newdata)
@@ -512,6 +513,10 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
     if (!is.null(size)) {
       size <- size[local_list$index$base]
     }
+    # keep the offset aligned with w and y so the get_D() call below can put it back
+    if (!is.null(offset_obdata)) {
+      offset_obdata <- offset_obdata[local_list$index$base]
+    }
   }
 
   # Covariance components needed by var_adj (applied later, in
@@ -543,7 +548,12 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   SqrtSigInv_w <- forwardsolve(cov_lowchol_base, cbind(w))
   cov_betahat <- vcov(object, var_correct = FALSE)
   Ptheta <- SigInv - SigInv_X %*% tcrossprod(cov_betahat, SigInv_X)
-  D <- get_D(object$family, w, y, size, as.vector(object$coefficients$dispersion))
+  # get_D() differentiates the data model, so unlike every spatial quantity
+  # above it is evaluated at the offset-inclusive linear predictor
+  D <- get_D(
+    object$family, if (is.null(offset_obdata)) w else w + as.vector(offset_obdata),
+    y, size, as.vector(object$coefficients$dispersion)
+  )
   cov_lowchol_mH <- t(chol(Matrix::forceSymmetric(-1 * (D - Ptheta)))) # this is actually the inverse of covariance matrix of w
   wts_beta <- tcrossprod(cov_betahat, SigInv_X)
 

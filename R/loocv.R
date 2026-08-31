@@ -110,7 +110,14 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, interv
     model_frame <- model.frame(object)
     X <- model.matrix(object)
     y <- model.response(model_frame)
-    yX <- cbind(y, X)
+    # The kriging update below has mean structure X %*% beta only, so an offset
+    # has to come out of the response first 
+    # and each held-out row's own offset is added back to
+    # its prediction afterwards. This mirrors what get_pred_splm() does for
+    # predict() and what the local branch below already does per row.
+    model_offset <- model.offset(model_frame)
+    y_krige <- if (is.null(model_offset)) y else y - as.vector(model_offset)
+    yX <- cbind(y_krige, X)
     # binding y and X together lets a single matrix product below produce both
     # SigInv %*% y and SigInv %*% X, which get_loocv() needs per row
     SigInv_yX <- cov_matrixInv_val %*% yX
@@ -120,18 +127,23 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, interv
       cl <- parallel::makeCluster(local_list$ncores)
       cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv,
         Sig = cov_matrix_val,
-        SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
+        SigInv = cov_matrixInv_val, Xmat = X, y = y_krige, yX = yX,
         SigInv_yX = SigInv_yX, se.fit = se_needed
       )
       cl <- parallel::stopCluster(cl)
     } else {
       cv_predict_val_list <- lapply(seq_len(object$n), get_loocv,
         Sig = cov_matrix_val,
-        SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
+        SigInv = cov_matrixInv_val, Xmat = X, y = y_krige, yX = yX,
         SigInv_yX = SigInv_yX, se.fit = se_needed
       )
     }
     cv_predict_val <- vapply(cv_predict_val_list, function(x) x$pred, numeric(1))
+    # give each held-out row its own offset back (standard errors are
+    # unaffected, since the offset is a known constant shift)
+    if (!is.null(model_offset)) {
+      cv_predict_val <- cv_predict_val + as.vector(model_offset)
+    }
     if (se_needed) {
       cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
     }
@@ -278,25 +290,32 @@ loocv.spautor <- function(object, cv_predict = FALSE, se.fit = FALSE, local, int
   model_frame <- model.frame(object)
   X <- model.matrix(object)
   y <- model.response(model_frame)
-  yX <- cbind(y, X)
+  # an offset comes out of the response before the leave-one-out update and
+  # goes back onto each held-out row afterwards; see loocv.splm()
+  model_offset <- model.offset(model_frame)
+  y_krige <- if (is.null(model_offset)) y else y - as.vector(model_offset)
+  yX <- cbind(y_krige, X)
   SigInv_yX <- cov_matrixInv_obs_val %*% yX
   # parallel stuff
   if (local_list$parallel) {
     cl <- parallel::makeCluster(local_list$ncores)
     cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv,
       Sig = cov_matrix_obs_val,
-      SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
+      SigInv = cov_matrixInv_obs_val, Xmat = X, y = y_krige, yX = yX,
       SigInv_yX = SigInv_yX, se.fit = se_needed
     )
     cl <- parallel::stopCluster(cl)
   } else {
     cv_predict_val_list <- lapply(seq_len(object$n), get_loocv,
       Sig = cov_matrix_obs_val,
-      SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
+      SigInv = cov_matrixInv_obs_val, Xmat = X, y = y_krige, yX = yX,
       SigInv_yX = SigInv_yX, se.fit = se_needed
     )
   }
   cv_predict_val <- vapply(cv_predict_val_list, function(x) x$pred, numeric(1))
+  if (!is.null(model_offset)) {
+    cv_predict_val <- cv_predict_val + as.vector(model_offset)
+  }
   if (se_needed) {
     cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
   }

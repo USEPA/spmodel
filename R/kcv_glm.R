@@ -60,8 +60,12 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
 
     # glm stuff
     dispersion <- as.vector(coef(object, type = "dispersion"))
-    w <- fitted(object, type = "link")
+    w_linpred <- fitted(object, type = "link") # offset included
     size <- object$size
+
+    # kriging covaries via Sigma (the offset-free latent process)
+    model_offset <- model.offset(model.frame(object))
+    w <- w_offset_free(w_linpred, model_offset)
 
     # some products
     SigInv_w <- SigInv %*% w
@@ -71,8 +75,8 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
     # find H stuff
     wts_beta <- tcrossprod(cov_betahat, SigInv_X)
     Ptheta <- SigInv - SigInv_X %*% wts_beta
-    d <- get_d(object$family, w, y, size, dispersion)
-    D <- get_D(object$family, w, y, size, dispersion)
+    d <- get_d(object$family, w_linpred, y, size, dispersion)
+    D <- get_D(object$family, w_linpred, y, size, dispersion)
     H <- D - Ptheta
     mHinv <- solve(-H)
 
@@ -95,6 +99,12 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
       fold_rows <- fold_list[[i]]
       cv_predict_val[fold_rows] <- cv_predict_val_list[[i]]$pred
       if (se.fit) cv_predict_se[fold_rows] <- cv_predict_val_list[[i]]$se.fit
+    }
+    # get_kcv_glm() predicted the offset-free latent process, so give each
+    # held-out row its own offset back (standard errors are unaffected, since
+    # the offset is a known constant shift)
+    if (!is.null(model_offset)) {
+      cv_predict_val <- cv_predict_val + as.vector(model_offset)
     }
   } else {
     # local/big data: refit per fold with the covariance and dispersion
@@ -237,8 +247,12 @@ kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "respon
 
   # glm stuff
   dispersion <- as.vector(coef(object, type = "dispersion"))
-  w <- fitted(object, type = "link")
+  w_linpred <- fitted(object, type = "link") # offset included
   size <- object$size
+
+  # kriging covaries via Sigma (the offset-free latent process)
+  model_offset <- model.offset(model.frame(object))
+  w <- w_offset_free(w_linpred, model_offset)
 
   # some products
   SigInv_w <- SigInv %*% w
@@ -248,8 +262,8 @@ kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "respon
   # find H stuff
   wts_beta <- tcrossprod(cov_betahat, SigInv_X)
   Ptheta <- SigInv - SigInv_X %*% wts_beta
-  d <- get_d(object$family, w, y, size, dispersion)
-  D <- get_D(object$family, w, y, size, dispersion)
+  d <- get_d(object$family, w_linpred, y, size, dispersion)
+  D <- get_D(object$family, w_linpred, y, size, dispersion)
   H <- D - Ptheta
   mHinv <- solve(-H)
 
@@ -275,6 +289,11 @@ kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "respon
     fold_rows <- fold_list[[i]]
     cv_predict_val[fold_rows] <- cv_predict_val_list[[i]]$pred
     if (se.fit) cv_predict_se[fold_rows] <- cv_predict_val_list[[i]]$se.fit
+  }
+  # give each held-out row its own offset back (see the analogous step in
+  # kcv.spglm())
+  if (!is.null(model_offset)) {
+    cv_predict_val <- cv_predict_val + as.vector(model_offset)
   }
 
   cv_predict_val_invlink <- invlink(cv_predict_val, object$family, object$size)

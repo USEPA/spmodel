@@ -229,8 +229,8 @@ get_model_stats_splm_iid <- function(cov_est_object, data_object, estmethod) {
   }
 
 
-  # return hat values
-  hatvalues <- diag(X %*% tcrossprod(cor_betahat, X))
+  # return hat values (only the diagonal is needed)
+  hatvalues <- get_diag_XVXt(X, cor_betahat)
   # return residuals
   residuals <- list(
     response = as.numeric(resids),

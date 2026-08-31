@@ -145,21 +145,26 @@ kcv.splm <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local, i
     cov_matrix_val <- covmatrix(object)
     cov_matrixInv_val <- chol2inv(chol(forceSymmetric(cov_matrix_val)))
     X <- model.matrix(object)
-    yX <- cbind(y, X)
+    # an offset comes out of the response before the block update (whose mean
+    # structure is X %*% beta only) and goes back onto each held-out row's
+    # prediction afterwards; see the same step in loocv.splm()
+    model_offset <- model.offset(model_frame)
+    y_krige <- if (is.null(model_offset)) y else y - as.vector(model_offset)
+    yX <- cbind(y_krige, X)
     SigInv_yX <- cov_matrixInv_val %*% yX
 
     if (local_list$parallel) {
       cl <- parallel::makeCluster(local_list$ncores)
       cv_predict_val_list <- parallel::parLapply(cl, fold_list, get_kcv,
         Sig = cov_matrix_val,
-        SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
+        SigInv = cov_matrixInv_val, Xmat = X, y = y_krige, yX = yX,
         SigInv_yX = SigInv_yX, se.fit = se_needed
       )
       cl <- parallel::stopCluster(cl)
     } else {
       cv_predict_val_list <- lapply(fold_list, get_kcv,
         Sig = cov_matrix_val,
-        SigInv = cov_matrixInv_val, Xmat = X, y = y, yX = yX,
+        SigInv = cov_matrixInv_val, Xmat = X, y = y_krige, yX = yX,
         SigInv_yX = SigInv_yX, se.fit = se_needed
       )
     }
@@ -167,6 +172,9 @@ kcv.splm <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local, i
       fold_rows <- fold_list[[i]]
       cv_predict_val[fold_rows] <- cv_predict_val_list[[i]]$pred
       if (se_needed) cv_predict_se[fold_rows] <- cv_predict_val_list[[i]]$se.fit
+    }
+    if (!is.null(model_offset)) {
+      cv_predict_val <- cv_predict_val + as.vector(model_offset)
     }
   } else {
     # local/big data: avoid ever forming the full n x n covariance matrix.
@@ -293,21 +301,25 @@ kcv.spautor <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local
   model_frame <- model.frame(object)
   X <- model.matrix(object)
   y <- model.response(model_frame)
-  yX <- cbind(y, X)
+  # an offset comes out of the response before the block update and goes back
+  # onto each held-out row afterwards; see kcv.splm()
+  model_offset <- model.offset(model_frame)
+  y_krige <- if (is.null(model_offset)) y else y - as.vector(model_offset)
+  yX <- cbind(y_krige, X)
   SigInv_yX <- cov_matrixInv_obs_val %*% yX
 
   if (local_list$parallel) {
     cl <- parallel::makeCluster(local_list$ncores)
     cv_predict_val_list <- parallel::parLapply(cl, fold_list, get_kcv,
       Sig = cov_matrix_obs_val,
-      SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
+      SigInv = cov_matrixInv_obs_val, Xmat = X, y = y_krige, yX = yX,
       SigInv_yX = SigInv_yX, se.fit = se_needed
     )
     cl <- parallel::stopCluster(cl)
   } else {
     cv_predict_val_list <- lapply(fold_list, get_kcv,
       Sig = cov_matrix_obs_val,
-      SigInv = cov_matrixInv_obs_val, Xmat = X, y = y, yX = yX,
+      SigInv = cov_matrixInv_obs_val, Xmat = X, y = y_krige, yX = yX,
       SigInv_yX = SigInv_yX, se.fit = se_needed
     )
   }
@@ -318,6 +330,9 @@ kcv.spautor <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local
     fold_rows <- fold_list[[i]]
     cv_predict_val[fold_rows] <- cv_predict_val_list[[i]]$pred
     if (se_needed) cv_predict_se[fold_rows] <- cv_predict_val_list[[i]]$se.fit
+  }
+  if (!is.null(model_offset)) {
+    cv_predict_val <- cv_predict_val + as.vector(model_offset)
   }
 
   cv_predict_error <- y - cv_predict_val

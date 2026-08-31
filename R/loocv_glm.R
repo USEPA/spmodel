@@ -45,8 +45,16 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
 
     # glm stuff
     dispersion <- as.vector(coef(object, type = "dispersion")) # take class away
-    w <- fitted(object, type = "link")
+    w_linpred <- fitted(object, type = "link") # offset included
     size <- object$size
+
+    # The kriging update below covaries via Sigma, which describes the
+    # offset-free latent process, so w is stripped of the offset here and each
+    # held-out row's own offset is added back to its prediction afterwards.
+    # get_d()/get_D() differentiate the data model and stay on w_linpred;
+    # see w_offset_free()
+    model_offset <- model.offset(model.frame(object))
+    w <- w_offset_free(w_linpred, model_offset)
 
     # some products
     SigInv_w <- SigInv %*% w
@@ -59,11 +67,11 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
     # estimation uncertainty in w into the leave-one-out updates
     wts_beta <- tcrossprod(cov_betahat, SigInv_X)
     Ptheta <- SigInv - SigInv_X %*% wts_beta
-    d <- get_d(object$family, w, y, size, dispersion)
+    d <- get_d(object$family, w_linpred, y, size, dispersion)
     # and then the gradient vector
     # g <-  d - Ptheta %*% w
     # Next, compute H
-    D <- get_D(object$family, w, y, size, dispersion)
+    D <- get_D(object$family, w_linpred, y, size, dispersion)
     H <- D - Ptheta
     mHinv <- solve(-H) # chol2inv(chol(Matrix::forceSymmetric(-H))) # solve(-H)
 
@@ -84,6 +92,12 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
       )
     }
     cv_predict_val <- vapply(cv_predict_val_list, function(x) x$pred, numeric(1))
+    # get_loocv_glm() predicted the offset-free latent process, so give each
+    # held-out row its own offset back (the standard errors are unaffected,
+    # since the offset is a known constant shift)
+    if (!is.null(model_offset)) {
+      cv_predict_val <- cv_predict_val + as.vector(model_offset)
+    }
     if (se.fit) {
       cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
     }
@@ -223,8 +237,13 @@ loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "respons
 
   # glm stuff
   dispersion <- as.vector(coef(object, type = "dispersion")) # take class away
-  w <- fitted(object, type = "link")
+  w_linpred <- fitted(object, type = "link") # offset included
   size <- object$size
+
+  # kriging covaries via Sigma (the offset-free latent process) while
+  # get_d()/get_D() differentiate the data model; see w_offset_free()
+  model_offset <- model.offset(model.frame(object))
+  w <- w_offset_free(w_linpred, model_offset)
 
   # some products
   SigInv_w <- SigInv %*% w
@@ -234,11 +253,11 @@ loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "respons
   # find H stuff
   wts_beta <- tcrossprod(cov_betahat, SigInv_X)
   Ptheta <- SigInv - SigInv_X %*% wts_beta
-  d <- get_d(object$family, w, y, size, dispersion)
+  d <- get_d(object$family, w_linpred, y, size, dispersion)
   # and then the gradient vector
   # g <-  d - Ptheta %*% w
   # Next, compute H
-  D <- get_D(object$family, w, y, size, dispersion)
+  D <- get_D(object$family, w_linpred, y, size, dispersion)
   H <- D - Ptheta
   mHinv <- solve(-H) # chol2inv(chol(Matrix::forceSymmetric(-H))) # solve(-H)
 
@@ -259,6 +278,11 @@ loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "respons
     )
   }
   cv_predict_val <- vapply(cv_predict_val_list, function(x) x$pred, numeric(1))
+  # give each held-out row its own offset back (see the analogous step in
+  # loocv.spglm())
+  if (!is.null(model_offset)) {
+    cv_predict_val <- cv_predict_val + as.vector(model_offset)
+  }
   if (se.fit) {
     cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
   }

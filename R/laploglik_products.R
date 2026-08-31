@@ -241,29 +241,31 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
   wdiffmax <- Inf
   iter <- 0
 
+  # The offset is a known, non-estimated shift on the link scale, so w and the
+  # linear predictor are not the same vector: w is the offset-free latent
+  # process the optimizer solves for (and the scale of the
+  # spatial covariance), while the family log-likelihood is always evaluated at
+  # the linear predictor w + offset. Every get_d()/get_D() call below therefore
+  # takes w + offset, and every Ptheta product takes w alone. Defaulting the
+  # offset to 0 keeps that distinction visible in one place instead of
+  # duplicating it across if/else branches, matching glm().
+  offset <- if (is.null(data_object$offset)) 0 else as.vector(data_object$offset)
+
   # single-partition case: the Hessian is small enough to solve directly
   if (length(SigInv_list) == 1) {
     while (iter < 50 && wdiffmax > 1e-4) {
       iter <- iter + 1
       # compute the d vector
-      if (!is.null(data_object$offset)) {
-        d <- get_d(family, w + as.vector(data_object$offset), y, size, dispersion)
-      } else {
-        d <- get_d(family, w, y, size, dispersion)
-      }
+      d <- get_d(family, w + offset, y, size, dispersion)
       # and then the gradient vector
       g <- d - Ptheta %*% w
       # Next, compute H
-      if (!is.null(data_object$offset)) {
-        D <- get_D(family, w + as.vector(data_object$offset), y, size, dispersion)
-      } else {
-        D <- get_D(family, w, y, size, dispersion)
-      }
+      D <- get_D(family, w + offset, y, size, dispersion)
       H <- D - Ptheta # not PD but -H is
       solveHg <- solve(H, g)
       wnew <- w - solveHg
       # check overshoot on loglik surface
-      dnew <- get_d(family, wnew, y, size, dispersion)
+      dnew <- get_d(family, wnew + offset, y, size, dispersion)
       gnew <- dnew - Ptheta %*% wnew
       if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem. Try using a different family, removing extreme observations, rescaling the response variable (if continuous), fixing ie at a known, non-zero value (via spcov_initial), or fixing dispersion at one (via dispersion_initial).", call. = FALSE)
       if (max(abs(gnew)) > max(abs(g))) wnew <- w - 0.1 * solveHg
@@ -288,11 +290,11 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
     while (iter < 50 && wdiffmax > 1e-4) {
       iter <- iter + 1
       # compute the d vector
-      d <- get_d(family, w, y, size, dispersion)
+      d <- get_d(family, w + offset, y, size, dispersion)
       # and then the gradient vector
       g <- d - Ptheta %*% w
       # Next, compute H
-      D <- get_D(family, w, y, size, dispersion)
+      D <- get_D(family, w + offset, y, size, dispersion)
       D_diag <- diag(D)
       # split the diagonal Hessian contribution back out by partition so each
       # partition's block of -H (D - SigInv) can be combined with that
@@ -328,7 +330,7 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
       solveHg <- HInv %*% g
       wnew <- w - solveHg
       # check overshoot on loglik surface
-      dnew <- get_d(family, wnew, y, size, dispersion)
+      dnew <- get_d(family, wnew + offset, y, size, dispersion)
       gnew <- dnew - Ptheta %*% wnew
       if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem. Try using a different family, removing extreme observations, rescaling the response variable (if continuous), fixing ie at a known, non-zero value (via spcov_initial), or fixing dispersion at one (via dispersion_initial).", call. = FALSE)
       if (max(abs(gnew)) > max(abs(g))) wnew <- w - 0.1 * solveHg
@@ -374,27 +376,23 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
   wdiffmax <- Inf
   iter <- 0
 
+  # see get_w_and_H_spglm(): w is the offset-free latent process, while the
+  # family log-likelihood is evaluated at the linear predictor w + offset
+  offset <- if (is.null(data_object$offset)) 0 else as.vector(data_object$offset)
+
   while (iter < 50 && wdiffmax > 1e-4) {
     iter <- iter + 1
     # compute the d vector
-    if (!is.null(data_object$offset)) {
-      d <- get_d(family, w + as.vector(data_object$offset), y, size, dispersion)
-    } else {
-      d <- get_d(family, w, y, size, dispersion)
-    }
+    d <- get_d(family, w + offset, y, size, dispersion)
     # and then the gradient vector
     g <- d - Ptheta %*% w
     # Next, compute H
-    if (!is.null(data_object$offset)) {
-      D <- get_D(family, w + as.vector(data_object$offset), y, size, dispersion)
-    } else {
-      D <- get_D(family, w, y, size, dispersion)
-    }
+    D <- get_D(family, w + offset, y, size, dispersion)
     H <- D - Ptheta # not PD but -H is
     solveHg <- solve(H, g)
     wnew <- w - solveHg
     # check overshoot on loglik surface
-    dnew <- get_d(family, wnew, y, size, dispersion)
+    dnew <- get_d(family, wnew + offset, y, size, dispersion)
     gnew <- dnew - Ptheta %*% wnew
     if (any(is.na(gnew) | is.infinite(gnew))) stop("Convergence problem. Try using a different family, removing extreme observations, rescaling the response variable (if continuous), fixing ie at a known, non-zero value (via spcov_initial), or fixing dispersion at one (via dispersion_initial).", call. = FALSE)
     if (max(abs(gnew)) > max(abs(g))) wnew <- w - 0.1 * solveHg
@@ -475,7 +473,12 @@ get_D <- function(family, w, y, size, dispersion) {
   } else if (family == "beta") {
     one_expw <- 1 + exp(w)
     k0 <- digamma(dispersion * exp(w) / one_expw) - digamma(dispersion / one_expw) + log(1 / y - 1)
-    k1 <- dispersion * (trigamma(dispersion * exp(w) / one_expw) + trigamma(dispersion / one_expw)) - 2 * sinh(w) * (k0 + 2 * atanh(1 - 2 * y))
+    # get_d() has d = -A(w) * k0 with A(w) = dispersion * exp(w) / one_expw^2,
+    # so D = -A'(w) * k0 - A(w) * dk0/dw, which repackages into the -2 sinh(w)
+    # k0 term plus the trigamma term below. k0 already ends in log((1 - y) / y). A previous version of this line added
+    # 2 * atanh(1 - 2 * y) (algebraically the same quantity) a second time,
+    # double-counting this piece in the second derivative.
+    k1 <- dispersion * (trigamma(dispersion * exp(w) / one_expw) + trigamma(dispersion / one_expw)) - 2 * sinh(w) * k0
     D_vec <- -dispersion * exp(2 * w) * k1 / one_expw^4
   }
   D <- Diagonal(x = D_vec)

@@ -3,7 +3,8 @@
 #' @param family The response family
 #' @param Xmat Model matrix
 #' @param y Response vector (unused directly; \code{w} carries the fitted latent values)
-#' @param w The latent (link-scale) predictor vector
+#' @param w The linear predictor on the link scale, with any offset already
+#'   added
 #' @param size Binomial trial sizes (used only when \code{family} is \code{"binomial"})
 #' @param dispersion The dispersion parameter
 #' @param cov_lowchol The lower Cholesky factor of the covariance matrix

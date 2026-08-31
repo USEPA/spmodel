@@ -26,11 +26,15 @@
 * Added support for `.` in `formula`, which represents the variables in `data` except the response and coordinate/geometry columns (`xcoord`, `ycoord`, `geometry`).
 * `predict()` for large data now and `method = "covariance"` now ranks potential neighbors by the absolute value of the covariance rather than the raw value. This only affects spatial covariance types that are not monotone decreasing with distance (e.g., cosine, wave).
 * Added `nobs()` support for `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects, which returns the observed data sample size from the model.
+* Added support for `interval = "confidence"` in `augment()` when `newdata` is omitted.
+* Standardized residuals for for `spglm()` and `spgautor()` model objects for Gamma and inverse Gaussian families now scale by (the square root of) the dispersion parameter.
 * Minor (internal) documentation, code clarity, and code efficiency updates.
 * Minor (external) documentation updates.
 
 ## Bug Fixes
 
+* Fixed a bug that caused an erorr in the second derivative of the beta log-likelihood used in `spglm()` and `spgautor()`.
+* Various bug fixes for scenarios where `offset` if supplied to a modeling (e.g., `splm()`), diagnostic (e.g., `residuals()`), or prediction function (e.g., `predict()`).
 * Fixed a bug that could cause an error for `covmatrix(object, newdata, cov_type = "pred.pred", ...)` when `newdata` was an `sf` object.
 * Fixed a bug that could mix Cholesky and eigenvalue decompositions while predicting for autoregressive models fit using `spautor()` or `spgautor()`.
 * Fixed a bug that could improperly compute slope random effect variances for prediction using `predict()` and `loocv()`.

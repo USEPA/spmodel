@@ -23,6 +23,9 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type.predict = c("link
   type.residuals <- match.arg(type.residuals)
   interval <- match.arg(interval)
 
+  # a prediction interval needs an unobserved location; a confidence interval
+  # around the fitted mean is still available below
+  interval <- check_interval_augment(interval, !is.null(newdata))
 
   # set data and newdata
   # when newdata is NULL, augment the original fitted data with diagnostics;
@@ -41,9 +44,23 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type.predict = c("link
     # GLM fitted values/diagnostics depend on scale (link vs response) and
     # residual type, unlike the Gaussian splm/spautor case
     augment_data <- tibble::tibble(.fitted = fitted(x, type = type.predict))
-    if (se_fit) {
-      preds_data <- predict(x, newdata = data, type = type.predict, se.fit = se_fit, interval = "confidence", ...)
-      augment_data$.se.fit <- preds_data$se.fit
+    if (se_fit || interval == "confidence") {
+      # the interval is built on the link scale and then back-transformed, and
+      # .se.fit stays on the link scale matching predict()
+      se <- get_se_fitted_mean(x)
+      if (interval == "confidence") {
+        fitted_link <- fitted(x, type = "link")
+        tstar <- qnorm(1 - (1 - level) / 2)
+        lwr <- fitted_link - tstar * se
+        upr <- fitted_link + tstar * se
+        if (type.predict == "response") {
+          lwr <- invlink(lwr, x$family, x$size)
+          upr <- invlink(upr, x$family, x$size)
+        }
+        augment_data$.lower <- lwr
+        augment_data$.upper <- upr
+      }
+      if (se_fit) augment_data$.se.fit <- se
     }
     tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x, type = type.residuals)))
   } else {
@@ -140,6 +157,11 @@ augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type.predict = c("l
   type.residuals <- match.arg(type.residuals)
   interval <- match.arg(interval)
 
+  # se_fit and interval are prediction quantities that only exist at object$newdata
+  if (is.null(newdata)) {
+    newdata <- augment_areal_newdata(x, se_fit, interval)
+  }
+
   # set data and newdata
   # spgautor fits on the full autocorrelation neighborhood (observed +
   # unobserved locations), so diagnostics are restricted to observed_index rows only
@@ -156,11 +178,8 @@ augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type.predict = c("l
 
 
   if (is.null(newdata)) {
+    # newdata is NULL only when se and interval are not supplied
     augment_data <- tibble::tibble(.fitted = fitted(x, type = type.predict))
-    if (se_fit) {
-      preds_data <- predict(x, newdata = data, type = type.predict, se.fit = se_fit, interval = "confidence", ...)
-      augment_data$.se.fit <- preds_data$se.fit
-    }
     if (x$is_sf && drop) {
       tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x, type = type.residuals), data_sf))
     } else {

@@ -232,3 +232,34 @@ invlink <- function(fitted_link, family, size) {
   }
   fitted
 }
+
+#' Remove a model offset from a fitted link-scale vector
+#'
+#' @param w A fitted link-scale vector with the offset included, i.e.
+#'   \code{fitted(object, type = "link")}
+#' @param offset The model offset, or \code{NULL}
+#'
+#' @return \code{w} with the offset removed
+#'
+#' @details When a model has an offset, two distinct link-scale vectors are in
+#'   play and using one where the other belongs produces plausible-looking but
+#'   wrong numbers rather than an error. The offset-free latent vector
+#'   \code{w = X beta + tau + epsilon} returned here is the process the spatial
+#'   covariance describes, so it is the vector used by anything built from
+#'   \code{Sigma}: kriging, the leave-one-out and k-fold updates, and the
+#'   conditional-simulation residuals. The offset-inclusive linear predictor
+#'   \code{w + offset} is the argument of the data model, so it is the vector
+#'   used by anything built from the family: \code{get_d()}, \code{get_D()},
+#'   \code{get_V()}, \code{get_var_y()}, \code{get_deviance_glm()}, and
+#'   \code{invlink()}. Predictions are formed on the offset-free scale and the
+#'   prediction location's own offset is added back at the end. 
+#'
+#' @noRd
+w_offset_free <- function(w, offset) {
+  if (is.null(offset)) {
+    w
+  } else {
+    w - as.vector(offset)
+  }
+}
+

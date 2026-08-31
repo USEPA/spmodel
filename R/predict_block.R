@@ -110,7 +110,7 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
   newdata_model_list <- get_newdata_model_matrix(object, newdata)
   newdata <- newdata_model_list$newdata
   newdata_model <- newdata_model_list$newdata_model
-  offset <- newdata_model_list$offset
+  offset_newdata <- newdata_model_list$offset
   attr_assign <- attr(newdata_model, "assign")
   attr_contrasts <- attr(newdata_model, "contrasts")
   keep_cols <- which(colnames(newdata_model) %in% colnames(model.matrix(object)))
@@ -137,8 +137,19 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
   x0 <- newdata_model
   betahat <- coef(object)
   cov_betahat <- vcov(object)
-  y <- model.response(model.frame(object))
-  offset <- model.offset(model.frame(object))
+  model_frame <- model.frame(object)
+  y <- model.response(model_frame)
+  # Two different offsets are in play and should not not be confused. The
+  # observed-data offset comes out of y so the kriging below runs on the
+  # offset-free scale. The block's own offset is the average of the newdata offsets,
+  # because a block prediction is the average of the point predictions and each
+  # point prediction carries its own offset; it goes back on at the end,
+  # alongside the same colMeans() averaging already applied to newdata_model.
+  offset_obdata <- model.offset(model_frame)
+  if (!is.null(offset_obdata)) {
+    y <- y - as.vector(offset_obdata)
+  }
+  offset_block <- if (is.null(offset_newdata)) NULL else mean(as.vector(offset_newdata))
   # call terms if needed
   if (type == "terms") {
     return(predict_terms(object, newdata_model, se.fit, scale, df, interval, level, add_newdata_rows, terms, ...))
@@ -187,11 +198,7 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
       obdata <- obdata[keep, , drop = FALSE]
       c0 <- c0[keep]
       Xmat <- Xmat[keep, , drop = FALSE]
-      y <- y[keep]
-      if (!is.null(offset)) {
-        offset <- offset[keep]
-        y <- y - offset
-      }
+      y <- y[keep] # already offset-free (see above)
       cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(Sig[keep, keep, drop = FALSE])))
     }
 
@@ -201,8 +208,8 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
     SqrtSigInv_c0 <- forwardsolve(cov_lowchol, c0)
 
     fit <- as.numeric(x0 %*% betahat + Matrix::crossprod(SqrtSigInv_c0, residuals_pearson))
-    if (!is.null(offset)) {
-      fit <- fit + offset
+    if (!is.null(offset_block)) {
+      fit <- fit + offset_block
     }
 
     if (se.fit || interval == "prediction") {
@@ -233,9 +240,9 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
   } else if (interval == "confidence") {
     # finding fitted values of the mean parameters
     fit <- as.numeric(x0 %*% coef(object))
-    # apply offset
-    if (!is.null(offset)) {
-      fit <- fit + offset
+    # apply the block's own (averaged) offset
+    if (!is.null(offset_block)) {
+      fit <- fit + offset_block
     }
     vars <- as.numeric(tcrossprod(x0 %*% cov_betahat, x0)) # different from
     # predict because x0 is a matrix here, not a vector

@@ -244,8 +244,8 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
     if (!is.null(offset)) {
       fit <- fit + offset
     }
-    newdata_model_list <- split(newdata_model, seq_len(NROW(newdata_model)))
-    vars <- as.numeric(vapply(newdata_model_list, function(x) crossprod(x, vcov(object) %*% x), numeric(1)))
+    # diag(X0 vcov X0'), computed efficiently; see get_diag_XVXt()
+    vars <- get_diag_XVXt(newdata_model, vcov(object))
     se <- sqrt(vars)
     tstar <- qnorm(1 - (1 - level) / 2)
     lwr <- fit - tstar * se
@@ -349,10 +349,11 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
   # adjust w: strip the offset back out of the fitted latent link-scale
   # values so the covariance-based prediction below operates on the same
   # offset-free scale as the whitened X/c0 (the offset for this new
-  # observation is added back in by the caller, e.g. predict.spglm())
-  if (!is.null(model_offset)) {
-    w <- w - model_offset
-  }
+  # observation is added back in by the caller, e.g. predict.spglm()).
+  # model_offset is carried along and subset alongside w below, so that
+  # get_wts_varw() can be handed the offset-inclusive linear predictor its
+  # get_d()/get_D() calls need; see w_offset_free()
+  w <- w_offset_free(w, model_offset)
 
 
   # medium-mode reuse, partition-index subsetting, and dense-mode recompute
@@ -381,6 +382,9 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
     if (!is.null(size)) {
       size <- size[keep]
     }
+    if (!is.null(model_offset)) {
+      model_offset <- model_offset[keep]
+    }
   }
 
 
@@ -394,6 +398,9 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
     y <- y[keep]
     if (!is.null(size)) {
       size <- size[keep]
+    }
+    if (!is.null(model_offset)) {
+      model_offset <- model_offset[keep]
     }
   }
 
@@ -466,7 +473,14 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
       # directly like y in the Gaussian case), so its own estimation
       # uncertainty contributes an extra variance term on top of the usual
       # kriging variance above
-      var_adj <- get_wts_varw(family, Xmat, y, w, size, dispersion, cov_lowchol, x0, c0)
+      # get_wts_varw() uses w only in get_d()/get_D(), so it takes the
+      # offset-inclusive linear predictor (both pieces are now subset to the
+      # same local neighbourhood as Xmat and y)
+      var_adj <- get_wts_varw(
+        family, Xmat, y,
+        if (is.null(model_offset)) w else w + as.vector(model_offset),
+        size, dispersion, cov_lowchol, x0, c0
+      )
       var <- var_adj + var
     }
     pred_list <- list(fit = fit, var = var)
@@ -687,7 +701,8 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
     if (!is.null(offset)) {
       fit <- fit + offset
     }
-    vars <- as.numeric(vapply(newdata_model_list, function(x) crossprod(x, vcov(object) %*% x), numeric(1)))
+    # see get_diag_XVXt()
+    vars <- get_diag_XVXt(newdata_model, vcov(object))
     se <- sqrt(vars)
     tstar <- qnorm(1 - (1 - level) / 2)
     lwr <- fit - tstar * se

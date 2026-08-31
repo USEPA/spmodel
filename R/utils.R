@@ -10,6 +10,47 @@ generics::glance
 # use generics to export augment
 generics::augment
 
+#' Compute \eqn{diag(\mathbf{X}\mathbf{V}\mathbf{X}^\top)} without forming the
+#' full product
+#'
+#' @param X An \eqn{n \times p} matrix
+#' @param V A \eqn{p \times p} matrix
+#'
+#' @details Only the diagonal is ever wanted, and the \eqn{i}th diagonal entry
+#'   is the scalar \eqn{\mathbf{x}_i^\top \mathbf{V} \mathbf{x}_i}. Since
+#'   \eqn{(\mathbf{X}\mathbf{V})} has \eqn{\mathbf{x}_i^\top \mathbf{V}} as its
+#'   \eqn{i}th row, multiplying it elementwise by \eqn{\mathbf{X}} and summing
+#'   along each row recovers that scalar. The result is identical to
+#'   \code{diag(X \%*\% V \%*\% t(X))}, but costs \eqn{O(np^2)} operations and
+#'   \eqn{O(np)} memory rather than \eqn{O(n^2p)} and \eqn{O(n^2)}.
+#'
+#' @return A numeric vector of length \code{NROW(X)}
+#'
+#' @noRd
+get_diag_XVXt <- function(X, V) {
+  as.numeric(rowSums((X %*% V) * X))
+}
+
+#' Standard error of the fitted mean at the observed locations
+#'
+#' @param object A fitted model object
+#'
+#' @details This is \eqn{\sqrt{diag(\mathbf{X}(\mathbf{X}^\top
+#'   \boldsymbol{\Sigma}^{-1}\mathbf{X})^{-1}\mathbf{X}^\top)}}, the standard
+#'   error attaching to \eqn{\mathbf{X}\hat{\boldsymbol{\beta}}}, since
+#'   \code{vcov()} already returns \eqn{(\mathbf{X}^\top
+#'   \boldsymbol{\Sigma}^{-1}\mathbf{X})^{-1}}. It is a confidence (fitted mean)
+#'   standard error, not a prediction standard error, and matches what
+#'   \code{predict(interval = "confidence")} reports. For generalized linear
+#'   models it is on the link scale, again matching \code{predict()}.
+#'
+#' @return A vector of standard errors, one per observed location
+#'
+#' @noRd
+get_se_fitted_mean <- function(object) {
+  sqrt(get_diag_XVXt(model.matrix(object), vcov(object)))
+}
+
 #' Compute the logit (log-odds) transform
 #'
 #' @param x A value between zero and one

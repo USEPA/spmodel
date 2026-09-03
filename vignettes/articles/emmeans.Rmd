@@ -237,7 +237,7 @@ The analysis of variance suggests a significant intercept, temperature effect, a
 
 # Uncertainty Quantification
 
-Standard errors and confidence intervals returned by `emmeans` for `spmodel` objects use the fixed effect covariance matrix (returned by `vcov()`), accounting for spatial dependence. For `splm()` and `spautor()` model objects fit with `ddf = "satterthwaite"` (the default when the sample size is 500 or fewer), `emmeans` also uses Satterthwaite denominator degrees of freedom. Otherwise, asymptotic (`Inf`) degrees of freedom are used. For `spglm()` and `spgautor()`, asymptotic degrees of freedom are always used.
+Standard errors and confidence intervals returned by `emmeans` for `spmodel` objects use the fixed effect covariance matrix (returned by `vcov()`), accounting for spatial dependence. For `splm()` and `spautor()` model objects fit with `ddf = "satterthwaite"` (the default when the sample size is 500 or fewer), `emmeans` also uses Satterthwaite denominator degrees of freedom. Otherwise, asymptotic (`Inf`) degrees of freedom are used. For `spglm()` and `spgautor()`, asymptotic degrees of freedom are always used. See the Technical Details vignette for more.
 
 # Additional Tools
 

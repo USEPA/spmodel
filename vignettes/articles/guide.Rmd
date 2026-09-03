@@ -448,7 +448,7 @@ augment(sealmod, newdata = sealmod$newdata)
 
 # Advanced Features {#sec:advfeatures}
 
-`spmodel` offers several advanced features for fitting spatial linear models. We briefly discuss some of these features next using the `moss` data, the `moose` data, and some simulated data. Technical details for each advanced feature can be seen by running `vignette("technical", "spmodel")`.
+`spmodel` offers several advanced features for fitting spatial linear models. We briefly discuss some of these features next using the `moss` data, the `moose` data, and some simulated data. For technical details regarding each advanced feature, see the Technical Details vignette.
 
 ## Fixing Spatial Covariance Parameters {#sec:spcov_init}
 

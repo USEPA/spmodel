@@ -207,10 +207,13 @@ returns point predictions for each location on \code{newdata}.}
 is set to \code{TRUE} or \code{FALSE} based on the observed data sample size (i.e., sample size of the fitted
 model object) -- if the sample size exceeds 10,000, \code{local} is
 set to \code{TRUE}, otherwise it is set to \code{FALSE}. This default behavior
-occurs because main computational
+occurs because for point prediction the main computational
 burden of the big data approximation depends almost exclusively on the
 observed data sample size, not the number of predictions desired
-(which we feel is not intuitive at first glance).
+(which we feel is not intuitive at first glance). For block prediction
+(\code{block = TRUE}) the density of the prediction grid also matters, so
+\code{local} is additionally set to approximate the theoretical solution
+when \code{nrow(newdata)} exceeds 10,000 (see below).
 If \code{local} is \code{FALSE}, no big data approximation
 is implemented. If a list is provided, the following arguments detail the big
 data approximation:
@@ -250,15 +253,40 @@ If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
 that \code{local} is transformed into
 \code{list(size = 100, method = "covariance", parallel = FALSE)}.
 
-If \code{block} is \code{TRUE}, \code{local} accepts \code{method} and \code{size},
-and \code{method} takes values of \code{"all"}, \code{"covariance"},
-and \code{"distance"}, similar as when \code{block} is \code{FALSE}.
-The default \code{method} is \code{"covariance"} with size \code{4000}. This default \code{size} is
-much larger than when \code{block} is \code{FALSE}. This is because when \code{block} is \code{TRUE},
-covariances and explanatory variables are averaged before prediction, which greatly
-reduces computational burden, only requiring the Cholesky decomposition
-of one observed covariance matrix. Because the computational burden is reduced dramatically when \code{block} is \code{TRUE},
-parallel processing is not needed and hence, \code{parallel} and \code{ncores} are ignored if specified in \code{local}.}
+If \code{block} is \code{TRUE}, \code{local} controls two separate big
+data approximations, one for the observed data and one for the prediction
+grid (\code{newdata}):
+\itemize{
+\item \code{method} and \code{size} act on the observed data exactly as
+when \code{block} is \code{FALSE} (\code{method} takes \code{"all"},
+\code{"covariance"}, or \code{"distance"}); the default \code{method}
+is \code{"covariance"} with \code{size} \code{4000}. This default
+\code{size} is much larger than when \code{block} is \code{FALSE}
+because block prediction averages covariances and explanatory
+variables before prediction.
+\item \code{method_new} controls the big data prediction grid density.
+\code{method_new = "basis"} (the default)
+approximates the block variance using a basis of
+\code{size_new} well-spread grid nodes. \code{method_new = "subset"}
+approximates the block mean and variance by subsampling \code{newdata}
+so that its size is only \code{size_new}. The default \code{size_new}
+is \code{4000}.
+\item \code{ordering} chooses the \code{size_new} nodes from
+\code{newdata} and takes the same values as the \code{ordering}
+argument of \code{\link{sprnorm}()}/\code{\link{conditional}()} under
+\code{approximation = "vecchia"} (\code{"maxmin"}, \code{"grts"},
+\code{"random"}, \code{"none"}, \code{"middleout"},
+\code{"outsidein"}, \code{"coordinate"}). The default is
+\code{"grts"}.
+\item \code{parallel} and \code{ncores} parallelize
+the variance calculation when \code{method_new = "basis"}.
+}
+When \code{local} is a list, at least one list element must be provided to
+initialize default arguments for the other list elements.
+If \code{local} is \code{TRUE}, defaults for \code{local} are chosen such
+that \code{local} is transformed into
+\code{list(method = "covariance", size = 4000, method_new = "basis",
+  size_new = 4000, ordering = "grts")}.}
 
 \item{terms}{If \code{type} is \code{"terms"}, the type of terms to be returned,
 specified via either numeric position or name. The default is all terms are included.}

@@ -45,15 +45,9 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
     add_newdata_rows <- FALSE
   }
 
-  # deal with local
-  if (is.null(local)) {
-    if (object$n > 10000) {
-      local <- TRUE
-      message("Because the sample size of the fitted model object exceeds 10,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun predict() with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
-    } else {
-      local <- FALSE
-    }
-  }
+  # deal with local, which will be additionally processed further down
+  local_unset <- is.null(local)
+  if (local_unset) local <- FALSE
 
   # save spcov param vector
   spcov_params_val <- coef(object, type = "spcov")
@@ -157,24 +151,96 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
 
 
   if (interval %in% c("none", "prediction")) {
+    # finish the unset-local defaulting
+    if (local_unset) {
+      approx_obs <- object$n > 10000
+      approx_pred <- NROW(newdata) > 10000
+      if (approx_obs || approx_pred) {
+        local <- list(
+          method = if (approx_obs) "covariance" else "all",
+          size = 4000,
+          method_new = "basis",
+          size_new = if (approx_pred) 4000L else Inf,
+          ordering = "grts"
+        )
+        sides <- c(
+          if (approx_obs) "the fitted model sample size",
+          if (approx_pred) "the number of prediction locations in newdata"
+        )
+        message(sprintf(
+          paste0(
+            "Because %s %s 10,000, we are using a computationally efficient ",
+            "approximation for the block prediction. To compute the exact solution instead, rerun ",
+            "predict() with local = FALSE. Be aware that local = FALSE may result in ",
+            "exceedingly long computational times."
+          ),
+          paste(sides, collapse = " and "),
+          if (length(sides) > 1L) "each exceed" else "exceeds"
+        ))
+      }
+    }
+
     # local prediction list
     local <- get_local_list_prediction_block(local)
 
-    # c0: each observed site's average covariance with the block (row-mean
+    Sig <- covmatrix(object)
+
+    # c0: each observed site's average covariance with the block (column-mean
     # of the newdata-rows-by-observed-sites covariance matrix), since the
     # block's covariance with an observed site is the average of that site's
-    # covariance with every point in the block
-    c0 <- colMeans(covmatrix(object, newdata = newdata, cov_type = "pred.obs"))
-    Sig <- covmatrix(object)
-    if (NROW(newdata) > 1e4) {
-      # too many block points to form the dense NROW(newdata)^2 pred.pred
-      # covariance matrix below, so compute the average pairwise covariance
-      # row-by-row instead (see get_bk_var())
-      s0 <- get_bk_var(object, newdata, local)
+    # covariance with every point in the block.
+    # s0: Var(block average) = the average pairwise covariance among the block
+    # points (each point's covariance with itself included).
+    G <- NROW(newdata)
+    if (local$size_new >= G) {
+      # local = FALSE, or size_new >= G: every block point is an s0 node, so
+      # c0, x0, and s0 are all exact
+      bq <- get_block_quantities(object, newdata,
+        nodes = seq_len(G),
+        parallel = local$parallel, ncores = local$ncores
+      )
+      c0 <- bq$c0
+      s0 <- bq$s0
     } else {
-      # s0: Var(block average) = average of all pairwise covariances among
-      # block points (including each point's covariance with itself)
-      s0 <- mean(covmatrix(object, newdata = newdata, cov_type = "pred.pred"))
+      # size_new well-spread nodes chosen from newdata via the same
+      # get_decorrelate_order() helper decorrelate()/sprnorm() use;
+      # coordinates here are already anisotropy-transformed. The default is
+      # "grts".
+      if (object$dim_coords == 0) {
+        # no meaningful coordinates ("none"/"ie" covariance)
+        nodes <- seq_len(local$size_new)
+      } else {
+        block_ordering <- local$ordering
+        if (is.null(block_ordering)) {
+          block_ordering <- "grts"
+        }
+        block_ord <- get_decorrelate_order(block_ordering, newdata[[xcoord]], newdata[[ycoord]])$order
+        nodes <- block_ord[seq_len(local$size_new)]
+      }
+
+      if (identical(local$method_new, "subset")) {
+        # x0 (computed over the full newdata) stays exact; c0 and s0 are
+        # taken on the size_new nodes only; s0's diagonal lands at weight
+        # 1 / size_new here; re-weight it to the 1 / G it carries in the exact
+        # block variance.
+        bq <- get_block_quantities(object, newdata[nodes, , drop = FALSE],
+          nodes = seq_len(local$size_new),
+          parallel = local$parallel, ncores = local$ncores
+        )
+        de_ie <- spcov_params_val[["de"]] + spcov_params_val[["ie"]]
+        c0 <- bq$c0
+        s0 <- bq$s0 + de_ie * (1 / G - 1 / local$size_new)
+      } else {
+        # method_new = "basis": c0 (and x0) exact by parallelized (i.e., chunked) accumulation; s0
+        # h(s) averaged exactly over every
+        # block point, its outer average taken over the size_new nodes
+        bq <- get_block_quantities(object, newdata,
+          nodes = nodes,
+          parallel = local$parallel, ncores = local$ncores
+        )
+        c0 <- bq$c0
+        s0 <- bq$s0
+      }
     }
     Xmat <- model.matrix(object)
 
@@ -215,6 +281,9 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
     if (se.fit || interval == "prediction") {
       H <- x0 - crossprod(SqrtSigInv_c0, SqrtSigInv_X)
       vars <- as.numeric(s0 - crossprod(SqrtSigInv_c0, SqrtSigInv_c0) + H %*% tcrossprod(cov_betahat, H))
+      # a near-perfectly-predicted block can push the subtraction numerically below
+      # zero; floor at 0 so sqrt() does not return NaN
+      vars <- pmax(vars, 0)
       se <- sqrt(vars)
       if (!is.null(scale)) {
         se <- se * scale
@@ -268,46 +337,77 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
   }
 }
 
-#' Compute the block-average marginal variance for a large block (big data)
+#' Accumulate the grid-dependent block-prediction covariance quantities
 #'
-#' @param object A fitted model object from [splm()]
-#' @param newdata The data (points within the block) requiring prediction
-#' @param local A fully-specified big-data \code{local} list
+#' A block prediction needs, over the \eqn{G} rows of the prediction grid,
+#' \code{c0} (each observed site's average covariance with the block) and
+#' \code{s0} (\eqn{Var(\bar{Y})} for the block; the average pairwise
+#' covariance among the block points). Formed directly these are a dense
+#' \eqn{G \times n_{obs}} and a dense \eqn{G \times G} matrix; here the grid
+#' is passed in row-chunks and only column sums are kept, so memory is preserved.
 #'
-#' @return The average pairwise covariance among the rows of \code{newdata}
-#'   (i.e. \eqn{Var(\bar{Y})} for the block), computed row-by-row (optionally
-#'   in parallel) rather than forming the full \code{NROW(newdata)}-by-\code{NROW(newdata)}
-#'   covariance matrix, which would be too large for a big block
+#' \code{s0} is written as a nested average,
+#' \deqn{s0 = \frac{1}{G}\sum_i h(s_i), \qquad
+#'       h(s) = \frac{1}{G}\sum_j Cov(s, s_j),}
+#' and estimated by averaging \eqn{h}, computed exactly over all \eqn{G}
+#' block points, at the rows named by \code{nodes}. With
+#' \code{nodes = seq_len(G)} every block point is a node and \code{s0} is
+#' exact (this replaces the old row-by-row \code{get_bk_var()}) used by \code{local$method_new = "basis"}.
+#' \code{covmatrix()}'s \code{"pred.obs"} type omits the independent error
+#' variance for a point against itself, so one \code{ie} is added back per
+#' node (mirroring the old \code{get_each_bk_meancov()}), which also places
+#' the block-variance diagonal at exactly the \eqn{1/G} weight that the exact
+#' \code{s0} carries.
+#'
+#' @param object A fitted \code{splm} model object (its \code{obdata} is the
+#'   observed data).
+#' @param grid The prediction grid (coordinates already anisotropy-transformed
+#'   and predictors already validated by \code{predict_block_splm()}).
+#' @param nodes Integer row indices into \code{grid} giving the outer-average
+#'   nodes for \code{s0}. \code{seq_len(NROW(grid))} gives the exact block
+#'   variance.
+#' @param chunk Number of \code{grid} rows accumulated per step.
+#' @param parallel,ncores If \code{parallel}, the chunking loop is
+#'   spread over \code{ncores} workers.
+#'
+#' @return A list with \code{c0} (length \code{n_obs}) and \code{s0} (scalar).
 #'
 #' @noRd
-get_bk_var <- function(object, newdata, local) {
-  index <- seq(1, NROW(newdata))
-  object$obdata <- newdata
-  if (local$parallel) {
-    cl <- parallel::makeCluster(local$ncores)
-    val <- parallel::parLapply(cl, index, get_each_bk_meancov, object, newdata)
-    cl <- parallel::stopCluster(cl)
-  } else {
-    val <- lapply(index, get_each_bk_meancov, object, newdata)
-  }
-  mean(unlist(val))
-}
+get_block_quantities <- function(object, grid, nodes, chunk = 1000L, parallel = FALSE, ncores = NULL) {
+  G <- NROW(grid)
+  ie <- object$coefficients$spcov[["ie"]]
+  n_obs <- NROW(object$obdata)
 
-#' Compute one row's average covariance with the rest of a prediction block
-#'
-#' @param index The row of \code{newdata} to compute the covariance row for
-#' @param object A fitted model object from [splm()]
-#' @param newdata The data (points within the block) requiring prediction
-#'
-#' @return The average of row \code{index}'s covariance with every row of
-#'   \code{newdata} (including itself, with the independent error variance
-#'   added back in, since \code{covmatrix()}'s \code{"obs.pred"} type omits it
-#'   for a point predicted against itself)
-#'
-#' @noRd
-get_each_bk_meancov <- function(index, object, newdata) {
-  newdata <- newdata[index, , drop = FALSE]
-  val <- as.vector(spmodel::covmatrix(object, newdata = newdata, cov_type = "obs.pred"))
-  val[index] <- val[index] + object$coefficients$spcov[["ie"]] # this is to add ie variance to diagonal (which is omitted with newdata)
-  mean(val)
+  # object_nodes supplies grid[nodes, ] as the "observed" side so that
+  # covmatrix(cov_type = "pred.obs") returns Cov(grid chunk, nodes), the
+  # same obdata substitution covmatrix(cov_type = "pred.pred") uses
+  object_nodes <- object
+  object_nodes$obdata <- grid[nodes, , drop = FALSE]
+
+  # keep each covariance block in memory
+  chunks <- split(seq_len(G), ceiling(seq_len(G) / chunk))
+
+  per_chunk <- function(rows) {
+    grid_chunk <- grid[rows, , drop = FALSE]
+    list(
+      c0 = colSums(covmatrix(object, newdata = grid_chunk, cov_type = "pred.obs")),
+      h = colSums(covmatrix(object_nodes, newdata = grid_chunk, cov_type = "pred.obs"))
+    )
+  }
+
+  if (parallel) {
+    ncores <- min(ncores, detectCores(), length(chunks))
+    cl <- makeCluster(ncores)
+    on.exit(stopCluster(cl), add = TRUE)
+    parts <- parLapply(cl, chunks, per_chunk)
+  } else {
+    parts <- lapply(chunks, per_chunk)
+  }
+
+  c0 <- Reduce(`+`, lapply(parts, function(x) x$c0 / G))
+  # + ie per node: the one self-covariance in each node's column that
+  # "pred.obs" returned without the nugget, add it once to each row then average
+  h <- (Reduce(`+`, lapply(parts, function(x) x$h / G)) + ie / G)
+
+  list(c0 = as.numeric(c0), s0 = mean(h))
 }

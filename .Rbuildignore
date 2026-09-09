@@ -16,3 +16,4 @@
 ^CRAN-SUBMISSION$
 ^tests/testthat/deprecated$
 ^\.positai$
+^dev$

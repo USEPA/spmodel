@@ -210,20 +210,40 @@ get_local_list_prediction <- function(local) {
 
 #' Build the big-data local list used for block prediction
 #'
+#' The observed-data side (\code{method}/\code{size}, defaulting larger than
+#' point prediction's since averaging covariances before prediction lets
+#' block kriging carry more neighbors for the same cost) and the
+#' prediction-grid side (\code{method_new}/\code{size_new}/\code{ordering})
+#' are separate big-data decisions:
+#' \itemize{
+#'   \item \code{method_new = "basis"} (the default): the block point
+#'     prediction (\code{x0}, \code{c0}) is computed exactly (via chunking
+#'     for computational efficiency); only the block variance \code{s0} (which feeds the
+#'     standard error) is approximated from a quadrature approach to solving the 
+#'     block prediction interval using \code{size_new} well-spread grid (basis) nodes.
+#'   \item \code{method_new = "subset"}: \code{x0}/\code{c0}/\code{s0} are all
+#'     computed using a subset of \code{newdata} the size of \code{size_new}.
+#' }
+#' \code{ordering} (how the \code{size_new} nodes are drawn from the grid)
+#' reuses \code{get_decorrelate_order()}; defaults to \code{"grts"} in \code{predict_block_splm()}.
+#'
 #' @param local The user-supplied \code{local} argument (logical or list)
 #'
 #' @return A fully-specified \code{local} list, with defaults filled in for
-#'   \code{method}, \code{size} (defaulting larger than point prediction's,
-#'   since block prediction needs relatively more neighbors for the same
-#'   accuracy), \code{parallel}, and \code{ncores} as needed
+#'   \code{method}, \code{size}, \code{method_new}, \code{size_new},
+#'   \code{parallel}, and \code{ncores} as needed. \code{local = FALSE} sets
+#'   \code{size_new = Inf} (every block point is an \code{s0} node, so
+#'   \code{s0} is exact).
 #'
 #' @noRd
 get_local_list_prediction_block <- function(local) {
   if (is.logical(local)) {
     if (local) {
-      local <- list(method = "covariance", size = 4000)
+      local <- list(method = "covariance", size = 4000, method_new = "basis", size_new = 4000, ordering = "grts")
     } else {
-      local <- list(method = "all")
+      # exact: no observed-side subsetting, and every block point is an s0
+      # node (size_new = Inf -> get_block_quantities() runs with nodes = 1:G)
+      local <- list(method = "all", method_new = "basis", size_new = Inf)
     }
   }
 
@@ -236,6 +256,27 @@ get_local_list_prediction_block <- function(local) {
     }
   }
 
+  if ("method_new" %in% names_local) {
+    if (!local$method_new %in% c("basis", "subset")) {
+      stop("Invalid local method_new. Local method_new must be \"basis\" or \"subset\".", call. = FALSE)
+    }
+  }
+
+  if ("size_new" %in% names_local) {
+    if (!is.numeric(local$size_new) || length(local$size_new) != 1 || is.na(local$size_new) || local$size_new < 1) {
+      stop("local$size_new must be a single positive number.", call. = FALSE)
+    }
+    if (is.finite(local$size_new)) {
+      local$size_new <- as.integer(local$size_new)
+    }
+  }
+
+  if ("ordering" %in% names_local) {
+    if (!local$ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
+      stop("local$ordering must be \"maxmin\", \"middleout\", \"outsidein\", \"coordinate\", \"grts\", \"random\", or \"none\".", call. = FALSE)
+    }
+  }
+
 
   if (!"method" %in% names_local) {
     local$method <- "covariance"
@@ -244,6 +285,17 @@ get_local_list_prediction_block <- function(local) {
   if (local$method %in% c("distance", "covariance") && !"size" %in% names_local) {
     local$size <- 4000
   }
+
+  if (!"method_new" %in% names_local) {
+    local$method_new <- "basis"
+  }
+
+  if (!"size_new" %in% names_local) {
+    local$size_new <- 4000L
+  }
+
+  # local$ordering is deliberately not defaulted here: predict_block_splm()
+  # defaults to "grts" which uses newdata coordinates
 
   if (!"parallel" %in% names_local) {
     local$parallel <- FALSE

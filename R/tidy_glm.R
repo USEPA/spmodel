@@ -4,7 +4,6 @@
 #' @export
 tidy.spglm <- function(x, conf.int = FALSE,
                        conf.level = 0.95, effects = "fixed", ...) {
-
   if (conf.int && (conf.level < 0 || conf.level > 1)) {
     stop("conf.level must be between 0 and 1.", call. = FALSE)
   }
@@ -19,11 +18,12 @@ tidy.spglm <- function(x, conf.int = FALSE,
     )
 
     if (conf.int) {
-      ci <- tibble::as_tibble(confint(x,
-        level = conf.level,
-        type = "fixed"
-      ),
-      rownames = "term", .name_repair = "minimal"
+      ci <- tibble::as_tibble(
+        confint(x,
+          level = conf.level,
+          type = "fixed"
+        ),
+        rownames = "term", .name_repair = "minimal"
       )
       colnames(ci) <- c("term", "conf.low", "conf.high")
       result <- tibble::as_tibble(base::merge(result, ci, by = "term", sort = FALSE), .name_repair = "minimal")
@@ -36,6 +36,9 @@ tidy.spglm <- function(x, conf.int = FALSE,
     colnames(result) <- c("term", "estimate")
     result$is_known <- x$is_known$spcov
 
+    # drop rotate/scale unless anisotropy was modeled, and collapse to just
+    # the nugget when there is no spatial dependence at all, so terms that
+    # were not actually estimated or used are not returned
     if (!x$anisotropy) {
       which_rotate <- which(result$term == "rotate")
       which_scale <- which(result$term == "scale")
@@ -72,7 +75,6 @@ tidy.spglm <- function(x, conf.int = FALSE,
 #' @export
 tidy.spgautor <- function(x, conf.int = FALSE,
                           conf.level = 0.95, effects = "fixed", ...) {
-
   if (conf.int && (conf.level < 0 || conf.level > 1)) {
     stop("conf.level must be between 0 and 1.", call. = FALSE)
   }
@@ -87,11 +89,12 @@ tidy.spgautor <- function(x, conf.int = FALSE,
     )
 
     if (conf.int) {
-      ci <- tibble::as_tibble(confint(x,
-        level = conf.level,
-        type = "fixed"
-      ),
-      rownames = "term", .name_repair = "minimal"
+      ci <- tibble::as_tibble(
+        confint(x,
+          level = conf.level,
+          type = "fixed"
+        ),
+        rownames = "term", .name_repair = "minimal"
       )
       colnames(ci) <- c("term", "conf.low", "conf.high")
       result <- tibble::as_tibble(base::merge(result, ci, by = "term", sort = FALSE), .name_repair = "minimal")
@@ -104,7 +107,8 @@ tidy.spgautor <- function(x, conf.int = FALSE,
     colnames(result) <- c("term", "estimate")
     result$is_known <- x$is_known$spcov
 
-
+    # only keep ie/extra if they were actually estimated (fixed at zero and
+    # known means there is nothing meaningful to report for that term)
     no_ie <- spcoef[["ie"]] == 0 && x$is_known$spcov[["ie"]]
     if (no_ie) {
       which_ie <- which(result$term == "ie")

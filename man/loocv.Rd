@@ -10,15 +10,32 @@
 \usage{
 loocv(object, ...)
 
-\method{loocv}{splm}(object, cv_predict = FALSE, se.fit = FALSE, local, ...)
+\method{loocv}{splm}(
+  object,
+  cv_predict = FALSE,
+  se.fit = FALSE,
+  local,
+  interval = c("none", "prediction"),
+  level = 0.95,
+  ...
+)
 
-\method{loocv}{spautor}(object, cv_predict = FALSE, se.fit = FALSE, local, ...)
+\method{loocv}{spautor}(
+  object,
+  cv_predict = FALSE,
+  se.fit = FALSE,
+  local,
+  interval = c("none", "prediction"),
+  level = 0.95,
+  ...
+)
 
 \method{loocv}{spglm}(
   object,
   cv_predict = FALSE,
   type = c("link", "response"),
   se.fit = FALSE,
+  delta = FALSE,
   local,
   ...
 )
@@ -28,6 +45,7 @@ loocv(object, ...)
   cv_predict = FALSE,
   type = c("link", "response"),
   se.fit = FALSE,
+  delta = FALSE,
   local,
   ...
 )
@@ -52,8 +70,20 @@ If a logical, \code{TRUE} chooses default list elements for the list version
 of \code{local} as specified in \code{\link[=predict.spmodel]{predict.spmodel()}}. Defaults to \code{FALSE},
 which performs exact computations.}
 
+\item{interval}{Whether to also report empirical leave-one-out prediction
+interval coverage in the returned fit statistics. \code{"none"} (the
+default) omits it; \code{"prediction"} reports it (see Details). Only
+available for \code{splm()}/\code{spautor()} objects.}
+
+\item{level}{The prediction interval level (e.g. 0.95) used to compute
+prediction interval coverage when \code{interval = "prediction"}. Ignored otherwise. The
+default is \code{0.95}.}
+
 \item{type}{The scale (\code{response} or \code{link}) of predictions obtained
 when \code{cv_predict = TRUE} and using \code{spglm()} or \code{spgautor} objects.}
+
+\item{delta}{A logical indicating whether to return delta method standard errors
+on the response scale when \code{se.fit = TRUE} and \code{type = "response"}. The default is \code{FALSE}.}
 }
 \value{
 If \code{cv_predict = FALSE} and \code{se.fit = FALSE},
@@ -63,7 +93,10 @@ a list with elements: \code{stats}, a fit statistics tibble
 (with bias, MSPE, RMSPE, and cor2; see Details); \code{cv_predict}, a numeric vector
 with leave-one-out predictions for each observation (if \code{cv_predict = TRUE});
 and \code{se.fit}, a numeric vector with leave-one-out prediction standard
-errors for each observation (if \code{se.fit = TRUE}).
+errors for each observation (if \code{se.fit = TRUE}). When \code{object} is from
+\code{splm()} or \code{spautor()} and \code{interval = "prediction"}, the fit
+statistics tibble also has a \code{cover.XX} column (e.g. \code{cover.95}
+for \code{level = 0.95}; see Details).
 }
 \description{
 Perform leave-one-out cross validation with options for computationally
@@ -72,16 +105,18 @@ efficient approximations for big data.
 \details{
 Each observation is held-out from the data set and the remaining data
 are used to make a prediction for the held-out observation. This is compared
-to the true value of the observation and several fit statistics are computed:
+to the true value of the observation and several fit statistics are (sometimes optionally) computed:
 bias, mean-squared-prediction error (MSPE), root-mean-squared-prediction
 error (RMSPE), and the squared correlation (cor2) between the observed data
 and leave-one-out predictions (regarded as a prediction version of r-squared
-appropriate for comparing across spatial and nonspatial models). Generally,
-bias should be near zero for well-fitting models. The lower the MSPE and RMSPE,
+appropriate for comparing across spatial and nonspatial models), and
+prediction interval coverage (cover.XX). Generally,
+bias should be near zero and prediction interval coverage at the
+intended level for well-fitting models. The lower the MSPE and RMSPE,
 the better the model fit (according to the leave-out-out criterion).
 The higher the cor2, the better the model fit (according to the leave-out-out
-criterion). cor2 is not returned when \code{object} was fit using
-\code{spglm()} or \code{spgautor()}, as it is only applicable here for linear models.
+criterion). cor2 and cover.XX are not returned when \code{object} was fit using
+\code{spglm()} or \code{spgautor()} because we do not observe the underlying latent mean.
 }
 \examples{
 spmod <- splm(z ~ water + tarp,

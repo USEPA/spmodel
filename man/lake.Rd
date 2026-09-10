@@ -5,11 +5,12 @@
 \alias{lake}
 \title{National Lakes Assessment Data}
 \format{
-An \code{sf} object with 102 rows and 9 columns:
+An \code{sf} object with 102 rows and 10 columns:
 
 \itemize{
 \item comid: A common identifier from NHDPlusV2.
 \item log_cond: The natural logarithm of lake conductivity.
+\item cond: The lake conductivity.
 \item state: The US state: One of Arizona (AZ), Colorado (CO), Nevada (NV),
 Utah (UT).
 \item temp: Lake catchment 30-year average temperature (in degrees Celsius).

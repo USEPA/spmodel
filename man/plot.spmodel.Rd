@@ -19,7 +19,7 @@
 \arguments{
 \item{x}{A fitted model object from \code{\link[=splm]{splm()}}, \code{\link[=spautor]{spautor()}}, \code{\link[=spglm]{spglm()}}, or \code{\link[=spgautor]{spgautor()}}.}
 
-\item{which}{An integer vector taking on values between 1 and 7, which indicates
+\item{which}{An integer vector taking on values between 1 and 8, which indicates
 the plots to return. Available plots are described in Details. If \code{which}
 has length greater than one, additional plots are stepped through in order
 using \code{<Return>}. The default for \code{\link[=splm]{splm()}} and \code{\link[=spglm]{spglm()}} fitted model objects is

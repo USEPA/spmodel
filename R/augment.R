@@ -22,11 +22,24 @@
 #'   must be present in \code{newdata}. Defaults to \code{NULL}, which indicates
 #'   that nothing has been passed to \code{newdata}.
 #' @param se_fit Logical indicating whether or not a \code{.se.fit} column should
-#'   be added to augmented output. Passed to \code{predict()} and
-#'   defaults to \code{FALSE}.
-#' @param interval Character indicating the type of confidence interval columns to
-#'   add to the augmented \code{newdata} output. Passed to \code{predict()} and defaults
+#'   be added to augmented output. Defaults to \code{FALSE}. When \code{newdata}
+#'   is not supplied, \code{.se.fit} is the standard error of the fitted mean at
+#'   the observed locations (on the link scale for \code{spglm()} and
+#'   \code{spgautor()} model objects), matching
+#'   \code{predict(interval = "confidence")}.
+#' @param interval Character indicating the type of interval columns
+#'   (\code{.lower} and \code{.upper}) to add to the augmented output. Defaults
 #'   to \code{"none"}.
+#' @section Autoregressive models and prediction quantities:
+#'   For \code{spautor()} and \code{spgautor()} model objects the prediction
+#'   locations are part of the model: they determine the neighbor structure and
+#'   hence the covariance of the observed data itself. \code{se_fit} and
+#'   \code{interval} are therefore only defined at those locations, and
+#'   \code{object$newdata} is automatically used when \code{se_fit} or
+#'   \code{interval} is requested (and hence the rows returned by \code{augment()})
+#'   correspond to \code{object$newdata}. \code{splm()} and \code{spglm()} model objects have no such
+#'   restriction, as their covariance does not depend on where predictions
+#'   are made.
 #' @param level Tolerance/confidence level. The default is \code{0.95}.
 #' @param local A list or logical. If a list, specific list elements described
 #'   in [predict.spmodel()] control the big data approximation behavior.
@@ -90,12 +103,16 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
                          local, ...) {
   interval <- match.arg(interval)
 
+  # a prediction interval needs an unobserved location; a confidence interval
+  # around the fitted mean is still available below
+  interval <- check_interval_augment(interval, !is.null(newdata))
+
   # set data and newdata
+  # when newdata is NULL, augment the original fitted data with diagnostics;
+  # otherwise augment new observations with predictions
   if (is.null(newdata)) {
     if (drop) {
       data <- cbind(model.frame(x), x$obdata[, c(x$xcoord, x$ycoord)])
-      # keep_cols <- colnames(model.frame(x))
-      # data <- x$obdata[, c(keep_cols, x$xcoord, x$ycoord)]
     } else {
       data <- x$obdata
     }
@@ -104,13 +121,21 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
   }
 
   if (is.null(newdata)) {
+    # original-data path: attach fitted values plus leverage/residual/Cook's
+    # distance diagnostics computed by influence()
     augment_data <- tibble::tibble(.fitted = fitted(x))
-    if (se_fit) {
-      preds_data <- predict(x, newdata = data, se.fit = se_fit, interval = "confidence", ...)
-      augment_data$.se.fit <- preds_data$se.fit
+    if (se_fit || interval == "confidence") {
+      se <- get_se_fitted_mean(x)
+      if (interval == "confidence") {
+        tstar <- qnorm(1 - (1 - level) / 2)
+        augment_data$.lower <- augment_data$.fitted - tstar * se
+        augment_data$.upper <- augment_data$.fitted + tstar * se
+      }
+      if (se_fit) augment_data$.se.fit <- se
     }
     tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x)))
   } else {
+    # newdata path: attach predictions (and optional intervals/se) instead of diagnostics
     if (missing(local)) local <- NULL
     preds_newdata <- predict(x,
       newdata = newdata, se.fit = se_fit, interval = interval,
@@ -150,6 +175,8 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
     }
 
     if (inherits(newdata, "sf")) {
+      # extract point coordinates from sf geometry (centroid handles
+      # polygon/line geometries) so the model's xcoord/ycoord columns exist
       newdata <- suppressWarnings(sf::st_centroid(newdata))
 
       newdata <- sf_to_df(newdata)
@@ -163,9 +190,9 @@ augment.splm <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
   }
 
 
-  # if (x$is_sf && requireNamespace("sf", quietly = TRUE)) {
   if (x$is_sf) {
     # sf installed
+    # re-attach sf geometry to match the class of the original data
     if (inherits(newdata, "sf")) {
       tibble_out <- sf::st_as_sf(tibble_out,
         sf_column_name = x$sf_column_name,
@@ -193,15 +220,20 @@ augment.spautor <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
                             level = 0.95, local, ...) {
   interval <- match.arg(interval)
 
+  # se_fit and interval are prediction quantities that only exist at object$newdata
+  if (is.null(newdata)) {
+    newdata <- augment_areal_newdata(x, se_fit, interval)
+  }
+
   # set data and newdata
+  # spautor/spgautor fit on the full autocorrelation neighborhood (observed +
+  # unobserved locations), so diagnostics are restricted to observed_index rows only
   if (is.null(newdata)) {
     if (drop) {
       if (x$is_sf) {
         data_sf <- x$data[x$observed_index, x$sf_column_name, drop = FALSE]
       }
       data <- model.frame(x)
-      # keep_cols <- colnames(model.frame(x))
-      # data <- data[, keep_cols, drop = FALSE]
     } else {
       data <- x$data[x$observed_index, , drop = FALSE]
     }
@@ -209,11 +241,8 @@ augment.spautor <- function(x, drop = TRUE, newdata = NULL, se_fit = FALSE,
 
 
   if (is.null(newdata)) {
+    # newdata is NULL only when se and interval are not supplied
     augment_data <- tibble::tibble(.fitted = fitted(x))
-    if (se_fit) {
-      preds_data <- predict(x, newdata = data, se.fit = se_fit, interval = "confidence", ...)
-      augment_data$.se.fit <- preds_data$se.fit
-    }
     if (x$is_sf && drop) {
       tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x), data_sf))
     } else {

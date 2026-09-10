@@ -55,7 +55,7 @@
 #'     \item gravity: \eqn{(1 + \eta^2)^{-0.5}}
 #'     \item rquad: \eqn{(1 + \eta^2)^{-1}}
 #'     \item magnetic: \eqn{(1 + \eta^2)^{-1.5}}
-#'     \item matern: \eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra * \eta)^{0.5}}, Bk is Bessel-K function wit  order \eqn{1/5 \le extra \le 5}
+#'     \item matern: \eqn{2^{1 - extra}/ \Gamma(extra) * \alpha^{extra} * Bk(\alpha, extra)}, \eqn{\alpha = (2extra)^{0.5} * \eta}, Bk is Bessel-K function wit  order \eqn{1/5 \le extra \le 5}
 #'     \item cauchy: \eqn{(1 + \eta^2)^{-extra}}, \eqn{extra > 0}
 #'     \item pexponential: \eqn{exp(h^{extra}/range)}, \eqn{0 < extra \le 2}
 #'     \item car: \eqn{(I - range * W)^{-1} * M}, weights matrix \eqn{W},
@@ -107,29 +107,17 @@ spcov_initial <- function(spcov_type, de, ie, range, extra, rotate, scale, known
   }
 
   # set defaults
-  if (missing(de)) {
-    de <- NULL
-  }
+  if (missing(de)) de <- NULL
 
-  if (missing(ie)) {
-    ie <- NULL
-  }
+  if (missing(ie)) ie <- NULL
 
-  if (missing(range)) {
-    range <- NULL
-  }
+  if (missing(range)) range <- NULL
 
-  if (missing(extra)) {
-    extra <- NULL
-  }
+  if (missing(extra)) extra <- NULL
 
-  if (missing(rotate)) {
-    rotate <- NULL
-  }
+  if (missing(rotate)) rotate <- NULL
 
-  if (missing(scale)) {
-    scale <- NULL
-  }
+  if (missing(scale)) scale <- NULL
 
   # paramter checks
   if (!is.null(de) && !is.na(de) && de < 0) {
@@ -166,6 +154,9 @@ spcov_initial <- function(spcov_type, de, ie, range, extra, rotate, scale, known
     stop("extra must be positive and no larger than 2", call. = FALSE)
   }
 
+  # only parameters actually supplied (non-NULL) end up in this vector, so
+  # parameters left unset stay absent here and get filled with type-specific
+  # defaults later (e.g., by spcov_initial_NA())
   spcov_params_given <- c(
     de = unname(de),
     ie = unname(ie),
@@ -186,11 +177,15 @@ spcov_initial <- function(spcov_type, de, ie, range, extra, rotate, scale, known
   names(is_known) <- names(spcov_params_given)
 
   # error if NA and known
+  # NA is reserved to mean "estimate this parameter" (see spcov_initial_NA()),
+  # so marking an NA value as known would be a contradiction
   spcov_NA <- which(is.na(spcov_params_given))
   if (any(is_known[spcov_NA])) {
     stop("spcov_initial values cannot be NA and known.", call. = FALSE)
   }
 
+  # class is set to spcov_type so downstream functions (spcov_matrix(),
+  # spcov_orig2optim(), etc.) can dispatch on it via S3 methods
   new_spcov_initial <- structure(list(initial = spcov_params_given, is_known = is_known), class = spcov_type)
   new_spcov_initial
 }

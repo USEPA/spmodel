@@ -1,0 +1,830 @@
+#' Apply the Spatial Decorrelation Transformation to a Data Object
+#'
+#' @description Apply the spatial decorrelation transformation to a data object.
+#'   This object contains the transformed explanatory and response variables
+#'   which can be used to fit a machine learning model. This object also contains
+#'   information needed to decorrelate prediction data.
+#'
+#' @inheritParams decorrelate
+#'
+#' @details The spatial decorrelation transformation is a preprocessing transformation
+#'   that reduces the impacts of spatial dependence (i.e., covariance, correlation)
+#'   on machine learning models. See [decorrelate()] and Heaton et al., 2025 for more details.
+#'
+#'
+#' @return A list with many elements that store information about
+#'   the fitted model object. Importantly, the list contains the following elements:
+#'   \itemize{
+#'     \item \code{X}: The original fixed effects design matrix (of explanatory variables)
+#'     \item \code{y}: The original response variable
+#'     \item \code{tX}: The spatially decorrelated transformed fixed effects design matrix
+#'     \item \code{ty}: The spatially decorrelated transformed response variable
+#'   }
+#'
+#' @export
+#'
+#' @seealso [decorrelate()] [spcov_params()] [randcov_params()]
+#'
+#'
+#' @references Matthew J. Heaton, Andrew Millane, and Jake S. Rhodes. 2025. A Scalable
+#'   Spatial Decorrelation Preprocessing Approach for Machine and Deep Learning.
+#'   \emph{Journal of Data Science}. 1-15, DOI 10.6339/25-JDS1210
+#'
+#' @examples
+#' params <- spcov_params("exponential", de = 1, ie = 0.2, range = 1e5)
+#' decorr <- decorrelate_data(log_cond ~ temp, data = lake, spcov_params = params)
+#' head(cbind(decorr$X, decorr$tX))
+#' head(cbind(decorr$y, decorr$ty))
+decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randcov_params, partition_factor, ordering, local, ...) {
+
+  # non standard evaluation for x and y coordinates (only meaningful at this,
+  # the direct calling frame -- decorrelate_data_internal() receives the
+  # already-substituted value and must not re-substitute)
+  xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
+  ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
+
+  # set randcov_initial NULL if necessary. Unlike decorrelate_data_internal()
+  # (which always receives an already-resolved `random` from its caller),
+  # decorrelate_data() has no `random` argument of its own and must derive it
+  # from randcov_params.
+  if (missing(randcov_params) || is.null(randcov_params)) {
+    random <- NULL
+    randcov_params <- NULL
+  } else {
+    random <- reformulate(names(randcov_params))
+  }
+
+  # decorrelate_data_internal() uses is.null(ordering)/is.null(local), which
+  # forces evaluation, so a truly-missing argument must be resolved to an
+  # explicit NULL here rather than passed through by bare symbol.
+  if (missing(partition_factor)) partition_factor <- NULL
+  if (missing(ordering)) ordering <- NULL
+  if (missing(local)) local <- NULL
+
+  decorrelate_data_internal(
+    formula = formula,
+    data = data,
+    spcov_params = spcov_params,
+    xcoord = xcoord,
+    ycoord = ycoord,
+    random = random,
+    randcov_params = randcov_params,
+    partition_factor = partition_factor,
+    ordering = ordering,
+    local = local,
+    ...
+  )
+}
+
+#' Spatial decorrelation setup shared across a grid search (part 1 of 2)
+#'
+#' Building the data object, resolving the big data approximation, and
+#' computing the observation ordering (maxmin/GRTS/etc.) are all independent
+#' of the specific spatial covariance parameter values being evaluated, so
+#' \code{\link{decorrelate_initial_search}()} calls this function only once
+#' per training split and reuses its output across every parameter set in
+#' the grid via \code{\link{decorrelate_data_internal_part2}()} -- avoiding
+#' the (expensive in inconsistent if random elements e.g., grts)
+#' reordering step on every grid point.
+#'
+#' @param formula,data,xcoord,ycoord,random,partition_factor,ordering,local See
+#'   \code{\link{decorrelate}()}.
+#' @param spcov_type The spatial covariance type (only its class/name is
+#'   needed here -- actual parameter values are supplied later to
+#'   \code{\link{decorrelate_data_internal_part2}()}).
+#' @param ... Additional arguments passed to \code{\link{get_data_object_splm}()}.
+#'
+#' @return A list of intermediate quantities (ordered \code{X}/\code{y}, the
+#'   observation ordering, the resolved \code{local} list, the underlying
+#'   \code{data_object}, etc.) to be passed as \code{decorrelate_part1_object}
+#'   to \code{\link{decorrelate_data_internal_part2}()}.
+#'
+#' @noRd
+decorrelate_data_internal_part1 <- function(formula, data, spcov_type, xcoord, ycoord, random, partition_factor, ordering, local, ...) {
+
+  if (missing(random)) {
+    random <- NULL
+  }
+
+  # set partition factor if necessary
+  if (missing(partition_factor) || is.null(partition_factor)) {
+    partition_factor <- NULL
+  }
+
+  # random is deliberately NOT passed through here (even
+  # though this decorrelate() call may itself have a random effect formula):
+  # it is passed later for computational efficiency
+  data_object <- get_data_object_splm(
+    formula = formula,
+    data = data,
+    spcov_initial = spcov_initial(spcov_type), # default placeholder
+    xcoord = xcoord,
+    ycoord = ycoord,
+    estmethod = "reml",  # default placeholder
+    anisotropy = FALSE, # default placeholder
+    random = NULL,
+    randcov_initial = NULL, # default placeholder
+    partition_factor = NULL, # default placeholder
+    local = FALSE, # default placeholder
+    range_constrain = FALSE, # default placeholder
+    ...
+  )
+
+  if (missing(local)) {
+    local <- NULL
+  }
+  if (is.null(local)) {
+    if (data_object$n > 5000) {
+      local <- TRUE
+      message("Because the sample size exceeds 5,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+    } else {
+      local <- FALSE
+    }
+  }
+  local <- get_local_list_decorrelate(local)
+
+  obdata <- data_object$obdata
+
+  if (is.null(partition_factor)) {
+    partition_group_val <- NULL
+  } else {
+    # create a group label for computational efficiency
+    partition_group_val <- partition_group(partition_factor, obdata)
+  }
+
+  if (is.null(random)) {
+    randcov_groups_val <- NULL
+  } else {
+    # create a group label for computational efficiency
+    randcov_groups_val <- get_randcov_groups(random, obdata)
+  }
+
+  X <- data_object$X_list[[1]]
+  y <- data_object$y_list[[1]]
+  xcoord_val <- obdata[[data_object$xcoord]]
+  ycoord_val <- obdata[[data_object$ycoord]]
+
+  index <- seq(1, data_object$n)
+
+  # do ordering here
+  if (is.null(ordering)) {
+    any_dup <- any(duplicated(cbind(xcoord_val, ycoord_val)))
+    if (any_dup) {
+      ordering <- "grts"
+    } else {
+      ordering <- "maxmin"
+    }
+  }
+
+  if (!ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
+    stop("Invalid ordering argument. Argument must be \"middleout\", \"outsidein\", \"coordinate\", \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
+  }
+
+  # ordering done with separate random elements (grts, random) for each grid item (fix)
+  ord <- get_decorrelate_order(ordering, xcoord_val, ycoord_val)
+
+  # order all values
+  X <- X[ord$order, , drop = FALSE]
+  y <- y[ord$order, , drop = FALSE]
+  xcoord_val <- xcoord_val[ord$order]
+  ycoord_val <- ycoord_val[ord$order]
+  if (!is.null(partition_group_val)) {
+    partition_group_val <- partition_group_val[ord$order]
+  }
+  if (!is.null(randcov_groups_val)) {
+    randcov_groups_val <- lapply(randcov_groups_val, function(g) {
+      list(group = g$group[ord$order], coef = g$coef[ord$order])
+    })
+  }
+
+  list(
+    index = index,
+    X = X,
+    y = y,
+    xcoord_val = xcoord_val,
+    ycoord_val = ycoord_val,
+    local = local,
+    random = random,
+    partition_factor = partition_factor,
+    partition_group_val = partition_group_val,
+    randcov_groups_val = randcov_groups_val,
+    ord = ord,
+    ordering = ordering,
+    data_object = data_object
+  )
+}
+
+#' Spatial decorrelation transform for one parameter set (part 2 of 2)
+#'
+#' Applies the actual spatial decorrelation transform (via
+#' \code{\link{get_decorrelated_value}()}, run once per observation) given a
+#' specific \code{spcov_params}/\code{randcov_params} and the shared setup
+#' from \code{\link{decorrelate_data_internal_part1}()}. Called once per grid
+#' row by \code{\link{decorrelate_initial_search}()}.
+#'
+#' @param spcov_params,randcov_params A \code{\link{spcov_params}()} object
+#'   (and, if relevant, a named vector of random effect variances) for this
+#'   grid row.
+#' @param decorrelate_part1_object The output of
+#'   \code{\link{decorrelate_data_internal_part1}()}.
+#' @param ... Currently unused.
+#'
+#' @return A \code{decorrelate_data} object; see \code{\link{decorrelate_data}()}.
+#'
+#' @noRd
+decorrelate_data_internal_part2 <- function(spcov_params, randcov_params, decorrelate_part1_object, ...) {
+
+  index <- decorrelate_part1_object$index
+  total_var <- decorrelate_part1_object$total_var
+  X <- decorrelate_part1_object$X
+  y <- decorrelate_part1_object$y
+  xcoord_val <- decorrelate_part1_object$xcoord_val
+  ycoord_val <- decorrelate_part1_object$ycoord_val
+  local <- decorrelate_part1_object$local
+  random <- decorrelate_part1_object$random
+  partition_factor <- decorrelate_part1_object$partition_factor
+  partition_group_val <- decorrelate_part1_object$partition_group_val
+  randcov_groups_val <- decorrelate_part1_object$randcov_groups_val
+  ord <- decorrelate_part1_object$ord
+  ordering <- decorrelate_part1_object$ordering
+  data_object <- decorrelate_part1_object$data_object
+
+
+    if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
+      anisotropy <- TRUE
+    } else {
+      anisotropy <- FALSE
+    }
+
+    if (anisotropy) {
+      obdata_aniscoords <- transform_anis2(xcoord_val, ycoord_val, spcov_params[["rotate"]], spcov_params[["scale"]])
+      xcoord_val <- obdata_aniscoords$xcoord
+      ycoord_val <- obdata_aniscoords$ycoord
+    }
+  # randcov_groups_val (from decorrelate_data_internal_part1()) is already
+  # reordered and NULL when there's no random effect; get_decorrelated_value()
+  # below builds the (small) per-neighborhood randcov contribution so there is
+  # no n x n matrix to build or reorder here
+
+
+  total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
+
+  # get_decorrelated_value() is applied independently to each ordered
+  # observation's index; each call only reads the (fixed) earlier rows
+  # of X/y up to that index, so distinct indices have no side effects on
+  # each other and can safely run in parallel despite the sequential,
+  # Vecchia-style conditioning structure of the transform
+  if (local$parallel) {
+    cl <- parallel::makeCluster(local$ncores)
+    vals <- parallel::parLapply(cl, index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_params, randcov_groups_val, partition_group_val)
+    cl <- parallel::stopCluster(cl)
+  } else {
+    vals <- lapply(index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_params, randcov_groups_val, partition_group_val)
+  }
+  X <- do.call("rbind", lapply(vals, function(x) x$X))
+  y <- do.call("rbind", lapply(vals, function(x) x$y))
+  tX <- do.call("rbind", lapply(vals, function(x) x$tX))
+  ty <- do.call("rbind", lapply(vals, function(x) x$ty))
+
+  # undo vecchia ordering here (X/y/tX/ty were built in the ordered sequence
+  # used for conditioning; ord$inv_order restores the caller's original row order)
+  X <- X[ord$inv_order, , drop = FALSE]
+  y <- y[ord$inv_order, , drop = FALSE]
+  tX <- tX[ord$inv_order, , drop = FALSE]
+  ty <- ty[ord$inv_order, , drop = FALSE]
+
+  coefs <- list(spcov = spcov_params, randcov = randcov_params)
+  output <- list(
+    obdata = data_object$obdata,
+    coefficients = coefs,
+    X = X,
+    y = as.vector(y),
+    tX = tX,
+    ty = as.vector(ty),
+    xcoord = data_object$xcoord,
+    ycoord = data_object$ycoord,
+    random = random,
+    partition_factor = partition_factor,
+    dim_coords = data_object$dim_coords,
+    terms = data_object$terms,
+    xlevels = data_object$xlevels,
+    contrasts = data_object$contrasts,
+    local = local,
+    newdata = data_object$newdata,
+    anisotropy = anisotropy,
+    diagtol = data_object$diagtol,
+    total_var = total_var,
+    ordering = ordering
+  )
+  new_output <- structure(output, class = "decorrelate_data")
+  new_output
+}
+
+#' Spatial decorrelation transform for a single, already-known parameter set
+#'
+#' Combines what \code{\link{decorrelate_data_internal_part1}()} and
+#' \code{\link{decorrelate_data_internal_part2}()} do separately into one
+#' call. Used when \code{spcov_params} (and, if relevant,
+#' \code{randcov_params}) are already fully known -- i.e. there is only ever
+#' one parameter set to transform, so the part1/part2 split (which exists to
+#' let part1's setup be reused across many grid rows) buys nothing here. This
+#' is what \code{\link{decorrelate_data}()} and the final fit step of
+#' \code{\link{decorrelate}()} call directly.
+#'
+#' @param formula,data,xcoord,ycoord,random,randcov_params,partition_factor,ordering,local
+#'   See \code{\link{decorrelate}()}.
+#' @param spcov_params A \code{\link{spcov_params}()} object.
+#' @param ... Additional arguments passed to \code{\link{get_data_object_splm}()}.
+#'
+#' @return A \code{decorrelate_data} object; see \code{\link{decorrelate_data}()}.
+#'
+#' @noRd
+decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoord, random, randcov_params, partition_factor, ordering, local, ...) {
+
+  if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
+    anisotropy <- TRUE
+  } else {
+    anisotropy <- FALSE
+  }
+
+  # set randcov_initial NULL if necessary
+  if (missing(randcov_params) || is.null(randcov_params)) {
+    random <- NULL
+    randcov_params <- NULL
+  }
+
+  # set partition factor if necessary
+  if (missing(partition_factor) || is.null(partition_factor)) {
+    partition_factor <- NULL
+  }
+
+  # random is deliberately NOT passed through here
+  data_object <- get_data_object_splm(
+    formula = formula,
+    data = data,
+    spcov_initial = spcov_initial(class(spcov_params)), # default placeholder
+    xcoord = xcoord,
+    ycoord = ycoord,
+    estmethod = "reml",  # default placeholder
+    anisotropy = anisotropy,
+    random = NULL,
+    randcov_initial = NULL, # default placeholder
+    partition_factor = NULL, # default placeholder
+    local = FALSE, # default placeholder
+    range_constrain = FALSE, # default placeholder
+    ...
+  )
+
+  if (missing(local)) {
+    local <- NULL
+  }
+  if (is.null(local)) {
+    if (data_object$n > 5000) {
+      local <- TRUE
+      message("Because the sample size exceeds 5,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.")
+    } else {
+      local <- FALSE
+    }
+  }
+  local <- get_local_list_decorrelate(local)
+
+  obdata <- data_object$obdata
+
+
+  if (is.null(random)) {
+    randcov_groups_val <- NULL
+  } else {
+    names(randcov_params) <- get_randcov_names(random) # fixes names
+    randcov_groups_val <- get_randcov_groups(random, obdata)
+  }
+
+  if (is.null(partition_factor)) {
+    partition_group_val <- NULL
+  } else {
+    partition_group_val <- partition_group(partition_factor, obdata)
+  }
+
+  X <- data_object$X_list[[1]]
+  y <- data_object$y_list[[1]]
+  xcoord_val <- obdata[[data_object$xcoord]]
+  ycoord_val <- obdata[[data_object$ycoord]]
+  if (anisotropy) {
+    obdata_aniscoords <- transform_anis2(xcoord_val, ycoord_val, spcov_params[["rotate"]], spcov_params[["scale"]])
+    xcoord_val <- obdata_aniscoords$xcoord
+    ycoord_val <- obdata_aniscoords$ycoord
+  }
+
+
+  index <- seq(1, data_object$n)
+  total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
+
+  # do ordering here
+  if (is.null(ordering)) {
+    any_dup <- any(duplicated(cbind(xcoord_val, ycoord_val)))
+    if (any_dup) {
+      ordering <- "grts"
+    } else {
+      ordering <- "maxmin"
+    }
+  }
+
+  if (!ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
+    stop("Invalid ordering argument. Argument must be \"middleout\", \"outsidein\", \"coordinate\", \"maxmin\", \"grts\", \"random\", or \"none\".", call. = FALSE)
+  }
+
+  # ordering done with separate random elements (grts, random) for each grid item (fix)
+  ord <- get_decorrelate_order(ordering, xcoord_val, ycoord_val) # remove this eventually replace with ordering_list
+
+  # order all values
+  X <- X[ord$order, , drop = FALSE]
+  y <- y[ord$order, , drop = FALSE]
+  xcoord_val <- xcoord_val[ord$order]
+  ycoord_val <- ycoord_val[ord$order]
+  if (!is.null(randcov_groups_val)) {
+    randcov_groups_val <- lapply(randcov_groups_val, function(g) {
+      list(group = g$group[ord$order], coef = g$coef[ord$order])
+    })
+  }
+  if (!is.null(partition_group_val)) {
+    partition_group_val <- partition_group_val[ord$order]
+  }
+
+
+  if (local$parallel) {
+    cl <- parallel::makeCluster(local$ncores)
+    vals <- parallel::parLapply(cl, index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_params, randcov_groups_val, partition_group_val)
+    cl <- parallel::stopCluster(cl)
+  } else {
+    vals <- lapply(index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_params, randcov_groups_val, partition_group_val)
+  }
+  X <- do.call("rbind", lapply(vals, function(x) x$X))
+  y <- do.call("rbind", lapply(vals, function(x) x$y))
+  tX <- do.call("rbind", lapply(vals, function(x) x$tX))
+  ty <- do.call("rbind", lapply(vals, function(x) x$ty))
+
+  # undo vecchia ordering here
+  X <- X[ord$inv_order, , drop = FALSE]
+  y <- y[ord$inv_order, , drop = FALSE]
+  tX <- tX[ord$inv_order, , drop = FALSE]
+  ty <- ty[ord$inv_order, , drop = FALSE]
+
+  coefs <- list(spcov = spcov_params, randcov = randcov_params)
+  output <- list(
+    obdata = data_object$obdata,
+    coefficients = coefs,
+    X = X,
+    y = as.vector(y),
+    tX = tX,
+    ty = as.vector(ty),
+    xcoord = data_object$xcoord,
+    ycoord = data_object$ycoord,
+    random = random,
+    partition_factor = partition_factor,
+    dim_coords = data_object$dim_coords,
+    terms = data_object$terms,
+    xlevels = data_object$xlevels,
+    contrasts = data_object$contrasts,
+    local = local,
+    newdata = data_object$newdata,
+    anisotropy = data_object$anisotropy,
+    diagtol = data_object$diagtol,
+    total_var = total_var,
+    ordering = ordering
+  )
+  new_output <- structure(output, class = "decorrelate_data")
+  new_output
+}
+
+
+#' Spatially decorrelate a single (ordered) observation
+#'
+#' Implements the actual spatial decorrelation transform for one
+#' observation, given its index in the ordered data (see
+#' \code{\link{get_decorrelate_order}()}). This is a Vecchia-style sequential
+#' conditioning transform: observation \code{index} is standardized by its
+#' conditional distribution given some subset of the earlier-ordered
+#' observations \code{1:(index - 1)} ("neighbors" -- either all of them, or
+#' the \code{local$size} nearest/most-correlated of them; see the \code{local}
+#' argument to \code{\link{decorrelate}()}), producing transformed
+#' explanatory variables \code{tX} and response \code{ty} whose spatial
+#' covariance has (approximately) been removed. This is the same conditional
+#' independence structure exploited by Vecchia/NNGP likelihood
+#' approximations, applied here to individual observations rather than to a
+#' likelihood.
+#'
+#' @param index This observation's position in the ordered data.
+#' @param spcov_params A \code{\link{spcov_params}()} object.
+#' @param total_var The total (spatial + independent error + random effect)
+#'   variance, used to convert covariances into correlations below.
+#' @param X,y The (already ordered) full design matrix and response.
+#' @param xcoord_val,ycoord_val The (already ordered) coordinates.
+#' @param local The resolved \code{local} list from
+#'   \code{\link{get_local_list_decorrelate}()}, controlling how many/which
+#'   earlier observations are conditioned on.
+#' @param randcov_params A named numeric vector of random effect variances
+#'   (names matching \code{get_randcov_names(random)}), or \code{NULL}.
+#' @param randcov_groups The (already ordered) named list from
+#'   \code{\link{get_randcov_groups}()} (per-term group label/coefficient
+#'   vectors), or \code{NULL}.
+#' @param partition_group The (already ordered) length-n vector of partition
+#'   factor group labels, or \code{NULL}.
+#'
+#' @return A list with elements \code{X}, \code{y} (this observation's
+#'   original values, unchanged) and \code{tX}, \code{ty} (its spatially
+#'   decorrelated values).
+#'
+#' @noRd
+get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_params, randcov_groups, partition_group) {
+
+  # the first observation in the order has no earlier observations to
+  # condition on, so it passes through untransformed
+  if (index == 1) {
+    X <- X[index, , drop = FALSE]
+    y <- y[index, , drop = FALSE]
+    return(list(X = X, y = y, tX = X, ty = y))
+  }
+
+  index_new <- index
+  index_old <- seq(1, index - 1)
+
+  X_new <- X[index_new, , drop = FALSE]
+  X_old <- X[index_old, , drop = FALSE]
+  y_new <- y[index_new, , drop = FALSE]
+  y_old <- y[index_old, , drop = FALSE]
+
+  xcoord_val_new <- xcoord_val[index_new]
+  ycoord_val_new <- ycoord_val[index_new]
+  xcoord_val_old <- xcoord_val[index_old]
+  ycoord_val_old <- ycoord_val[index_old]
+
+  # distances (and, below, covariances) from this observation to every
+  # earlier-ordered observation -- candidates to condition on, before any
+  # local$method subsetting to a smaller neighbor set happens further down
+  dists_new <- spdist_vectors2(xcoord_val_new, ycoord_val_new, xcoord_val_old, ycoord_val_old)
+  # random effects if necessary (cheap rather than slice from larger matrix)
+  if (is.null(randcov_groups)) {
+    randcov_vector <- NULL
+  } else {
+    randcov_vector <- get_randcov_local(randcov_params, randcov_groups, index_new, index_old)
+  }
+  # partition factor if necessary (cheap rather than slice from larger matrix)
+  if (is.null(partition_group)) {
+    partition_vector <- NULL
+  } else {
+    partition_vector <- as.numeric(partition_group[index_old] == partition_group[index_new])
+  }
+  cov_vec_new <- cov_vector(spcov_params, dists_new, randcov_vector = randcov_vector, partition_vector = partition_vector)
+  cov_vec_new <- as.numeric(cov_vec_new)
+
+  # random effect group/coefficient vectors for the candidate neighbor pool
+  randcov_groups_old <- if (is.null(randcov_groups)) {
+    NULL
+  } else {
+    lapply(randcov_groups, function(g) list(group = g$group[index_old], coef = g$coef[index_old]))
+  }
+  # partition factor group labels for the candidate neighbor pool
+  group_old <- if (is.null(partition_group)) NULL else partition_group[index_old]
+
+  if (local$method == "all" ) { # || index <= local$size
+    dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
+  }
+
+  # subsetting data if method distance
+  if (local$method == "distance") { # && ndex > local$size
+    n <- length(cov_vec_new)
+    # want the smallest distance here and order goes from smallest first to largest last
+    # (keep last values with are smallest distance)
+    keep <- order(as.numeric(dists_new))[seq(from = 1, to = min(n, local$size))]
+    X_old <- X_old[keep, , drop = FALSE]
+    y_old <- y_old[keep, , drop = FALSE]
+    xcoord_val_old <- xcoord_val[keep]
+    ycoord_val_old <- ycoord_val[keep]
+    dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
+    if (!is.null(randcov_groups_old)) {
+      randcov_groups_old <- lapply(randcov_groups_old, function(g) list(group = g$group[keep], coef = g$coef[keep]))
+    }
+    if (!is.null(group_old)) {
+      group_old <- group_old[keep]
+    }
+    cov_vec_new <- cov_vec_new[keep]
+  }
+
+  if (local$method == "covariance") { # && index > local$size
+    n <- length(cov_vec_new)
+    # want the largest covariance here and order goes from smallest first to largest last
+    # (keep last values which are largest covariance)
+    # abs() is used because a few spcov_types (e.g., wave, cosine, jbessel)
+    # can have negative covariance -- for those, a strongly negatively
+    # correlated neighbor is just as informative for prediction as a
+    # strongly positively correlated one, and ranking by raw covariance would
+    # pass over it in favor of weakly positive neighbors. For the (far more
+    # common) monotone decreasing spcov_types, covariance is never negative,
+    # so abs() has no effect there
+    keep <- order(abs(as.numeric(cov_vec_new)))[seq(from = n, to = max(1, n - local$size + 1))]
+    X_old <- X_old[keep, , drop = FALSE]
+    y_old <- y_old[keep, , drop = FALSE]
+    xcoord_val_old <- xcoord_val[keep]
+    ycoord_val_old <- ycoord_val[keep]
+    dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
+    if (!is.null(randcov_groups_old)) {
+      randcov_groups_old <- lapply(randcov_groups_old, function(g) list(group = g$group[keep], coef = g$coef[keep]))
+    }
+    if (!is.null(group_old)) {
+      group_old <- group_old[keep]
+    }
+    cov_vec_new <- cov_vec_new[keep]
+  }
+
+  # build the small random effect / partition indicator matrices now, over
+  # only the (at most local$size) neighbors actually being conditioned on
+  if (is.null(randcov_groups_old)) {
+    randcov_matrix_old <- NULL
+  } else {
+    idx <- seq_along(randcov_groups_old[[1]]$group)
+    randcov_matrix_old <- get_randcov_local(randcov_params, randcov_groups_old, idx, idx)
+  }
+  if (is.null(group_old)) {
+    partition_matrix_old <- NULL
+  } else {
+    partition_matrix_old <- outer(group_old, group_old, FUN = "==") * 1
+  }
+
+  cov_mat_old <- cov_matrix2(spcov_params, dist_matrix = dists_old, randcov_matrix = randcov_matrix_old, partition_matrix = partition_matrix_old)
+
+  # work in correlations (covariances / total_var) rather than covariances so
+  # that w below lands on the [0, 1] scale of "fraction of variance left
+  # unexplained by conditioning on the neighbor set"
+  cor_vec_new <- cov_vec_new / total_var
+  cor_mat_old <- cov_mat_old / total_var
+
+  # Cholesky factor of the neighbor set's correlation matrix, used to solve
+  # the conditioning equations below without an explicit matrix inverse
+  rSig_upchol <- Matrix::chol(Matrix::forceSymmetric(cor_mat_old))
+  rSig_lowchol <- t(rSig_upchol)
+
+  # r0' Sigma_old^-1 r0, the fraction of this observation's variance already
+  # explained by its neighbors; w is what's left over (the conditional
+  # variance), analogous to the Vecchia/NNGP "conditional variance" term
+  rSqrtSigInv_r0 <- forwardsolve(rSig_lowchol, cor_vec_new)
+  r0_SigInv_r0 <- crossprod(rSqrtSigInv_r0, rSqrtSigInv_r0)
+  # w is a conditional variance, so it is theoretically always >= 0, but
+  # r0_SigInv_r0 can come out numerically just above 1 (catastrophic
+  # cancellation in floating point) when a neighbor is a near-perfect
+  # predictor of this observation floors that roundoff at exactly 0 rather than letting sqrt(w)
+  # below silently produce NaN. w is later used as a divisor (via sqrt(w)),
+  # so flooring at exactly 0 so consider flooring at a small positive epsilon (e.g.
+  # .Machine$double.eps) and cap the division at a large-but-
+  # finite value
+  w <- pmax(as.numeric(1 - r0_SigInv_r0), 0)
+
+  rSqrtSigInv_Xold <- forwardsolve(rSig_lowchol, X_old)
+  rSqrtSigInv_yold <- forwardsolve(rSig_lowchol, y_old)
+
+  # the decorrelation transform itself: subtract off the part of X/y
+  # predictable from the neighbor set (r0' Sigma_old^-1 [X_old, y_old]), then
+  # rescale by the conditional standard deviation sqrt(w) -- the same
+  # "prediction residual, standardized" idea behind a Vecchia/NNGP
+  # likelihood factorization, but applied here to produce transformed
+  # explanatory/response values rather than a likelihood contribution
+  tX_new <- (X_new - crossprod(rSqrtSigInv_r0, rSqrtSigInv_Xold)) / sqrt(w)
+  ty_new <- (y_new - crossprod(rSqrtSigInv_r0, rSqrtSigInv_yold)) / sqrt(w)
+
+  list(X = X_new, y = y_new, tX = tX_new, ty = ty_new)
+}
+
+#' Build the big data approximation settings for the decorrelation transform
+#'
+#' Fills in defaults for (and validates) the \code{local} argument used by
+#' \code{\link{get_decorrelated_value}()}: whether every earlier-ordered
+#' observation is conditioned on (\code{method = "all"}), or only the
+#' \code{size} nearest (\code{"distance"}) or most correlated
+#' (\code{"covariance"}) of them.
+#'
+#' @param local A logical or list; see the \code{local} argument to
+#'   \code{\link{decorrelate}()}/\code{\link{decorrelate_data}()}.
+#'
+#' @return The resolved \code{local} list.
+#'
+#' @noRd
+get_local_list_decorrelate <- function(local) {
+
+
+  if (is.logical(local)) {
+    if (local) {
+      local <- list(method = "covariance", size = 30)
+    } else {
+      local <- list(method = "all")
+    }
+  }
+
+  names_local <- names(local)
+
+  # errors
+  if ("method" %in% names_local) {
+    if (!local$method %in% c("all", "covariance", "distance")) {
+      stop("Invalid local method. Local method must be \"all\", \"covariance\", or \"distance\".", call. = FALSE)
+    }
+  }
+
+  if (!"method" %in% names_local) {
+    local$method <- "covariance"
+  }
+
+  if (local$method %in% c("distance", "covariance") && !"size" %in% names_local) {
+    local$size <- 30
+  }
+
+  if (!"parallel" %in% names_local) {
+    local$parallel <- FALSE
+    local$ncores <- NULL
+  }
+
+  if (local$parallel) {
+    if (!"ncores" %in% names_local) {
+      local$ncores <- parallel::detectCores()
+    }
+  }
+
+  local
+
+}
+
+#' Order observations for the sequential spatial decorrelation transform
+#'
+#' \code{\link{get_decorrelated_value}()} conditions each observation on
+#' earlier-ordered observations only, so the order chosen here determines
+#' which neighbors are available to condition on -- e.g. \code{"maxmin"}
+#' ordering (the default when there are no coincident locations) places each
+#' successive point as far as possible from all previous points, which tends
+#' to give a spatially well-spread, informative neighbor set at every step
+#' (the same ordering used by Vecchia/NNGP approximations). See
+#' \code{\link{decorrelate}()}'s \code{ordering} argument for the other options.
+#'
+#' @param ordering One of \code{"none"}, \code{"random"}, \code{"maxmin"},
+#'   \code{"middleout"}, \code{"outsidein"}, \code{"coordinate"}, or
+#'   \code{"grts"}.
+#' @param xcoord_val,ycoord_val The observation coordinates to order.
+#'
+#' @return A list with \code{order} (the ordering permutation) and
+#'   \code{inv_order} (the permutation that undoes it, i.e.
+#'   \code{order(order)}).
+#'
+#' @noRd
+get_decorrelate_order <- function(ordering, xcoord_val, ycoord_val) {
+
+  n <- length(xcoord_val)
+
+  if (ordering == "none") {
+    ord <- seq(1, n)
+  }
+
+  if (ordering == "random") {
+    ord <- seq(1, n)
+    ord <- sample(ord)
+  }
+
+  if (ordering %in% "maxmin") {
+    if (!requireNamespace("GPvecchia", quietly = TRUE)) {
+      stop("Install the GPvecchia package before using \"maxmin\" ordering", call. = FALSE)
+    } else {
+      ord <- GPvecchia::order_maxmin_exact(cbind(xcoord_val, ycoord_val))
+    }
+  }
+
+  if (ordering %in% "middleout") {
+    if (!requireNamespace("GPvecchia", quietly = TRUE)) {
+      stop("Install the GPvecchia package before using \"middleout\" ordering", call. = FALSE)
+    } else {
+      ord <- GPvecchia::order_middleout(cbind(xcoord_val, ycoord_val))
+    }
+  }
+
+  if (ordering %in% "outsidein") {
+    if (!requireNamespace("GPvecchia", quietly = TRUE)) {
+      stop("Install the GPvecchia package before using \"outsidein\" ordering", call. = FALSE)
+    } else {
+      ord <- GPvecchia::order_outsidein(cbind(xcoord_val, ycoord_val))
+    }
+  }
+
+  if (ordering %in% "coordinate") {
+    if (!requireNamespace("GPvecchia", quietly = TRUE)) {
+      stop("Install the GPvecchia package before using \"coordinate\" ordering", call. = FALSE)
+    } else {
+      ord <- GPvecchia::order_coordinate(cbind(xcoord_val, ycoord_val), coordinate = c(1, 2))
+    }
+  }
+
+  if (ordering == "grts") {
+    if (!requireNamespace("spsurvey", quietly = TRUE)) {
+      stop("Install the spsurvey package before using \"grts\" ordering", call. = FALSE)
+    } else {
+      dat <- data.frame(xcoord_val = xcoord_val, ycoord_val = ycoord_val, ord = seq(1, n))
+      sframe <- st_as_sf(dat, coords = c("xcoord_val", "ycoord_val"), crs = NA)
+      samp <- spsurvey::grts(sframe, n_base = n, projcrs_check = FALSE)
+      ord <- samp$sites_base$ord
+    }
+  }
+
+  list(order = ord, inv_order = order(ord))
+}

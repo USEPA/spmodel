@@ -11,6 +11,10 @@ randcov_initial_NA <- function(randcov_initial = NULL, randcov_names) {
   if (is.null(randcov_initial)) {
     randcov_initial <- NULL
   } else {
+    # pad any random effect named in the model formula but missing from the
+    # user-supplied randcov_initial object with an unknown NA placeholder,
+    # then reorder everything to match randcov_names so downstream code can
+    # rely on positional alignment between initial values and formula terms
     randcov_names <- randcov_names
     randcov_val_default <- rep(NA, length = length(randcov_names))
     names(randcov_val_default) <- randcov_names

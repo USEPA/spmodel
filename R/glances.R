@@ -42,6 +42,8 @@ glances.splm <- function(object, ..., sort_by = "AICc", decreasing = FALSE, warn
   if (any(!(vapply(model_list, function(x) class(x), character(1)) %in% c("splm", "spautor")))) {
     stop("All models must be of class splm or spautor", call. = FALSE)
   }
+  # recover the argument names/expressions as passed by the caller (e.g. "lmod",
+  # "spmod") so the output table can label each row by model name, not just position
   model_list_names <- c(as.character(as.list(substitute(list(object)))[-1]), as.character(as.list(substitute(list(...)))[-1]))
   if (warning && length(model_list) > 1) {
     check_likstat_use(model_list)
@@ -52,6 +54,8 @@ glances.splm <- function(object, ..., sort_by = "AICc", decreasing = FALSE, warn
   if (sort_by == "order") {
     model_bind <- model_bind[order(seq_len(NROW(model_bind)), decreasing = decreasing), , drop = FALSE]
   } else {
+    # substitute(sort_by) lets sort_by be a bare/quoted column name used to
+    # index into model_bind's columns
     model_bind <- model_bind[order(model_bind[[substitute(sort_by)]], decreasing = decreasing), , drop = FALSE]
   }
   tibble::as_tibble(model_bind)
@@ -86,15 +90,25 @@ glances.splm_list <- function(object, ..., sort_by = "AICc", decreasing = FALSE,
 glances.spautor_list <- glances.splm_list
 
 
+#' Warn if a set of models is unsuitable for likelihood-based comparison
+#'
+#' @param model_list A list of fitted model objects
+#'
+#' @return Nothing; issues a warning if models were fit with a different
+#'   sample size, a mix of \code{"ml"} and \code{"reml"}, distinct fixed
+#'   effect structures under \code{"reml"}, or (for \code{spglm}/\code{spgautor})
+#'   incompatible response families (see \code{check_wrong_family()})
+#'
+#' @noRd
 check_likstat_use <- function(model_list) {
-
-
   est_methods <- vapply(model_list, function(x) x$estmethod, character(1))
   n <- vapply(model_list, function(x) x$n, numeric(1))
 
+  # likelihood-based comparisons require the same data/sample size, so only
+  # check sample size when at least one model actually used ml/reml
   if (any(est_methods %in% c("ml", "reml"))) {
     if (length(unique(n)) > 1) {
-      warning('Likelihood-based comparisons (e.g., AIC, AICc, BIC) should only be used to compare models that have the same response variable values (and sample size).', call. = FALSE)
+      warning("Likelihood-based comparisons (e.g., AIC, AICc, BIC) should only be used to compare models that have the same response variable values (and sample size).", call. = FALSE)
     }
     # probably should also check that the response vectors (sorted) are actually equal
     # e.g., any(sort(model.response(model.frame(model1))) != sort(model.response(model.frame(model2))))
@@ -106,6 +120,8 @@ check_likstat_use <- function(model_list) {
   }
   reml_model_list <- model_list[est_methods == "reml"]
   if (length(reml_model_list) > 1) {
+    # REML likelihoods aren't comparable across differing fixed-effect
+    # structures, so compare (sorted) sets of model matrix column names
     mm_names <- lapply(reml_model_list, function(x) sort(colnames(model.matrix(x))))
     if (any(!duplicated(mm_names)[-1])) { # drop first as it is always FALSE
       warning('Likelihood-based comparisons (e.g., AIC, AICc, BIC) should not be used to compare models fit with estmethod = "reml" when the models have distinct explanatory variable structures (i.e., distinct formula arguments).', call. = FALSE)
@@ -114,15 +130,25 @@ check_likstat_use <- function(model_list) {
   if (inherits(model_list[[1]], c("spglm", "spgautor"))) {
     check_wrong_family(model_list)
   }
-  # NULL
 }
 
+#' Warn if a set of GLM-type models mixes incompatible response families
+#'
+#' @param model_list A list of fitted \code{spglm}/\code{spgautor} model objects
+#'
+#' @return Nothing; issues a warning if the families mix binomial, beta,
+#'   count (Poisson/negative binomial), or skewed-continuous (Gamma/inverse
+#'   Gaussian) families with families outside that group
+#'
+#' @noRd
 check_wrong_family <- function(model_list) {
-
   families <- vapply(model_list, function(x) x$family, character(1))
 
   wrong_family <- 0
 
+  # each block below checks whether the families split into one of these
+  # groups (binomial / beta / count / skewed-continuous) present in some but
+  # not all models, since responses on different supports aren't comparable
   # binomial warning
   is_family_in <- families %in% "binomial"
   if (any(is_family_in) && any(!is_family_in)) {
@@ -148,7 +174,6 @@ check_wrong_family <- function(model_list) {
   }
 
   if (wrong_family > 0) {
-    warning('Likelihood-based comparisons (e.g., AIC, AICc, BIC) should only be used to compare models fit with the same response variable support.', call. = FALSE)
+    warning("Likelihood-based comparisons (e.g., AIC, AICc, BIC) should only be used to compare models fit with the same response variable support.", call. = FALSE)
   }
-
 }

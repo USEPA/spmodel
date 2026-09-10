@@ -9,6 +9,11 @@
 #'
 #' @noRd
 spcov_matrix <- function(spcov_params, dist_matrix, ...) {
+  # dispatches on spcov_params' class to the matching method below -- each
+  # method below implements one of the parametric forms documented in
+  # spcov_initial(), evaluated as de * R(dist_matrix) with ie (nugget) added
+  # to the diagonal. diagtol/1e-4*de floors ie away from 0 so the resulting
+  # covariance matrix stays numerically positive definite (invertible)
   UseMethod("spcov_matrix", spcov_params)
 }
 ########### three parameter geostatistical
@@ -108,6 +113,8 @@ spcov_matrix.cosine <- function(spcov_params, dist_matrix, diagtol = 0, ...) {
 spcov_matrix.wave <- function(spcov_params, dist_matrix, diagtol = 0, ...) {
   dist_ratio <- dist_matrix / spcov_params[["range"]]
   spcov_matrix_val <- spcov_params[["de"]] * sin(dist_ratio) / (dist_ratio)
+  # sin(x)/x has a removable singularity at x = 0 (NaN in R); patch those
+  # entries (the diagonal, since distance to self is 0) to the limiting value
   dist_matrix_zero <- which(dist_matrix == 0)
   spcov_matrix_val[dist_matrix_zero] <- spcov_params[["de"]]
   spcov_params[["ie"]] <- max(spcov_params[["ie"]], 1e-4 * spcov_params[["de"]], diagtol)
@@ -119,6 +126,8 @@ spcov_matrix.wave <- function(spcov_params, dist_matrix, diagtol = 0, ...) {
 #' @export
 spcov_matrix.jbessel <- function(spcov_params, dist_matrix, diagtol = 0, ...) {
   dist_product <- dist_matrix * spcov_params[["range"]]
+  # cap the besselJ argument -- huge inputs are unstable/slow to evaluate and
+  # the function is already ~0 out there
   spcov_matrix_val <- spcov_params[["de"]] * besselJ(as.matrix(pmin(dist_product, 100000)), 0)
   spcov_params[["ie"]] <- max(spcov_params[["ie"]], 1e-4 * spcov_params[["de"]], diagtol)
   diag(spcov_matrix_val) <- diag(spcov_matrix_val) + spcov_params[["ie"]]
@@ -160,6 +169,7 @@ spcov_matrix.magnetic <- function(spcov_params, dist_matrix, diagtol = 0, ...) {
 spcov_matrix.matern <- function(spcov_params, dist_matrix, diagtol = 0, ...) {
   eta <- sqrt(2 * spcov_params[["extra"]]) * (dist_matrix / spcov_params[["range"]])
   spcov_matrix_val <- spcov_params[["de"]] * 2^(1 - spcov_params[["extra"]]) / gamma(spcov_params[["extra"]]) * eta^spcov_params[["extra"]] * besselK(as.matrix(eta), nu = spcov_params[["extra"]]) # eta as sparse matrix causes error
+  # besselK(0) is undefined (removable singularity); patch to limiting value
   dist_matrix_zero <- which(dist_matrix == 0) # consider epsilon threshold instead of exactly zero?
   spcov_matrix_val[dist_matrix_zero] <- spcov_params[["de"]]
   spcov_params[["ie"]] <- max(spcov_params[["ie"]], 1e-4 * spcov_params[["de"]], diagtol)
@@ -190,6 +200,10 @@ spcov_matrix.pexponential <- function(spcov_params, dist_matrix, diagtol = 0, ..
 # spcov_matrix car
 #' @export
 spcov_matrix.car <- function(spcov_params, dist_matrix, M, diagtol = 0, ...) { # diagtol not used
+  # unlike the geostatistical forms above, car/sar are defined through their
+  # precision (inverse covariance), which is sparse and cheap to build -- so
+  # the actual covariance matrix is obtained by inverting that sparse
+  # precision matrix via its Cholesky factor
   # find inverse of dependent error (1 / sigma^2 * (I - rho W))
   SigInv_de_val <- spcov_matrixInv_de.car(spcov_params, dist_matrix, M)
   # find covariance of dependent error (sigma^2 * (I - rho W)^-1

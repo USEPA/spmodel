@@ -35,24 +35,21 @@
 #'
 #' @details Random variables are simulated via the product of the covariance matrix's
 #'   square (Cholesky) root and independent standard normal random variables
-#'   with mean 0 and variance 1. Computing the square root is a significant
-#'   computational burden and likely unfeasible for sample sizes much past 10,000.
-#'   Because this square root only needs to be computed once, however, it is
+#'   with mean 0 and variance 1. It is
 #'   nearly the sample computational cost to call \code{sprnorm()} for any value
 #'   of \code{samples}.
 #'
-#'   Only methods for the \code{exponential}, \code{none}, and \code{car}
+#'   Only methods for the \code{exponential} and \code{car}
 #'   covariance functions are documented here,
 #'   but methods exist for all other spatial covariance functions defined in
 #'   [spcov_initial()]. Syntax for the \code{exponential} method is the same
-#'   as syntax for \code{spherical}, \code{gaussian}, \code{triangular},
+#'   as syntax for \code{ie}, \code{spherical}, \code{gaussian}, \code{triangular},
 #'   \code{circular}, \code{cubic}, \code{pentaspherical}, \code{cosine}, \code{wave},
 #'   \code{jbessel}, \code{gravity}, \code{rquad}, \code{magnetic}, \code{matern},
 #'   \code{cauchy}, and \code{pexponential} methods. Syntax for
 #'   the \code{car} method is the same as syntax for the \code{sar} method. The
 #'   \code{extra} parameter for car and sar models is ignored when all observations have
 #'   neighbors.
-#'
 #'
 #' @return If \code{samples} is 1, a vector of random variables for each row of \code{data}
 #'   is returned. If \code{samples} is greater than one, a matrix of random variables
@@ -65,7 +62,7 @@
 #' spcov_params_val <- spcov_params("exponential", de = 1, ie = 1, range = 1)
 #' sprnorm(spcov_params_val, data = caribou, xcoord = x, ycoord = y)
 #' sprnorm(spcov_params_val, mean = 1:30, samples = 5, data = caribou, xcoord = x, ycoord = y)
-sprnorm <- function(spcov_params, mean = 0, samples = 1, data, randcov_params, partition_factor, ...) {
+sprnorm <- function(spcov_params, mean = 0, samples = 1, data, randcov_params, partition_factor,  ...) {
   UseMethod("sprnorm", spcov_params)
 }
 #' @rdname sprnorm
@@ -78,82 +75,147 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
     stop("mean vector must be length n or length 1 (recycled)")
   }
 
-  ## convert sp to data frame (point geometry)
-  attr_sp <- attr(class(data), "package")
-  if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
-    stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
-  }
-
-  ## convert sf to data frame (point geometry) (1d objects obsolete)
-  ### see if data has sf class
-  if (inherits(data, "sf")) {
-    data <- suppressWarnings(sf::st_centroid(data))
-    data <- sf_to_df(data)
-    ### name xcoord ".xcoord" to be used later
-    xcoord <- ".xcoord"
-    ### name ycoord ".ycoord" to be used later
-    ycoord <- ".ycoord"
-  }
-
-  # non standard evaluation for the x and y coordinates
-  xcoord <- substitute(xcoord)
-  # replace null if necessary
-  if (missing(ycoord)) {
-    ycoord <- ".ycoord"
-    data[[ycoord]] <- 0
-  }
-  ycoord <- substitute(ycoord)
-
-  # storing x and y coordinate values
-  xcoord_val <- data[[xcoord]]
-  ycoord_val <- data[[ycoord]]
-
-  # make distance matrix
-  # this should be a clockwise rotation as the anisotropy correction
-  # involves a clockwise rotation
-  if (spcov_params[["rotate"]] != 0 || spcov_params[["scale"]] != 1) {
-    new_coords <- transform_anis(
-      data = data, xcoord = xcoord, ycoord = ycoord,
-      spcov_params[["rotate"]], spcov_params[["scale"]]
-    )
-    dist_matrix <- spdist(xcoord_val = new_coords$xcoord_val, ycoord_val = new_coords$ycoord_val)
+  if (spcov_params[["de"]] == 0 && (missing(randcov_params) || is.null(randcov_params))) {
+    base_val <- replicate(samples, rnorm(n, sd = sqrt(spcov_params[["ie"]])))
   } else {
-    dist_matrix <- spdist(xcoord_val = xcoord_val, ycoord_val = ycoord_val)
+    ## convert sp to data frame (point geometry)
+    attr_sp <- attr(class(data), "package")
+    if (!is.null(attr_sp) && length(attr_sp) == 1 && attr_sp == "sp") {
+      stop("sf objects must be used instead of sp objects. To convert your sp object into an sf object, run sf::st_as_sf().", call. = FALSE)
+    }
+
+    ## convert sf to data frame (point geometry) (1d objects obsolete)
+    ### see if data has sf class
+    if (inherits(data, "sf")) {
+      data <- suppressWarnings(sf::st_centroid(data))
+      data <- sf_to_df(data)
+      ### name xcoord ".xcoord" to be used later
+      xcoord <- ".xcoord"
+      ### name ycoord ".ycoord" to be used later
+      ycoord <- ".ycoord"
+    }
+
+    # non standard evaluation for the x and y coordinates -- as.character()
+    # right at capture normalizes both quoted ("x") and unquoted (x)
+    # column-name references into a plain string
+    xcoord <- as.character(substitute(xcoord))
+    # replace null if necessary -- this missing() check runs before ycoord's
+    # own capture below, so it still reflects the original argument correctly
+    if (missing(ycoord)) {
+      # 1-D data: fabricate a constant y-coordinate so the same 2-D distance
+      # machinery below can be reused without a separate 1-D code path
+      ycoord <- ".ycoord"
+      data[[ycoord]] <- 0
+    }
+    ycoord <- as.character(substitute(ycoord))
+
+
+    # storing x and y coordinate values
+    xcoord_val <- data[[xcoord]]
+    ycoord_val <- data[[ycoord]]
+
+    # provide warning for this
+    data$...response... <- seq(1, n)
+    data$...xcoord... <- xcoord_val
+    data$...ycoord... <- ycoord_val
+    if ("extra" %in% names(spcov_params)) {
+      spcov_init <- spcov_initial(
+        spcov_type = class(spcov_params),
+        de = spcov_params[["de"]],
+        ie = spcov_params[["ie"]],
+        range = spcov_params[["range"]],
+        extra = spcov_params[["extra"]],
+        rotate = spcov_params[["rotate"]],
+        scale = spcov_params[["scale"]],
+        known = "given"
+      )
+    } else {
+      spcov_init <- spcov_initial(
+        spcov_type = class(spcov_params),
+        de = spcov_params[["de"]],
+        ie = spcov_params[["ie"]],
+        range = spcov_params[["range"]],
+        rotate = spcov_params[["rotate"]],
+        scale = spcov_params[["scale"]],
+        known = "given"
+      )
+    }
+
+    if (missing(randcov_params)) {
+      randcov_params <- NULL
+    } else {
+      randcov_init <- randcov_initial(randcov_params, known = "given")
+    }
+    if (missing(partition_factor)) {
+      partition_factor <- NULL
+    }
+
+  # the big data approximation (local) is not supported in this release;
+  # always compute the exact solution
+    local <- FALSE
+    local_list <- get_local_list_simulation(local, n, data)
+
+    if (local_list$approximation == "vecchia") {
+      # vecchia: every location is simulated sequentially, conditional on
+      # every earlier-simulated location so there is no base sample to
+      # subset data down to at all (the object is built on all the data
+      # and splm()'s own local = TRUE keeps that fit itself scalable; the
+      # simulation is separately scalable via neighbor truncation)
+      object <- splm(
+        formula = ...response... ~ 1,
+        data = data,
+        spcov_initial = spcov_init,
+        randcov_initial = randcov_init,
+        partition_factor = partition_factor,
+        xcoord = "...xcoord...",
+        ycoord = "...ycoord...",
+        local = TRUE
+      )
+      base_val <- get_sprnorm_vecchia(object, local_list, samples)
+    } else {
+      if (local_list$method_base != "all") {
+        newdata <- lapply(local_list$index$new, function(x) data[x, , drop = FALSE])
+        data <- data[local_list$index$base, , drop = FALSE]
+        n <- NROW(data)
+      }
+
+      object <- splm(
+        formula = ...response... ~ 1,
+        data = data,
+        spcov_initial = spcov_init,
+        randcov_initial = randcov_init,
+        partition_factor = partition_factor,
+        xcoord = "...xcoord...",
+        ycoord = "...ycoord...",
+        local = TRUE
+      )
+
+      cov_lowchol_base <- t(chol(covmatrix(object)))
+      base_val <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_base %*% rnorm(n)), numeric(n))
+
+      if (local_list$method_base != "all") {
+
+        if (local_list$parallel) {
+          cl <- parallel::makeCluster(local_list$ncores)
+          new_val <- parLapply(cl, newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
+          cl <- parallel::stopCluster(cl)
+        } else {
+          new_val <- lapply(newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
+        }
+        base_val <- rbind(base_val, do.call("rbind", new_val))
+        index <- c(local_list$index$base, do.call("c", local_list$index$new))
+        base_val <- base_val[order(index), , drop = FALSE]
+      }
+    }
   }
 
-  # compute the random effects covariance matrix
-  if (missing(randcov_params)) {
-    randcov_params <- NULL
-    randcov_Zs <- NULL
-  } else {
-    names(randcov_params) <- get_randcov_names(reformulate(paste("(", names(randcov_params), ")", sep = "")))
-    randcov_Zs <- get_randcov_Zs(data = data, names(randcov_params))
-  }
+  base_val <- sweep(base_val, 1, mean, "+")
 
-  # partition matrix
-  if (missing(partition_factor)) {
-    partition_factor <- NULL
-  }
-  partition_matrix_val <- partition_matrix(partition_factor, data)
-
-  # compute the covariance matrix
-  cov_matrix_val <- cov_matrix(
-    spcov_params, dist_matrix,
-    randcov_params, randcov_Zs, partition_matrix_val
-  )
-
-  # transpose is lower triangular, needed for normal sim
-  cov_matrix_lowchol <- t(chol(cov_matrix_val))
-  # record sample sizes
-
-  # simulate n random normal vectors
-  sprnorm_val <- vapply(seq_len(samples), function(x) mean + as.numeric(cov_matrix_lowchol %*% rnorm(n)), numeric(n))
 
   if (samples == 1) {
-    sprnorm_val <- as.vector(sprnorm_val)
+    base_val <- as.vector(base_val)
   }
-
-  sprnorm_val
+  base_val
 }
 
 #' @method sprnorm spherical
@@ -215,6 +277,7 @@ sprnorm.cauchy <- sprnorm.exponential
 #' @method sprnorm pexponential
 #' @export
 sprnorm.pexponential <- sprnorm.exponential
+
 #' @rdname sprnorm
 #' @method sprnorm none
 #' @export
@@ -237,9 +300,7 @@ sprnorm.none <- function(spcov_params, mean = 0, samples = 1, data, randcov_para
   }
 
   # partition matrix
-  if (missing(partition_factor)) {
-    partition_factor <- NULL
-  }
+  if (missing(partition_factor)) partition_factor <- NULL
   partition_matrix_val <- partition_matrix(partition_factor, data)
 
   # compute the covariance matrix
@@ -249,9 +310,11 @@ sprnorm.none <- function(spcov_params, mean = 0, samples = 1, data, randcov_para
   )
 
   if (is.null(randcov_params)) {
+    # with no spatial dependence and no random effects, the covariance matrix
+    # is just ie * I, so drawing directly from rnorm() with sd = sqrt(ie) is
+    # equivalent to (and much cheaper than) the general Cholesky route below
     sprnorm_val <- vapply(seq_len(samples), function(x) mean + rnorm(n, sd = sqrt(spcov_params[["ie"]])), numeric(n))
   } else {
-
     # transpose is lower triangular, needed for normal sim
     cov_matrix_lowchol <- t(chol(cov_matrix_val))
     # record sample sizes
@@ -266,6 +329,7 @@ sprnorm.none <- function(spcov_params, mean = 0, samples = 1, data, randcov_para
 
   sprnorm_val
 }
+
 
 #' @rdname sprnorm
 #' @method sprnorm ie
@@ -301,22 +365,26 @@ sprnorm.car <- function(spcov_params, mean = 0, samples = 1, data, randcov_param
 
   # make M if necessary
   if (row_st) {
+    # under row standardization, M = diag(1 / rowSums(W)) is the matrix that
+    # makes the CAR symmetry condition (I - range * W)^{-1} M symmetric hold
     if (!missing(M)) {
       warning("Overriding M when row_st = TRUE", call. = FALSE)
     }
     M <- 1 / W_rowsums # this has not been standardized
   } else {
-    if (missing(M)) {
-      M <- rep(1, nrow(W)) # assume identity
-    }
+    if (missing(M)) M <- rep(1, nrow(W)) # assume identity
   }
 
   if (row_st) {
     W_rowsums_val <- W_rowsums # make copy so rowsums are saved later
+    # units with zero neighbors would otherwise divide by zero here; since
+    # their entire row of W is already zero this substitution is a no-op
     W_rowsums_val[W_rowsums_val == 0] <- 1 # not a Matrix object so this subsetting is okay
     W <- W / W_rowsums_val
   }
 
+  # verify the CAR symmetry condition holds so the resulting covariance
+  # matrix (derived from (I - range * W)^{-1} M) is a valid, symmetric one
   if (inherits(spcov_params, "car") && !isSymmetric(as.matrix((Matrix(diag(nrow(W)), sparse = TRUE) - W) * 1 / M))) {
     stop("W and M must satisfy the CAR symmetry condition", call. = FALSE)
   }
@@ -333,9 +401,7 @@ sprnorm.car <- function(spcov_params, mean = 0, samples = 1, data, randcov_param
   }
 
   # partition matrix
-  if (missing(partition_factor)) {
-    partition_factor <- NULL
-  }
+  if (missing(partition_factor)) partition_factor <- NULL
   partition_matrix_val <- partition_matrix(partition_factor, data)
 
   # compute the covariance matrix

@@ -43,13 +43,20 @@ If you use `spmodel` in a formal publication or report, please cite it. Citing `
 citation(package = "spmodel")
 ```
 
-There are five more `spmodel` vignettes available on our website at [https://usepa.github.io/spmodel/](https://usepa.github.io/spmodel/):
+This vignette comes with the installed version of `spmodel` (accessible via `browseVignettes(package = "spmodel")`. Eight more in-depth vignettes (i.e., articles) are available only on the `spmodel` website; we briefly describe each below.
 
-1. A Detailed Guide to `spmodel`
-2. Spatial Generalized Linear Models in `spmodel` 
-3. Using `emmeans` to Estimate Marginal Means of `spmodel` Objects
-4. Block Prediction (i.e., Blocking Kriging) in `spmodel`
-5. Technical Details
+# Website-Only Vignettes
+
+The following vignettes (i.e., articles) are not installed alongside `spmodel` package but are available on our website at [https://usepa.github.io/spmodel/](https://usepa.github.io/spmodel/):
+
+* [A Detailed Guide to `spmodel`](https://usepa.github.io/spmodel/articles/guide.html): A deep walkthrough of `spmodel`, covering some spatial modeling background, the available estimation methods, prediction, and advanced features like random effects, partition factors, anisotropy, and big data approaches.
+* [Spatial Generalized Linear Models in `spmodel`](https://usepa.github.io/spmodel/articles/SPGLMs.html): Fitting, summarizing, and predicting with `spglm()` and `spgautor()` for binary, proportion, count, and skewed spatial data.
+* [Using `emmeans` to Estimate Marginal Means of `spmodel` Objects](https://usepa.github.io/spmodel/articles/emmeans.html): Estimating and contrasting marginal means (i.e., least-squares means) for `spmodel` model objects using the `emmeans` package.
+* [Block Prediction (i.e., Block Kriging) in `spmodel`](https://usepa.github.io/spmodel/articles/block.html): Predicting the average (or total) value of a response variable across a geographic region rather than at a single location.
+* [Simulating Spatial Data in `spmodel`](https://usepa.github.io/spmodel/articles/simulation.html): Simulating spatially correlated data with `sprnorm()` and related functions.
+* [Conditional Simulation in `spmodel`](https://usepa.github.io/spmodel/articles/conditional.html): Generating many plausible random samples of model parameters and `newdata` using `conditional()`, especially useful for quantifying uncertainty in nonlinear functions of model parameters and predictions.
+* [The Spatial Decorrelation Transformation for Machine Learning Models](https://usepa.github.io/spmodel/articles/decorrelate.html): Account for spatial dependence in machine learning algorithms (e.g., random forests, gradient boosting) using `decorrelate()` and related functions.
+* [Technical Details](https://usepa.github.io/spmodel/articles/technical.html): The technical details behind every relevant function in `spmodel`.
 
 Additionally, there are two workbooks that have accompanied recent `spmodel` workshops:
 
@@ -177,7 +184,7 @@ The columns of this tibble represent:
 * `.resid`: The residuals (the response minus the fitted values).
 * `.hat`: The leverage (hat) values.
 * `.cooksd`: The Cook's distance
-* `.std.residuals`: Standardized residuals
+* `.std.resid`: Standardized residuals
 * `geometry`: The spatial information in the `sf` object.
 
 By default, `augment()` only returns the variables in the data used by the model. All variables from the original data are returned by setting `drop = FALSE`. Many of these model diagnostics can be visualized by running `plot(spmod)`. We can learn more about `plot()` in `spmodel` by running `help("plot.spmodel", "spmodel")`. 
@@ -248,7 +255,7 @@ An analysis of variance can be conducted to assess the overall impact of the `ta
 ```{r}
 anova(cariboumod)
 ```
-There seems to be significant evidence that at least one tarp cover impacts nitrogen. Note that, like in `summary()`, these p-values are associated with an asymptotic hypothesis test (here, an asymptotic Chi-squared test).
+There seems to be significant evidence that at least one tarp cover impacts nitrogen. Note that, like in `summary()`, these p-values are associated with a hypothesis test that uses Satterthwaite denominator degrees of freedom by default when the sample size is small (here, an F-test), and an asymptotic Chi-squared test otherwise.
 
 # Spatial Generalized Linear Models
 
@@ -355,15 +362,19 @@ Here we list some commonly used `spmodel` functions.
 * `AUROC()`: Compute the area under the receiver operating characteristic curve for binary spatial generalized linear models.
 * `BIC()`: Compute the BIC.
 * `coef()`: Return coefficients.
+* `conditional()`: Generate many plausible random samples of model parameters and `newdata`.
 * `confint()`: Compute confidence intervals.
 * `cooks.distance()`: Compute Cook's distance.
 * `covmatrix()`: Return covariance matrices.
+* `decorrelate()`, `decorrelate_data()`, `decorrelate_newdata()`, `recorrelate_newdata()`: Account for spatial dependence in machine learning algorithms via the spatial decorrelation transformation.
 * `deviance()`: Compute the deviance.
+* `eacf()`: Compute an empirical autocovariance.
 * `esv()`: Compute an empirical semivariogram.
 * `fitted()`: Compute fitted values.
 * `glance()`: Glance at a fitted model.
 * `glances()`: Glance at multiple fitted models.
 * `hatvalues()`: Compute leverage (hat) values.
+* `kcv()`: Perform k-fold cross validation.
 * `logLik()`: Compute the log-likelihood.
 * `loocv()`: Perform leave-one-out cross validation.
 * `model.matrix()`: Return the model matrix ($\mathbf{X}$).
@@ -371,6 +382,7 @@ Here we list some commonly used `spmodel` functions.
 * `predict()`: Compute predictions and prediction intervals.
 * `pseudoR2()`: Compute the pseudo r-squared.
 * `residuals()`: Compute residuals.
+* `satterthwaite()`: Compute Satterthwaite degrees of freedom for fixed effect coefficients.
 * `spautor()`: Fit a spatial linear model for areal data (i.e., spatial autoregressive model).
 * `spautorRF()`: Fit a random forest spatial residual model for areal data.
 * `spgautor()`: Fit a spatial generalized linear model for areal data (i.e., spatial generalized autoregressive model).
@@ -400,6 +412,7 @@ Note that `?generic.spmodel` is shorthand for `help("generic.spmodel", "spmodel"
 
 1. The `tidy()`, `glance()` and `augment()` functions from the `broom` **R** package [@robinson2021broom].
 2. The `emmeans` **R** package [@lenth2024emmeans] applied to `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects from `spmodel`.
+3. Various other **R** functions including `formula()`, `model.frame()`, `update()`, `terms()`, `car::vif()`, `car::Anova()`, and `effects::predictorEffect()`.
 
 # References {.unnumbered}
 

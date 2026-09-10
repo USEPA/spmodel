@@ -6,27 +6,28 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>A Detailed Guide to spmodel • spmodel</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
+<!-- favicons --><link rel="icon" type="image/png" sizes="48x48" href="../favicon-48x48.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../pkgdown.js"></script><meta property="og:title" content="A Detailed Guide to spmodel">
-<meta property="og:description" content="spmodel">
-<meta property="og:image" content="https://usepa.github.io/spmodel/logo.png">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<![endif]--><script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "AMS" } }
+});
+</script>
 </head>
 <body data-spy="scroll" data-target="#toc">
-    
+
 
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -40,7 +41,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.13.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.14.0</span>
       </span>
     </div>
 
@@ -52,7 +53,7 @@
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
-     
+
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
@@ -72,6 +73,15 @@
       <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
+      <a href="../articles/simulation.html">Simulating Spatial Data in spmodel</a>
+    </li>
+    <li>
+      <a href="../articles/conditional.html">Conditional Simulation in spmodel</a>
+    </li>
+    <li>
+      <a href="../articles/decorrelate.html">The Spatial Decorrelation Transformation for Machine Learning Models</a>
+    </li>
+    <li>
       <a href="../articles/technical.html">Technical Details</a>
     </li>
   </ul>
@@ -84,7 +94,7 @@
 <li>
   <a href="https://github.com/USEPA/spmodel/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
-     
+
   </a>
 </li>
       </ul>
@@ -95,7 +105,7 @@
 </div>
 <!--/.navbar -->
 
-      
+
 
       </header><div class="row">
   <div class="col-md-9 contents">
@@ -240,13 +250,13 @@ given by <span class="math display">\[
 \mathbf{R} = \exp(-\mathbf{M} / \phi),
 \]</span> where <span class="math inline">\(\mathbf{M}\)</span> is a
 matrix of Euclidean distances among observations. Recall that <span class="math inline">\(\phi\)</span> is the range parameter, controlling
-the behavior of of the covariance function as a function of distance.
+the behavior of the covariance function as a function of distance.
 Parameterizations for <code><a href="../reference/splm.html">splm()</a></code> spatial covariance types and
 their <span class="math inline">\(\mathbf{R}\)</span> matrices can be
-seen by running <code><a href="../reference/splm.html">help("splm", "spmodel")</a></code> or
-<code><a href="../articles/technical.html">vignette("technical", "spmodel")</a></code>. Some of these spatial
-covariance types (e.g., Matérn) depend on an extra parameter beyond
-<span class="math inline">\(\sigma^2_{de}\)</span>, <span class="math inline">\(\sigma^2_{ie}\)</span>, and <span class="math inline">\(\phi\)</span>.</p>
+seen by running <code><a href="../reference/splm.html">help("splm", "spmodel")</a></code> or in the <a href="https://usepa.github.io/spmodel/articles/technical.html#sec:splm-fn"><code>splm()</code>
+Spatial Covariance Functions</a> section of the Technical Details
+vignette. Some of these spatial covariance types (e.g., Matérn) depend
+on an extra parameter beyond <span class="math inline">\(\sigma^2_{de}\)</span>, <span class="math inline">\(\sigma^2_{ie}\)</span>, and <span class="math inline">\(\phi\)</span>.</p>
 <p>Spatial data are areal when the elements in <span class="math inline">\(\mathbf{y}\)</span> are observed as part of a
 finite network of polygons whose connections are indexed by a
 neighborhood structure. For example, the polygons may represent counties
@@ -263,8 +273,9 @@ has an <span class="math inline">\(\mathbf{R}\)</span> matrix given by
 \]</span> where <span class="math inline">\(\mathbf{W}\)</span> is a
 weight matrix describing the neighborhood structure in <span class="math inline">\(\mathbf{y}\)</span>. Parameterizations for
 <code><a href="../reference/spautor.html">spautor()</a></code> spatial covariance types and their <span class="math inline">\(\mathbf{R}\)</span> matrices can be seen by
-running <code><a href="../reference/spautor.html">help("spautor", "spmodel")</a></code> or
-<code><a href="../articles/technical.html">vignette("technical", "spmodel")</a></code>.</p>
+running <code><a href="../reference/spautor.html">help("spautor", "spmodel")</a></code> or in the <a href="https://usepa.github.io/spmodel/articles/technical.html#sec:spautor-fn"><code>spautor()</code>
+Spatial Covariance Functions</a> section of the Technical Details
+vignette.</p>
 <p>One way to define <span class="math inline">\(\mathbf{W}\)</span> is
 through queen contiguity <span class="citation">(Anselin et al.
 2010)</span>. Two observations are queen contiguous if they share a
@@ -323,24 +334,24 @@ heavy metals in mosses near a mining road in Alaska. We view the first
 few rows of <code>moss</code> by running</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">moss</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; Simple feature collection with 365 features and 7 fields</span></span>
+<pre><code><span><span class="co">#&gt; Simple feature collection with 365 features and 9 fields</span></span>
 <span><span class="co">#&gt; Geometry type: POINT</span></span>
 <span><span class="co">#&gt; Dimension:     XY</span></span>
 <span><span class="co">#&gt; Bounding box:  xmin: -445884.1 ymin: 1929616 xmax: -383656.8 ymax: 2061414</span></span>
 <span><span class="co">#&gt; Projected CRS: NAD83 / Alaska Albers</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 365 × 8</span></span></span>
-<span><span class="co">#&gt;    sample field_dup lab_rep year  sideroad log_dist2road log_Zn</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 001PR  1         1       2001  N                 2.68   7.33</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 001PR  1         2       2001  N                 2.68   7.38</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 002PR  1         1       2001  N                 2.54   7.58</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 003PR  1         1       2001  N                 2.97   7.63</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 004PR  1         1       2001  N                 2.72   7.26</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 005PR  1         1       2001  N                 2.76   7.65</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 006PR  1         1       2001  S                 2.30   7.59</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 007PR  1         1       2001  N                 2.78   7.16</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 008PR  1         1       2001  N                 2.93   7.19</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 009PR  1         1       2001  N                 2.79   8.07</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 365 × 10</span></span></span>
+<span><span class="co">#&gt;    sample field_dup lab_rep year  sideroad log_dist2road dist2road log_Zn    Zn</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 001PR  1         1       2001  N                 2.68     14.6    7.33 <span style="text-decoration: underline;">1</span>528.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 001PR  1         2       2001  N                 2.68     14.6    7.38 <span style="text-decoration: underline;">1</span>603.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 002PR  1         1       2001  N                 2.54     12.6    7.58 <span style="text-decoration: underline;">1</span>968.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 003PR  1         1       2001  N                 2.97     19.6    7.63 <span style="text-decoration: underline;">2</span>060.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 004PR  1         1       2001  N                 2.72     15.2    7.26 <span style="text-decoration: underline;">1</span>423.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 005PR  1         1       2001  N                 2.76     15.8    7.65 <span style="text-decoration: underline;">2</span>093.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 006PR  1         1       2001  S                 2.30      9.99   7.59 <span style="text-decoration: underline;">1</span>971.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 007PR  1         1       2001  N                 2.78     16.1    7.16 <span style="text-decoration: underline;">1</span>282.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 008PR  1         1       2001  N                 2.93     18.7    7.19 <span style="text-decoration: underline;">1</span>329.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 009PR  1         1       2001  N                 2.79     16.3    8.07 <span style="text-decoration: underline;">3</span>207.</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 355 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: geometry &lt;POINT [m]&gt;</span></span></span></code></pre>
 <p>We can learn more about <code>moss</code> by running
@@ -353,7 +364,7 @@ running</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_c</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_gray</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<img src="guide_files/figure-html/log_zn-1.png" alt="Distribution of log zinc concentration in the moss data." width="65%"><p class="caption">
+<img src="guide_files/figure-html/log_zn-1.png" class="r-plt" alt="Distribution of log zinc concentration in the moss data." width="65%"><p class="caption">
 Distribution of log zinc concentration in the moss data.
 </p>
 </div>
@@ -393,9 +404,9 @@ function by running</p>
 <span><span class="co">#&gt; -2.6735 -1.3575 -0.8082 -0.2469  1.1307 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients (fixed):</span></span>
-<span><span class="co">#&gt;               Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; (Intercept)    9.75831    0.25007   39.02   &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; log_dist2road -0.56204    0.02009  -27.98   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt;                Estimate Std. Error        df t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)     9.75831    0.25007  34.46642   39.02   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; log_dist2road  -0.56204    0.02009 272.99883  -27.98   &lt;2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -405,10 +416,13 @@ function by running</p>
 <span><span class="co">#&gt;        de        ie     range </span></span>
 <span><span class="co">#&gt; 3.499e-01 7.973e-02 8.154e+03</span></span></code></pre>
 <p>The fixed effects coefficient table contains estimates, standard
-errors, z-statistics, and asymptotic p-values for each fixed effect.
-From this table, we notice there is evidence that mean log zinc
-concentration significantly decreases with distance from the haul road
-(p-value &lt; 2e-16). We see the fixed effect estimates by running</p>
+errors, degrees of freedom, t-statistics, and p-values for each fixed
+effect (here, the sample size is small enough that Satterthwaite
+denominator degrees of freedom are used by default; see the <a href="https://usepa.github.io/spmodel/articles/technical.html#sec:satterthwaite-lm"><code>satterthwaite()</code></a>
+section of the Technical Details vignette). From this table, we notice
+there is evidence that mean log zinc concentration significantly
+decreases with distance from the haul road (p-value &lt; 2e-16). We see
+the fixed effect estimates by running</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;   (Intercept) log_dist2road </span></span>
@@ -437,7 +451,7 @@ covariance function by running</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">spmod</span>, which <span class="op">=</span> <span class="fl">7</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<img src="guide_files/figure-html/emp_spcov-1.png" alt="Empirical spatial covariance of fitted model." width="75%"><p class="caption">
+<img src="guide_files/figure-html/emp_spcov-1.png" class="r-plt" alt="Empirical spatial covariance of fitted model." width="75%"><p class="caption">
 Empirical spatial covariance of fitted model.
 </p>
 </div>
@@ -464,8 +478,7 @@ maximum likelihood, <span class="math inline">\(\hat{\boldsymbol{\Theta}} =
 \{\hat{\boldsymbol{\theta}}, \hat{\boldsymbol{\beta}}\}\)</span>. For
 restricted maximum likelihood <span class="math inline">\(\hat{\boldsymbol{\Theta}} =
 \{\hat{\boldsymbol{\theta}}\}\)</span>.</p>
-<p>We compute the pseudo R-squared by running We compute the pseudo
-R-squared by running</p>
+<p>We compute the pseudo R-squared by running</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/pseudoR2.html">pseudoR2</a></span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; [1] 0.6832494</span></span></code></pre>
@@ -684,14 +697,14 @@ returns a tidy tibble of the coefficient table from
 <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>:</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">spmod</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 5</span></span></span>
-<span><span class="co">#&gt;   term          estimate std.error statistic p.value</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept)      9.76     0.250       39.0       0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> log_dist2road   -<span style="color: #BB0000;">0.562</span>    0.020<span style="text-decoration: underline;">1</span>     -<span style="color: #BB0000;">28.0</span>       0</span></span></code></pre>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 6</span></span></span>
+<span><span class="co">#&gt;   term          estimate std.error    df statistic  p.value</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept)      9.76     0.250   34.5      39.0 4.12<span style="color: #949494;">e</span><span style="color: #BB0000;">-30</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> log_dist2road   -<span style="color: #BB0000;">0.562</span>    0.020<span style="text-decoration: underline;">1</span> 273.      -<span style="color: #BB0000;">28.0</span> 3.58<span style="color: #949494;">e</span><span style="color: #BB0000;">-82</span></span></span></code></pre>
 <p>This tibble format makes it easy to pull out the coefficient names,
-estimates, standard errors, z-statistics, and p-values from the
-<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> output.</p>
+estimates, standard errors, degrees of freedom, t-statistics, and
+p-values from the <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> output.</p>
 <p>The <code><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance()</a></code> function returns a tidy tibble of model-fit
 statistics:</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
@@ -758,24 +771,24 @@ spatial linear model for areal data using <code><a href="../reference/spautor.ht
 view the first few rows of <code>seal</code> by running</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">seal</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; Simple feature collection with 149 features and 2 fields</span></span>
+<pre><code><span><span class="co">#&gt; Simple feature collection with 149 features and 3 fields</span></span>
 <span><span class="co">#&gt; Geometry type: POLYGON</span></span>
 <span><span class="co">#&gt; Dimension:     XY</span></span>
 <span><span class="co">#&gt; Bounding box:  xmin: 913618.8 ymin: 855730.2 xmax: 1221859 ymax: 1145054</span></span>
 <span><span class="co">#&gt; Projected CRS: NAD83 / Alaska Albers</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 149 × 3</span></span></span>
-<span><span class="co">#&gt;    log_trend stock                                                      geometry</span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">*</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>                                                 <span style="color: #949494; font-style: italic;">&lt;POLYGON [m]&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>  <span style="color: #BB0000;">NA</span>       8     ((1035002 1054710, 1035002 1054542, 1035002 1053542, 1035002…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  -<span style="color: #BB0000;">0.282</span>   8     ((1037002 1039492, 1037006 1039490, 1037017 1039492, 1037035…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>  -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">21</span> 8     ((1070158 1030216, 1070185 1030207, 1070187 1030207, 1070211…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>   0.035<span style="text-decoration: underline;">4</span>  8     ((1054906 1034826, 1054931 1034821, 1054936 1034822, 1055001…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  -<span style="color: #BB0000;">0.016</span><span style="color: #BB0000; text-decoration: underline;">0</span>  8     ((1025142 1056940, 1025184 1056889, 1025222 1056836, 1025256…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>   0.087<span style="text-decoration: underline;">2</span>  8     ((1026035 1044623, 1026037 1044605, 1026072 1044610, 1026083…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  -<span style="color: #BB0000;">0.266</span>   8     ((1100345 1060709, 1100287 1060706, 1100228 1060706, 1100170…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>   0.074<span style="text-decoration: underline;">3</span>  8     ((1030247 1029637, 1030248 1029637, 1030265 1029642, 1030328…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  <span style="color: #BB0000;">NA</span>       8     ((1043093 1020553, 1043097 1020550, 1043101 1020550, 1043166…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  -<span style="color: #BB0000;">0.009</span><span style="color: #BB0000; text-decoration: underline;">61</span> 8     ((1116002 1024542, 1116002 1023542, 1116002 1022542, 1116002…</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 149 × 4</span></span></span>
+<span><span class="co">#&gt;    log_trend  trend stock                                               geometry</span></span>
+<span><span class="co">#&gt;        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>                                          <span style="color: #949494; font-style: italic;">&lt;POLYGON [m]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>     8     ((1035002 1054710, 1035002 1054542, 1035002 1053542, …</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  -<span style="color: #BB0000;">0.282</span>    0.754 8     ((1037002 1039492, 1037006 1039490, 1037017 1039492, …</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>  -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">21</span>  0.999 8     ((1070158 1030216, 1070185 1030207, 1070187 1030207, …</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>   0.035<span style="text-decoration: underline;">4</span>   1.04  8     ((1054906 1034826, 1054931 1034821, 1054936 1034822, …</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  -<span style="color: #BB0000;">0.016</span><span style="color: #BB0000; text-decoration: underline;">0</span>   0.984 8     ((1025142 1056940, 1025184 1056889, 1025222 1056836, …</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>   0.087<span style="text-decoration: underline;">2</span>   1.09  8     ((1026035 1044623, 1026037 1044605, 1026072 1044610, …</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  -<span style="color: #BB0000;">0.266</span>    0.767 8     ((1100345 1060709, 1100287 1060706, 1100228 1060706, …</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>   0.074<span style="text-decoration: underline;">3</span>   1.08  8     ((1030247 1029637, 1030248 1029637, 1030265 1029642, …</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>     8     ((1043093 1020553, 1043097 1020550, 1043101 1020550, …</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  -<span style="color: #BB0000;">0.009</span><span style="color: #BB0000; text-decoration: underline;">61</span>  0.990 8     ((1116002 1024542, 1116002 1023542, 1116002 1022542, …</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 139 more rows</span></span></span></code></pre>
 <p>We can learn more about the data by running
 <code><a href="../reference/seal.html">help("seal", "spmodel")</a></code>.</p>
@@ -787,7 +800,7 @@ view the first few rows of <code>seal</code> by running</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> </span></code></pre></div>
 <div class="figure" style="text-align: center">
-<img src="guide_files/figure-html/log_trend-1.png" alt="Distribution of log seal trends in the seal data. Polygons are gray if seal trends are missing." width="65%"><p class="caption">
+<img src="guide_files/figure-html/log_trend-1.png" class="r-plt" alt="Distribution of log seal trends in the seal data. Polygons are gray if seal trends are missing." width="65%"><p class="caption">
 Distribution of log seal trends in the seal data. Polygons are gray if
 seal trends are missing.
 </p>
@@ -826,18 +839,18 @@ running</p>
 <span><span class="co">#&gt; -0.402517 -0.073570  0.004236  0.073333  0.848158 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients (fixed):</span></span>
-<span><span class="co">#&gt;             Estimate Std. Error z value Pr(&gt;|z|)</span></span>
-<span><span class="co">#&gt; (Intercept) -0.01293    0.01994  -0.648    0.517</span></span>
+<span><span class="co">#&gt;             Estimate Std. Error       df t value Pr(&gt;|t|)</span></span>
+<span><span class="co">#&gt; (Intercept) -0.01293    0.01994 25.35377  -0.648    0.523</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients (car spatial covariance):</span></span>
 <span><span class="co">#&gt;      de   range   extra </span></span>
 <span><span class="co">#&gt; 0.04938 0.55363 0.01800</span></span></code></pre>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">sealmod</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 5</span></span></span>
-<span><span class="co">#&gt;   term        estimate std.error statistic p.value</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept)  -<span style="color: #BB0000;">0.012</span><span style="color: #BB0000; text-decoration: underline;">9</span>    0.019<span style="text-decoration: underline;">9</span>    -<span style="color: #BB0000;">0.648</span>   0.517</span></span></code></pre>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 6</span></span></span>
+<span><span class="co">#&gt;   term        estimate std.error    df statistic p.value</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept)  -<span style="color: #BB0000;">0.012</span><span style="color: #BB0000; text-decoration: underline;">9</span>    0.019<span style="text-decoration: underline;">9</span>  25.4    -<span style="color: #BB0000;">0.648</span>   0.523</span></span></code></pre>
 <div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/glance.html" class="external-link">glance</a></span><span class="op">(</span><span class="va">sealmod</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 10</span></span></span>
@@ -911,7 +924,7 @@ variable in <code>sulfate_preds</code> called <code>preds</code>:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_c</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">45</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_gray</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">18</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<img src="guide_files/figure-html/sulfate-1.png" alt="Distribution of observed sulfate (left) and sulfate predictions (right) in the conterminous United States." width="49%"><img src="guide_files/figure-html/sulfate-2.png" alt="Distribution of observed sulfate (left) and sulfate predictions (right) in the conterminous United States." width="49%"><p class="caption">
+<img src="guide_files/figure-html/sulfate-1.png" class="r-plt" alt="Distribution of observed sulfate (left) and sulfate predictions (right) in the conterminous United States." width="49%"><img src="guide_files/figure-html/sulfate-2.png" class="r-plt" alt="Distribution of observed sulfate (left) and sulfate predictions (right) in the conterminous United States." width="49%"><p class="caption">
 Distribution of observed sulfate (left) and sulfate predictions (right)
 in the conterminous United States.
 </p>
@@ -1067,24 +1080,24 @@ trends at the missing polygons by running</p>
 <p>We can also use <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> to make the predictions:</p>
 <div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">sealmod</span>, newdata <span class="op">=</span> <span class="va">sealmod</span><span class="op">$</span><span class="va">newdata</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; Simple feature collection with 55 features and 3 fields</span></span>
+<pre><code><span><span class="co">#&gt; Simple feature collection with 55 features and 4 fields</span></span>
 <span><span class="co">#&gt; Geometry type: POLYGON</span></span>
 <span><span class="co">#&gt; Dimension:     XY</span></span>
 <span><span class="co">#&gt; Bounding box:  xmin: 913618.8 ymin: 866541.5 xmax: 1214641 ymax: 1132682</span></span>
 <span><span class="co">#&gt; Projected CRS: NAD83 / Alaska Albers</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 55 × 4</span></span></span>
-<span><span class="co">#&gt;    log_trend stock  .fitted                                             geometry</span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">*</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                                        <span style="color: #949494; font-style: italic;">&lt;POLYGON [m]&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>        <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.104</span>   ((1035002 1054710, 1035002 1054542, 1035002 1053542…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>        <span style="color: #BB0000;">NA</span> 8      0.035<span style="text-decoration: underline;">2</span>  ((1043093 1020553, 1043097 1020550, 1043101 1020550…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>        <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.030</span><span style="color: #BB0000; text-decoration: underline;">0</span>  ((1099737 1054310, 1099752 1054262, 1099788 1054278…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>        <span style="color: #BB0000;">NA</span> 8      0.001<span style="text-decoration: underline;">41</span> ((1099002 1036542, 1099134 1036462, 1099139 1036431…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>        <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.035</span><span style="color: #BB0000; text-decoration: underline;">6</span>  ((1076902 1053189, 1076912 1053179, 1076931 1053179…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>        <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.013</span><span style="color: #BB0000; text-decoration: underline;">1</span>  ((1070501 1046969, 1070317 1046598, 1070308 1046542…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>        <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.069</span><span style="color: #BB0000; text-decoration: underline;">4</span>  ((1072995 1054942, 1072996 1054910, 1072997 1054878…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>        <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.015</span><span style="color: #BB0000; text-decoration: underline;">6</span>  ((960001.5 1127667, 960110.8 1127542, 960144.1 1127…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>        <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.054</span><span style="color: #BB0000; text-decoration: underline;">7</span>  ((1031308 1079817, 1031293 1079754, 1031289 1079741…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>        <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.029</span><span style="color: #BB0000; text-decoration: underline;">5</span>  ((998923.7 1053647, 998922.5 1053609, 998950 105363…</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 55 × 5</span></span></span>
+<span><span class="co">#&gt;    log_trend trend stock  .fitted                                       geometry</span></span>
+<span><span class="co">#&gt;  <span style="color: #BCBCBC;">*</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                                  <span style="color: #949494; font-style: italic;">&lt;POLYGON [m]&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>        <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.101</span>   ((1035002 1054710, 1035002 1054542, 1035002 1…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>        <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span> 8      0.035<span style="text-decoration: underline;">4</span>  ((1043093 1020553, 1043097 1020550, 1043101 1…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>        <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.031</span><span style="color: #BB0000; text-decoration: underline;">4</span>  ((1099737 1054310, 1099752 1054262, 1099788 1…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>        <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">43</span> ((1099002 1036542, 1099134 1036462, 1099139 1…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>        <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.036</span><span style="color: #BB0000; text-decoration: underline;">7</span>  ((1076902 1053189, 1076912 1053179, 1076931 1…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>        <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.015</span><span style="color: #BB0000; text-decoration: underline;">6</span>  ((1070501 1046969, 1070317 1046598, 1070308 1…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>        <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.068</span><span style="color: #BB0000; text-decoration: underline;">5</span>  ((1072995 1054942, 1072996 1054910, 1072997 1…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>        <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.016</span><span style="color: #BB0000; text-decoration: underline;">4</span>  ((960001.5 1127667, 960110.8 1127542, 960144.…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>        <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.046</span><span style="color: #BB0000; text-decoration: underline;">0</span>  ((1031308 1079817, 1031293 1079754, 1031289 1…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>        <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span> 8     -<span style="color: #BB0000;">0.036</span><span style="color: #BB0000; text-decoration: underline;">7</span>  ((998923.7 1053647, 998922.5 1053609, 998950 …</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 45 more rows</span></span></span></code></pre>
 </div>
 <div class="section level2">
@@ -1093,8 +1106,8 @@ trends at the missing polygons by running</p>
 <p><code>spmodel</code> offers several advanced features for fitting
 spatial linear models. We briefly discuss some of these features next
 using the <code>moss</code> data, the <code>moose</code> data, and some
-simulated data. Technical details for each advanced feature can be seen
-by running <code><a href="../articles/technical.html">vignette("technical", "spmodel")</a></code>.</p>
+simulated data. For technical details regarding each advanced feature,
+see the Technical Details vignette.</p>
 <div class="section level3">
 <h3 id="sec:spcov_init">Fixing Spatial Covariance Parameters<a class="anchor" aria-label="anchor" href="#sec:spcov_init"></a>
 </h3>
@@ -1187,7 +1200,7 @@ covariance, and no spatial covariance by running</p>
 <p><code>spmods</code> is list whose names indicate the spatial
 covariance type and whose values indicate the model fit for that spatial
 covariance type. Generic functions can be called individually for each
-list element. For example, we can augment the the model fit using the
+list element. For example, we can augment the model fit using the
 exponential covariance function with diagnostics by running</p>
 <div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">spmods</span><span class="op">$</span><span class="va">exponential</span><span class="op">)</span></span></code></pre></div>
@@ -1333,7 +1346,7 @@ than a one-unit distance in the y-direction. Below are ellipses for an
 isotropic and anisotropic covariance function centered at the origin (a
 distance of zero).
 <div class="figure">
-<img src="guide_files/figure-html/anisotropy-1.png" alt="Ellipses for an isotropic (left) and anisotropic (right) covariance function centered at the origin. The black outline of each ellipse is a level curve of equal correlation." width="49%"><img src="guide_files/figure-html/anisotropy-2.png" alt="Ellipses for an isotropic (left) and anisotropic (right) covariance function centered at the origin. The black outline of each ellipse is a level curve of equal correlation." width="49%"><p class="caption">
+<img src="guide_files/figure-html/anisotropy-1.png" class="r-plt" alt="Ellipses for an isotropic (left) and anisotropic (right) covariance function centered at the origin. The black outline of each ellipse is a level curve of equal correlation." width="49%"><img src="guide_files/figure-html/anisotropy-2.png" class="r-plt" alt="Ellipses for an isotropic (left) and anisotropic (right) covariance function centered at the origin. The black outline of each ellipse is a level curve of equal correlation." width="49%"><p class="caption">
 Ellipses for an isotropic (left) and anisotropic (right) covariance
 function centered at the origin. The black outline of each ellipse is a
 level curve of equal correlation.
@@ -1369,9 +1382,9 @@ with anisotropy by running</p>
 <span><span class="co">#&gt; -2.5387 -1.2342 -0.7259 -0.1968  1.1632 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients (fixed):</span></span>
-<span><span class="co">#&gt;               Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; (Intercept)    9.56345    0.22527   42.45   &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; log_dist2road -0.54718    0.01864  -29.35   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt;                Estimate Std. Error        df t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)     9.56345    0.22527  45.13851   42.45   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; log_dist2road  -0.54718    0.01864 127.02059  -29.35   &lt;2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -1396,7 +1409,7 @@ clockwise by <code>rotate</code> and then scaling them the reciprocal of
 the original coordinates to compute distances and spatial
 covariances.</p>
 <div class="figure">
-<img src="guide_files/figure-html/anisotropy_fit-1.png" alt="A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the `rotate` parameter (here `rotate` is 0.75$\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the `scale` parameter (here `scale` is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances." width="33%"><img src="guide_files/figure-html/anisotropy_fit-2.png" alt="A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the `rotate` parameter (here `rotate` is 0.75$\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the `scale` parameter (here `scale` is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances." width="33%"><img src="guide_files/figure-html/anisotropy_fit-3.png" alt="A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the `rotate` parameter (here `rotate` is 0.75$\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the `scale` parameter (here `scale` is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances." width="33%"><p class="caption">
+<img src="guide_files/figure-html/anisotropy_fit-1.png" class="r-plt" alt="A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the `rotate` parameter (here `rotate` is 0.75$\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the `scale` parameter (here `scale` is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances." width="33%"><img src="guide_files/figure-html/anisotropy_fit-2.png" class="r-plt" alt="A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the `rotate` parameter (here `rotate` is 0.75$\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the `scale` parameter (here `scale` is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances." width="33%"><img src="guide_files/figure-html/anisotropy_fit-3.png" class="r-plt" alt="A visual representation of the anisotropy transformation. In the left figure, the first step is to rotate the anisotropic ellipse clockwise by the `rotate` parameter (here `rotate` is 0.75$\pi$ radians or 135 degrees). In the middle figure, the second step is to scale the y axis by the reciprocal of the `scale` parameter (here `scale` is 0.5). In the right figure, the anisotropic ellipse has been transformed into an isotropic one (i.e., a circle). The transformed coordinates are then used instead of the original coordinates to compute distances and spatial covariances." width="33%"><p class="caption">
 A visual representation of the anisotropy transformation. In the left
 figure, the first step is to rotate the anisotropic ellipse clockwise by
 the <code>rotate</code> parameter (here <code>rotate</code> is 0.75<span class="math inline">\(\pi\)</span> radians or 135 degrees). In the
@@ -1468,9 +1481,9 @@ fitted model. Random effects are incorporated into simulation via the
 <div class="section level3">
 <h3 id="big-data">Big Data<a class="anchor" aria-label="anchor" href="#big-data"></a>
 </h3>
-<p>The computational cost associated with model fitting is exponential
-in the sample size for all estimation methods. For maximum likelihood
-and restricted maximum likelihood, the computational cost of estimating
+<p>The computational cost associated with model fitting is polynomial in
+the sample size for all estimation methods. For maximum likelihood and
+restricted maximum likelihood, the computational cost of estimating
 <span class="math inline">\(\boldsymbol{\theta}\)</span> is cubic. For
 semivariogram weighted least squares and semivariogram composite
 likelihood, the computational cost of estimating <span class="math inline">\(\boldsymbol{\theta}\)</span> is quadratic. The
@@ -1534,16 +1547,18 @@ processing.</p>
 <span><span class="co">#&gt;     xcoord = x, ycoord = y, local = TRUE)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
-<span><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
-<span><span class="co">#&gt; -4.93733 -1.25317 -0.04858  1.38245  6.63635 </span></span>
+<span><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span><span class="co">#&gt; -5.8596 -1.5172 -0.1371  1.4523  7.4067 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients (fixed):</span></span>
-<span><span class="co">#&gt;             Estimate Std. Error z value Pr(&gt;|z|)</span></span>
-<span><span class="co">#&gt; (Intercept)  -1.1190     0.7573  -1.478     0.14</span></span>
+<span><span class="co">#&gt;             Estimate Std. Error z value Pr(&gt;|z|)   </span></span>
+<span><span class="co">#&gt; (Intercept)   -3.336      1.045  -3.194  0.00141 **</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients (exponential spatial covariance):</span></span>
 <span><span class="co">#&gt;     de     ie  range </span></span>
-<span><span class="co">#&gt; 2.6835 1.0205 0.2773</span></span></code></pre>
+<span><span class="co">#&gt; 3.7236 0.9901 0.3709</span></span></code></pre>
 <p>Instead of using <code>local = TRUE</code>, we can explicitly set
 <code>local</code>. For example, we can fit a model using random
 assignment with 60 groups, use the pooled variance adjustment, and use
@@ -1597,7 +1612,7 @@ running</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_gray</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">18</span><span class="op">)</span></span></code></pre></div>
 <p>They display a similar pattern as the observed data.</p>
 <div class="figure" style="text-align: center">
-<img src="guide_files/figure-html/sim_preds-1.png" alt="Observed data and big data predictions at unobserved locations. In the left figure, spatial data are simulated in the unit square. A spatial linear model is fit using the default big data approximation for model-fitting. In the right figure, predictions are made using the fitted model and the default big data approximation for prediction." width="49%"><img src="guide_files/figure-html/sim_preds-2.png" alt="Observed data and big data predictions at unobserved locations. In the left figure, spatial data are simulated in the unit square. A spatial linear model is fit using the default big data approximation for model-fitting. In the right figure, predictions are made using the fitted model and the default big data approximation for prediction." width="49%"><p class="caption">
+<img src="guide_files/figure-html/sim_preds-1.png" class="r-plt" alt="Observed data and big data predictions at unobserved locations. In the left figure, spatial data are simulated in the unit square. A spatial linear model is fit using the default big data approximation for model-fitting. In the right figure, predictions are made using the fitted model and the default big data approximation for prediction." width="49%"><img src="guide_files/figure-html/sim_preds-2.png" class="r-plt" alt="Observed data and big data predictions at unobserved locations. In the left figure, spatial data are simulated in the unit square. A spatial linear model is fit using the default big data approximation for model-fitting. In the right figure, predictions are made using the fitted model and the default big data approximation for prediction." width="49%"><p class="caption">
 Observed data and big data predictions at unobserved locations. In the
 left figure, spatial data are simulated in the unit square. A spatial
 linear model is fit using the default big data approximation for
@@ -1690,9 +1705,8 @@ log link function is defined as <span class="math inline">\(g(\boldsymbol{\mu}) 
 \boldsymbol{\eta}\)</span>, and the inverse log link function is defined
 as <span class="math inline">\(g^{-1}(\boldsymbol{\eta}) =
 \exp(\boldsymbol{\eta}) = \boldsymbol{\mu}\)</span>. Full
-parameterizations of these distributions are given in the technical
-details vignette, which can be viewed by running
-<code><a href="../articles/technical.html">vignette("technical", "spmodel")</a></code>.</p>
+parameterizations of these distributions are given in the <a href="https://usepa.github.io/spmodel/articles/technical.html#sec:distributions-glm">Distribution
+Parameterizations</a> section of the Technical Details vignette.</p>
 <p>All advanced features available in <code>spmodel</code> for spatial
 linear models are also available for spatial generalized linear models.
 This means that spatial generalized linear models in
@@ -1766,7 +1780,7 @@ view the first few rows of the <code>moose</code> data by running</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_d</a></span><span class="op">(</span>option <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_gray</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<img src="guide_files/figure-html/moose-1.png" alt="Distribution of moose presence in Alaska. presence equals one if at least one moose was observed at the site and zero otherwise." width="65%"><p class="caption">
+<img src="guide_files/figure-html/moose-1.png" class="r-plt" alt="Distribution of moose presence in Alaska. presence equals one if at least one moose was observed at the site and zero otherwise." width="65%"><p class="caption">
 Distribution of moose presence in Alaska. presence equals one if at
 least one moose was observed at the site and zero otherwise.
 </p>
@@ -1878,7 +1892,7 @@ link or response (inverse link) scale.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_c</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, option <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_gray</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<img src="guide_files/figure-html/moose-pred-1.png" alt="Distribution of moose presence probability predictions in Alaska." width="65%"><p class="caption">
+<img src="guide_files/figure-html/moose-pred-1.png" class="r-plt" alt="Distribution of moose presence probability predictions in Alaska." width="65%"><p class="caption">
 Distribution of moose presence probability predictions in Alaska.
 </p>
 </div>
@@ -1946,7 +1960,7 @@ running</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_d</a></span><span class="op">(</span>option <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_gray</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<img src="guide_files/figure-html/sim-glm-1.png" alt="Spatial binomial data simulated in the unit square." width="65%"><p class="caption">
+<img src="guide_files/figure-html/sim-glm-1.png" class="r-plt" alt="Spatial binomial data simulated in the unit square." width="65%"><p class="caption">
 Spatial binomial data simulated in the unit square.
 </p>
 </div>
@@ -1981,10 +1995,11 @@ practice, the variance is larger than the mean. When the variance is
 larger than the mean, there is said to be overdispersion in the data.
 Negative binomial regression accounts for overdispersion via an extra
 dispersion parameter that allows the variance to change separately from
-the mean (recall the full negative binomial regression parameterization
-is available in the technical details vignette). We fit a spatial
-negative binomial regression model to the moose count data and make
-predictions by running</p>
+the mean (the full negative binomial regression parameterization is
+available in the <a href="https://usepa.github.io/spmodel/articles/technical.html#sec:nbinomial">Negative
+Binomial Distribution</a> section of the Technical Details vignette). We
+fit a spatial negative binomial regression model to the moose count data
+and make predictions by running</p>
 <div class="sourceCode" id="cb133"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nbmod</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spglm.html">spglm</a></span><span class="op">(</span><span class="va">count</span> <span class="op">~</span> <span class="va">elev</span>, family <span class="op">=</span> <span class="st">"nbinomial"</span>,</span>
 <span>               data <span class="op">=</span> <span class="va">moose</span>, spcov_type <span class="op">=</span> <span class="st">"exponential"</span><span class="op">)</span></span>
@@ -2032,14 +2047,15 @@ learn more about how to provide feedback or contribute to
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-anselin2010geoda" class="csl-entry">
-Anselin, Luc, Ibnu Syabri, and Youngihn Kho. 2010. <span>“GeoDa: An
-Introduction to Spatial Data Analysis.”</span> In <em>Handbook of
-Applied Spatial Analysis</em>. Springer.
+Anselin, Luc, Ibnu Syabri, and Youngihn Kho. 2010.
+<span>“<span>GeoDa</span>: An Introduction to Spatial Data
+Analysis.”</span> In <em>Handbook of Applied Spatial Analysis</em>.
+Springer.
 </div>
 <div id="ref-appelhans2022mapview" class="csl-entry">
 Appelhans, Tim, Florian Detsch, Christoph Reudenbach, and Stefan
-Woellauer. 2022. <em>Mapview: Interactive Viewing of Spatial Data in
-r</em>. <a href="https://CRAN.R-project.org/package=mapview" class="external-link">https://CRAN.R-project.org/package=mapview</a>.
+Woellauer. 2022. <em><span class="nocase">mapview</span>: Interactive
+Viewing of Spatial Data in <span>R</span></em>. <a href="https://CRAN.R-project.org/package=mapview" class="external-link">https://CRAN.R-project.org/package=mapview</a>.
 </div>
 <div id="ref-bates2015lme4" class="csl-entry">
 Bates, Douglas, Martin Mächler, Ben Bolker, and Steve Walker. 2015.
@@ -2053,7 +2069,7 @@ Series B (Methodological)</em> 26 (2): 211–43.
 </div>
 <div id="ref-cook1982residuals" class="csl-entry">
 Cook, R Dennis, and Sanford Weisberg. 1982. <em>Residuals and Influence
-in Regression</em>. New York: Chapman; Hall.
+in Regression</em>. Chapman; Hall.
 </div>
 <div id="ref-cressie1985fitting" class="csl-entry">
 Cressie, Noel. 1985. <span>“Fitting Variogram Models by Weighted Least
@@ -2062,7 +2078,7 @@ Mathematical Geology</em> 17 (5): 563–86.
 </div>
 <div id="ref-cressie1993statistics" class="csl-entry">
 Cressie, Noel. 1993. <em>Statistics for Spatial Data (Revised
-Edition)</em>. Wiley: Hoboken, NJ. <a href="https://doi.org/10.1002/9781119115151" class="external-link">https://doi.org/10.1002/9781119115151</a>.
+Edition)</em>. Wiley. <a href="https://doi.org/10.1002/9781119115151" class="external-link">https://doi.org/10.1002/9781119115151</a>.
 </div>
 <div id="ref-curriero1999composite" class="csl-entry">
 Curriero, Frank C, and Subhash Lele. 1999. <span>“A Composite Likelihood
@@ -2072,7 +2088,7 @@ Agricultural, Biological, and Environmental Statistics</em>, 9–28.
 <div id="ref-fox2020comparing" class="csl-entry">
 Fox, Eric W, Jay M Ver Hoef, and Anthony R Olsen. 2020. <span>“Comparing
 Spatial Regression to Random Forests for Large Environmental Data
-Sets.”</span> <em>PloS One</em> 15 (3): e0229509.
+Sets.”</span> <em>PLOS One</em> 15 (3): e0229509. <a href="https://doi.org/10.1371/journal.pone.0229509" class="external-link">https://doi.org/10.1371/journal.pone.0229509</a>.
 </div>
 <div id="ref-harville1977maximum" class="csl-entry">
 Harville, David A. 1977. <span>“Maximum Likelihood Approaches to
@@ -2081,14 +2097,14 @@ Variance Component Estimation and to Related Problems.”</span>
 320–38.
 </div>
 <div id="ref-hastie2009elements" class="csl-entry">
-Hastie, Trevor, Robert Tibshirani, Jerome H Friedman, and Jerome H
-Friedman. 2009. <em>The Elements of Statistical Learning: Data Mining,
-Inference, and Prediction</em>. Vol. 2. Springer.
+Hastie, Trevor, Robert Tibshirani, and Jerome H Friedman. 2009. <em>The
+Elements of Statistical Learning: Data Mining, Inference, and
+Prediction</em>. Vol. 2. Springer.
 </div>
 <div id="ref-macqueen1967classification" class="csl-entry">
 MacQueen, J. 1967. <span>“Classification and Analysis of Multivariate
-Observations.”</span> <em>5th Berkeley Symp. Math. Statist.
-Probability</em>, 281–97.
+Observations.”</span> <em>5th Berkeley Symposium on Mathematical
+Statistics and Probability</em>, 281–97.
 </div>
 <div id="ref-montgomery2021introduction" class="csl-entry">
 Montgomery, Douglas C, Elizabeth A Peck, and G Geoffrey Vining. 2021.
@@ -2106,13 +2122,14 @@ Inter-Block Information When Block Sizes Are Unequal.”</span>
 <em>Biometrika</em> 58 (3): 545–54.
 </div>
 <div id="ref-pebesma2018sf" class="csl-entry">
-Pebesma, Edzer. 2018. <span>“<span class="nocase">Simple Features for R:
-Standardized Support for Spatial Vector Data</span>.”</span>
-<em><span>The R Journal</span></em> 10 (1): 439–46. <a href="https://doi.org/10.32614/RJ-2018-009" class="external-link">https://doi.org/10.32614/RJ-2018-009</a>.
+Pebesma, Edzer. 2018. <span>“Simple Features for <span>R</span>:
+Standardized Support for Spatial Vector Data.”</span> <em>The
+<span>R</span> Journal</em> 10 (1): 439–46. <a href="https://doi.org/10.32614/RJ-2018-009" class="external-link">https://doi.org/10.32614/RJ-2018-009</a>.
 </div>
 <div id="ref-pinheiro2006mixed" class="csl-entry">
-Pinheiro, José, and Douglas Bates. 2006. <em>Mixed-Effects Models in s
-and s-PLUS</em>. Springer science &amp; business media.
+Pinheiro, José, and Douglas Bates. 2006. <em>Mixed-Effects Models in
+<span>S</span> and <span>S-PLUS</span></em>. Springer Science &amp;
+Business Media.
 </div>
 <div id="ref-robinson2021broom" class="csl-entry">
 Robinson, David, Alex Hayes, and Simon Couch. 2021. <em><span class="nocase">broom</span>: Convert Statistical Objects into Tidy
@@ -2124,21 +2141,21 @@ Model.”</span> <em>The Annals of Statistics</em>, 461–64.
 </div>
 <div id="ref-tobler1970computer" class="csl-entry">
 Tobler, Waldo R. 1970. <span>“A Computer Movie Simulating Urban Growth
-in the Detroit Region.”</span> <em>Economic Geography</em> 46 (sup1):
-234–40.
+in the <span>Detroit</span> Region.”</span> <em>Economic Geography</em>
+46 (sup1): 234–40.
 </div>
 <div id="ref-ver2024marginal" class="csl-entry">
 Ver Hoef, Jay M, Eryn Blagg, Michael Dumelle, Philip M Dixon, Dale L
 Zimmerman, and Paul B Conn. 2024. <span>“Marginal Inference for
 Hierarchical Generalized Linear Mixed Models with Patterned Covariance
-Matrices Using the Laplace Approximation.”</span>
-<em>Environmetrics</em>, e2872.
+Matrices Using the <span>Laplace</span> Approximation.”</span>
+<em>Environmetrics</em> 35 (7): e2872.
 </div>
 <div id="ref-ver2023indexing" class="csl-entry">
 Ver Hoef, Jay M, Michael Dumelle, Matt Higham, Erin E Peterson, and
 Daniel J Isaak. 2023. <span>“Indexing and Partitioning the Spatial
-Linear Model for Large Data Sets.”</span> <em>arXiv Preprint
-arXiv:2305.07811</em>.
+Linear Model for Large Data Sets.”</span> <em>PLOS One</em> 18 (11):
+e0291906. <a href="https://doi.org/10.1371/journal.pone.0291906" class="external-link">https://doi.org/10.1371/journal.pone.0291906</a>.
 </div>
 <div id="ref-ver2018spatial" class="csl-entry">
 Ver Hoef, Jay M, Erin E Peterson, Mevin B Hooten, Ephraim M Hanks, and
@@ -2148,13 +2165,13 @@ Monographs</em> 88 (1): 36–59.
 </div>
 <div id="ref-wickham2016ggplot2" class="csl-entry">
 Wickham, Hadley. 2016. <em><span class="nocase">ggplot2</span>: Elegant
-Graphics for Data Analysis</em>. Springer-Verlag New York. <a href="https://ggplot2.tidyverse.org" class="external-link">https://ggplot2.tidyverse.org</a>.
+Graphics for Data Analysis</em>. Springer-Verlag. <a href="https://ggplot2.tidyverse.org" class="external-link">https://ggplot2.tidyverse.org</a>.
 </div>
 <div id="ref-wolfinger1994computing" class="csl-entry">
 Wolfinger, Russ, Randy Tobias, and John Sall. 1994. <span>“Computing
-Gaussian Likelihoods and Their Derivatives for General Linear Mixed
-Models.”</span> <em>SIAM Journal on Scientific Computing</em> 15 (6):
-1294–310.
+<span>Gaussian</span> Likelihoods and Their Derivatives for General
+Linear Mixed Models.”</span> <em>SIAM Journal on Scientific
+Computing</em> 15 (6): 1294–310.
 </div>
 </div>
 <p></p>
@@ -2168,7 +2185,7 @@ Models.”</span> <em>SIAM Journal on Scientific Computing</em> 15 (6):
 <p>The purpose of this example is to show more applications of the
 <code><a href="../reference/splm.html">splm()</a></code> and <code><a href="../reference/spautor.html">spautor()</a></code> functions when the data
 are not an <code>sf</code> object, as well as to show a few other
-functions in <code>spmodel</code>. The <code>caribou</code> data are are
+functions in <code>spmodel</code>. The <code>caribou</code> data are a
 designed experiment with two treatments observed on an equally spaced
 grid and can be analyzed as point-referenced or areal data. We view the
 first few rows of <code>caribou</code> by running</p>
@@ -2204,16 +2221,19 @@ and none), and the <code>water</code> variable, which has two levels
 results by running</p>
 <div class="sourceCode" id="cb138"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">cariboumod</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 4</span></span></span>
-<span><span class="co">#&gt;   effects        df statistic  p.value</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept)     1     45.6  1.48<span style="color: #949494;">e</span><span style="color: #BB0000;">-11</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> water           1      1.67 1.96<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> tarp            2     15.5  4.40<span style="color: #949494;">e</span><span style="color: #BB0000;">- 4</span></span></span></code></pre>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 5</span></span></span>
+<span><span class="co">#&gt;   effects     num_df den_df statistic  p.value</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept)      1   <span style="color: #BB0000;">NA</span>       45.6  <span style="color: #BB0000;">NA</span>      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> water            1   22.4      1.67  0.209  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> tarp             2   19.5      7.73  0.003<span style="text-decoration: underline;">37</span></span></span></code></pre>
 <p>There is significant evidence that at least one tarp cover impacts
 nitrogen. Note that, like in <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, these p-values are
-associated with an asymptotic hypothesis test (here, an asymptotic
-Chi-squared test).</p>
+associated with a hypothesis test that uses Satterthwaite denominator
+degrees of freedom by default when the sample size is small (here, an
+<span class="math inline">\(F\)</span>-test; see the <a href="https://usepa.github.io/spmodel/articles/technical.html#sec:testing-lm">Hypothesis
+Testing</a> section of the Technical Details vignette), and an
+asymptotic Chi-squared test otherwise.</p>
 <p>Next we analyze <code>caribou</code> as areal data. Because
 <code>caribou</code> is not an <code>sf</code> object, we must create a
 weights matrix. We define two observations as neighbors if they are
@@ -2242,16 +2262,19 @@ tarp cover (<code>tarp</code>) by running</p>
 running</p>
 <div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">cariboumod</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 4</span></span></span>
-<span><span class="co">#&gt;   effects        df statistic   p.value</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept)     1    718.   3.08<span style="color: #949494;">e</span><span style="color: #BB0000;">-158</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> water           1      1.81 1.79<span style="color: #949494;">e</span><span style="color: #BB0000;">-  1</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> tarp            2     15.1  5.24<span style="color: #949494;">e</span><span style="color: #BB0000;">-  4</span></span></span></code></pre>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 5</span></span></span>
+<span><span class="co">#&gt;   effects     num_df den_df statistic       p.value</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept)      1   8.76    718.   0.000<span style="text-decoration: underline;">000</span>001<span style="text-decoration: underline;">04</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> water            1  23.4       1.81 0.192        </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> tarp             2  20.5       7.55 0.003<span style="text-decoration: underline;">48</span></span></span></code></pre>
 <p>There is significant evidence that at least one tarp cover impacts
 nitrogen. Note that, like in <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, these p-values are
-associated with an asymptotic hypothesis test (here, an asymptotic
-Chi-squared test).</p>
+associated with a hypothesis test that uses Satterthwaite denominator
+degrees of freedom by default when the sample size is small (here, an
+<span class="math inline">\(F\)</span>-test; see the <a href="https://usepa.github.io/spmodel/articles/technical.html#sec:testing-lm">Hypothesis
+Testing</a> section of the Technical Details vignette), and an
+asymptotic Chi-squared test otherwise.</p>
 </div>
 <div class="section level3">
 <h3 id="app:rand">Random Effect Syntax<a class="anchor" aria-label="anchor" href="#app:rand"></a>
@@ -2327,9 +2350,7 @@ variable.</p>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 
-        <nav id="toc" data-toggle="toc"><h2 data-toc-skip>Contents</h2>
-    </nav>
-</div>
+      </div>
 
 </div>
 
@@ -2342,16 +2363,16 @@ variable.</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
       </footer>
 </div>
 
-  
 
 
-  
+
+
 
   </body>
 </html>

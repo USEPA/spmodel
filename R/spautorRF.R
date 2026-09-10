@@ -53,22 +53,17 @@
 #'
 #' @examples
 #' \donttest{
-#' seal$var <- rnorm(NROW(seal)) # add noise variable
-#' sprfmod <- spautorRF(log_trend ~ var, data = seal, spcov_type = "car")
+#' sprfmod <- spautorRF(log_trend ~ stock, data = seal, spcov_type = "car")
 #' predict(sprfmod)
 #' }
 spautorRF <- function(formula, data, ...) {
-
   # check to see if ranger installed
   if (!requireNamespace("ranger", quietly = TRUE)) {
     stop("Install the ranger package before using spautorRF", call. = FALSE)
   } else {
-
-    # save calls for later (NSE can be a bit frustrating)
-    # ranger_call <- call("ranger", formula = substitute(formula), data = substitute(data), quote(...))
-    # spautor_call <- call("spautor", formula = .ranger_resid ~ 1, data = substitute(data), quote(...))
-
     # find NA values for newdata if required
+    # na.action = na.pass keeps NA response rows in the model frame (instead of
+    # dropping them) so they can be identified as prediction locations below
     if (inherits(data, "sf")) {
       model_resp <- model.response(model.frame(formula, sf::st_drop_geometry(data), na.action = na.pass))
     } else {
@@ -78,6 +73,8 @@ spautorRF <- function(formula, data, ...) {
     resp <- model_resp[!na_index]
 
     # make sure at least one missing value to predict
+    # rows with NA response become newdata (prediction targets); the rest are
+    # used to fit both the random forest and the spatial residual model
     if (any(na_index)) {
       newdata <- data[na_index, , drop = FALSE]
       data <- data[!na_index, , drop = FALSE]
@@ -91,6 +88,8 @@ spautorRF <- function(formula, data, ...) {
     penv <- parent.frame()
 
     # save ranger ... objects
+    # ... may contain arguments meant for ranger::ranger() and/or spautor();
+    # split them by matching against each function's formal argument names
     ranger_names <- names(formals(ranger::ranger))
     ranger_args <- call_list[names(call_list) %in% ranger_names]
 
@@ -107,23 +106,33 @@ spautorRF <- function(formula, data, ...) {
     spautor_names <- names(formals(spmodel::spautor))
     spautor_args <- call_list[names(call_list) %in% spautor_names]
     # find residuals
+    # random forest regression kriging: fit the spatial model to the random
+    # forest's residuals (observed - predicted) rather than the raw response
     data$.ranger_resid <- resp - ranger_out$predictions
     newdata$.ranger_resid <- NA
     # perform spautor
     # reset newdata
+    # newdata rows (with NA residual) are put back with the fitted rows so
+    # spautor() sees the full neighbor structure/W for both fitting and the
+    # later prediction step, which spautor() requires up front
     data <- rbind(data, newdata)
     # putting back in order
+    # restore the original row order (rbind put newdata rows at the end),
+    # since W/neighbor structure and any user-supplied ordering rely on it
     data <- data[order(c(which(!na_index), which(na_index))), , drop = FALSE]
     # perform splm
     spautor_out <- do.call(spmodel::spautor, c(list(formula = .ranger_resid ~ 1, data = data), spautor_args), envir = penv)
+    # spautor() may itself return an "spautor", "splm" (delegated for
+    # none/ie covariance), or a list (multiple spcov_type/spcov_initial) --
+    # branch on which so the returned class/structure matches accordingly
     if (inherits(spautor_out, c("spautor"))) {
       spautor_out$call <- NA
       # output list with names and class
       sprf_out <- structure(list(call = match.call(), ranger = ranger_out, spautor = spautor_out, newdata = newdata), class = "spautorRF")
     } else if (inherits(spautor_out, c("splm"))) { # splm for none and ie covariance
       spautor_out$call <- NA
-      # output list with names and class
-      sprf_out <- structure(list(call = match.call(), ranger = ranger_out, spautor = spautor_out, newdata = newdata), class = "splmRF")
+      # the class here is "splmRF", so generics all expect object$splm, not object$spautor
+      sprf_out <- structure(list(call = match.call(), ranger = ranger_out, splm = spautor_out, newdata = newdata), class = "splmRF")
     } else {
       spautor_out <- lapply(spautor_out, function(x) {
         x$call <- NA

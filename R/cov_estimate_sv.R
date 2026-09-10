@@ -13,7 +13,10 @@
 #' @noRd
 cov_estimate_sv <- function(data_object, formula, spcov_initial, estmethod,
                             weights = weights, optim_dotlist, esv_dotlist) {
-
+  # Semivariogram (sv-wls) estimation fits the covariance parameters by minimizing a
+  # weighted sum of squared differences between the theoretical semivariogram and an
+  # empirical semivariogram computed from the residuals, rather than maximizing a
+  # likelihood
   # make NA spcov_initial
   spcov_initial_NA_val <- spcov_initial_NA(spcov_initial, anisotropy = data_object$anisotropy)
 
@@ -40,11 +43,8 @@ cov_estimate_sv <- function(data_object, formula, spcov_initial, estmethod,
   }
 
 
-  if (all(spcov_initial_val$is_known)) {
-    spcov_estimate_val <- use_svloss_known(spcov_initial_val, dist_matrix_list, cov_initial_val$esv, weights)
-  } else {
-    spcov_estimate_val <- use_svloss(spcov_initial_val, dist_matrix_list, cov_initial_val$esv, weights, optim_dotlist,
-                                     data_object = data_object)
-  }
+  # choose known-evaluation vs. optimization -- see run_sv_dispatch() in
+  # cov_estimate_dispatch_helpers.R
+  spcov_estimate_val <- run_sv_dispatch(spcov_initial_val, data_object, dist_matrix_list, cov_initial_val$esv, weights, optim_dotlist)
   spcov_estimate_val
 }

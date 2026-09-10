@@ -12,6 +12,9 @@
 #'
 #' @noRd
 use_glogclik <- function(spcov_initial, data_object, dist_matrix_list, partition_list = NULL, optim_dotlist) {
+  # pairwise (composite likelihood) estimation only needs each unordered pair
+  # once, so extract the upper triangle of the symmetric distance matrix
+  # rather than working with the full n x n matrix
   dist_vector_list <- lapply(dist_matrix_list, function(x) {
     x <- as.matrix(x)
     x <- x[upper.tri(x)]
@@ -19,6 +22,10 @@ use_glogclik <- function(spcov_initial, data_object, dist_matrix_list, partition
   if (any(unlist(dist_vector_list) == 0)) {
     warning("Zero distances observed between at least one pair. Ignoring pairs. If using splm(), consider a different estimation method.", call. = FALSE)
   }
+  # OLS residuals stand in for the (unobservable) mean-zero spatial process;
+  # spdist() on the 1-D residual vector reuses the same distance machinery to
+  # get every pairwise residual difference (residual_i - residual_j), which
+  # feeds the pairwise composite likelihood below
   residual_list <- lapply(data_object$obdata_list, function(d) residuals(lm(data_object$formula, data = d)))
   residual_matrix_list <- lapply(residual_list, function(x) spdist(xcoord_val = x))
   residual_vector_list <- lapply(residual_matrix_list, function(x) {
@@ -27,6 +34,9 @@ use_glogclik <- function(spcov_initial, data_object, dist_matrix_list, partition
   })
   residual_vector <- unlist(residual_vector_list)
   if (!is.null(data_object$partition_list)) {
+    # zero out (and later drop) pairs that fall in different partition
+    # factor levels, since the composite likelihood only pools pairs within
+    # the same partition group
     partition_vector_list <- lapply(data_object$partition_list, function(x) {
       x <- as.matrix(x)
       x <- x[upper.tri(x)]
@@ -36,17 +46,22 @@ use_glogclik <- function(spcov_initial, data_object, dist_matrix_list, partition
   }
 
   dist_vector <- unlist(dist_vector_list)
+  # keep only strictly positive distances -- this both removes co-located
+  # (zero-distance) pairs flagged above and, when partitioning was applied,
+  # drops the cross-partition pairs that were just zeroed out
   dist_index <- dist_vector > 0
   dist_vector <- dist_vector[dist_index]
   residual_vector <- unlist(residual_vector_list)
   residual_vector <- residual_vector[dist_index]
   residual_vector2 <- residual_vector^2
   # transforming to optim paramters (log scale)
-  spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = FALSE,
-                                           data_object = data_object)
+  spcov_orig2optim_val <- spcov_orig2optim(
+    spcov_initial = spcov_initial, spcov_profiled = FALSE,
+    data_object = data_object
+  )
 
   # get optim par
-  optim_par <- get_optim_par(spcov_orig2optim_val)
+  optim_par <- assemble_optim_par(spcov_orig2optim = spcov_orig2optim_val)
 
   # check optim dotlist
   optim_dotlist <- check_optim_method(optim_par, optim_dotlist)
@@ -65,8 +80,10 @@ use_glogclik <- function(spcov_initial, data_object, dist_matrix_list, partition
   ))
 
   # transforming to original scale
-  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim_val, optim_output$par, spcov_profiled = FALSE,
-                                     data_object = data_object)
+  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim_val, optim_output$par,
+    spcov_profiled = FALSE,
+    data_object = data_object
+  )
   # making a covariance parameter vector
   spcov_params_val <- get_spcov_params(spcov_type = class(spcov_orig2optim_val), spcov_orig_val = spcov_orig_val)
   # replace range and extra param

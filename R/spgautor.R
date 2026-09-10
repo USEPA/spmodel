@@ -232,7 +232,6 @@
 #' McCullagh P. and Nelder, J. A. (1989) \emph{Generalized Linear Models}. London: Chapman and Hall.
 spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersion_initial,
                      estmethod = "reml", random, randcov_initial, partition_factor, W, row_st = TRUE, M, range_positive = TRUE, cutoff, ...) {
-
   # set car as default if nothing specified
   if (missing(spcov_type) && missing(spcov_initial)) {
     spcov_type <- "car"
@@ -248,6 +247,10 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
   }
 
   # iterate if needed
+  # a list of spcov_initial objects (or a character vector of multiple
+  # spcov_type values) means the caller wants several models fit at once --
+  # recurse once per element by re-dispatching to spgautor() with that single
+  # element substituted in, then collect the results into an spgautor_list
   if (!missing(spcov_initial) && is.list(spcov_initial[[1]])) {
     call_list <- as.list(match.call())[-1]
     penv <- parent.frame()
@@ -271,6 +274,9 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
   }
 
   # call spglm if spcov_type is none (works on an individual element of spcov_type or initial)
+  # "none"/"ie" covariance has no areal (car/sar) dependence structure, so
+  # there's nothing distinctly autoregressive left to fit -- delegate to
+  # spglm() instead, dropping the arguments that are specific to spgautor()
   if ((!missing(spcov_type) && spcov_type %in% c("none", "ie")) || (!missing(spcov_initial) && inherits(spcov_initial, c("none", "ie")))) {
     call_list <- as.list(match.call())[-1]
     # remove spautor specific arguments
@@ -282,26 +288,18 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
   }
 
   # set dispersion initial
+  # dispersion_initial() objects carry their glm family as their class (e.g.
+  # class "Gamma"), so when it's supplied it also determines/overrides family
   if (missing(dispersion_initial)) dispersion_initial <- NULL else family <- class(dispersion_initial)
 
   # fix family
   if (missing(family)) {
     stop("The family argument must be specified.", call. = FALSE)
   }
+  # allow family to be passed unquoted (e.g. family = binomial) like stats::glm
   if (is.symbol(substitute(family))) { # or is.language
     family <- deparse1(substitute(family))
   }
-
-  # Call spautor if necessary (deprecated)
-  # if (family == "gaussian") {
-  #   call_val <- match.call()
-  #   call_val[[1]] <- as.symbol("spautor")
-  #   call_list <- as.list(call_val)
-  #   call_list <- call_list[-which(names(call_list) %in% c("family", "dispersion_initial"))]
-  #   call_val <- as.call(call_list)
-  #   object <- eval(call_val, envir = parent.frame())
-  #   return(object)
-  # }
 
   # replace initial values with appropriate NA's
   if (missing(spcov_initial)) {
@@ -311,32 +309,22 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
   spgautor_checks(family, class(spcov_initial), !missing(W), data, estmethod)
 
   # set partition factor if necessary
-  if (missing(W)) {
-    W <- NULL
-  }
+  if (missing(W)) W <- NULL
 
-  if (missing(M)) {
-    M <- NULL
-  }
+  if (missing(M)) M <- NULL
 
   # set random NULL if necessary
-  if (missing(random)) {
-    random <- NULL
-  }
+  if (missing(random)) random <- NULL
 
   # set rancov_initial NULL if necessary
-  if (missing(randcov_initial)) {
-    randcov_initial <- NULL
-  }
+  if (missing(randcov_initial)) randcov_initial <- NULL
 
   # set partition factor if necessary
-  if (missing(partition_factor)) {
-    partition_factor <- NULL
-  }
+  if (missing(partition_factor)) partition_factor <- NULL
 
-  if (missing(cutoff)) {
-    cutoff <- NULL
-  }
+  check_formula_vars_in_data(formula, data, random, partition_factor)
+
+  if (missing(cutoff)) cutoff <- NULL
 
   # get data object
   data_object <- get_data_object_spgautor(
@@ -345,12 +333,21 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
     partition_factor, row_st, range_positive, cutoff, ...
   )
 
+  # as in spglm(), the response is non-Gaussian, so estimation maximizes a
+  # Laplace-approximated (restricted) log-likelihood rather than an exact one
   cov_est_object <- cov_estimate_laploglik_spgautor(data_object, formula,
     spcov_initial, dispersion_initial, estmethod,
     optim_dotlist = get_optim_dotlist(...)
   )
 
+  warn_optim_convergence(cov_est_object$optim_output$convergence)
+
   model_stats <- get_model_stats_spgautor(cov_est_object, data_object, estmethod)
+
+  # spatial structure can make binomial fits separate far more readily than an
+  # ordinary (non-spatial) logistic regression, even with well-behaved
+  # covariates; warn when this has happened (see warn_fitted_saturation())
+  warn_fitted_saturation(model_stats$fitted$response, family)
 
   output <- list(
     coefficients = model_stats$coefficients,
@@ -364,7 +361,7 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
     p = data_object$p,
     n = data_object$n,
     npar = model_stats$npar,
-    formula = formula,
+    formula = data_object$formula,
     terms = data_object$terms,
     call = match.call(),
     estmethod = estmethod,

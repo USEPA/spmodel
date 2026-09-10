@@ -16,28 +16,23 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type.predict = c("link
                           type.residuals = c("deviance", "pearson", "response"), se_fit = FALSE,
                           interval = c("none", "confidence", "prediction"), newdata_size,
                           level = 0.95, local = local, var_correct = TRUE, ...) {
-
-
-  # the below code does not work because type tries to match to both type.predict
-  # and type.residuals. For now, we just have to live with implementing a breaking
-  # change, as there is no way to help users who have "type" specified in <= v0.7.0
-  # dotlist <- list(...)
-  # if ("type" %in% names(dotlist)) {
-  #   warning('"type" is deprecated. Using the "type.predict" argument instead.', call. = FALSE)
-  # }
-
+  # a "type" argument (as used in spmodel <= v0.7.0) can't be deprecated with a
+  # warning here, because "type" would ambiguously match both type.predict and
+  # type.residuals via partial matching
   type.predict <- match.arg(type.predict)
   type.residuals <- match.arg(type.residuals)
   interval <- match.arg(interval)
 
-
+  # a prediction interval needs an unobserved location; a confidence interval
+  # around the fitted mean is still available below
+  interval <- check_interval_augment(interval, !is.null(newdata))
 
   # set data and newdata
+  # when newdata is NULL, augment the original fitted data with diagnostics;
+  # otherwise augment new observations with predictions
   if (is.null(newdata)) {
     if (drop) {
       data <- cbind(model.frame(x), x$obdata[, c(x$xcoord, x$ycoord)])
-      # keep_cols <- colnames(model.frame(x))
-      # data <- x$obdata[, c(keep_cols, x$xcoord, x$ycoord)]
     } else {
       data <- x$obdata
     }
@@ -46,13 +41,31 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type.predict = c("link
   }
 
   if (is.null(newdata)) {
+    # GLM fitted values/diagnostics depend on scale (link vs response) and
+    # residual type, unlike the Gaussian splm/spautor case
     augment_data <- tibble::tibble(.fitted = fitted(x, type = type.predict))
-    if (se_fit) {
-      preds_data <- predict(x, newdata = data, type = type.predict, se.fit = se_fit, interval = "confidence", ...)
-      augment_data$.se.fit <- preds_data$se.fit
+    if (se_fit || interval == "confidence") {
+      # the interval is built on the link scale and then back-transformed, and
+      # .se.fit stays on the link scale matching predict()
+      se <- get_se_fitted_mean(x)
+      if (interval == "confidence") {
+        fitted_link <- fitted(x, type = "link")
+        tstar <- qnorm(1 - (1 - level) / 2)
+        lwr <- fitted_link - tstar * se
+        upr <- fitted_link + tstar * se
+        if (type.predict == "response") {
+          lwr <- invlink(lwr, x$family, x$size)
+          upr <- invlink(upr, x$family, x$size)
+        }
+        augment_data$.lower <- lwr
+        augment_data$.upper <- upr
+      }
+      if (se_fit) augment_data$.se.fit <- se
     }
     tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x, type = type.residuals)))
   } else {
+    # newdata_size only matters for the binomial family (number of trials per
+    # newdata row); NULL lets predict() fall back to its own default handling
     if (missing(newdata_size)) newdata_size <- NULL
     if (missing(local)) local <- NULL
     preds_newdata <- predict(x,
@@ -93,6 +106,8 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type.predict = c("link
     }
 
     if (inherits(newdata, "sf")) {
+      # extract point coordinates from sf geometry (centroid handles
+      # polygon/line geometries) so the model's xcoord/ycoord columns exist
       newdata <- suppressWarnings(sf::st_centroid(newdata))
 
       newdata <- sf_to_df(newdata)
@@ -106,9 +121,9 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type.predict = c("link
   }
 
 
-  # if (x$is_sf && requireNamespace("sf", quietly = TRUE)) {
   if (x$is_sf) {
     # sf installed
+    # re-attach sf geometry to match the class of the original data
     if (inherits(newdata, "sf")) {
       tibble_out <- sf::st_as_sf(tibble_out,
         sf_column_name = x$sf_column_name,
@@ -135,28 +150,27 @@ augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type.predict = c("l
                              type.residuals = c("deviance", "pearson", "response"), se_fit = FALSE,
                              interval = c("none", "confidence", "prediction"), newdata_size,
                              level = 0.95, local, var_correct = TRUE, ...) {
-
-  # the below code does not work because type tries to match to both type.predict
-  # and type.residuals. For now, we just have to live with implementing a breaking
-  # change, as there is no way to help users who have "type" specified in <= v0.7.0
-  # dotlist <- list(...)
-  # if ("type" %in% names(dotlist)) {
-  #   warning('"type" is deprecated. Using the "type.predict" argument instead.', call. = FALSE)
-  # }
-
+  # a "type" argument (as used in spmodel <= v0.7.0) can't be deprecated with a
+  # warning here, because "type" would ambiguously match both type.predict and
+  # type.residuals via partial matching
   type.predict <- match.arg(type.predict)
   type.residuals <- match.arg(type.residuals)
   interval <- match.arg(interval)
 
+  # se_fit and interval are prediction quantities that only exist at object$newdata
+  if (is.null(newdata)) {
+    newdata <- augment_areal_newdata(x, se_fit, interval)
+  }
+
   # set data and newdata
+  # spgautor fits on the full autocorrelation neighborhood (observed +
+  # unobserved locations), so diagnostics are restricted to observed_index rows only
   if (is.null(newdata)) {
     if (drop) {
       if (x$is_sf) {
         data_sf <- x$data[x$observed_index, x$sf_column_name, drop = FALSE]
       }
       data <- model.frame(x)
-      # keep_cols <- colnames(model.frame(x))
-      # data <- data[, keep_cols, drop = FALSE]
     } else {
       data <- x$data[x$observed_index, , drop = FALSE]
     }
@@ -164,11 +178,8 @@ augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type.predict = c("l
 
 
   if (is.null(newdata)) {
+    # newdata is NULL only when se and interval are not supplied
     augment_data <- tibble::tibble(.fitted = fitted(x, type = type.predict))
-    if (se_fit) {
-      preds_data <- predict(x, newdata = data, type = type.predict, se.fit = se_fit, interval = "confidence", ...)
-      augment_data$.se.fit <- preds_data$se.fit
-    }
     if (x$is_sf && drop) {
       tibble_out <- tibble::tibble(cbind(data, augment_data, influence(x, type = type.residuals), data_sf))
     } else {

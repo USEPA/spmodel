@@ -4,6 +4,8 @@ author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
 bibliography: '`r system.file("references.bib", package="spmodel")`'
 output:
   html_document:
+    includes:
+      in_header: mathjax-equation-numbers.html
 ---
 
 ```{r setup, include = FALSE}
@@ -162,7 +164,7 @@ thorough reviews of generalized linear models and generalized linear
 mixed models, see @bolker2009generalized, @myers2012generalized,
 @faraway2016extending, and @wood2017generalized.
 
-A recent `spmodel` release (version 0.4.0) provided support for spatial
+`spmodel` provides support for spatial
 generalized linear models (i.e., a generalized linear mixed model with
 spatial random effects). We define the spatial generalized linear model
 as \begin{equation}\label{eq:spglm}
@@ -208,7 +210,7 @@ likelihood, which is advantageous because it means that likelihood-based
 statistics such as AIC [@akaike1974new; @hoeting2006model] and BIC [@schwarz1978estimating] are defined,
 in contrast to approaches that only specify the first two moments of a
 distribution (e.g., quasi-likelihood fit via iteratively re-weighted
-least squares). @ver2024marginal provide the methodology's full details.
+least squares). @ver2024marginal and the Technical Details vignette provide the methodology's full details.
 
 `spmodel` accommodates the binomial, beta, Poisson, negative binomial,
 gamma, and inverse Gaussian distributions. The binomial and beta
@@ -242,7 +244,7 @@ variables; `family`, the response distribution, which can be
 `data.frame` or `sf` object [@pebesma2018sf] whose rows
 index observations and whose columns contain the response variable,
 explanatory variables, and spatial information; and
-`spcov_type`, one of 19 spatial covariance types (e.g.,
+`spcov_type`, one of 20 spatial covariance types (e.g.,
 spherical spatial covariance, Matérn spatial covariance,
 simultaneous-autoregressive spatial covariance etc.). The binomial and
 beta response distributions (specified by `family`) use the logit
@@ -271,14 +273,15 @@ observations can utilize `spmodel`'s large data set options.
 | `partition_factor` | A partition factor formula | Both  |
 | `...` | Additional arguments | Both |
 | `anisotropy` | Whether to model anisotropy | `spglm()` |
-| `xcoord` | An x-coordinate name | `spglm()}`  |
+| `xcoord` | An x-coordinate name | `spglm()`  |
 | `ycoord` | A y-coordinate name | `spglm()`  |
 | `local` | Options for large data sets | `spglm()`  |
+| `range_constrain` | Whether to constrain the range for numerical stability | `spglm()` |
 | `W` | A neighborhood weight matrix | `spgautor()`  |
 | `row_st` | Whether to row-standardize `W` | `spgautor()`  |
 | `M` | A symmetry matrix | `spgautor()`  |
-| `range_positive` | Whether the range parameter is restricted to be positive |
-| `cutoff` | Distance cutoff if using distance-based neighbor definition |
+| `range_positive` | Whether the range parameter is restricted to be positive | `spgautor()` |
+| `cutoff` | Distance cutoff if using distance-based neighbor definition | `spgautor()` |
 
 : Arguments to `spglm()` and `spgautor()`, their purpose, and whether the
 argument applies to both `spglm()` and `spgautor()` or just one of them.
@@ -379,8 +382,13 @@ arguments as `predict()`.
 | `se.fit` | Whether standard errors should be returned   |
 | `interval` | Interval type (prediction or confidence) |
 | `level` | Prediction or confidence level   |
-| `local` | Options for large data sets  | 
+| `dispersion` | Dispersion assumed when computing prediction standard errors |
+| `terms` | Which model terms to return when `type = "terms"` |
+| `local` | Options for large data sets  |
 | `var_correct` | Whether prediction variances should be adjusted |
+| `delta` | Whether to return delta method standard errors on the response scale |
+| `newdata_size` | The `size` value for each `newdata` observation for the binomial family |
+| `na.action` | How missing values in `newdata` are handled |
 | `...` | Additional arguments |
 
 : Arguments to `predict()` and their purpose.
@@ -532,10 +540,10 @@ residuals, a fixed effects coefficients table, a pseudo R-squared (which
 quantifies the amount of variability explained by the fixed effects),
 and covariance parameter coefficients. The fixed effects coefficients
 table provides some evidence that elevation and strata are associated
-with with moose presence and that the effect of elevation varies across
+with moose presence and that the effect of elevation varies across
 the two strata (all $p~$values $<$ 0.05). 
 
-The area under the receiver receiver operating characteristic (AUROC) curve quantifies the effectiveness of a classifier [@robin2011proc]. It ranges from zero to one, and higher values indicate better model performance. The AUROC of `bin_spmod_anis` is
+The area under the receiver operating characteristic (AUROC) curve quantifies the effectiveness of a classifier [@robin2011proc]. It ranges from zero to one, and higher values indicate better model performance. The AUROC of `bin_spmod_anis` is
 ```{r}
 AUROC(bin_spmod_anis)
 ```
@@ -596,7 +604,7 @@ The `augment()` function augments the data with model
 diagnostics:
 
 ```{r}
-aug_mod <- augment(bin_spmod_anis)
+aug_mod <- augment(bin_spmod_anis, type.predict = "response", type.residuals = "response")
 aug_mod
 ```
 
@@ -604,7 +612,10 @@ where `.fitted` are fitted values (the estimated
 $f^{-1}(\mathbf{w})$, or moose presence probability), `.resid`
 are response residuals, `.hat` values indicate leverage,
 `.cooksd` values indicate Cook's distance (i.e., influence), and
-`.std.resid` are standardized residuals.
+`.std.resid` are standardized residuals. By default (i.e., without
+supplying `type.predict`/`type.residuals`), `.fitted` and `.resid`
+are instead returned on the link scale and as deviance residuals,
+respectively, matching `broom::augment.glm()`'s own defaults.
 
 The `moose_preds` data contains survey sites that were not
 sampled. We can use `bin_spmod_anis` to make predictions of the
@@ -764,7 +775,7 @@ Estimated mean moose counts for the `moose` data (obtained via
 `augment()`) share similar patterns and are overlain by running
 
 ```{r nb, out.width="65%", fig.align="center", fig.cap="Fitted values and predictions for moose counts."}
-aug_mod <- augment(count_mod_nb)
+aug_mod <- augment(count_mod_nb, type.predict = "response")
 aug_pred <- augment(count_mod_nb, newdata = moose_preds, type.predict = "response")
 aug_mod$type <- "mod"
 aug_pred$type <- "pred"

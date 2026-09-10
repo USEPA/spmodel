@@ -63,22 +63,14 @@
 #'
 #' @examples
 #' \donttest{
-#' sulfate$var <- rnorm(NROW(sulfate)) # add noise variable
-#' sulfate_preds$var <- rnorm(NROW(sulfate_preds)) # add noise variable
-#' sprfmod <- splmRF(sulfate ~ var, data = sulfate, spcov_type = "exponential")
-#' predict(sprfmod, sulfate_preds)
+#' sprfmod <- splmRF(log_cond ~ temp + precip, data = lake, spcov_type = "exponential")
+#' predict(sprfmod, lake_preds)
 #' }
 splmRF <- function(formula, data, ...) {
-
   # check to see if ranger installed
   if (!requireNamespace("ranger", quietly = TRUE)) {
     stop("Install the ranger package before using splmRF", call. = FALSE)
   } else {
-
-    # save calls for later (NSE can be a bit frustrating)
-    # ranger_call <- call("ranger", formula = substitute(formula), data = substitute(data), quote(...))
-    # splm_call <- call("splm", formula = .ranger_resid ~ 1, data = substitute(data), quote(...))
-
     # find NA values for newdata if required
     if (inherits(data, "sf")) {
       model_resp <- model.response(model.frame(formula, sf::st_drop_geometry(data), na.action = na.pass))
@@ -88,6 +80,8 @@ splmRF <- function(formula, data, ...) {
     na_index <- is.na(model_resp)
     resp <- model_resp[!na_index]
 
+    # rows with a missing response are treated as prediction locations
+    # (newdata) rather than passed to ranger/splm for fitting
     if (any(na_index)) {
       newdata <- data[na_index, , drop = FALSE]
       data <- data[!na_index, , drop = FALSE]
@@ -100,6 +94,8 @@ splmRF <- function(formula, data, ...) {
     call_list <- call_list[!names(call_list) %in% c("formula", "data")]
     penv <- parent.frame()
 
+    # ... is shared between ranger() and splm(), so split it by matching
+    # argument names against each function's formals
     # save ranger ... objects
     ranger_names <- names(formals(ranger::ranger))
     ranger_args <- call_list[names(call_list) %in% ranger_names]
@@ -119,12 +115,18 @@ splmRF <- function(formula, data, ...) {
     # find residuals
     data$.ranger_resid <- resp - ranger_out$predictions
     # perform splm
+    # fit an intercept-only spatial linear model to the random forest
+    # residuals -- this is "random forest regression kriging": ranger
+    # captures the (possibly nonlinear) mean trend, splm captures the
+    # remaining spatial autocorrelation for prediction and uncertainty
     splm_out <- do.call(spmodel::splm, c(list(formula = .ranger_resid ~ 1, data = data), splm_args), envir = penv)
     if (inherits(splm_out, "splm")) {
       splm_out$call <- NA
       # output list with names and class
       sprf_out <- structure(list(call = match.call(), ranger = ranger_out, splm = splm_out, newdata = newdata), class = "splmRF")
     } else {
+      # splm() returns a list of fits (class splm_list) when multiple
+      # spcov_type/spcov_initial values were requested -- mirror that here
       splm_out <- lapply(splm_out, function(x) {
         x$call <- NA
         x

@@ -73,11 +73,14 @@ must be present in \code{newdata}. Defaults to \code{NULL}, which indicates
 that nothing has been passed to \code{newdata}.}
 
 \item{se_fit}{Logical indicating whether or not a \code{.se.fit} column should
-be added to augmented output. Passed to \code{predict()} and
-defaults to \code{FALSE}.}
+be added to augmented output. Defaults to \code{FALSE}. When \code{newdata}
+is not supplied, \code{.se.fit} is the standard error of the fitted mean at
+the observed locations (on the link scale for \code{spglm()} and
+\code{spgautor()} model objects), matching
+\code{predict(interval = "confidence")}.}
 
-\item{interval}{Character indicating the type of confidence interval columns to
-add to the augmented \code{newdata} output. Passed to \code{predict()} and defaults
+\item{interval}{Character indicating the type of interval columns
+(\code{.lower} and \code{.upper}) to add to the augmented output. Defaults
 to \code{"none"}.}
 
 \item{level}{Tolerance/confidence level. The default is \code{0.95}.}
@@ -150,6 +153,19 @@ they were a \code{newdata} object by providing \code{x$newdata} to the
 object). This is the only way to compute predictions for
 \code{\link[=spautor]{spautor()}} and \code{\link[=spgautor]{spgautor()}} fitted model objects.
 }
+\section{Autoregressive models and prediction quantities}{
+
+For \code{spautor()} and \code{spgautor()} model objects the prediction
+locations are part of the model: they determine the neighbor structure and
+hence the covariance of the observed data itself. \code{se_fit} and
+\code{interval} are therefore only defined at those locations, and
+\code{object$newdata} is automatically used when \code{se_fit} or
+\code{interval} is requested (and hence the rows returned by \code{augment()})
+correspond to \code{object$newdata}. \code{splm()} and \code{spglm()} model objects have no such
+restriction, as their covariance does not depend on where predictions
+are made.
+}
+
 \examples{
 spmod <- splm(z ~ water + tarp,
   data = caribou,

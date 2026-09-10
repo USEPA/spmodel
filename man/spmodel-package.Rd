@@ -24,13 +24,14 @@ Useful links:
 Authors:
 \itemize{
   \item Matt Higham \email{mhigham@stlawu.edu} (\href{https://orcid.org/0009-0006-4217-625X}{ORCID})
-  \item Jay M. Ver Hoef \email{jay.verhoef@noaa.gov} (\href{https://orcid.org/0000-0003-4302-6895}{ORCID})
+  \item Jay M. Ver Hoef (\href{https://orcid.org/0000-0003-4302-6895}{ORCID})
 }
 
 Other contributors:
 \itemize{
-  \item Ryan A. Hill \email{hill.ryan@epa.gov} (\href{https://orcid.org/0000-0001-9583-0426}{ORCID}) [contributor]
-  \item Michael Mahon \email{Mahon.Michael@epa.gov} (\href{https://orcid.org/0000-0002-9436-2998}{ORCID}) [contributor]
+  \item Matthew Heaton (\href{https://orcid.org/0000-0003-4654-9827}{ORCID}) [contributor]
+  \item Ryan A. Hill (\href{https://orcid.org/0000-0001-9583-0426}{ORCID}) [contributor]
+  \item Michael Mahon (\href{https://orcid.org/0000-0002-9436-2998}{ORCID}) [contributor]
 }
 
 }

@@ -118,17 +118,15 @@ mean and covariance structure.
 \details{
 Random variables are simulated via the product of the covariance matrix's
 square (Cholesky) root and independent standard normal random variables
-with mean 0 and variance 1. Computing the square root is a significant
-computational burden and likely unfeasible for sample sizes much past 10,000.
-Because this square root only needs to be computed once, however, it is
+with mean 0 and variance 1. It is
 nearly the sample computational cost to call \code{sprnorm()} for any value
 of \code{samples}.
 
-Only methods for the \code{exponential}, \code{none}, and \code{car}
+Only methods for the \code{exponential} and \code{car}
 covariance functions are documented here,
 but methods exist for all other spatial covariance functions defined in
 \code{\link[=spcov_initial]{spcov_initial()}}. Syntax for the \code{exponential} method is the same
-as syntax for \code{spherical}, \code{gaussian}, \code{triangular},
+as syntax for \code{ie}, \code{spherical}, \code{gaussian}, \code{triangular},
 \code{circular}, \code{cubic}, \code{pentaspherical}, \code{cosine}, \code{wave},
 \code{jbessel}, \code{gravity}, \code{rquad}, \code{magnetic}, \code{matern},
 \code{cauchy}, and \code{pexponential} methods. Syntax for

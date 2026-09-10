@@ -1,6 +1,14 @@
 url: https://usepa.github.io/spmodel/
 template:
   bootstrap: 3
+  math-rendering: mathjax
+  includes:
+    in_header: |
+      <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+      </script>
 
 articles:
 - title: Articles
@@ -11,6 +19,9 @@ articles:
   - articles/SPGLMs
   - articles/emmeans
   - articles/block
+  - articles/simulation
+  - articles/conditional
+  - articles/decorrelate
   - articles/technical
 
 # toc broken in bootstrap 5, pkgdown 2.1.0

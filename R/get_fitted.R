@@ -13,6 +13,8 @@
 #' @noRd
 get_fitted_splm <- function(betahat, spcov_params, data_object, eigenprods_list,
                             dist_matrix_list, randcov_params = NULL) {
+  # X %*% betahat gives the fixed-effects (trend) component of the fit for each
+  # partition; these are later combined with the spatial BLUP components below
   fitted_response <- as.numeric(do.call("rbind", lapply(data_object$X_list, function(x) x %*% betahat)))
 
   if (!is.null(data_object$offset)) {
@@ -29,6 +31,9 @@ get_fitted_splm <- function(betahat, spcov_params, data_object, eigenprods_list,
   # cov params no de   (set ie portion to zero because BLUP only uses cov(dependent error))
   spcov_params_de_only <- spcov_params
   spcov_params_de_only[["ie"]] <- 0
+  # covariance matrix built from only the dependent-error (spatially correlated)
+  # component -- the independent-error (nugget) component contributes nothing to
+  # the BLUP of the spatial signal, since it has zero covariance with any other observation
   spcov_matrix_de_only_list <- lapply(
     dist_matrix_list,
     function(x) spcov_matrix(spcov_params = spcov_params_de_only, dist_matrix = x)
@@ -49,6 +54,9 @@ get_fitted_splm <- function(betahat, spcov_params, data_object, eigenprods_list,
   if (is.null(names(randcov_params))) {
     fitted_randcov <- NULL
   } else {
+    # BLUP of each random effect's level-specific value: crossprod(Z, SigInv_r)
+    # projects the whitened residual onto each level's indicator column, then
+    # scales by that random effect's variance component
     fitted_randcov <- lapply(names(randcov_params), function(x) {
       fitted_val <- randcov_params[[x]] * do.call("rbind", mapply(
         z = data_object$randcov_list,
@@ -57,23 +65,14 @@ get_fitted_splm <- function(betahat, spcov_params, data_object, eigenprods_list,
           crossprod(z[[x]][["Z"]], r)
         }
       ))
+      # a level's true contribution can appear in several partitions/rows; average
+      # only the nonzero entries per level name and treat an all-zero level as 0
       fitted_val <- tapply(fitted_val, rownames(fitted_val), function(x) {
-
         if (any(x != 0)) {
           val <- mean(x[x != 0])
         } else {
           val <- 0
         }
-        # if (length(val) == 0) { # replace if all zeros somehow
-        #   val <- rep(0, length(x))
-        #   names(val) <- names(x)
-        # }
-        # if all elements of x are zero then val is NaN, so reset it to zero
-        # this works but above uncommented code is cleaner
-        # if (is.na(val)) {
-        #   val <- 0
-        # }
-        # val
       })
       # all combinations yields values with many zeros -- don't want to include these in the mean
       names_fitted_val <- rownames(fitted_val)
@@ -91,8 +90,21 @@ get_fitted_splm <- function(betahat, spcov_params, data_object, eigenprods_list,
   )
 }
 
+#' Get fitted values for an \code{spautor()} model
+#'
+#' @param betahat Vector of fixed effects
+#' @param spcov_params A \code{spcov_params} object
+#' @param data_object The data object
+#' @param eigenprods A \code{eigenprods} object
+#' @param randcov_params A \code{randcov_params} object
+#'
+#' @return A list of fitted values
+#'
+#' @noRd
 get_fitted_spautor <- function(betahat, spcov_params, data_object, eigenprods,
                                randcov_params = NULL) {
+  # subset the full neighborhood/weights structures down to just the observed
+  # locations (spautor models can include unobserved locations for prediction)
   dist_matrix <- data_object$W[data_object$observed_index, data_object$observed_index, drop = FALSE]
   M <- data_object$M[data_object$observed_index]
 
@@ -115,6 +127,9 @@ get_fitted_spautor <- function(betahat, spcov_params, data_object, eigenprods,
   spcov_matrix_de_only <- spcov_matrix(spcov_params = spcov_params_de_only, dist_matrix = dist_matrix, M = M)
 
   if (!is.null(data_object$partition_factor)) {
+    # zero out covariance between observations in different partitions -- a
+    # partition factor means observations are only allowed to be
+    # correlated with others sharing the same partition level
     spcov_matrix_de_only <- spcov_matrix_de_only * data_object$partition_matrix[data_object$observed_index, data_object$observed_index, drop = FALSE]
   }
 
@@ -130,6 +145,7 @@ get_fitted_spautor <- function(betahat, spcov_params, data_object, eigenprods,
     fitted_randcov <- NULL
   } else {
     if (is.null(data_object$partition_factor)) {
+      # no partitioning: one BLUP calculation using all observations at once
       ob_randcov_Zs <- get_randcov_Zs(data_object$obdata, names(randcov_params), ZZt = FALSE)
       fitted_randcov <- lapply(names(randcov_params), function(x) {
         fitted_val <- randcov_params[[x]] * crossprod(ob_randcov_Zs[[x]][["Z"]], SigInv_r)
@@ -140,6 +156,9 @@ get_fitted_spautor <- function(betahat, spcov_params, data_object, eigenprods,
       })
       names(fitted_randcov) <- names(randcov_params)
     } else {
+      # with partitioning, random effect levels are estimated separately within
+      # each partition (rows outside the current partition are excluded via
+      # row_val), then results across partitions are combined below
       index <- unname(model.response(model.frame(reformulate("1", response = labels(terms(data_object$partition_factor))),
         data = data_object$obdata
       )))
@@ -152,6 +171,8 @@ get_fitted_spautor <- function(betahat, spcov_params, data_object, eigenprods,
             crossprod(ob_randcov_Zs[[x]][["Z"]][row_val, , drop = FALSE], SigInv_r[row_val, , drop = FALSE])
         })
         fitted_val <- do.call("rbind", fitted_val)
+        # average nonzero contributions per level (a level can appear in
+        # multiple partitions' outputs, with zeros elsewhere)
         fitted_val <- tapply(fitted_val, rownames(fitted_val), function(x) {
           val <- mean(x[x != 0])
           if (length(val) == 0) { # replace if all zeros somehow
@@ -168,8 +189,6 @@ get_fitted_spautor <- function(betahat, spcov_params, data_object, eigenprods,
       names(fitted_randcov) <- names(randcov_params)
     }
   }
-
-
 
 
   fitted_values <- list(

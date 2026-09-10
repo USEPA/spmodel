@@ -23,6 +23,9 @@
 #' model.frame(spmod)
 model.frame.splm <- function(formula, ...) {
   # model.frame(formula(formula, ...), data = formula$data, ...) too much customization
+  # na.action = na.omit and drop.unused.levels = TRUE are fixed rather than
+  # passed through ... so the returned frame always matches the rows/factor
+  # levels actually used when the model was fit
   model.frame(formula(formula), data = formula$obdata, drop.unused.levels = TRUE, na.action = na.omit)
 }
 
@@ -31,5 +34,8 @@ model.frame.splm <- function(formula, ...) {
 #' @order 2
 #' @export
 model.frame.spautor <- function(formula, ...) {
+  # spautor() keeps both observed and missing rows in $data (autoregressive
+  # models need the full neighborhood structure), so subset to observed_index
+  # here to get just the rows the model was fit to
   model.frame(formula(formula), data = formula$data[formula$observed_index, , drop = FALSE], drop.unused.levels = TRUE, na.action = na.omit)
 }

@@ -20,10 +20,11 @@
 #' @noRd
 use_gloglik_anis <- function(spcov_initial, data_object, estmethod, spcov_profiled,
                              randcov_initial = NULL, randcov_profiled = NULL, optim_dotlist) {
-
   # transforming to optim paramters (log odds or log scale)
-  spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = spcov_profiled,
-                                           data_object = data_object)
+  spcov_orig2optim_val <- spcov_orig2optim(
+    spcov_initial = spcov_initial, spcov_profiled = spcov_profiled,
+    data_object = data_object
+  )
 
 
   # transforming random effect parameters (if they are there else NULL)
@@ -35,7 +36,7 @@ use_gloglik_anis <- function(spcov_initial, data_object, estmethod, spcov_profil
 
 
   # get optim par
-  optim_par <- get_optim_par(spcov_orig2optim_val, randcov_orig2optim_val)
+  optim_par <- assemble_optim_par(spcov_orig2optim = spcov_orig2optim_val, randcov_orig2optim = randcov_orig2optim_val)
 
   # check optim dotlist
   optim_dotlist <- check_optim_method(optim_par, optim_dotlist)
@@ -55,108 +56,39 @@ use_gloglik_anis <- function(spcov_initial, data_object, estmethod, spcov_profil
     optim_dotlist
   ))
 
-  # transforming to original scale
-  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim_val, optim_output$par, spcov_profiled = spcov_profiled,
-                                     data_object = data_object)
+  # transforming to original scale. NOTE: unlike the laploglik-family call
+  # sites, spcov_initial is deliberately NOT passed here -- floor_estimated_ie()
+  # must run after the profiled-variance rescale below (diagtol is an
+  # absolute-scale threshold, and ie is not on its final absolute scale until
+  # after that rescale), so it is called separately further down
+  unpacked <- unpack_optim2orig(spcov_orig2optim_val, randcov_orig2optim_val, optim_output$par, spcov_profiled, randcov_profiled, data_object)
+  spcov_params_val <- unpacked$spcov_params_val
+  randcov_params_val <- unpacked$randcov_params_val
 
-  # making a covariance parameter vector
-  spcov_params_val <- get_spcov_params(spcov_type = class(spcov_orig2optim_val), spcov_orig_val = spcov_orig_val)
-
-  # transforming to original scale
-  randcov_orig_val <- randcov_optim2orig(randcov_orig2optim_val,
-    spcov_orig2optim_val,
-    optim_output$par,
-    randcov_profiled = randcov_profiled,
-    spcov_optim2orig = spcov_params_val
-  )
-
-
-  # need to deal with list if randcov_profiled as sp variance changes
-  if (!is.null(randcov_profiled) && randcov_profiled) {
-    spcov_params_val <- randcov_orig_val$spcov_optim2orig
-    randcov_orig_val <- randcov_orig_val$fill_orig_val
-  }
-
-  # making a random effects vector
-  randcov_params_val <- randcov_params(randcov_orig_val)
-
-  # finding appropriate rotation
-  # quadrant 1
-
-  ## make distance matrix
-  new_coords_list_q1 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-    rotate = spcov_params_val[["rotate"]], scale = spcov_params_val[["scale"]]
-  )
-
-  dist_matrix_list_q1 <- lapply(new_coords_list_q1, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-
-  # compute relevant products
-  gll_prods_q1 <- gloglik_products(
-    spcov_params_val, data_object, estmethod,
-    dist_matrix_list_q1, randcov_params_val
-  )
-
-  # find -2loglik
-  minustwologlik_q1 <- get_minustwologlik(gll_prods_q1, estmethod, data_object$n, data_object$p, spcov_profiled = spcov_profiled, randcov_profiled = randcov_profiled)
-
-
-  new_coords_list_q2 <- lapply(data_object$obdata_list, transform_anis, data_object$xcoord, data_object$ycoord,
-    rotate = abs(pi - spcov_params_val[["rotate"]]), scale = spcov_params_val[["scale"]]
-  )
-  dist_matrix_list_q2 <- lapply(new_coords_list_q2, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
-
-  # compute relevant products
-  gll_prods_q2 <- gloglik_products(
-    spcov_params_val, data_object, estmethod,
-    dist_matrix_list_q2, randcov_params_val
-  )
-
-  # find -2loglik
-  minustwologlik_q2 <- get_minustwologlik(gll_prods_q2, estmethod, data_object$n,
-    data_object$p,
+  resolved <- resolve_anis_rotation(spcov_params_val, randcov_params_val, data_object, estmethod,
     spcov_profiled = spcov_profiled, randcov_profiled = randcov_profiled
   )
+  spcov_params_val <- resolved$spcov_params_val
+  dist_matrix_list <- resolved$dist_matrix_list
 
-  ## find appropriate value
-  rotate_min <- which.min(c(minustwologlik_q1, minustwologlik_q2))
+  rescaled <- rescale_profiled_variance(spcov_params_val, randcov_params_val, data_object, estmethod,
+    dist_matrix_list, spcov_profiled, randcov_profiled
+  )
+  spcov_params_val <- rescaled$spcov_params_val
+  randcov_params_val <- rescaled$randcov_params_val
 
-  if (rotate_min == 1) {
-    dist_matrix_list <- dist_matrix_list_q1
-  } else if (rotate_min == 2) {
-    spcov_params_val[["rotate"]] <- abs(pi - spcov_params_val[["rotate"]])
-    dist_matrix_list <- dist_matrix_list_q2
-  }
-
-
-  if (spcov_profiled && (is.null(randcov_profiled) ||
-    (!is.null(randcov_profiled) && randcov_profiled))) {
-    # get the spcov_profiled variance
-    sigma2 <- get_prof_sigma2(
-      spcov_params_val, data_object, estmethod,
-      dist_matrix_list, randcov_params_val
-    )
-
-    # multiply by overall variance
-    spcov_params_val[["de"]] <- sigma2 * spcov_params_val[["de"]]
-    spcov_params_val[["ie"]] <- sigma2 * spcov_params_val[["ie"]]
-
-    if (!is.null(randcov_profiled)) {
-      randcov_params_val <- sigma2 * randcov_params_val
-    }
-
-    # add unconnected ar variance if needed
-    if (inherits(spcov_params_val, c("car", "sar"))) {
-      spcov_params_val[["extra"]] <- sigma2 * spcov_params_val[["extra"]]
-    }
-  }
+  # reconcile a genuinely estimated ie with the numerical floor
+  # spcov_matrix.*() applies internally when building Sigma -- mirrors the
+  # equivalent GLM-side reconciliation, see R/floor_estimated_ie.R. Must run
+  # here, after the profiled-variance rescale above, not inside
+  # unpack_optim2orig() like the laploglik call sites do: diagtol is an
+  # absolute-variance-scale threshold, but ie is still a correlation-scale
+  # proportion (summing to 1 with de) until the rescale multiplies it back
+  # into absolute units.
+  spcov_params_val <- floor_estimated_ie(spcov_params_val, spcov_initial$is_known, data_object$diagtol)
 
   # return parameter values and optim output
-  optim_output <- list(
-    method = optim_dotlist$method, control = optim_dotlist$control,
-    value = optim_output$value,
-    counts = optim_output$counts, convergence = optim_output$convergence,
-    message = optim_output$message, hessian = if (optim_dotlist$hessian) optim_output$hessian else FALSE
-  )
+  optim_output <- trim_optim_output(optim_output, optim_dotlist)
 
 
   # return list

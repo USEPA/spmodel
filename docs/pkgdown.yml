@@ -1,15 +1,17 @@
-pandoc: 3.8.3
-pkgdown: 2.0.9
+pandoc: '3.10'
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
-  block: block.html
-  emmeans: emmeans.html
-  guide: guide.html
+  articles/block: block.html
+  articles/conditional: conditional.html
+  articles/decorrelate: decorrelate.html
+  articles/emmeans: emmeans.html
+  articles/guide: guide.html
   introduction: introduction.html
-  SPGLMs: SPGLMs.html
-  technical: technical.html
-last_built: 2026-06-10T16:34Z
+  articles/simulation: simulation.html
+  articles/SPGLMs: SPGLMs.html
+  articles/technical: technical.html
+last_built: 2026-09-10T17:03Z
 urls:
   reference: https://usepa.github.io/spmodel/reference
   article: https://usepa.github.io/spmodel/articles
-

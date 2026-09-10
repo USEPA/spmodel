@@ -3,10 +3,13 @@
 #' @order 6
 #' @export
 glances.spglm <- function(object, ..., sort_by = "AICc", decreasing = FALSE, warning = TRUE) {
+  # mirrors glances.splm() but restricted to GLM-type model classes
   model_list <- c(list(object), list(...))
   if (any(!(vapply(model_list, function(x) class(x), character(1)) %in% c("spglm", "spgautor")))) {
     stop("All models must be of class spglm or spgautor", call. = FALSE)
   }
+  # recover the argument names/expressions as passed by the caller so the
+  # output table can label each row by model name, not just position
   model_list_names <- c(as.character(as.list(substitute(list(object)))[-1]), as.character(as.list(substitute(list(...)))[-1]))
   if (warning && length(model_list) > 1) {
     check_likstat_use(model_list)

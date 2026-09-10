@@ -1,4 +1,22 @@
+# see use_laploglik.R for an overview of the use_laploglik* family; this file
+# is the isotropic + known-parameters variant (no optim() search).
+#' Evaluate the Laplace-approximated log-likelihood at fully-known parameters
+#'
+#' @param spcov_initial A \code{spcov_initial} object (all parameters fixed)
+#' @param dispersion_initial A \code{dispersion_initial} object (fixed)
+#' @param data_object The data object
+#' @param estmethod The estimation method
+#' @param dist_matrix_list A list of distance matrices
+#' @param randcov_initial A \code{randcov_initial} object (fixed, or \code{NULL})
+#'
+#' @return The same value as \code{use_laploglik()}, but with no
+#'   optimization performed since every covariance parameter is fixed at a
+#'   known value
+#'
+#' @noRd
 use_laploglik_known <- function(spcov_initial, dispersion_initial, data_object, estmethod, dist_matrix_list, randcov_initial) {
+  # parameters are taken directly from the *_initial objects' fixed values
+  # rather than estimated, since is_known indicates they were user-supplied
   spcov_params_val <- get_spcov_params(class(spcov_initial), spcov_initial$initial)
   dispersion_params_val <- dispersion_params(data_object$family, dispersion_initial$initial)
   # unname otherwise name dispersion.dispersion
@@ -11,13 +29,7 @@ use_laploglik_known <- function(spcov_initial, dispersion_initial, data_object, 
   ## compute -2ll
   minustwolaploglik <- get_minustwolaploglik(lapll_prods, estmethod, data_object$n, data_object$p, spcov_profiled = FALSE)
   # return parameter values and optim output
-  optim_output <- list(
-    method = NA, control = NA, value = minustwolaploglik,
-    counts = NA, convergence = NA,
-    message = NA, hessian = NA
-  )
-
-
+  optim_output <- known_optim_output_stub(minustwolaploglik)
 
   # return list
   list(

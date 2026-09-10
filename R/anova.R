@@ -27,6 +27,11 @@
 #'   If \code{L} is a list, each list element is a numeric matrix specified as above.
 #'   Then separate hypothesis tests are conducted. The easiest
 #'   way to obtain all possible coefficients is to run \code{tidy(object)$term}.
+#' @param ddf The denominator degrees of freedom used. \code{"asymptotic"}
+#'   implements an asymptotic chi-squared test. 
+#'   \code{"satterthwaite"} impelments a Satterthwaite/Fai-Cornelius
+#'   F-test. The default is \code{"satterthwaite"} when the sample size is 
+#'   less than or equal to 500 and \code{"asymptotic"} otherwise.
 #'
 #' @details When one fitted model object is present, \code{anova()}
 #'   performs a general linear hypothesis test corresponding to some hypothesis
@@ -40,11 +45,15 @@
 #'   When two fitted model objects are present, one must be a "reduced"
 #'   model nested in a "full" model. Then \code{anova()} performs a likelihood ratio test.
 #'
-#' @return When one fitted model object is present, \code{anova()}
+#' @return When \code{ddf} is \code{"asymptotic"}, \code{anova()}
 #'   returns a data frame with degrees of
 #'   freedom (\code{Df}), test statistics (\code{Chi2}), and p-values
 #'   (\code{Pr(>Chi2)} if \code{test = TRUE}) corresponding
-#'   to asymptotic Chi-squared hypothesis tests for each model term.
+#'   to asymptotic Chi-squared hypothesis tests for each model term. When
+#'   \code{ddf} is \code{"satterthwaite"}, \code{anova()} instead
+#'   numerator degrees of freedom (\code{NumDF}), denominator
+#'   degrees of freedom (\code{DenDF}), \eqn{F} statistics (\code{F value}),
+#'   and p-values (\code{Pr(>F)} if \code{test = TRUE}) for each model term.
 #'
 #'   When two fitted model objects are present, \code{anova()} returns a data frame
 #'   with the difference in degrees of freedom between the full and reduced model (\code{Df}), a test
@@ -54,6 +63,8 @@
 #'   Whether one or two fitted model objects are provided,
 #'   \code{tidy()} can be used
 #'   to obtain tidy tibbles of the \code{anova(object)} output.
+#'
+#' @seealso [satterthwaite()]
 #'
 #' @name anova.spmodel
 #' @method anova splm
@@ -79,54 +90,69 @@
 #'   spcov_type = "none"
 #' )
 #' tidy(anova(spmod, lmod))
-anova.splm <- function(object, ..., test = TRUE, Terms, L) {
-
+anova.splm <- function(object, ..., test = TRUE, Terms, L, ddf) {
   # see if one or two models
   object2_list <- list(...)
 
+  if (missing(Terms)) Terms <- NULL
+  if (missing(L)) L <- NULL
+  if (missing(ddf)) ddf <- NULL
+  # captured before determine_ddf() resolves a missing ddf to a sample-size-
+  # based default, so the two cases below can be told apart
+  ddf_explicit <- !is.null(ddf)
+
   # one model stuff
   if (length(object2_list) == 0) {
-    if (missing(L)) {
-      assign_indices <- attr(model.matrix(object), "assign") + 1
-      # attr(model.matrix(object), "assign") if centering at zero
-      if (missing(Terms)) {
-        assign_index <- unique(assign_indices)
-        L <- lapply(assign_index, get_L_list, assign_indices)
-        label <- labels(object)
-        if (attr(terms(object), "intercept") == 1) {
-          label <- c("(Intercept)", label)
-        }
-        names(L) <- label
-      } else {
-        if (is.character(Terms)) {
-          Terms <- which(c("(Intercept)", labels(object)) %in% Terms) # - 1 if centering at zero
-        }
-        L <- list(do.call(rbind, lapply(Terms, get_L_list, assign_indices)))
-        label <- c("(Intercept)", labels(object))
-        label <- label[Terms] # label[Terms + 1] if centering at zero
-        names(L) <- paste(label, collapse = ", ")
-      }
-    } else {
-      if (!is.list(L)) {
-        L <- list(L)
-      }
-      names(L) <- paste("contrast", seq_along(L), sep = "")
-    }
-    anova_val <- do.call(rbind, lapply(L, get_marginal_Chi2, object))
 
-    if (!test) {
-      anova_val <- anova_val[-which(colnames(anova_val) == "Pr(>Chi2)")]
+    ddf <- determine_ddf(ddf, object$n)
+
+    anova_val <- NULL
+
+    if (ddf == "satterthwaite") {
+      # satterthwaite_anova() is not exported -- called internally the same
+      # way satterthwaite() itself is used by splm()/spautor()'s own ddf
+      # argument. An automatic (ddf missing) attempt fails silently, falling
+      # back to the asymptotic table below; an explicit request lets the
+      # error surface, since the user asked for it directly.
+      anova_val <- if (ddf_explicit) {
+        satterthwaite_anova(object, test = test, Terms = Terms, L = L)
+      } else {
+        tryCatch(satterthwaite_anova(object, test = test, Terms = Terms, L = L), error = function(e) NULL)
+      }
+
+      if (!is.null(anova_val)) {
+        if (!test && "Pr(>F)" %in% colnames(anova_val)) {
+          anova_val <- anova_val[, colnames(anova_val) != "Pr(>F)", drop = FALSE]
+        }
+        anova_val <- structure(anova_val, heading = c("Analysis of Variance Table\n", paste("Response:", deparse(object$formula[[2L]]))))
+      } else {
+        ddf <- "asymptotic"
+      }
     }
-    anova_val <- structure(anova_val, heading = c("Analysis of Variance Table\n", paste("Response:", deparse(object$formula[[2L]]))))
+
+    if (ddf == "asymptotic") {
+      L <- get_L(L, Terms, object)
+      # run the Wald chi-squared test for each hypothesis matrix and stack results
+      anova_val <- do.call(rbind, lapply(L, get_marginal_Chi2, object))
+
+      if (!test) {
+        anova_val <- anova_val[-which(colnames(anova_val) == "Pr(>Chi2)")]
+      }
+      anova_val <- structure(anova_val, heading = c("Analysis of Variance Table\n", paste("Response:", deparse(object$formula[[2L]]))))
+    }
   }
 
   # two model stuff
+  # likelihood ratio test between a nested pair of models
   else {
     object2 <- object2_list[[1]]
     if (!object$estmethod %in% c("ml", "reml") || !object2$estmethod %in% c("ml", "reml")) {
       stop("LRT only defined for ml or reml", call. = FALSE)
     }
 
+    # reml log-likelihoods are only comparable when the fixed effects are
+    # identical (reml profiles out fixed effects, so mixing estmethods or
+    # varying fixed effects under reml makes the likelihoods non-comparable)
     if (all(c("ml", "reml") %in% c(object$estmethod, object2$estmethod))) {
       stop("Both fitted model objects must have the same estimation method", call. = FALSE)
     }
@@ -137,15 +163,21 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L) {
     ) {
       stop("The fixed effect coefficients must be the same when performing a likeihood ratio test using the reml estimation method. To perform the likelihood ratio tests for different fixed effect and covariance coefficients simultaneously, refit the models using the ml estimation method.", call. = FALSE)
     }
+    # LRT statistic: -2 * (loglik of reduced model - loglik of full model),
+    # asymptotically chi-squared under the null that the reduced model holds
     Chi2_stat <- abs(-2 * (logLik(object2) - logLik(object)))
 
     # df for ml vs reml
+    # ml estimates fixed effects + covariance params, reml estimates only
+    # covariance params (see AICc.R for the same distinction)
     df1 <- object$npar
     df2 <- object2$npar
     if (object$estmethod == "ml") df1 <- df1 + object$p
     if (object2$estmethod == "ml") df2 <- df2 + object2$p
     df_diff <- abs(df1 - df2)
     p_value <- pchisq(Chi2_stat, df_diff, lower.tail = FALSE)
+    # the model with more estimated parameters (npar) is the "full" model;
+    # the other is "reduced" -- used only for labeling the output
     if (object2$npar < object$npar) {
       full_name <- deparse(substitute(object)) # replace as.character with deparse
       reduced_name <- as.character(as.list(substitute(list(...)))[-1])
@@ -163,15 +195,6 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L) {
     rownames(anova_val) <- paste(full_name, "vs", reduced_name)
     attr(anova_val, "full") <- full_name
     attr(anova_val, "reduced") <- reduced_name
-
-    # if (object2$npar < object$npar) {
-    #   red <- "1"
-    #   full <- "2"
-    # } else {
-    #   red <- "2"
-    #   full <- "1"
-    # }
-    # rownames(anova_val) <- paste(red, "vs", full)
     anova_val <- structure(anova_val, heading = c("Likelihood Ratio Test\n", paste("Response:", deparse(object$formula[[2L]]))))
   }
   structure(anova_val, class = c(paste("anova", class(object), sep = "."), "data.frame"))
@@ -183,6 +206,15 @@ anova.splm <- function(object, ..., test = TRUE, Terms, L) {
 #' @export
 anova.spautor <- anova.splm
 
+#' Compute a marginal Wald chi-squared test from a general linear hypothesis matrix
+#'
+#' @param L A hypothesis matrix (or vector, coerced to a single-row matrix)
+#' @param object A fitted model object from [splm()], [spautor()], [spglm()], or [spgautor()]
+#'
+#' @return A data frame with columns \code{Df}, \code{Chi2}, and \code{Pr(>Chi2)}
+#'   for the general linear hypothesis test \eqn{L\beta = 0}
+#'
+#' @noRd
 get_marginal_Chi2 <- function(L, object) {
   # make matrix if a numeric vector
   if (!is.matrix(L)) {
@@ -191,10 +223,17 @@ get_marginal_Chi2 <- function(L, object) {
   # find the number of rows
   Df <- NROW(L)
   # find product2 of the GLHT
+  # inverse of the sampling covariance of L %*% beta_hat, via Cholesky for
+  # numerical stability/efficiency rather than a direct matrix inverse
   part2 <- chol2inv(chol(forceSymmetric(L %*% vcov(object) %*% t(L))))
   # find product3 of the GLHT
   part3 <- L %*% coefficients(object)
   # compute the chi-squared statistic
+  # Wald statistic (L*beta_hat)' [L*Var(beta_hat)*L']^-1 (L*beta_hat), which
+  # is asymptotically chi-squared with Df degrees of freedom under H0: L*beta = 0
+  # Chi2/rank(L) is an F(rank(L), Inf) distribution, which equals a scaled chi-squared
+  # multiply the F value Chi2/rank(L) by rank(L) yields the original chi-squared
+  # with rank(L) df
   Chi2 <- as.numeric(crossprod(part3, part2) %*% part3)
   # find the p-value
   p.value <- pchisq(Chi2, Df, lower.tail = FALSE)
@@ -214,12 +253,26 @@ get_marginal_Chi2 <- function(L, object) {
 #' @export
 tidy.anova.splm <- function(x, ...) {
   if (!is.null(attr(x, "full")) && !is.null(attr(x, "reduced"))) {
+    # likelihood ratio test (two models) -- always a Chi2 test, never
+    # Satterthwaite, regardless of ddf
     result <- tibble::tibble(full = attr(x, "full"), reduced = attr(x, "reduced"), df = x$Df, statistic = x$Chi2)
+    if ("Pr(>Chi2)" %in% colnames(x)) {
+      result$p.value <- x[["Pr(>Chi2)"]]
+    }
+  } else if ("NumDF" %in% colnames(x)) {
+    # one model, ddf = "satterthwaite" -- an F table (NumDF/DenDF/F value/
+    # Pr(>F)) instead of the asymptotic Chi2 table below
+    result <- tibble::tibble(
+      effects = rownames(x), num_df = x$NumDF, den_df = x$DenDF, statistic = x[["F value"]]
+    )
+    if ("Pr(>F)" %in% colnames(x)) {
+      result$p.value <- x[["Pr(>F)"]]
+    }
   } else {
     result <- tibble::tibble(effects = rownames(x), df = x$Df, statistic = x$Chi2)
-  }
-  if ("Pr(>Chi2)" %in% colnames(x)) {
-    result$p.value <- x[["Pr(>Chi2)"]]
+    if ("Pr(>Chi2)" %in% colnames(x)) {
+      result$p.value <- x[["Pr(>Chi2)"]]
+    }
   }
   result
 }

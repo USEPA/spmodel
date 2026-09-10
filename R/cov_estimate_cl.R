@@ -17,18 +17,20 @@
 #'   semivariogram estimation. *Journal of Agricultural, biological, and
 #'   Environmental statistics*, 9-28.
 cov_estimate_cl <- function(data_object, formula, spcov_initial, estmethod, optim_dotlist) {
-
-
-  # make NA spcov_initial
+  # mark which spatial covariance parameters the user fixed (vs. left to be
+  # estimated) so the grid search below only searches over the free ones
   spcov_initial_NA_val <- spcov_initial_NA(spcov_initial, anisotropy = data_object$anisotropy)
 
-  # store distance matrix (if applicable)
+  # store distance matrix (if applicable); skipped under anisotropy since distances
+  # depend on the rotate/scale parameters, which aren't known until estimation runs
   if (data_object$anisotropy) {
     dist_matrix_list <- NULL
   } else {
     dist_matrix_list <- lapply(data_object$obdata_list, function(x) spdist(x, data_object$xcoord, data_object$ycoord))
   }
 
+  # grid search for good optimizer starting values (avoids composite-likelihood
+  # optimization landing in a poor local optimum)
   cov_initial_val <- cov_initial_search(
     spcov_initial_NA = spcov_initial_NA_val,
     estmethod = estmethod,
@@ -46,10 +48,8 @@ cov_estimate_cl <- function(data_object, formula, spcov_initial, estmethod, opti
     dist_matrix_list <- lapply(new_coords_list, function(x) spdist(xcoord_val = x$xcoord_val, ycoord_val = x$ycoord_val))
   }
 
-  if (all(spcov_initial_val$is_known)) {
-    spcov_estimate_val <- use_glogclik_known(spcov_initial_val, data_object, dist_matrix_list, data_object$partition_list)
-  } else {
-    spcov_estimate_val <- use_glogclik(spcov_initial_val, data_object, dist_matrix_list, data_object$partition_list, optim_dotlist)
-  }
+  # choose known-evaluation vs. optimization -- see run_cl_dispatch() in
+  # cov_estimate_dispatch_helpers.R
+  spcov_estimate_val <- run_cl_dispatch(spcov_initial_val, data_object, dist_matrix_list, optim_dotlist)
   spcov_estimate_val
 }

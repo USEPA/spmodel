@@ -6,27 +6,28 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spatial Generalized Linear Models in spmodel • spmodel</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
+<!-- favicons --><link rel="icon" type="image/png" sizes="48x48" href="../favicon-48x48.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../pkgdown.js"></script><meta property="og:title" content="Spatial Generalized Linear Models in spmodel">
-<meta property="og:description" content="spmodel">
-<meta property="og:image" content="https://usepa.github.io/spmodel/logo.png">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<![endif]--><script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "AMS" } }
+});
+</script>
 </head>
 <body data-spy="scroll" data-target="#toc">
-    
+
 
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -40,7 +41,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.13.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.14.0</span>
       </span>
     </div>
 
@@ -52,7 +53,7 @@
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
-     
+
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
@@ -72,6 +73,15 @@
       <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
+      <a href="../articles/simulation.html">Simulating Spatial Data in spmodel</a>
+    </li>
+    <li>
+      <a href="../articles/conditional.html">Conditional Simulation in spmodel</a>
+    </li>
+    <li>
+      <a href="../articles/decorrelate.html">The Spatial Decorrelation Transformation for Machine Learning Models</a>
+    </li>
+    <li>
       <a href="../articles/technical.html">Technical Details</a>
     </li>
   </ul>
@@ -84,7 +94,7 @@
 <li>
   <a href="https://github.com/USEPA/spmodel/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
-     
+
   </a>
 </li>
       </ul>
@@ -95,7 +105,7 @@
 </div>
 <!--/.navbar -->
 
-      
+
 
       </header><div class="row">
   <div class="col-md-9 contents">
@@ -265,10 +275,9 @@ formulated using a hierarchical construction <span class="citation">(Lee
 and Nelder 1996)</span>. For thorough reviews of generalized linear
 models and generalized linear mixed models, see <span class="citation">Bolker et al. (2009)</span>, <span class="citation">Myers et al. (2012)</span>, <span class="citation">Faraway (2016)</span>, and <span class="citation">Wood
 (2017)</span>.</p>
-<p>A recent <code>spmodel</code> release (version 0.4.0) provided
-support for spatial generalized linear models (i.e., a generalized
-linear mixed model with spatial random effects). We define the spatial
-generalized linear model as <span class="math display">\[\begin{equation}\label{eq:spglm}
+<p><code>spmodel</code> provides support for spatial generalized linear
+models (i.e., a generalized linear mixed model with spatial random
+effects). We define the spatial generalized linear model as <span class="math display">\[\begin{equation}\label{eq:spglm}
 f(\boldsymbol{\mu}) \equiv \mathbf{w} = \mathbf{X} \boldsymbol{\beta} +
 \boldsymbol{\tau} + \boldsymbol{\epsilon},
 \end{equation}\]</span> where <span class="math inline">\(f(\cdot)\)</span> is the link function, <span class="math inline">\(\boldsymbol{\mu}\)</span> is the mean of <span class="math inline">\(\mathbf{y}\)</span>, and the remaining terms <span class="math inline">\(\mathbf{X}\)</span>, <span class="math inline">\(\boldsymbol{\beta}\)</span>, <span class="math inline">\(\boldsymbol{\tau}\)</span>, <span class="math inline">\(\boldsymbol{\epsilon}\)</span> represent the same
@@ -307,7 +316,8 @@ al. 2006)</span> and BIC <span class="citation">(Schwarz 1978)</span>
 are defined, in contrast to approaches that only specify the first two
 moments of a distribution (e.g., quasi-likelihood fit via iteratively
 re-weighted least squares). <span class="citation">Ver Hoef et al.
-(2024)</span> provide the methodology’s full details.</p>
+(2024)</span> and the Technical Details vignette provide the
+methodology’s full details.</p>
 <p><code>spmodel</code> accommodates the binomial, beta, Poisson,
 negative binomial, gamma, and inverse Gaussian distributions. The
 binomial and beta response distributions (specified by
@@ -391,7 +401,7 @@ relationship between the response and explanatory variables;
 <code>inverse.gaussian</code>; <code>data</code>, a
 <code>data.frame</code> or <code>sf</code> object <span class="citation">(Pebesma 2018)</span> whose rows index observations and
 whose columns contain the response variable, explanatory variables, and
-spatial information; and <code>spcov_type</code>, one of 19 spatial
+spatial information; and <code>spcov_type</code>, one of 20 spatial
 covariance types (e.g., spherical spatial covariance, Matérn spatial
 covariance, simultaneous-autoregressive spatial covariance etc.). The
 binomial and beta response distributions (specified by
@@ -485,7 +495,7 @@ them.</caption>
 <tr class="odd">
 <td><code>xcoord</code></td>
 <td>An x-coordinate name</td>
-<td><code>spglm()}</code></td>
+<td><code><a href="../reference/spglm.html">spglm()</a></code></td>
 </tr>
 <tr class="even">
 <td><code>ycoord</code></td>
@@ -498,30 +508,35 @@ them.</caption>
 <td><code><a href="../reference/spglm.html">spglm()</a></code></td>
 </tr>
 <tr class="even">
+<td><code>range_constrain</code></td>
+<td>Whether to constrain the range for numerical stability</td>
+<td><code><a href="../reference/spglm.html">spglm()</a></code></td>
+</tr>
+<tr class="odd">
 <td><code>W</code></td>
 <td>A neighborhood weight matrix</td>
 <td><code><a href="../reference/spgautor.html">spgautor()</a></code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>row_st</code></td>
 <td>Whether to row-standardize <code>W</code>
 </td>
 <td><code><a href="../reference/spgautor.html">spgautor()</a></code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>M</code></td>
 <td>A symmetry matrix</td>
 <td><code><a href="../reference/spgautor.html">spgautor()</a></code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>range_positive</code></td>
 <td>Whether the range parameter is restricted to be positive</td>
-<td></td>
+<td><code><a href="../reference/spgautor.html">spgautor()</a></code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>cutoff</code></td>
 <td>Distance cutoff if using distance-based neighbor definition</td>
-<td></td>
+<td><code><a href="../reference/spgautor.html">spgautor()</a></code></td>
 </tr>
 </tbody>
 </table>
@@ -709,6 +724,10 @@ as <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">pr
 <table class="table">
 <caption>Arguments to <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> and their
 purpose.</caption>
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
 <thead><tr class="header">
 <th>Argument</th>
 <th>Purpose</th>
@@ -739,6 +758,15 @@ purpose.</caption>
 <td>Prediction or confidence level</td>
 </tr>
 <tr class="odd">
+<td><code>dispersion</code></td>
+<td>Dispersion assumed when computing prediction standard errors</td>
+</tr>
+<tr class="even">
+<td><code>terms</code></td>
+<td>Which model terms to return when <code>type = "terms"</code>
+</td>
+</tr>
+<tr class="odd">
 <td><code>local</code></td>
 <td>Options for large data sets</td>
 </tr>
@@ -747,6 +775,20 @@ purpose.</caption>
 <td>Whether prediction variances should be adjusted</td>
 </tr>
 <tr class="odd">
+<td><code>delta</code></td>
+<td>Whether to return delta method standard errors on the response
+scale</td>
+</tr>
+<tr class="even">
+<td><code>newdata_size</code></td>
+<td>The <code>size</code> value for each <code>newdata</code>
+observation for the binomial family</td>
+</tr>
+<tr class="odd">
+<td><code>na.action</code></td>
+<td>How missing values in <code>newdata</code> are handled</td>
+</tr>
+<tr class="even">
 <td><code>...</code></td>
 <td>Additional arguments</td>
 </tr>
@@ -835,7 +877,7 @@ visualizations. First, we visualize the presence for observed sites:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_d</a></span><span class="op">(</span>option <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_gray</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<img src="SPGLMs_files/figure-html/moosepres-1.png" alt="Moose presence." width="65%"><p class="caption">
+<img src="SPGLMs_files/figure-html/moosepres-1.png" class="r-plt" alt="Moose presence." width="65%"><p class="caption">
 Moose presence.
 </p>
 </div>
@@ -853,7 +895,7 @@ seemingly strongest in the northwest-to-southeast direction.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">148.5</span>, <span class="op">-</span><span class="fl">146</span>, length.out <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_gray</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="SPGLMs_files/figure-html/moosestrat-1.png" alt="Elevation versus strata in the moose data." width="100%"><p class="caption">
+<img src="SPGLMs_files/figure-html/moosestrat-1.png" class="r-plt" alt="Elevation versus strata in the moose data." width="100%"><p class="caption">
 Elevation versus strata in the moose data.
 </p>
 </div>
@@ -957,10 +999,10 @@ function call, deviance residuals, a fixed effects coefficients table, a
 pseudo R-squared (which quantifies the amount of variability explained
 by the fixed effects), and covariance parameter coefficients. The fixed
 effects coefficients table provides some evidence that elevation and
-strata are associated with with moose presence and that the effect of
+strata are associated with moose presence and that the effect of
 elevation varies across the two strata (all <span class="math inline">\(p~\)</span>values <span class="math inline">\(&lt;\)</span> 0.05).</p>
-<p>The area under the receiver receiver operating characteristic (AUROC)
-curve quantifies the effectiveness of a classifier <span class="citation">(Robin et al. 2011)</span>. It ranges from zero to one,
+<p>The area under the receiver operating characteristic (AUROC) curve
+quantifies the effectiveness of a classifier <span class="citation">(Robin et al. 2011)</span>. It ranges from zero to one,
 and higher values indicate better model performance. The AUROC of
 <code>bin_spmod_anis</code> is</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
@@ -971,7 +1013,7 @@ diagnostics. Running</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span>, which <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="SPGLMs_files/figure-html/unnamed-chunk-10-1.png" alt="Spatial dependence is a function of distance (left) and as an anisotropic level curve of equal correlation (right)." width="50%"><img src="SPGLMs_files/figure-html/unnamed-chunk-10-2.png" alt="Spatial dependence is a function of distance (left) and as an anisotropic level curve of equal correlation (right)." width="50%"><p class="caption">
+<img src="SPGLMs_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="Spatial dependence is a function of distance (left) and as an anisotropic level curve of equal correlation (right)." width="50%"><img src="SPGLMs_files/figure-html/unnamed-chunk-10-2.png" class="r-plt" alt="Spatial dependence is a function of distance (left) and as an anisotropic level curve of equal correlation (right)." width="50%"><p class="caption">
 Spatial dependence is a function of distance (left) and as an
 anisotropic level curve of equal correlation (right).
 </p>
@@ -1030,7 +1072,7 @@ simultaneously and sorts models by ascending AICc:</p>
 <p>The <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> function augments the data with model
 diagnostics:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">aug_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">aug_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">bin_spmod_anis</span>, type.predict <span class="op">=</span> <span class="st">"response"</span>, type.residuals <span class="op">=</span> <span class="st">"response"</span><span class="op">)</span></span>
 <span><span class="va">aug_mod</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; Simple feature collection with 218 features and 8 fields</span></span>
 <span><span class="co">#&gt; Geometry type: POINT</span></span>
@@ -1038,25 +1080,29 @@ diagnostics:</p>
 <span><span class="co">#&gt; Bounding box:  xmin: 269085 ymin: 1416151 xmax: 419057.4 ymax: 1541016</span></span>
 <span><span class="co">#&gt; Projected CRS: NAD83 / Alaska Albers</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 218 × 9</span></span></span>
-<span><span class="co">#&gt;    presence  elev strat .fitted .resid    .hat   .cooksd .std.resid</span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0         469. L      -<span style="color: #BB0000;">1.91</span>  -<span style="color: #BB0000;">0.525</span> 0.090<span style="text-decoration: underline;">9</span>  0.007<span style="text-decoration: underline;">57</span>       -<span style="color: #BB0000;">0.550</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 0         362. L      -<span style="color: #BB0000;">3.55</span>  -<span style="color: #BB0000;">0.238</span> 0.009<span style="text-decoration: underline;">89</span> 0.000<span style="text-decoration: underline;">143</span>      -<span style="color: #BB0000;">0.239</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 0         173. M      -<span style="color: #BB0000;">3.43</span>  -<span style="color: #BB0000;">0.252</span> 0.001<span style="text-decoration: underline;">42</span> 0.000<span style="text-decoration: underline;">022</span>7     -<span style="color: #BB0000;">0.252</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 0         280. L      -<span style="color: #BB0000;">4.36</span>  -<span style="color: #BB0000;">0.159</span> 0.001<span style="text-decoration: underline;">96</span> 0.000<span style="text-decoration: underline;">012</span>5     -<span style="color: #BB0000;">0.160</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 0         620. L      -<span style="color: #BB0000;">0.947</span> -<span style="color: #BB0000;">0.810</span> 0.360   0.144         -<span style="color: #BB0000;">1.01</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 0         164. M      -<span style="color: #BB0000;">2.59</span>  -<span style="color: #BB0000;">0.380</span> 0.002<span style="text-decoration: underline;">96</span> 0.000<span style="text-decoration: underline;">107</span>      -<span style="color: #BB0000;">0.380</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 0         164. M      -<span style="color: #BB0000;">2.20</span>  -<span style="color: #BB0000;">0.458</span> 0.004<span style="text-decoration: underline;">10</span> 0.000<span style="text-decoration: underline;">217</span>      -<span style="color: #BB0000;">0.459</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 0         186. L      -<span style="color: #BB0000;">2.47</span>  -<span style="color: #BB0000;">0.404</span> 0.005<span style="text-decoration: underline;">01</span> 0.000<span style="text-decoration: underline;">206</span>      -<span style="color: #BB0000;">0.405</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 0         362. L      -<span style="color: #BB0000;">2.69</span>  -<span style="color: #BB0000;">0.363</span> 0.021<span style="text-decoration: underline;">8</span>  0.000<span style="text-decoration: underline;">751</span>      -<span style="color: #BB0000;">0.367</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 0         430. L      -<span style="color: #BB0000;">1.60</span>  -<span style="color: #BB0000;">0.606</span> 0.087<span style="text-decoration: underline;">5</span>  0.009<span style="text-decoration: underline;">63</span>       -<span style="color: #BB0000;">0.634</span></span></span>
+<span><span class="co">#&gt;    presence  elev strat .fitted  .resid    .hat   .cooksd .std.resid</span></span>
+<span><span class="co">#&gt;  <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0         469. L      0.129  -<span style="color: #BB0000;">0.129</span>  0.090<span style="text-decoration: underline;">9</span>  0.007<span style="text-decoration: underline;">57</span>       -<span style="color: #BB0000;">0.550</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 0         362. L      0.027<span style="text-decoration: underline;">9</span> -<span style="color: #BB0000;">0.027</span><span style="color: #BB0000; text-decoration: underline;">9</span> 0.009<span style="text-decoration: underline;">89</span> 0.000<span style="text-decoration: underline;">143</span>      -<span style="color: #BB0000;">0.239</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 0         173. M      0.031<span style="text-decoration: underline;">3</span> -<span style="color: #BB0000;">0.031</span><span style="color: #BB0000; text-decoration: underline;">3</span> 0.001<span style="text-decoration: underline;">42</span> 0.000<span style="text-decoration: underline;">022</span>7     -<span style="color: #BB0000;">0.252</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 0         280. L      0.012<span style="text-decoration: underline;">6</span> -<span style="color: #BB0000;">0.012</span><span style="color: #BB0000; text-decoration: underline;">6</span> 0.001<span style="text-decoration: underline;">96</span> 0.000<span style="text-decoration: underline;">012</span>5     -<span style="color: #BB0000;">0.160</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 0         620. L      0.279  -<span style="color: #BB0000;">0.279</span>  0.360   0.144         -<span style="color: #BB0000;">1.01</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 0         164. M      0.069<span style="text-decoration: underline;">6</span> -<span style="color: #BB0000;">0.069</span><span style="color: #BB0000; text-decoration: underline;">6</span> 0.002<span style="text-decoration: underline;">96</span> 0.000<span style="text-decoration: underline;">107</span>      -<span style="color: #BB0000;">0.380</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 0         164. M      0.099<span style="text-decoration: underline;">7</span> -<span style="color: #BB0000;">0.099</span><span style="color: #BB0000; text-decoration: underline;">7</span> 0.004<span style="text-decoration: underline;">10</span> 0.000<span style="text-decoration: underline;">217</span>      -<span style="color: #BB0000;">0.459</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 0         186. L      0.078<span style="text-decoration: underline;">3</span> -<span style="color: #BB0000;">0.078</span><span style="color: #BB0000; text-decoration: underline;">3</span> 0.005<span style="text-decoration: underline;">01</span> 0.000<span style="text-decoration: underline;">206</span>      -<span style="color: #BB0000;">0.405</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 0         362. L      0.063<span style="text-decoration: underline;">9</span> -<span style="color: #BB0000;">0.063</span><span style="color: #BB0000; text-decoration: underline;">9</span> 0.021<span style="text-decoration: underline;">8</span>  0.000<span style="text-decoration: underline;">751</span>      -<span style="color: #BB0000;">0.367</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 0         430. L      0.168  -<span style="color: #BB0000;">0.168</span>  0.087<span style="text-decoration: underline;">5</span>  0.009<span style="text-decoration: underline;">63</span>       -<span style="color: #BB0000;">0.634</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 208 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: geometry &lt;POINT [m]&gt;</span></span></span></code></pre>
 <p>where <code>.fitted</code> are fitted values (the estimated <span class="math inline">\(f^{-1}(\mathbf{w})\)</span>, or moose presence
 probability), <code>.resid</code> are response residuals,
 <code>.hat</code> values indicate leverage, <code>.cooksd</code> values
 indicate Cook’s distance (i.e., influence), and <code>.std.resid</code>
-are standardized residuals.</p>
+are standardized residuals. By default (i.e., without supplying
+<code>type.predict</code>/<code>type.residuals</code>),
+<code>.fitted</code> and <code>.resid</code> are instead returned on the
+link scale and as deviance residuals, respectively, matching
+<code><a href="https://broom.tidymodels.org/reference/augment.glm.html" class="external-link">broom::augment.glm()</a></code>’s own defaults.</p>
 <p>The <code>moose_preds</code> data contains survey sites that were not
 sampled. We can use <code>bin_spmod_anis</code> to make predictions of
 the underlying probabilities of moose presence at these sites using
@@ -1123,7 +1169,7 @@ share similar patterns:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_c</a></span><span class="op">(</span>option <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span>  <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_gray</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<img src="SPGLMs_files/figure-html/bin-1.png" alt="Fitted values and predictions for moose presence probability." width="65%"><p class="caption">
+<img src="SPGLMs_files/figure-html/bin-1.png" class="r-plt" alt="Fitted values and predictions for moose presence probability." width="65%"><p class="caption">
 Fitted values and predictions for moose presence probability.
 </p>
 </div>
@@ -1139,7 +1185,7 @@ at each site:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_c</a></span><span class="op">(</span>option <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span>  <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_gray</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<img src="SPGLMs_files/figure-html/moose-1.png" alt="Moose counts." width="65%"><p class="caption">
+<img src="SPGLMs_files/figure-html/moose-1.png" class="r-plt" alt="Moose counts." width="65%"><p class="caption">
 Moose counts.
 </p>
 </div>
@@ -1240,7 +1286,7 @@ error (<code>de</code>) and the random effect for strata
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">count_mod_nb</span>, which <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="SPGLMs_files/figure-html/unnamed-chunk-22-1.png" alt="Model diagnostics." width="50%"><img src="SPGLMs_files/figure-html/unnamed-chunk-22-2.png" alt="Model diagnostics." width="50%"><p class="caption">
+<img src="SPGLMs_files/figure-html/unnamed-chunk-22-1.png" class="r-plt" alt="Model diagnostics." width="50%"><img src="SPGLMs_files/figure-html/unnamed-chunk-22-2.png" class="r-plt" alt="Model diagnostics." width="50%"><p class="caption">
 Model diagnostics.
 </p>
 </div>
@@ -1252,7 +1298,7 @@ via <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-l
 <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>) share similar patterns and are overlain by
 running</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">aug_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">count_mod_nb</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">aug_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">count_mod_nb</span>, type.predict <span class="op">=</span> <span class="st">"response"</span><span class="op">)</span></span>
 <span><span class="va">aug_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">count_mod_nb</span>, newdata <span class="op">=</span> <span class="va">moose_preds</span>, type.predict <span class="op">=</span> <span class="st">"response"</span><span class="op">)</span></span>
 <span><span class="va">aug_mod</span><span class="op">$</span><span class="va">type</span> <span class="op">&lt;-</span> <span class="st">"mod"</span></span>
 <span><span class="va">aug_pred</span><span class="op">$</span><span class="va">type</span> <span class="op">&lt;-</span> <span class="st">"pred"</span></span>
@@ -1263,7 +1309,7 @@ running</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_c</a></span><span class="op">(</span>option <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span>  <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_gray</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">18</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<img src="SPGLMs_files/figure-html/nb-1.png" alt="Fitted values and predictions for moose counts." width="65%"><p class="caption">
+<img src="SPGLMs_files/figure-html/nb-1.png" class="r-plt" alt="Fitted values and predictions for moose counts." width="65%"><p class="caption">
 Fitted values and predictions for moose counts.
 </p>
 </div>
@@ -1302,12 +1348,12 @@ Identification.”</span> <em>IEEE Transactions on Automatic Control</em>
 </div>
 <div id="ref-appelhans2022mapview" class="csl-entry">
 Appelhans, Tim, Florian Detsch, Christoph Reudenbach, and Stefan
-Woellauer. 2022. <em>Mapview: Interactive Viewing of Spatial Data in
-r</em>. <a href="https://CRAN.R-project.org/package=mapview" class="external-link">https://CRAN.R-project.org/package=mapview</a>.
+Woellauer. 2022. <em><span class="nocase">mapview</span>: Interactive
+Viewing of Spatial Data in <span>R</span></em>. <a href="https://CRAN.R-project.org/package=mapview" class="external-link">https://CRAN.R-project.org/package=mapview</a>.
 </div>
 <div id="ref-banerjee2014hierarchical" class="csl-entry">
 Banerjee, Sudipto, Bradley P Carlin, and Alan E Gelfand. 2014.
-<em>Hierarchical Modeling and Analysis for Spatial Data</em>. CRC press.
+<em>Hierarchical Modeling and Analysis for Spatial Data</em>. CRC Press.
 </div>
 <div id="ref-bates2015lme4" class="csl-entry">
 Bates, Douglas, Martin Mächler, Ben Bolker, and Steve Walker. 2015.
@@ -1336,17 +1382,17 @@ Association</em> 74 (365): 169–74.
 </div>
 <div id="ref-cressie1993statistics" class="csl-entry">
 Cressie, Noel. 1993. <em>Statistics for Spatial Data (Revised
-Edition)</em>. Wiley: Hoboken, NJ. <a href="https://doi.org/10.1002/9781119115151" class="external-link">https://doi.org/10.1002/9781119115151</a>.
+Edition)</em>. Wiley. <a href="https://doi.org/10.1002/9781119115151" class="external-link">https://doi.org/10.1002/9781119115151</a>.
 </div>
 <div id="ref-faraway2016extending" class="csl-entry">
 Faraway, Julian J. 2016. <em>Extending the Linear Model with
 <span>R</span>: Generalized Linear, Mixed Effects and Nonparametric
-Regression Models</em>. CRC press.
+Regression Models</em>. CRC Press.
 </div>
 <div id="ref-hastie2009elements" class="csl-entry">
-Hastie, Trevor, Robert Tibshirani, Jerome H Friedman, and Jerome H
-Friedman. 2009. <em>The Elements of Statistical Learning: Data Mining,
-Inference, and Prediction</em>. Vol. 2. Springer.
+Hastie, Trevor, Robert Tibshirani, and Jerome H Friedman. 2009. <em>The
+Elements of Statistical Learning: Data Mining, Inference, and
+Prediction</em>. Vol. 2. Springer.
 </div>
 <div id="ref-hoeting2006model" class="csl-entry">
 Hoeting, Jennifer A, Richard A Davis, Andrew A Merton, and Sandra E
@@ -1360,11 +1406,10 @@ Series B (Methodological)</em> 58 (4): 619–56.
 </div>
 <div id="ref-mccullagh1989generalized" class="csl-entry">
 McCullagh, Peter, and John A. Nelder. 1989. <em>Generalized Linear
-Models, Second Edition</em>. Chapman; Hall Ltd.
+Models, Second Edition</em>. Chapman; Hall.
 </div>
 <div id="ref-muller2021tibble" class="csl-entry">
-Müller, Kirill, and Hadley Wickham. 2021. <em>Tibble: Simple Data
-Frames</em>. <a href="https://CRAN.R-project.org/package=tibble" class="external-link">https://CRAN.R-project.org/package=tibble</a>.
+Müller, Kirill, and Hadley Wickham. 2021. <em><span class="nocase">tibble</span>: Simple Data Frames</em>. <a href="https://CRAN.R-project.org/package=tibble" class="external-link">https://CRAN.R-project.org/package=tibble</a>.
 </div>
 <div id="ref-myers2012generalized" class="csl-entry">
 Myers, Raymond H, Douglas C Montgomery, G Geoffrey Vining, and Timothy J
@@ -1377,18 +1422,20 @@ Nelder, John Ashworth, and Robert WM Wedderburn. 1972.
 Statistical Society: Series A (General)</em> 135 (3): 370–84.
 </div>
 <div id="ref-pebesma2018sf" class="csl-entry">
-Pebesma, Edzer. 2018. <span>“<span class="nocase">Simple Features for R:
-Standardized Support for Spatial Vector Data</span>.”</span>
-<em><span>The R Journal</span></em> 10 (1): 439–46. <a href="https://doi.org/10.32614/RJ-2018-009" class="external-link">https://doi.org/10.32614/RJ-2018-009</a>.
+Pebesma, Edzer. 2018. <span>“Simple Features for <span>R</span>:
+Standardized Support for Spatial Vector Data.”</span> <em>The
+<span>R</span> Journal</em> 10 (1): 439–46. <a href="https://doi.org/10.32614/RJ-2018-009" class="external-link">https://doi.org/10.32614/RJ-2018-009</a>.
 </div>
 <div id="ref-pinheiro2006mixed" class="csl-entry">
-Pinheiro, José, and Douglas Bates. 2006. <em>Mixed-Effects Models in s
-and s-PLUS</em>. Springer science &amp; business media.
+Pinheiro, José, and Douglas Bates. 2006. <em>Mixed-Effects Models in
+<span>S</span> and <span>S-PLUS</span></em>. Springer Science &amp;
+Business Media.
 </div>
 <div id="ref-robin2011proc" class="csl-entry">
 Robin, Xavier, Natacha Turck, Alexandre Hainard, et al. 2011.
-<span>“pROC: An Open-Source Package for r and s+ to Analyze and Compare
-ROC Curves.”</span> <em>BMC Bioinformatics</em> 12: 77.
+<span>“<span class="nocase">pROC</span>: An Open-Source Package for
+<span>R</span> and <span>S+</span> to Analyze and Compare
+<span>ROC</span> Curves.”</span> <em>BMC Bioinformatics</em> 12: 77.
 </div>
 <div id="ref-robinson2021broom" class="csl-entry">
 Robinson, David, Alex Hayes, and Simon Couch. 2021. <em><span class="nocase">broom</span>: Convert Statistical Objects into Tidy
@@ -1396,7 +1443,7 @@ Tibbles</em>. <a href="https://CRAN.R-project.org/package=broom" class="external
 </div>
 <div id="ref-schabenberger2017statistical" class="csl-entry">
 Schabenberger, Oliver, and Carol A Gotway. 2017. <em>Statistical Methods
-for Spatial Data Analysis</em>. CRC press.
+for Spatial Data Analysis</em>. CRC Press.
 </div>
 <div id="ref-schwarz1978estimating" class="csl-entry">
 Schwarz, Gideon. 1978. <span>“Estimating the Dimension of a
@@ -1406,16 +1453,16 @@ Model.”</span> <em>The Annals of Statistics</em>, 461–64.
 Ver Hoef, Jay M, Eryn Blagg, Michael Dumelle, Philip M Dixon, Dale L
 Zimmerman, and Paul B Conn. 2024. <span>“Marginal Inference for
 Hierarchical Generalized Linear Mixed Models with Patterned Covariance
-Matrices Using the Laplace Approximation.”</span>
-<em>Environmetrics</em>, e2872.
+Matrices Using the <span>Laplace</span> Approximation.”</span>
+<em>Environmetrics</em> 35 (7): e2872.
 </div>
 <div id="ref-wickham2016ggplot2" class="csl-entry">
 Wickham, Hadley. 2016. <em><span class="nocase">ggplot2</span>: Elegant
-Graphics for Data Analysis</em>. Springer-Verlag New York. <a href="https://ggplot2.tidyverse.org" class="external-link">https://ggplot2.tidyverse.org</a>.
+Graphics for Data Analysis</em>. Springer-Verlag. <a href="https://ggplot2.tidyverse.org" class="external-link">https://ggplot2.tidyverse.org</a>.
 </div>
 <div id="ref-wood2017generalized" class="csl-entry">
 Wood, Simon N. 2017. <em>Generalized Additive Models: An Introduction
-with <span>R</span></em>. CRC press.
+with <span>R</span></em>. CRC Press.
 </div>
 </div>
 </div>
@@ -1423,9 +1470,7 @@ with <span>R</span></em>. CRC press.
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 
-        <nav id="toc" data-toggle="toc"><h2 data-toc-skip>Contents</h2>
-    </nav>
-</div>
+      </div>
 
 </div>
 
@@ -1438,16 +1483,16 @@ with <span>R</span></em>. CRC press.
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
       </footer>
 </div>
 
-  
 
 
-  
+
+
 
   </body>
 </html>

@@ -6,11 +6,30 @@
 #' @param object A fitted model object (e.g., from [splm()], [spautor()], [spglm()], or [spgautor()]).
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #'
-#' @return A tibble that partitions the the total variability by the fixed effects
-#'   and each variance parameter. The proportion of variability explained by the
-#'   fixed effects is the pseudo R-squared obtained by \code{psuedoR2()}. The
-#'   remaining proportion is spread accordingly among each variance parameter:
-#'   \code{"de"}, \code{"ie"}, and if random effects are used, each named random effect.
+#' @details The total variability in the response is decomposed into a
+#'   portion explained by the fixed effects and a portion explained by each
+#'   variance parameter in the fitted covariance structure:
+#'   \itemize{
+#'     \item \code{de}: the spatially dependent (correlated) random error
+#'       variance, commonly referred to as a partial sill.
+#'     \item \code{ie}: the spatially independent (uncorrelated) random error
+#'       variance, commonly referred to as a nugget.
+#'     \item random effects: if \code{object} was fit with a \code{random}
+#'       argument, one additional variance parameter per named random effect
+#'       term (e.g., a random intercept's grouping variable), representing
+#'       the variance attributable to that grouping.
+#'   }
+#'   See [spcov_params()] abd [spcov_initial()] for more on \code{de}/\code{ie} and [splm()] (or
+#'   [spglm()]) for more on random effects. The proportion of variability
+#'   explained by the fixed effects is the pseudo R-squared returned by
+#'   [pseudoR2()]. The remaining
+#'   \code{1 - pseudoR2} proportion is then split among \code{de}, \code{ie},
+#'   and any random effect variances, in proportion to their share of the
+#'   total variance (the sum of \code{de}, \code{ie}, and all random effect
+#'   variances).
+#'
+#' @return A tibble that partitions the total variability by the fixed effects
+#'   and each variance parameter (see Details).
 #'   If \code{spautor()} objects have unconnected sites, a list is returned with three elements:
 #'   \code{"connected"} for a variability comparison among the connected sites;
 #'   \code{"unconnected"} for a variability comparison among the unconnected
@@ -35,6 +54,10 @@ varcomp <- function(object, ...) {
 #' @order 2
 #' @export
 varcomp.splm <- function(object, ...) {
+  # fixed effects get credit for PR2 of total variability; the remaining
+  # (1 - PR2) is split across variance components in proportion to their
+  # share of total_var (de = partial sill/dependent error, ie = independent
+  # error/nugget, plus any random effect variances)
   PR2 <- pseudoR2(object)
   spcov_coef <- coef(object, type = "spcov")
   de <- spcov_coef[["de"]]
@@ -62,11 +85,15 @@ varcomp.spautor <- function(object, ...) {
   varcomp_names_con <- c("Covariates (PR-sq)", "de", "ie", c(names(randcov_coef)))
   varcomp_values_con <- c(PR2, (1 - PR2) * c(de, ie, randcov_coef) / total_var_con)
   varcomp_val <- tibble::tibble(varcomp = varcomp_names_con, proportion = varcomp_values_con)
+  # a nonzero "extra" variance means the spautor() fit has unconnected sites,
+  # which get their own variance component (in place of de/ie) since they
+  # aren't part of the spatial dependence structure of the connected sites
   if (extra != 0) {
     total_var_uncon <- sum(extra, randcov_coef)
     varcomp_names_uncon <- c("Covariates (PR-sq)", "extra", c(names(randcov_coef)))
     varcomp_values_uncon <- c(PR2, (1 - PR2) * c(extra, randcov_coef) / total_var_uncon)
     varcomp_val_2 <- tibble::tibble(varcomp = varcomp_names_uncon, proportion = varcomp_values_uncon)
+    # relative scale of variability between the two site groups
     ratio <- total_var_con / total_var_uncon
     varcomp_val <- list(connected = varcomp_val, unconnected = varcomp_val_2, ratio = ratio)
   }

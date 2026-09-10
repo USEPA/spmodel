@@ -10,17 +10,20 @@
 #'
 #' @noRd
 get_svloss <- function(spcov_params, esv, weights) {
-
-
   # define esv values
   gamma <- esv[["gamma"]]
   dist_vector <- esv[["dist"]]
   np <- esv[["np"]]
 
   # rest of function
+  # theoretical semivariogram at each empirical distance bin: total sill
+  # (dependent + independent variance) minus the covariance function value
   sigma2_val <- spcov_params[["de"]] + spcov_params[["ie"]]
   spcov_vec_val <- spcov_vector(spcov_params, dist_vector)
   sv_val <- sigma2_val - spcov_vec_val
+  # different weighted-least-squares weighting schemes (Cressie's, pairs-based,
+  # OLS, etc.) trade off how much influence bins with few pairs or large
+  # distances get in the fit -- see individual use_*_weights() helpers
   weights_val <- switch(weights,
     "cressie" = use_cressie_weights(np = np, sv_val = sv_val),
     "cressie-dr" = use_cressie_dr_weights(np = np, sv_val = sv_val),
@@ -31,6 +34,7 @@ get_svloss <- function(spcov_params, esv, weights) {
     "pairs-invrd" = use_pairs_invsd_weights(np = np, dist_vector = dist_vector),
     "ols" = 1,
   )
+  # weighted sum of squared deviations between empirical and theoretical semivariogram
   wls_val <- sum(weights_val * (gamma - sv_val)^2)
   wls_val
 }

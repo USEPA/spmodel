@@ -68,10 +68,8 @@ so they have variance 1 before optimization.
 }
 \examples{
 \donttest{
-sulfate$var <- rnorm(NROW(sulfate)) # add noise variable
-sulfate_preds$var <- rnorm(NROW(sulfate_preds)) # add noise variable
-sprfmod <- splmRF(sulfate ~ var, data = sulfate, spcov_type = "exponential")
-predict(sprfmod, sulfate_preds)
+sprfmod <- splmRF(log_cond ~ temp + precip, data = lake, spcov_type = "exponential")
+predict(sprfmod, lake_preds)
 }
 }
 \references{

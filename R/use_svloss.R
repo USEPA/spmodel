@@ -1,3 +1,9 @@
+# use_svloss* family overview: unlike use_gloglik*/use_laploglik*, these
+# functions fit covariance parameters by minimizing weighted least-squares
+# loss between the theoretical and empirical semivariogram (esv), rather than
+# maximizing a likelihood -- a faster, likelihood-free alternative. This file
+# estimates the parameters via optim(); use_svloss_known.R just evaluates the
+# loss at fixed, already-known parameters (no optim() search).
 #' Use semivariogram-weighted-least-squares for estimation
 #'
 #' @param spcov_initial A \code{spcov_initial} object
@@ -13,20 +19,21 @@
 #'
 #' @noRd
 use_svloss <- function(spcov_initial, dist_matrix_list, esv, weights, optim_dotlist, data_object) {
-
-
-
   # transforming to optim paramters (log scale)
-  spcov_orig2optim_val <- spcov_orig2optim(spcov_initial = spcov_initial, spcov_profiled = FALSE,
-                                           data_object = data_object)
+  spcov_orig2optim_val <- spcov_orig2optim(
+    spcov_initial = spcov_initial, spcov_profiled = FALSE,
+    data_object = data_object
+  )
 
   # get optim par
-  optim_par <- get_optim_par(spcov_orig2optim_val)
+  optim_par <- assemble_optim_par(spcov_orig2optim = spcov_orig2optim_val)
 
   # check optim dotlist
   optim_dotlist <- check_optim_method(optim_par, optim_dotlist)
 
   # performing optimization
+  # svloss() is minimized (default optim behavior) rather than a
+  # log-likelihood being maximized, since this is a WLS-based fit
   optim_output <- do.call("optim", c(
     list(
       par = optim_par,
@@ -40,8 +47,10 @@ use_svloss <- function(spcov_initial, dist_matrix_list, esv, weights, optim_dotl
   ))
 
   # transforming to original scale
-  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim_val, optim_output$par, spcov_profiled = FALSE,
-                                     data_object = data_object)
+  spcov_orig_val <- spcov_optim2orig(spcov_orig2optim_val, optim_output$par,
+    spcov_profiled = FALSE,
+    data_object = data_object
+  )
 
   # making a covariance parameter vector
   spcov_params_val <- get_spcov_params(spcov_type = class(spcov_orig2optim_val), spcov_orig_val = spcov_orig_val)

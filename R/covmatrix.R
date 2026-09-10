@@ -48,7 +48,8 @@ covmatrix <- function(object, newdata, ...) {
 #' @order 2
 #' @export
 covmatrix.splm <- function(object, newdata, cov_type, ...) {
-
+  # resolve the default cov_type: with no newdata there's only the observed data to
+  # work with, otherwise default to the observed/new cross-covariance
   if (missing(newdata)) {
     cov_type <- "obs.obs"
   } else {
@@ -64,7 +65,10 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
   }
 
   if (cov_type == "pred.pred") {
-
+    # There's no separate code path for the prediction-vs-prediction covariance;
+    # instead newdata is substituted in as the "observed" data and the function
+    # recurses with cov_type = "obs.obs" (the default when newdata is missing) to
+    # reuse the same covariance-assembly logic below.
     # add random effect levels to newdata (if needed)
     if (!is.null(object$random)) {
       randcov_vars <- all.vars(object$random)
@@ -84,8 +88,9 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
       }
     }
 
-    if (inherits(object$newdata, "sf")) {
-      object$obdata <- sf_to_df(object$newdata)
+    if (inherits(newdata, "sf")) {
+      newdata <- suppressWarnings(sf::st_centroid(newdata))
+      object$obdata <- sf_to_df(newdata)
     } else {
       object$obdata <- newdata
     }
@@ -93,12 +98,13 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
   }
 
   # spcov
-  spcov_params_val <- coef(object, type = "spcov")
+  # spcov_params_val <- coef(object, type = "spcov")
+  spcov_params_val <- object$coefficients$spcov
 
   # randcov
-  randcov_params_val <- coef(object, type = "randcov")
+  # randcov_params_val <- coef(object, type = "randcov")
+  randcov_params_val <- object$coefficients$randcov
 
-  # if (missing(newdata)) {
   if (cov_type == "obs.obs") {
     # coordinate stuff
     if (object$anisotropy) {
@@ -111,28 +117,19 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
       dist_matrix <- spdist(object$obdata, object$xcoord, object$ycoord)
     }
 
-    # random effects
-    randcov_names <- get_randcov_names(object$random)
-    randcov_Zs_val <- get_randcov_Zs(object$obdata, randcov_names)
-    randcov_matrix_val <- randcov_matrix(randcov_params_val, randcov_Zs = randcov_Zs_val)
-
-    # partition factor
-    partition_matrix_val <- partition_matrix(object$partition_factor, object$obdata)
-
-    # cov matrix
-    cov_val <- cov_matrix(spcov_params_val, dist_matrix, randcov_params_val,
-      randcov_Zs_val,
-      partition_matrix = partition_matrix_val,
+    # cov matrix (random effect + partition contributions assembled from obdata directly)
+    cov_val <- get_obs_cov_matrix(dist_matrix, object$obdata, spcov_params_val, randcov_params_val,
+      object$random, object$partition_factor,
       diagtol = object$diagtol
     )
   } else if (cov_type %in% c("pred.obs", "obs.pred")) {
-
     # rename relevant quantities
     obdata <- object$obdata
     xcoord <- object$xcoord
     ycoord <- object$ycoord
 
-    # transform newdata if required
+    # transform newdata if required (extract point coordinates as plain numeric
+    # columns so downstream distance/anisotropy code doesn't need to know about sf)
     if (inherits(newdata, "sf")) {
       newdata <- suppressWarnings(sf::st_centroid(newdata))
 
@@ -148,6 +145,8 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
       newdata[[ycoord]] <- 0
     }
 
+    # rotate/rescale coordinates to their anisotropy-corrected space before
+    # computing distances, so that distance reflects the fitted anisotropic geometry
     if (object$anisotropy) { # could just do rotate != 0 || scale != 1
       obdata_aniscoords <- transform_anis(obdata, xcoord, ycoord,
         rotate = spcov_params_val[["rotate"]],
@@ -176,9 +175,10 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
     cov_val <- cov_vector(spcov_params_val, dist_vector, randcov_vector_val, partition_vector_val)
 
     if (cov_type == "obs.pred") {
+      # cov_vector() always returns the pred-by-obs orientation, so obs.pred just
+      # transposes it rather than recomputing
       cov_val <- t(cov_val)
     }
-
   } else {
     stop('cov_type must be "obs.obs", "obs.pred", "pred.obs", "pred.pred"', call. = FALSE)
   }
@@ -192,7 +192,6 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
 #' @order 3
 #' @export
 covmatrix.spautor <- function(object, newdata, cov_type, ...) {
-
   if (missing(newdata)) {
     cov_type <- "obs.obs"
   } else {
@@ -224,6 +223,11 @@ covmatrix.spautor <- function(object, newdata, cov_type, ...) {
   # partition factor
   partition_matrix_val <- partition_matrix(object$partition_factor, object$data)
 
+  # For autoregressive (areal) models the full n x n covariance matrix over every
+  # areal unit (observed and missing/to-predict) is cheap to build up front from the
+  # neighbor weight matrix W, so cov_type is handled by subsetting rows/columns of
+  # this single matrix rather than by building each piece separately as in
+  # covmatrix.splm()
   # full cov matrix
   cov_matrix_val <- cov_matrix(spcov_params_val, dist_matrix, randcov_params_val,
     randcov_Zs_val,

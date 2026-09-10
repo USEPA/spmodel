@@ -1,13 +1,34 @@
+#' Get response-scale fitted values from the latent \code{w} vector alone
+#'
+#' @param w The latent (link-scale) predictor vector
+#' @param data_object The data object
+#'
+#' @return Response-scale fitted values
+#'
+#' @noRd
 get_fitted_null <- function(w, data_object) {
+  # used for null/intercept-only-style fits: w already is the link-scale
+  # predictor, so just add the offset and invert the link
   fitted_link <- as.numeric(w)
-  # add offset
   if (!is.null(data_object$offset)) {
     fitted_link <- fitted_link + data_object$offset
   }
-  # fitted_link
-  fitted_response <- invlink(fitted_link, data_object$family, data_object$size)
+  invlink(fitted_link, data_object$family, data_object$size)
 }
 
+#' Get fitted values for an \code{spglm()} model
+#'
+#' @param w_list A list of latent (link-scale) predictor vectors, one per partition
+#' @param betahat Vector of fixed effects
+#' @param spcov_params A \code{spcov_params} object
+#' @param data_object The data object
+#' @param eigenprods_list A list of cholesky products for each grouping
+#' @param dist_matrix_list A list of distance matrices
+#' @param randcov_params A \code{randcov_params} object
+#'
+#' @return A list of fitted values
+#'
+#' @noRd
 get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenprods_list,
                              dist_matrix_list, randcov_params = NULL) {
   fitted_link <- unname(do.call("c", w_list)) # unlist(w_list, use.names = FALSE)
@@ -15,8 +36,12 @@ get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenpr
   if (!is.null(data_object$offset)) {
     fitted_link <- fitted_link + as.vector(data_object$offset)
   }
+  # invert the link function to get fitted values on the response (data) scale
   fitted_response <- invlink(fitted_link, data_object$family, data_object$size)
 
+  # analogous to the Gaussian case's SigInv_y - SigInv_X %*% betahat, but here
+  # the latent link-scale vector w plays the role of y (GLMs work with a
+  # Gaussian approximation on the link scale rather than on y directly)
   SigInv_r_list <- mapply(
     x = eigenprods_list, w = w_list, function(x, w) x$SigInv %*% as.matrix(w, ncol = 1) - x$SigInv_X %*% betahat,
     SIMPLIFY = FALSE
@@ -45,6 +70,9 @@ get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenpr
   if (is.null(names(randcov_params))) {
     fitted_randcov <- NULL
   } else {
+    # same BLUP-averaging pattern as get_fitted_splm(): project onto each
+    # level's indicator column, scale by the variance component, then average
+    # nonzero contributions per level name
     fitted_randcov <- lapply(names(randcov_params), function(x) {
       fitted_val <- randcov_params[[x]] * do.call("rbind", mapply(
         z = data_object$randcov_list,
@@ -59,16 +87,6 @@ get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenpr
         } else {
           val <- 0
         }
-        # if (length(val) == 0) { # replace if all zeros somehow
-        #   val <- rep(0, length(x))
-        #   names(val) <- names(x)
-        # }
-        # if all elements of x are zero then val is NaN, so reset it to zero
-        # this works but above uncommented code is cleaner
-        # if (is.na(val)) {
-        #   val <- 0
-        # }
-        # val
       })
       # all combinations yields values with many zeros -- don't want to include these in the mean
       names_fitted_val <- rownames(fitted_val)
@@ -79,7 +97,6 @@ get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenpr
     names(fitted_randcov) <- names(randcov_params)
   }
 
-  # call latent link?
   fitted_values <- list(
     response = fitted_response,
     link = fitted_link,
@@ -88,6 +105,19 @@ get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenpr
   )
 }
 
+#' Get fitted values for an \code{spgautor()} model
+#'
+#' @param w The latent (link-scale) predictor vector
+#' @param betahat Vector of fixed effects
+#' @param spcov_params A \code{spcov_params} object
+#' @param data_object The data object
+#' @param eigenprods A \code{eigenprods} object
+#' @param dist_matrix_list A list of distance matrices
+#' @param randcov_params A \code{randcov_params} object
+#'
+#' @return A list of fitted values
+#'
+#' @noRd
 get_fitted_spgautor <- function(w, betahat, spcov_params, data_object, eigenprods,
                                 dist_matrix_list, randcov_params = NULL) {
   fitted_link <- as.numeric(w)
@@ -97,9 +127,12 @@ get_fitted_spgautor <- function(w, betahat, spcov_params, data_object, eigenprod
   }
   fitted_response <- invlink(fitted_link, data_object$family, data_object$size)
 
+  # subset the full neighborhood/weights structures down to just the observed
+  # locations (spgautor models can include unobserved locations for prediction)
   dist_matrix <- data_object$W[data_object$observed_index, data_object$observed_index, drop = FALSE]
   M <- data_object$M[data_object$observed_index]
 
+  # latent link-scale vector w plays the role of y in the Gaussian BLUP formula
   SigInv_r <- eigenprods$SigInv %*% w - eigenprods$SigInv_X %*% betahat
 
   # cov params no de   (set ie portion to zero because BLUP only uses cov(dependent error))
@@ -162,7 +195,6 @@ get_fitted_spgautor <- function(w, betahat, spcov_params, data_object, eigenprod
     }
   }
 
-  # call latent link?
   fitted_values <- list(
     response = fitted_response,
     link = fitted_link,
@@ -171,7 +203,19 @@ get_fitted_spgautor <- function(w, betahat, spcov_params, data_object, eigenprod
   )
 }
 
+#' Apply the inverse link function for a GLM-type response family
+#'
+#' @param fitted_link Fitted values on the link scale
+#' @param family The response family
+#' @param size Binomial trial sizes (used only when \code{family} is \code{"binomial"})
+#'
+#' @return Fitted values on the response scale
+#'
+#' @noRd
 invlink <- function(fitted_link, family, size) {
+  # each branch is the inverse of that family's canonical link: exp() inverts
+  # the log link (count/positive-continuous families), expit() (logistic
+  # function) inverts the logit link (proportions), scaled by size for binomial counts
   if (family == "poisson") {
     fitted <- exp(fitted_link)
   } else if (family == "binomial") {
@@ -180,7 +224,6 @@ invlink <- function(fitted_link, family, size) {
   } else if (family == "nbinomial") {
     fitted <- exp(fitted_link)
   } else if (family == "Gamma") {
-    # fitted <- 1 / fitted_link
     fitted <- exp(fitted_link)
   } else if (family == "inverse.gaussian") {
     fitted <- exp(fitted_link)
@@ -189,3 +232,34 @@ invlink <- function(fitted_link, family, size) {
   }
   fitted
 }
+
+#' Remove a model offset from a fitted link-scale vector
+#'
+#' @param w A fitted link-scale vector with the offset included, i.e.
+#'   \code{fitted(object, type = "link")}
+#' @param offset The model offset, or \code{NULL}
+#'
+#' @return \code{w} with the offset removed
+#'
+#' @details When a model has an offset, two distinct link-scale vectors are in
+#'   play and using one where the other belongs produces plausible-looking but
+#'   wrong numbers rather than an error. The offset-free latent vector
+#'   \code{w = X beta + tau + epsilon} returned here is the process the spatial
+#'   covariance describes, so it is the vector used by anything built from
+#'   \code{Sigma}: kriging, the leave-one-out and k-fold updates, and the
+#'   conditional-simulation residuals. The offset-inclusive linear predictor
+#'   \code{w + offset} is the argument of the data model, so it is the vector
+#'   used by anything built from the family: \code{get_d()}, \code{get_D()},
+#'   \code{get_V()}, \code{get_var_y()}, \code{get_deviance_glm()}, and
+#'   \code{invlink()}. Predictions are formed on the offset-free scale and the
+#'   prediction location's own offset is added back at the end. 
+#'
+#' @noRd
+w_offset_free <- function(w, offset) {
+  if (is.null(offset)) {
+    w
+  } else {
+    w - as.vector(offset)
+  }
+}
+

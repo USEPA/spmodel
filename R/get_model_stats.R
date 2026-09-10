@@ -1,6 +1,20 @@
+#' Assemble fitted-model statistics for an \code{splm()} model
+#'
+#' @param cov_est_object A fitted covariance estimation object
+#' @param data_object The data object
+#' @param estmethod The estimation method
+#'
+#' @return A list with the fixed effect coefficients, fitted values, hat
+#'   values, residuals, Cook's distance, covariance matrix of the fixed
+#'   effects, deviance, pseudo R-squared, and number of estimated covariance parameters
+#'
+#' @noRd
 get_model_stats_splm <- function(cov_est_object, data_object, estmethod) {
-
-
+  # data_object$X_list/y_list/etc are split by local-estimation partition (or
+  # a single element covering all data if local estimation is off); every
+  # step below therefore works partition-by-partition and combines results
+  # at the end, which is what lets this scale to big data via local
+  # approximation without a separate code path
   # making a covariance matrix list
   cov_matrix_list <- get_cov_matrix_list(
     cov_est_object$spcov_params_val,
@@ -12,8 +26,12 @@ get_model_stats_splm <- function(cov_est_object, data_object, estmethod) {
   )
 
 
-
   # eigen products
+  # get_eigenprods() eigendecomposes each partition's covariance matrix once
+  # and uses it to "whiten" X, y, and ones (i.e. premultiply by Sigma^(-1/2)),
+  # so that generalized least squares quantities like Xt Sig^-1 X reduce to
+  # ordinary crossprod()s of the whitened matrices below -- avoiding repeated
+  # explicit inversion of the covariance matrix
   if (data_object$parallel) {
     cluster_list <- lapply(seq_along(cov_matrix_list), function(l) {
       cluster_list_element <- list(
@@ -34,6 +52,8 @@ get_model_stats_splm <- function(cov_est_object, data_object, estmethod) {
   }
 
   # get cov beta hat (Xt Sig^-1 X)^-1 and beta hat (Xt Sig^-1 X)^-1 Xt Sig^-1 y
+  # summing each partition's Xt Sig^-1 X is valid because the partitions are
+  # treated as independent blocks of the (block-diagonal) full covariance matrix
   invcov_betahat_list <- lapply(eigenprods_list, function(x) crossprod(x$SqrtSigInv_X, x$SqrtSigInv_X))
 
   invcov_betahat_sum <- Reduce("+", invcov_betahat_list)
@@ -84,6 +104,9 @@ get_model_stats_splm <- function(cov_est_object, data_object, estmethod) {
   # return cooks distance
   cooks_distance <- get_cooks_distance(residuals, hatvalues, data_object$p)
 
+  # local estimation partitions the data, so all these vectors are currently
+  # ordered by partition rather than original row order; data_object$order
+  # records how to map partition order back to the original data order
   # reorder relevant quantities
   ## fitted
   fitted$response <- fitted$response[order(data_object$order)]
@@ -138,6 +161,8 @@ get_model_stats_splm <- function(cov_est_object, data_object, estmethod) {
   }
 
 
+  # npar counts only the covariance parameters that were actually estimated,
+  # i.e. excludes any the user fixed at a known value (is_known == TRUE)
   # npar
   p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
   p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
@@ -156,11 +181,24 @@ get_model_stats_splm <- function(cov_est_object, data_object, estmethod) {
   )
 }
 
+#' Assemble fitted-model statistics for an \code{splm()} model with iid errors
+#'
+#' @param cov_est_object A fitted covariance estimation object
+#' @param data_object The data object
+#' @param estmethod The estimation method
+#'
+#' @return The same statistics as \code{get_model_stats_splm()}, computed via a
+#'   direct QR decomposition of \code{X} rather than a full covariance matrix,
+#'   since with no spatial dependence or random effects the covariance matrix
+#'   is simply \eqn{\sigma^2 I}
+#'
+#' @noRd
 get_model_stats_splm_iid <- function(cov_est_object, data_object, estmethod) {
-
-
   X <- do.call("rbind", data_object$X_list)
   y <- do.call("rbind", data_object$y_list)
+  # with Sigma = sigma^2 * I, GLS reduces to OLS, so betahat and its covariance
+  # are obtained directly from the QR decomposition of X (numerically more
+  # stable and cheaper than forming (Xt X)^-1 explicitly)
   qr_val <- qr(X)
   R_val <- qr.R(qr_val)
   s2 <- cov_est_object$spcov_params_val[["ie"]]
@@ -191,8 +229,8 @@ get_model_stats_splm_iid <- function(cov_est_object, data_object, estmethod) {
   }
 
 
-  # return hat values
-  hatvalues <- diag(X %*% tcrossprod(cor_betahat, X))
+  # return hat values (only the diagonal is needed)
+  hatvalues <- get_diag_XVXt(X, cor_betahat)
   # return residuals
   residuals <- list(
     response = as.numeric(resids),
@@ -203,6 +241,9 @@ get_model_stats_splm_iid <- function(cov_est_object, data_object, estmethod) {
   # return cooks distance
   cooks_distance <- get_cooks_distance(residuals, hatvalues, data_object$p)
 
+  # local estimation partitions the data, so all these vectors are currently
+  # ordered by partition rather than original row order; data_object$order
+  # records how to map partition order back to the original data order
   # reorder relevant quantities
   ## fitted
   fitted$response <- fitted$response[order(data_object$order)]
@@ -246,6 +287,8 @@ get_model_stats_splm_iid <- function(cov_est_object, data_object, estmethod) {
   }
 
 
+  # npar counts only the covariance parameters that were actually estimated,
+  # i.e. excludes any the user fixed at a known value (is_known == TRUE)
   # npar
   p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
   p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)
@@ -265,10 +308,19 @@ get_model_stats_splm_iid <- function(cov_est_object, data_object, estmethod) {
 }
 
 
+#' Assemble fitted-model statistics for an \code{spautor()} model
+#'
+#' @param cov_est_object A fitted covariance estimation object
+#' @param data_object The data object
+#' @param estmethod The estimation method
+#'
+#' @return The same statistics as \code{get_model_stats_splm()}, computed from the
+#'   full neighborhood covariance matrix (\code{cov_est_object$randcov_params_val}
+#'   is \code{NULL} when random effects are not used, so it does not affect
+#'   downstream calculations in that case)
+#'
+#' @noRd
 get_model_stats_spautor <- function(cov_est_object, data_object, estmethod) {
-  # cov_est_object$randcov_params_val is NULL if not added so won't affect downstream calculations
-  # when random effects are not used
-
   cov_matrix_val <- cov_matrix(
     cov_est_object$spcov_params_val, cov_est_object$dist_matrix_list,
     cov_est_object$randcov_params_val, data_object$randcov_Zs, data_object$partition_matrix, data_object$M
@@ -342,6 +394,8 @@ get_model_stats_spautor <- function(cov_est_object, data_object, estmethod) {
     pseudoR2 <- 0
   }
 
+  # npar counts only the covariance parameters that were actually estimated,
+  # i.e. excludes any the user fixed at a known value (is_known == TRUE)
   # npar
   p_theta_spcov <- length(cov_est_object$is_known$spcov) - sum(cov_est_object$is_known$spcov)
   p_theta_randcov <- length(cov_est_object$is_known$randcov) - sum(cov_est_object$is_known$randcov)

@@ -1,3 +1,56 @@
+# spmodel 0.14.0
+
+## Major Updates
+
+* Added support for conditional simulation via `conditional()` for `splm()` and `spglm()` model objects, which draws simulated values from the distribution of `newdata` conditional on observed data.
+* Added support for a spatial decorrelation transformation, a preprocessing and postprocessing approach that lets machine learning algorithms (via `ranger`, `randomForest`, or `xgboost`) account for spatial covariance. `decorrelate()` estimates decorrelation parameters via a grid search evaluated on training/test splits or cross-validation and fits a machine learning model to the decorrelated data; `decorrelate_data()`, `decorrelate_grid()`, `decorrelate_newdata()`, and `recorrelate_newdata()` support the underlying transformation and grid search steps; and `predict()`, `print()`, and `tidy()` methods are provided for `decorrelate()` model objects.
+* Added Satterthwaite denominator degrees of freedom (ddf) support for `splm()`/`spautor()` model objects, for `t`-based (rather than asymptotic `z`-based) inference in small samples.
+    * Added `satterthwaite()`, which computes Satterthwaite ddfs for the fixed effect coefficients of an `splm()` or 
+    `spautor()` model object.
+    * Added a `ddf` argument to `splm()`, `spautor()`, and `anova()` that controls whether Satterthwaite or asymptotic degrees of freedom are used for hypothesis tests. In `splm()` and `spautor()`, if `n` (the sample size) is less than or equal to 500, Satterthwaite ddf are computed and used, which implies a breaking change in `summary()` and `tidy()` output.
+    * Added Satterthwaite support to `confint()` for confidence intervals.
+    * Added support for `emmeans::joint_tests()` with Satterthwaite ddf.
+    * Added `"cov"`, `"spcov"`, and `"randcov"` values to the `type` argument in `vcov()` for `splm()`/`spautor()` model objects when using Satterthwaite ddf.
+* Added a `"weight"` value to the `type` argument in `predict()`, which returns the prediction (i.e., Kriging) weights.
+* Added support for k-fold cross validation via `kcv()` for `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects. `kcv()` generalizes `loocv()` (leave-one-out cross validation) by holding out `k` (approximately equally-sized) folds instead of single observations. 
+
+## Minor Updates
+
+* Added exponentiated versions of logged variables in `lake`, `moss`, `seal`, and `texas`.
+* Added a `delta` argument to `predict()` and `loocv()` that optionally returns delta method standard errors when `type = "response"` and `object` is an `spglm()` or `spgautor()` model object.
+* Added a `byrow_threshold` argument to the `local` argument to `predict()` for `splm()` and `spglm()` model objects. When the number of observed data rows times the number of prediction data rows is smaller than `byrow_threshold` and there is at least one random effect or a partition factor, observed by prediction covariance matrices are computed all at once rather than row-by-row, which improves computational efficiency.
+* Added block prediction support `predict(..., block = TRUE)` for `splm()` model objects with big data prediction grids (`newdata`). The new `method_new`, `size_new`, and `ordering` elements supplied to the `local` argument control the big data prediction grid: `method_new = "basis"` uses an approximation based on a basis of nodes, and `method_new = "subset"` subsets `newdata` prior to block prediction.
+* Added a warning for `spglm()` and `spgautor()` model objects fit using `estmethod = "ml"` when `de` and `ie` are at or near a numerical boundary (e.g., for `spcov_type = "none"`), as likelihood-based comparisons (e.g., `AIC()`, `AICc()`, `BIC()`) may be unreliable in this context.
+* Added a warning for `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects when the covariance-parameter optimizer (`optim()`) does not converge.
+* Added a warning for `spglm()` and `spgautor()` model objects fit using `family = "binomial"` when nearly all fitted probabilities are arbitrarily close to 0 or 1, indicating evidence of perfect separation.
+* Added `interval` and `level` arguments to `loocv()` to evaluate prediciton interval coverage.
+* Added support for `.` in `formula`, which represents the variables in `data` except the response and coordinate/geometry columns (`xcoord`, `ycoord`, `geometry`).
+* `predict()` for large data now and `method = "covariance"` now ranks potential neighbors by the absolute value of the covariance rather than the raw value. This only affects spatial covariance types that are not monotone decreasing with distance (e.g., cosine, wave).
+* Added `nobs()` support for `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects, which returns the observed data sample size from the model.
+* Added support for `interval = "confidence"` in `augment()` when `newdata` is omitted.
+* Standardized residuals for for `spglm()` and `spgautor()` model objects for Gamma and inverse Gaussian families now scale by (the square root of) the dispersion parameter.
+* Minor (internal) documentation, code clarity, and code efficiency updates.
+* Minor (external) documentation updates.
+
+## Bug Fixes
+
+* Fixed a bug that caused an erorr in the second derivative of the beta log-likelihood used in `spglm()` and `spgautor()`.
+* Various bug fixes for scenarios where `offset` if supplied to a modeling (e.g., `splm()`), diagnostic (e.g., `residuals()`), or prediction function (e.g., `predict()`).
+* Fixed a bug that could cause an error for `covmatrix(object, newdata, cov_type = "pred.pred", ...)` when `newdata` was an `sf` object.
+* Fixed a bug that could mix Cholesky and eigenvalue decompositions while predicting for autoregressive models fit using `spautor()` or `spgautor()`.
+* Fixed a bug that could improperly compute slope random effect variances for prediction using `predict()` and `loocv()`.
+* Fixed a bug that could cause an error when computing prediction standard errors for `spautor()` and `spgautor()` fitted model objects.
+* Fixed a bug that prevented random effect fitted values (i.e., BLUPs) from being computed for `spgautor()` model objects.
+* Fixed a bug where the `ie` value reported by `splm()`, `spautor()`, `spglm()` and `spgautor()` model objects could be smaller than the numerical floor used to build the fitted covariance matrix.
+* Fixed a bug that could cause an error in `spglm()` when there was anisotropy and every spatial covariance and dispersion parameter was assumed known.
+* Fixed a bug that prevented an informative error message in `predict()` when `newdata` was missing expected coordinates. 
+* Fixed a bug that prevented an informative error message in `predict()` when `newdata` had `NA` values for random effect variables. 
+* Fixed a bug where `plot()` on an `esv()` or `eacf()` object could fail when there were distance bins without any pairs.
+* Fixed a bug that prevented an informative error message in  `splm()`, `spautor()`, `spglm()`, and `spgautor()` when a variable used in `formula`, `random`, or `partition_factor` was not a column of `data`.
+* Fixed a bug where `predict()` for `spautor()` and`spgautor()` model objects ignored a user-supplied `newdata` argument, instead predicting for `object$newdata`. An informative error message is now returned. 
+* Fixed a bug where `splm()` and `spglm()` did not properly subset `local$index` when there were `NA` values in the response.
+* Fixed a bug where the `precip` variable in `lake` and `lake_preds` was too small by an order of 10. That is, the new values of `precip` are 10 times the old values (in both `lake` and `lake_preds`).
+
 # spmodel 0.13.0
 
 ## Major Updates

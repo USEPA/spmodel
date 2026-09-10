@@ -21,7 +21,11 @@ esv(
 \method{plot}{esv}(x, ...)
 }
 \arguments{
-\item{formula}{A formula describing the fixed effect structure.}
+\item{formula}{A formula describing the fixed effect structure. \code{.} on
+the right-hand side represents every variable in \code{data} except the
+response and the x-coordinate/y-coordinate columns (\code{xcoord}/\code{ycoord},
+or, for an \code{sf} object, the geometry column), which are never
+included via \code{.} (though they may still be given explicitly).}
 
 \item{data}{A data frame or \code{sf} object containing the variables in \code{formula}
 and geographic information.}

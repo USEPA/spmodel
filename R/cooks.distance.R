@@ -28,6 +28,9 @@
 #' )
 #' cooks.distance(spmod)
 cooks.distance.splm <- function(model, ...) {
+  # Cook's distance is expensive (it needs leverage and residual quantities from
+  # the fitted covariance), so it is computed once during model fitting and cached
+  # on the model object rather than recomputed here
   model$cooks_distance
 }
 
@@ -35,4 +38,4 @@ cooks.distance.splm <- function(model, ...) {
 #' @method cooks.distance spautor
 #' @order 2
 #' @export
-cooks.distance.spautor <- cooks.distance.splm
+cooks.distance.spautor <- cooks.distance.splm # spautor objects cache cooks_distance the same way, so the splm method is reused as-is

@@ -438,3 +438,49 @@ test_that("decorrelate() does not produce NaN with a nested random effect", {
   expect_false(anyNA(preds3))
   expect_true(all(is.finite(preds3)))
 })
+
+
+
+test_that("a user-supplied grid suppresses the \"assuming exponential\" message", {
+
+  # decorrelate() previously said
+  # "No spatial covariance type provided. Assuming \"exponential\"." whenever
+  # spcov_type and spcov_params were both missing, even when a grid was
+  # supplied. A grid already carries its own spcov_type column, so spcov_type
+  # should be inferred from the grid and no message should be shown.
+
+  skip_if_not_installed("ranger")
+  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
+  set.seed(1)
+
+  # hand-built grid (the "custom grid" pattern from the decorrelate article):
+  # a single spcov_type, no untransformed baseline row
+  grid_manual <- data.frame(
+    spcov_type = "gaussian",
+    de = c(1, 0.5, 1.5),
+    ie = c(0.2, 0.8, 1),
+    range = c(1e6, 5e6, 1e7)
+  )
+  expect_no_message(
+    mod_manual <- decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, grid = grid_manual)
+  )
+  # spcov_type comes from the grid, not a defaulted "exponential"
+  expect_true("gaussian" %in% mod_manual$grid$spcov_type)
+  expect_false("exponential" %in% mod_manual$grid$spcov_type)
+
+  # grid built by decorrelate_grid() (mixes the requested type with a "none"
+  # untransformed baseline row)
+  grid_auto <- decorrelate_grid(y ~ x, exdata, spcov_type = "spherical", xcoord = xcoord, ycoord = ycoord, dense_grid = FALSE)
+  expect_no_message(
+    mod_auto <- decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, grid = grid_auto)
+  )
+  expect_true("spherical" %in% mod_auto$grid$spcov_type)
+  expect_false("exponential" %in% mod_auto$grid$spcov_type)
+
+  # the other direction still holds: with no grid (and no spcov_type/spcov_params)
+  # decorrelate() announces the exponential default
+  expect_message(
+    decorrelate(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, dense_grid = FALSE),
+    "No spatial covariance type provided"
+  )
+})

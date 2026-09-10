@@ -85,7 +85,7 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
 #' per training split and reuses its output across every parameter set in
 #' the grid via \code{\link{decorrelate_data_internal_part2}()} -- avoiding
 #' the (expensive in inconsistent if random elements e.g., grts)
-#' reordering step on every grid point. 
+#' reordering step on every grid point.
 #'
 #' @param formula,data,xcoord,ycoord,random,partition_factor,ordering,local See
 #'   \code{\link{decorrelate}()}.
@@ -111,7 +111,9 @@ decorrelate_data_internal_part1 <- function(formula, data, spcov_type, xcoord, y
     partition_factor <- NULL
   }
 
-  # get data object
+  # random is deliberately NOT passed through here (even
+  # though this decorrelate() call may itself have a random effect formula):
+  # it is passed later for computational efficiency
   data_object <- get_data_object_splm(
     formula = formula,
     data = data,
@@ -120,7 +122,7 @@ decorrelate_data_internal_part1 <- function(formula, data, spcov_type, xcoord, y
     ycoord = ycoord,
     estmethod = "reml",  # default placeholder
     anisotropy = FALSE, # default placeholder
-    random = random,
+    random = NULL,
     randcov_initial = NULL, # default placeholder
     partition_factor = NULL, # default placeholder
     local = FALSE, # default placeholder
@@ -141,13 +143,22 @@ decorrelate_data_internal_part1 <- function(formula, data, spcov_type, xcoord, y
   }
   local <- get_local_list_decorrelate(local)
 
+  obdata <- data_object$obdata
+
   if (is.null(partition_factor)) {
-    partition_matrix_val <- NULL
+    partition_group_val <- NULL
   } else {
-    partition_matrix_val <- partition_matrix(partition_factor, data)
+    # create a group label for computational efficiency
+    partition_group_val <- partition_group(partition_factor, obdata)
   }
 
-  obdata <- data_object$obdata
+  if (is.null(random)) {
+    randcov_groups_val <- NULL
+  } else {
+    # create a group label for computational efficiency
+    randcov_groups_val <- get_randcov_groups(random, obdata)
+  }
+
   X <- data_object$X_list[[1]]
   y <- data_object$y_list[[1]]
   xcoord_val <- obdata[[data_object$xcoord]]
@@ -177,8 +188,13 @@ decorrelate_data_internal_part1 <- function(formula, data, spcov_type, xcoord, y
   y <- y[ord$order, , drop = FALSE]
   xcoord_val <- xcoord_val[ord$order]
   ycoord_val <- ycoord_val[ord$order]
-  if (!is.null(partition_matrix_val)) {
-    partition_matrix_val <- partition_matrix_val[ord$order, ord$order, drop = FALSE]
+  if (!is.null(partition_group_val)) {
+    partition_group_val <- partition_group_val[ord$order]
+  }
+  if (!is.null(randcov_groups_val)) {
+    randcov_groups_val <- lapply(randcov_groups_val, function(g) {
+      list(group = g$group[ord$order], coef = g$coef[ord$order])
+    })
   }
 
   list(
@@ -190,7 +206,8 @@ decorrelate_data_internal_part1 <- function(formula, data, spcov_type, xcoord, y
     local = local,
     random = random,
     partition_factor = partition_factor,
-    partition_matrix_val = partition_matrix_val,
+    partition_group_val = partition_group_val,
+    randcov_groups_val = randcov_groups_val,
     ord = ord,
     ordering = ordering,
     data_object = data_object
@@ -226,7 +243,8 @@ decorrelate_data_internal_part2 <- function(spcov_params, randcov_params, decorr
   local <- decorrelate_part1_object$local
   random <- decorrelate_part1_object$random
   partition_factor <- decorrelate_part1_object$partition_factor
-  partition_matrix_val <- decorrelate_part1_object$partition_matrix_val
+  partition_group_val <- decorrelate_part1_object$partition_group_val
+  randcov_groups_val <- decorrelate_part1_object$randcov_groups_val
   ord <- decorrelate_part1_object$ord
   ordering <- decorrelate_part1_object$ordering
   data_object <- decorrelate_part1_object$data_object
@@ -243,28 +261,25 @@ decorrelate_data_internal_part2 <- function(spcov_params, randcov_params, decorr
       xcoord_val <- obdata_aniscoords$xcoord
       ycoord_val <- obdata_aniscoords$ycoord
     }
-
-  if (!is.null(randcov_params)) {
-    randcov_matrix_val <- randcov_matrix(randcov_params, data_object$randcov_list[[1]])
-    randcov_matrix_val <- randcov_matrix_val[ord$order, ord$order, drop = FALSE]
-  } else {
-    randcov_matrix_val <- NULL
-  }
+  # randcov_groups_val (from decorrelate_data_internal_part1()) is already
+  # reordered and NULL when there's no random effect; get_decorrelated_value()
+  # below builds the (small) per-neighborhood randcov contribution so there is
+  # no n x n matrix to build or reorder here
 
 
   total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
 
   # get_decorrelated_value() is applied independently to each ordered
-  # observation's index -- each call only reads the (fixed) earlier rows
+  # observation's index; each call only reads the (fixed) earlier rows
   # of X/y up to that index, so distinct indices have no side effects on
   # each other and can safely run in parallel despite the sequential,
-  # Vecchia-style conditioning structure of the transform itself
+  # Vecchia-style conditioning structure of the transform
   if (local$parallel) {
     cl <- parallel::makeCluster(local$ncores)
-    vals <- parallel::parLapply(cl, index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix_val, partition_matrix_val)
+    vals <- parallel::parLapply(cl, index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_params, randcov_groups_val, partition_group_val)
     cl <- parallel::stopCluster(cl)
   } else {
-    vals <- lapply(index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix_val, partition_matrix_val)
+    vals <- lapply(index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_params, randcov_groups_val, partition_group_val)
   }
   X <- do.call("rbind", lapply(vals, function(x) x$X))
   y <- do.call("rbind", lapply(vals, function(x) x$y))
@@ -343,7 +358,7 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
     partition_factor <- NULL
   }
 
-  # get data object
+  # random is deliberately NOT passed through here
   data_object <- get_data_object_splm(
     formula = formula,
     data = data,
@@ -352,7 +367,7 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
     ycoord = ycoord,
     estmethod = "reml",  # default placeholder
     anisotropy = anisotropy,
-    random = random,
+    random = NULL,
     randcov_initial = NULL, # default placeholder
     partition_factor = NULL, # default placeholder
     local = FALSE, # default placeholder
@@ -373,21 +388,22 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
   }
   local <- get_local_list_decorrelate(local)
 
-  # random effects
+  obdata <- data_object$obdata
+
+
   if (is.null(random)) {
-    randcov_matrix_val <- NULL
+    randcov_groups_val <- NULL
   } else {
     names(randcov_params) <- get_randcov_names(random) # fixes names
-    randcov_matrix_val <- randcov_matrix(randcov_params, data_object$randcov_list[[1]])
+    randcov_groups_val <- get_randcov_groups(random, obdata)
   }
 
   if (is.null(partition_factor)) {
-    partition_matrix_val <- NULL
+    partition_group_val <- NULL
   } else {
-    partition_matrix_val <- partition_matrix(partition_factor, data)
+    partition_group_val <- partition_group(partition_factor, obdata)
   }
 
-  obdata <- data_object$obdata
   X <- data_object$X_list[[1]]
   y <- data_object$y_list[[1]]
   xcoord_val <- obdata[[data_object$xcoord]]
@@ -424,20 +440,22 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
   y <- y[ord$order, , drop = FALSE]
   xcoord_val <- xcoord_val[ord$order]
   ycoord_val <- ycoord_val[ord$order]
-  if (!is.null(randcov_matrix_val)) {
-    randcov_matrix_val <- randcov_matrix_val[ord$order, ord$order, drop = FALSE]
+  if (!is.null(randcov_groups_val)) {
+    randcov_groups_val <- lapply(randcov_groups_val, function(g) {
+      list(group = g$group[ord$order], coef = g$coef[ord$order])
+    })
   }
-  if (!is.null(partition_matrix_val)) {
-    partition_matrix_val <- partition_matrix_val[ord$order, ord$order, drop = FALSE]
+  if (!is.null(partition_group_val)) {
+    partition_group_val <- partition_group_val[ord$order]
   }
 
 
   if (local$parallel) {
     cl <- parallel::makeCluster(local$ncores)
-    vals <- parallel::parLapply(cl, index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix_val, partition_matrix_val)
+    vals <- parallel::parLapply(cl, index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_params, randcov_groups_val, partition_group_val)
     cl <- parallel::stopCluster(cl)
   } else {
-    vals <- lapply(index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix_val, partition_matrix_val)
+    vals <- lapply(index, get_decorrelated_value, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_params, randcov_groups_val, partition_group_val)
   }
   X <- do.call("rbind", lapply(vals, function(x) x$X))
   y <- do.call("rbind", lapply(vals, function(x) x$y))
@@ -503,15 +521,20 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
 #' @param local The resolved \code{local} list from
 #'   \code{\link{get_local_list_decorrelate}()}, controlling how many/which
 #'   earlier observations are conditioned on.
-#' @param randcov_matrix,partition_matrix The (already ordered) random effect
-#'   and partition factor covariance matrices, or \code{NULL}.
+#' @param randcov_params A named numeric vector of random effect variances
+#'   (names matching \code{get_randcov_names(random)}), or \code{NULL}.
+#' @param randcov_groups The (already ordered) named list from
+#'   \code{\link{get_randcov_groups}()} (per-term group label/coefficient
+#'   vectors), or \code{NULL}.
+#' @param partition_group The (already ordered) length-n vector of partition
+#'   factor group labels, or \code{NULL}.
 #'
 #' @return A list with elements \code{X}, \code{y} (this observation's
 #'   original values, unchanged) and \code{tX}, \code{ty} (its spatially
 #'   decorrelated values).
 #'
 #' @noRd
-get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_matrix, partition_matrix) {
+get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_val, ycoord_val, local, randcov_params, randcov_groups, partition_group) {
 
   # the first observation in the order has no earlier observations to
   # condition on, so it passes through untransformed
@@ -538,33 +561,29 @@ get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_
   # earlier-ordered observation -- candidates to condition on, before any
   # local$method subsetting to a smaller neighbor set happens further down
   dists_new <- spdist_vectors2(xcoord_val_new, ycoord_val_new, xcoord_val_old, ycoord_val_old)
-  # random effects if necessary
-  if (is.null(randcov_matrix)) {
+  # random effects if necessary (cheap rather than slice from larger matrix)
+  if (is.null(randcov_groups)) {
     randcov_vector <- NULL
   } else {
-    randcov_vector <- randcov_matrix[index_new, index_old, drop = FALSE]
+    randcov_vector <- get_randcov_local(randcov_params, randcov_groups, index_new, index_old)
   }
-  # partition factor if necessary
-  if (is.null(partition_matrix)) {
+  # partition factor if necessary (cheap rather than slice from larger matrix)
+  if (is.null(partition_group)) {
     partition_vector <- NULL
   } else {
-    partition_vector <- partition_matrix[index_new, index_old, drop = FALSE]
+    partition_vector <- as.numeric(partition_group[index_old] == partition_group[index_new])
   }
   cov_vec_new <- cov_vector(spcov_params, dists_new, randcov_vector = randcov_vector, partition_vector = partition_vector)
   cov_vec_new <- as.numeric(cov_vec_new)
 
-  # random effects if necessary
-  if (is.null(randcov_matrix)) {
-    randcov_matrix <- NULL
+  # random effect group/coefficient vectors for the candidate neighbor pool
+  randcov_groups_old <- if (is.null(randcov_groups)) {
+    NULL
   } else {
-    randcov_matrix <- randcov_matrix[index_old, index_old, drop = FALSE]
+    lapply(randcov_groups, function(g) list(group = g$group[index_old], coef = g$coef[index_old]))
   }
-  # partition factor if necessary
-  if (is.null(partition_matrix)) {
-    partition_matrix <- NULL
-  } else {
-    partition_matrix <- partition_matrix[index_old, index_old, drop = FALSE]
-  }
+  # partition factor group labels for the candidate neighbor pool
+  group_old <- if (is.null(partition_group)) NULL else partition_group[index_old]
 
   if (local$method == "all" ) { # || index <= local$size
     dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
@@ -581,11 +600,11 @@ get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_
     xcoord_val_old <- xcoord_val[keep]
     ycoord_val_old <- ycoord_val[keep]
     dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
-    if (!is.null(randcov_matrix)) {
-      randcov_matrix <- randcov_matrix[keep, keep, drop = FALSE]
+    if (!is.null(randcov_groups_old)) {
+      randcov_groups_old <- lapply(randcov_groups_old, function(g) list(group = g$group[keep], coef = g$coef[keep]))
     }
-    if (!is.null(partition_matrix)) {
-      partition_matrix <- partition_matrix[keep, keep, drop = FALSE]
+    if (!is.null(group_old)) {
+      group_old <- group_old[keep]
     }
     cov_vec_new <- cov_vec_new[keep]
   }
@@ -607,16 +626,30 @@ get_decorrelated_value <- function(index, spcov_params, total_var, X, y, xcoord_
     xcoord_val_old <- xcoord_val[keep]
     ycoord_val_old <- ycoord_val[keep]
     dists_old <- spdist(xcoord_val = xcoord_val_old, ycoord_val = ycoord_val_old)
-    if (!is.null(randcov_matrix)) {
-      randcov_matrix <- randcov_matrix[keep, keep, drop = FALSE]
+    if (!is.null(randcov_groups_old)) {
+      randcov_groups_old <- lapply(randcov_groups_old, function(g) list(group = g$group[keep], coef = g$coef[keep]))
     }
-    if (!is.null(partition_matrix)) {
-      partition_matrix <- partition_matrix[keep, keep, drop = FALSE]
+    if (!is.null(group_old)) {
+      group_old <- group_old[keep]
     }
     cov_vec_new <- cov_vec_new[keep]
   }
 
-  cov_mat_old <- cov_matrix2(spcov_params, dist_matrix = dists_old, randcov_matrix = randcov_matrix, partition_matrix = partition_matrix)
+  # build the small random effect / partition indicator matrices now, over
+  # only the (at most local$size) neighbors actually being conditioned on
+  if (is.null(randcov_groups_old)) {
+    randcov_matrix_old <- NULL
+  } else {
+    idx <- seq_along(randcov_groups_old[[1]]$group)
+    randcov_matrix_old <- get_randcov_local(randcov_params, randcov_groups_old, idx, idx)
+  }
+  if (is.null(group_old)) {
+    partition_matrix_old <- NULL
+  } else {
+    partition_matrix_old <- outer(group_old, group_old, FUN = "==") * 1
+  }
+
+  cov_mat_old <- cov_matrix2(spcov_params, dist_matrix = dists_old, randcov_matrix = randcov_matrix_old, partition_matrix = partition_matrix_old)
 
   # work in correlations (covariances / total_var) rather than covariances so
   # that w below lands on the [0, 1] scale of "fraction of variance left

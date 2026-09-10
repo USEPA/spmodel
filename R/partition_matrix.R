@@ -36,3 +36,25 @@ partition_matrix <- function(partition_factor = NULL, data) {
   }
   partition_matrix_val
 }
+
+#' Get each observation's partition factor group label
+#'
+#' Big data efficient companion to \code{partition_matrix()}: returns the length-n
+#' vector of group labels (the interaction of the partition variables)
+#' instead of building the full n x n group-membership matrix.
+#'
+#' @param partition_factor A partition factor (formula)
+#' @param data Data
+#'
+#' @return A factor of group labels, one per row of \code{data}, or
+#'   \code{NULL} if \code{partition_factor} is \code{NULL}.
+#'
+#' @noRd
+partition_group <- function(partition_factor = NULL, data) {
+  if (is.null(partition_factor)) {
+    return(NULL)
+  }
+  partition_formula <- reformulate(labels(terms(partition_factor)), intercept = FALSE)
+  partition_model_frame <- model.frame(partition_formula, data)
+  interaction(partition_model_frame, drop = FALSE)
+}

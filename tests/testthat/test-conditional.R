@@ -43,32 +43,6 @@ test_that("conditional works for spglm", {
   expect_equal(cond_new, round(cond_new)) # poisson draws are counts
 })
 
-test_that("conditional() local$approximation = 'vecchia' works for splm", {
-  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
-  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
-
-  spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-
-  cond1 <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 50)
-  expect_true(is.matrix(cond1))
-  expect_equal(dim(cond1), c(NROW(newexdata), 50))
-  expect_true(all(is.finite(cond1)))
-})
-
-test_that("conditional() local$approximation = 'vecchia' works for spglm", {
-  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
-  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
-
-  exdata_pois <- exdata
-  exdata_pois$count <- round(abs(exdata_pois$y) * 3)
-  spmod <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-
-  cond1 <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 50)
-  expect_true(is.matrix(cond1))
-  expect_equal(dim(cond1), c(NROW(newexdata), 50))
-  expect_true(all(is.finite(cond1)))
-})
-
 test_that("conditional() simulate_covparams = TRUE works for splm", {
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))

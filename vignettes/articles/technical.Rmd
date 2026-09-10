@@ -1674,18 +1674,11 @@ By the law of total variance, this correctly propagates $\hat{\boldsymbol{\beta}
 
 ## `splm()` {#sec:conditional-splm}
 
-### Exact Conditional Simulation
+### Conditional Simulation
 
 Conditional on $\hat{\boldsymbol{\beta}}_b$, conditioning yields the prediction \begin{equation}\label{eq:cond_splm}
   \mathbf{y}_{u, b} = \mathbf{X}_u \hat{\boldsymbol{\beta}}_b + \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}(\mathbf{y}_o - \mathbf{X}_o\hat{\boldsymbol{\beta}}_b) + \hat{\boldsymbol{\Sigma}}_u^{*1/2}\mathbf{e}_b,
 \end{equation} where $\mathbf{e}_b$ is a standard normal random vector and $\hat{\boldsymbol{\Sigma}}_u^* = \hat{\boldsymbol{\Sigma}}_u - \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}\hat{\boldsymbol{\Sigma}}_{uo}^\top$ is the conditional covariance. The first two terms of \eqref{eq:cond_splm} are just the kriging predictor of \eqref{eq:blup} evaluated at $\hat{\boldsymbol{\beta}}_b$; the third adds correlated noise with exactly the covariance the prediction leaves unexplained. Adding that noise is what turns a smooth surface of predictions into a plausible realization of the process, and using $\hat{\boldsymbol{\Sigma}}_u^{*1/2}$ rather than independent noise is what makes neighboring locations in a draw move together the way the fitted model says they should. Because $\hat{\boldsymbol{\Sigma}}_u^{*1/2}$ and the Cholesky factor of $\hat{\boldsymbol{\Sigma}}_o$ do not depend on $b$, they only must be computed once and are then reused across every draw. Thus only $\hat{\boldsymbol{\beta}}_b$ and $\mathbf{e}_b$ change from draw to draw, which is what enables `conditional()` to remain computationally efficient, even at `samples` = 1,000 (the default).
-
-### Big Data: Low-Rank and Vecchia Approximations {#sec:conditional-bigdata-splm}
-
-As in Big Data, factorizing $\hat{\boldsymbol{\Sigma}}_o$ is infeasible for large $n$, and `conditional()` offers two approximations via the `local` argument:
-
-- Low-rank: the observed data conditioned on in \eqref{eq:cond_splm} is restricted to a size-`size_base` spatially-representative subsample of the observed data (the "base" sample); `newdata` may additionally be split into blocks, each simulated conditional on the base sample alone (blocks are assumed conditionally independent of one another given the base sample). This is exactly \eqref{eq:cond_splm}, just evaluated with a smaller $\mathbf{X}_o$/$\mathbf{y}_o$/$\hat{\boldsymbol{\Sigma}}_o$.
-- Vecchia: no subsampling of the observed data. Instead, every `newdata` location is simulated one at a time (in some order, e.g., maxmin; see more in the Spatial Decorrelation Transformation section for information on ordering), each conditional on *all* observed data plus every already-simulated `newdata` location and optionally truncated to the `size` most-correlated neighbors once the conditioning set exceeds that size. Sequential conditioning via the chain rule for Gaussian distributions reproduces the same joint distribution as one large joint draw, so this is exact when untruncated (`method = "all"`, equivalent to `local = FALSE`) and an approximation when truncated. This avoids low-rank's conditional-independence-across-blocks assumption but is less computationally efficient because it is inherently sequential (and thus, not easily parallelizable; though see @katzfuss2024GPvecchia and references therein).
 
 ### Propagating Covariance-Parameter Uncertainty {#sec:conditional-covparams}
 
@@ -1695,7 +1688,7 @@ By default, every draw in \eqref{eq:cond_splm} shares the same fitted covariance
 2. Rebuild $\hat{\boldsymbol{\Sigma}}_{o, b}$ at $\boldsymbol{\theta}_b$, and redraw $\hat{\boldsymbol{\beta}}_b \sim N(\hat{\boldsymbol{\beta}}, (\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_{o, b}^{-1} \mathbf{X}_o)^{-1})$ -- i.e., $\hat{\boldsymbol{\beta}}_b$'s own sampling covariance is now evaluated at $\boldsymbol{\theta}_b$, not at $\hat{\boldsymbol{\theta}}$.
 3. Evaluate \eqref{eq:cond_splm} at $\boldsymbol{\theta}_b$ and $\hat{\boldsymbol{\beta}}_b$.
 
-Because $\boldsymbol{\theta}$ changes on every draw, nothing can be shared across draws the way it is in `splm()` and hence, every draw requires its own $O(n^3)$ factorization of $\hat{\boldsymbol{\Sigma}}_{o, b}$ (and, if `newdata` is large, of $\hat{\boldsymbol{\Sigma}}_{u, b}^*$ as well). This is substantially more computationally expensive than the default which treats $\boldsymbol{\theta}$ as fixed. Because $\widehat{\text{Var}}(\hat{\boldsymbol{\theta}})$ is required, `simulate_covparams = TRUE` requires `object$ddf` to be non-`NULL` (i.e., the model was fit with `ddf = "satterthwaite"`) and is automatically forced to `FALSE` when big data approximations are desired.
+Because $\boldsymbol{\theta}$ changes on every draw, nothing can be shared across draws the way it is in `splm()` and hence, every draw requires its own $O(n^3)$ factorization of $\hat{\boldsymbol{\Sigma}}_{o, b}$ (and, if `newdata` is large, of $\hat{\boldsymbol{\Sigma}}_{u, b}^*$ as well). This is substantially more computationally expensive than the default which treats $\boldsymbol{\theta}$ as fixed. Because $\widehat{\text{Var}}(\hat{\boldsymbol{\theta}})$ is required, `simulate_covparams = TRUE` requires `object$ddf` to be non-`NULL` (i.e., the model was fit with `ddf = "satterthwaite"`).
 
 ## `spglm()` {#sec:conditional-spglm}
 

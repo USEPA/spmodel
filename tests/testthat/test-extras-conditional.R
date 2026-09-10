@@ -143,45 +143,6 @@ test_that("conditional() works with random effects, anisotropy, a partition fact
   expect_true(all(is.finite(cond_nugget)))
 })
 
-test_that("local = TRUE / list() runs the big-data block-processing path without error, for splm() and spglm()", {
-  spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-  # size_base/size_new well below n = 100 / n_pred = 10 forces the block path
-  # even on this small fixture (see get_local_list_conditional())
-  local_small <- list(size_base = 30, size_new = 3)
-
-  cond_local <- conditional(spmod, newdata = newexdata, samples = 20, local = local_small)
-  expect_equal(dim(cond_local), c(NROW(newexdata), 20))
-  expect_false(anyNA(cond_local))
-
-  # base-only subsetting (method_new stays "all" since size_new >= n_pred):
-  # a regression test for a fixed bug where local$index was previously only
-  # set inside the method_new != "all" branch, leaving it NULL whenever a
-  # large observed sample needed subsetting but a small newdata did not
-  cond_local_base_only <- conditional(spmod, newdata = newexdata, samples = 20, local = list(size_base = 30, size_new = 500))
-  expect_equal(dim(cond_local_base_only), c(NROW(newexdata), 20))
-  expect_false(anyNA(cond_local_base_only))
-
-  spmod_g <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-  cond_local_g <- conditional(spmod_g, newdata = newexdata, samples = 20, local = local_small)
-  expect_equal(dim(cond_local_g), c(NROW(newexdata), 20))
-  expect_false(anyNA(cond_local_g))
-})
-
-test_that("local kmeans partitioning correctly forwards extra list elements like parallel/ncores to kmeans() (regression test)", {
-  # regression test for a bug in get_local_list.R where the extra local list
-  # elements left over after removing the recognized names (e.g. "parallel",
-  # "ncores") were passed to kmeans() as bare names (a character vector)
-  # instead of their values (local[names]); do.call() then supplied those
-  # name strings as unnamed positional arguments, landing in kmeans()'s
-  # nstart/algorithm slots and crashing with a match.arg() error as soon as
-  # kmeans-based block partitioning ran alongside parallel = TRUE
-  spmod_g <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-  expect_error(
-    conditional(spmod_g, newdata = newexdata, samples = 20, local = list(size_base = 30, size_new = 3, parallel = TRUE, ncores = 2)),
-    NA
-  )
-})
-
 test_that("conditional() SD is close to predict() se.fit under ordinary (non-extreme) conditions", {
   # a broad sanity check, not a tight regression test (see the dedicated
   # regression tests below for that): conditional() draws should have
@@ -261,106 +222,6 @@ test_that("conditional.splm() draws are unchanged from a known-good seeded snaps
   )
 })
 
-test_that("conditional() local$approximation = 'vecchia' works for splm", {
-  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
-  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
-
-  spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-
-  cond1 <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 50)
-  expect_true(is.matrix(cond1))
-  expect_equal(dim(cond1), c(NROW(newexdata), 50))
-  expect_true(all(is.finite(cond1)))
-
-  # method = "all" (no truncation) should closely match the exact (local =
-  # FALSE) conditional distribution -- a Cholesky-decomposition-as-
-  # sequential-conditioning identity, not an approximation (see
-  # get_conditional_vecchia())
-  R <- 4000
-  set.seed(1)
-  cond_exact <- conditional(spmod, newdata = newexdata, local = FALSE, samples = R)
-  set.seed(2)
-  cond_vecchia_all <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", method = "all"), samples = R)
-  expect_equal(rowMeans(cond_exact), rowMeans(cond_vecchia_all), tolerance = 0.1)
-  expect_equal(apply(cond_exact, 1, sd), apply(cond_vecchia_all, 1, sd), tolerance = 0.15)
-
-  # neighbor-selection rules and distance/covariance truncation both run
-  expect_vector(conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 5, method = "distance"), samples = 20)[, 1])
-  expect_vector(conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 5, method = "covariance"), samples = 20)[, 1])
-
-  # random effects/partition factor supported via covmatrix() reuse
-  exdata_re <- exdata
-  exdata_re$grp <- factor(sample(letters[1:4], NROW(exdata_re), replace = TRUE))
-  newexdata_re <- newexdata
-  newexdata_re$grp <- factor(sample(letters[1:4], NROW(newexdata_re), replace = TRUE))
-  spmod_re <- splm(y ~ x, exdata_re, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~grp)
-  cond_re <- conditional(spmod_re, newdata = newexdata_re, local = list(approximation = "vecchia", size = 10), samples = 30)
-  expect_true(all(is.finite(cond_re)))
-
-  # invalid local$approximation errors informatively
-  expect_error(conditional(spmod, newdata = newexdata, local = list(approximation = "bogus")), "local\\$approximation must be")
-})
-
-test_that("conditional() local$approximation = 'vecchia' works for spglm", {
-  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
-  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
-
-  exdata_pois <- exdata
-  exdata_pois$count <- round(abs(exdata_pois$y) * 3)
-  spmod <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-
-  cond1 <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 50)
-  expect_true(is.matrix(cond1))
-  expect_equal(dim(cond1), c(NROW(newexdata), 50))
-  expect_true(all(is.finite(cond1)))
-
-  # method = "all" (no truncation) should closely match the exact (local =
-  # FALSE) conditional distribution, including the var_adj correction for the
-  # latent process's own estimation uncertainty -- see
-  # get_conditional_vecchia_glm()
-  R <- 4000
-  set.seed(1)
-  cond_exact <- conditional(spmod, newdata = newexdata, local = FALSE, samples = R)
-  set.seed(2)
-  cond_vecchia_all <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", method = "all"), samples = R)
-  expect_equal(rowMeans(cond_exact), rowMeans(cond_vecchia_all), tolerance = 0.1)
-  expect_equal(apply(cond_exact, 1, sd), apply(cond_vecchia_all, 1, sd), tolerance = 0.15)
-
-  # neighbor-selection rules and distance/covariance truncation both run
-  expect_vector(conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 5, method = "distance"), samples = 20)[, 1])
-  expect_vector(conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 5, method = "covariance"), samples = 20)[, 1])
-
-  # type = "response"/"new" both work on top of the vecchia link-scale draws
-  cond_response <- conditional(spmod, newdata = newexdata, type = "response", local = list(approximation = "vecchia", size = 10), samples = 20)
-  expect_true(all(cond_response >= 0))
-  cond_new <- conditional(spmod, newdata = newexdata, type = "new", local = list(approximation = "vecchia", size = 10), samples = 20)
-  expect_true(all(cond_new == round(cond_new)))
-
-  # random effects/partition factor supported via covmatrix() reuse
-  exdata_re <- exdata_pois
-  exdata_re$grp <- factor(sample(letters[1:4], NROW(exdata_re), replace = TRUE))
-  newexdata_re <- newexdata
-  newexdata_re$grp <- factor(sample(letters[1:4], NROW(newexdata_re), replace = TRUE))
-  spmod_re <- spglm(count ~ x, exdata_re, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, random = ~grp)
-  cond_re <- conditional(spmod_re, newdata = newexdata_re, local = list(approximation = "vecchia", size = 10), samples = 30)
-  expect_true(all(is.finite(cond_re)))
-
-  # invalid local$approximation errors informatively
-  expect_error(conditional(spmod, newdata = newexdata, local = list(approximation = "bogus")), "local\\$approximation must be")
-
-  # a message is printed above 10,000 observed observations, since var_adj's
-  # global Hessian factorization does not benefit from neighbor truncation
-  spmod_fake <- spmod
-  spmod_fake$n <- 20000
-  expect_message(
-    conditional(spmod_fake, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 5),
-    "one-time factorization"
-  )
-  expect_no_message(
-    conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 5)
-  )
-})
-
 test_that("conditional() simulate_covparams = TRUE works for splm", {
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
@@ -407,22 +268,13 @@ test_that("conditional() simulate_covparams = TRUE works for splm", {
   cond_anis <- conditional(spmod_anis, newdata = newexdata, samples = 20, simulate_covparams = TRUE)
   expect_true(all(is.finite(cond_anis)))
 
-  # forced back to FALSE (with a message) whenever a big-data local
-  # approximation is actually active
-  expect_message(
-    conditional(spmod, newdata = newexdata, samples = 20, simulate_covparams = TRUE,
-      local = list(method_base = "base", size_base = 40)
-    ),
-    "simulate_covparams = TRUE is not used"
-  )
-  # local = FALSE resolves to the exact path and leaves simulate_covparams alone
+  # the exact path leaves simulate_covparams alone (no message)
   expect_no_message(
-    conditional(spmod, newdata = newexdata, samples = 20, simulate_covparams = TRUE, local = FALSE)
+    conditional(spmod, newdata = newexdata, samples = 20, simulate_covparams = TRUE)
   )
 
   # a strongly-worded warning is issued above n = 500 (faking n avoids fitting
-  # an actually-large model just for this check, matching the spmod_fake$n <-
-  # 20000 pattern used above for vecchia's var_adj message)
+  # an actually-large model just for this check)
   spmod_fake <- spmod
   spmod_fake$n <- 600
   expect_warning(

@@ -180,34 +180,6 @@ ggplot(data.frame(presence = moose_cond[1, ]), aes(x = presence)) +
   theme_bw(base_size = 14)
 ```
 
-# Big Data
-
-Both fitting a model to many observed locations and conditionally simulating at many new locations can become computationally expensive as sample sizes grow. We simulate 6,000 observed locations and fit a spatial linear model, requesting `splm()`'s own big data approximation via `local = TRUE`:
-```{r}
-n <- 6000
-big_dat <- data.frame(xc = runif(n), yc = runif(n))
-big_dat$z <- sprnorm(
-  spcov_params("exponential", de = 1, ie = 0.1, range = 0.2),
-  data = big_dat, xcoord = xc, ycoord = yc
-)
-bigmod <- splm(z ~ 1, data = big_dat, spcov_type = "exponential", xcoord = xc, ycoord = yc, local = TRUE)
-```
-
-`conditional()` accommodates big data the same way `sprnorm()` does (see the "Simulating Large Spatial Data" vignette): via its own `local` argument, offering a low-rank and a Vecchia-style sequential approximation. We conditionally simulate 500 new locations using the low-rank approximation:
-```{r}
-big_newdata <- data.frame(xc = runif(500), yc = runif(500))
-cond_lowrank <- conditional(bigmod, newdata = big_newdata, local = list(approximation = "low-rank"))
-dim(cond_lowrank)
-```
-
-and, for comparison, using the Vecchia approximation:
-```{r}
-cond_vecchia <- conditional(bigmod, newdata = big_newdata, local = list(approximation = "vecchia"))
-dim(cond_vecchia)
-```
-
-As with `predict()` and `sprnorm()`, `local = TRUE` is shorthand for the default implementation of the big data approach, which currently uses the low-rank approximation.
-
 # References {.unnumbered}
 
 <div id="refs"></div>

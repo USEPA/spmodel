@@ -1,3 +1,10 @@
+# spmodel 0.15.0
+
+## Major Updates
+
+* Added big data support for conditional simulation (`conditional()`) via the `local` argument.
+* Added big data support for simulating spatial data (`sprnorm()`, `sprbinom()`, `sprbeta()`, `sprpois()`, `sprnbinom()`, `sprgamma()`, and `sprinvgauss()`) via the `local` argument.
+
 # spmodel 0.14.0
 
 ## Major Updates

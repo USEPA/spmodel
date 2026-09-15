@@ -5,6 +5,10 @@
 * Added big data support for conditional simulation (`conditional()`) via the `local` argument.
 * Added big data support for simulating spatial data (`sprnorm()`, `sprbinom()`, `sprbeta()`, `sprpois()`, `sprnbinom()`, `sprgamma()`, and `sprinvgauss()`) via the `local` argument.
 
+## Bug Fixes
+
+* Fixed a bug that could falsely flag separation warnings in `spglm()` and `spgautor()` for  binomial responses when `size > 1`.
+
 # spmodel 0.14.0
 
 ## Major Updates

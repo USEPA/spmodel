@@ -67,6 +67,37 @@ test_that("the model runs for binomial data", {
   ), NA)
 })
 
+test_that("size > 1 binomial spgautor fit checks fitted probabilities, not fitted successes", {
+  dat <- data.frame(
+    x = seq(-1, 1, length.out = 30),
+    size = rep(c(10, 20, 30), 10),
+    xcoord = rep(1:6, 5),
+    ycoord = rep(1:5, each = 6),
+    off = 0.3 * sin(1:30)
+  )
+  dat$successes <- round(dat$size * (0.4 + 0.05 * dat$x))
+  dat$failures <- dat$size - dat$successes
+  dat$successes[c(3, 18)] <- NA
+  W <- 1 * (as.matrix(dist(dat[c("xcoord", "ycoord")])) == 1)
+
+  expect_warning(
+    fit <- spgautor(cbind(successes, failures) ~ x + offset(off),
+      family = "binomial", data = dat, W = W,
+      spcov_initial = spcov_initial("car", de = 0.1, ie = 0.1, range = 0.2,
+        known = c("de", "ie", "range")
+      )
+    ),
+    NA
+  )
+
+  counts <- fitted(fit, type = "response")
+  probabilities <- expit(fitted(fit, type = "link"))
+  expect_true(all(counts > 1))
+  expect_true(all(probabilities > 0.2 & probabilities < 0.6))
+  expect_equal(length(probabilities), sum(!is.na(dat$successes)))
+  expect_equal(counts, dat$size[!is.na(dat$successes)] * probabilities)
+})
+
 test_that("the model runs for proportion data", {
   expect_error(spgautor(prop ~ x, family = "beta", data = exdata_poly, spcov_type = "car", estmethod = "reml"), NA)
   expect_error(spgautor(prop ~ x, family = "beta", data = exdata_poly, spcov_type = "car", estmethod = "reml", range_positive = FALSE), NA)

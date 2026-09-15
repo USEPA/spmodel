@@ -165,6 +165,49 @@ test_that("ml boundary regression: an optimizer that wanders to the floor is rec
   expect_true(AIC(mod_exp_reml) < AIC(mod_none_reml))
 })
 
+test_that("size > 1 binomial spglm fit checks fitted probabilities, not fitted successes", {
+  dat <- data.frame(
+    x = seq(-1, 1, length.out = 30),
+    size = rep(c(10, 20, 30), 10),
+    xcoord = rep(1:6, 5),
+    ycoord = rep(1:5, each = 6),
+    off = 0.3 * sin(1:30)
+  )
+  dat$successes <- round(dat$size * (0.4 + 0.05 * dat$x))
+  dat$failures <- dat$size - dat$successes
+  dat$successes[c(3, 18)] <- NA
+
+  expect_warning(
+    fit <- spglm(cbind(successes, failures) ~ x + offset(off),
+      family = "binomial", data = dat, xcoord = xcoord, ycoord = ycoord,
+      spcov_initial = spcov_initial("exponential", de = 0.1, ie = 0.1, range = 1,
+        known = c("de", "ie", "range")
+      )
+    ),
+    NA
+  )
+
+  counts <- fitted(fit, type = "response")
+  probabilities <- expit(fitted(fit, type = "link"))
+  expect_true(all(counts > 1))
+  expect_true(all(probabilities > 0.2 & probabilities < 0.6))
+  expect_equal(length(probabilities), sum(!is.na(dat$successes)))
+  expect_equal(counts, dat$size[!is.na(dat$successes)] * probabilities)
+})
+
+test_that("the binomial saturation warning retains its probability thresholds", {
+  expect_warning(warn_fitted_saturation(rep(0.4, 100), "binomial"), NA)
+  expect_warning(
+    warn_fitted_saturation(c(rep(0, 49), rep(1, 49), 0.4, 0.6), "binomial"),
+    NA
+  )
+  expect_warning(
+    warn_fitted_saturation(c(rep(1e-7, 50), rep(1 - 1e-7, 49), 0.4), "binomial"),
+    "Perfect separation"
+  )
+  expect_warning(warn_fitted_saturation(rep(8, 100), "poisson"), NA)
+})
+
 test_that("fitted-probability saturation warning fires under spatial separation but not on a sane binomial fit", {
   skip_if_not_installed("sf")
 

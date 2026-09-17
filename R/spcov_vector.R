@@ -157,7 +157,9 @@ spcov_vector.matern <- function(spcov_params, dist_vector) {
 #' @export
 spcov_vector.cauchy <- function(spcov_params, dist_vector) {
   dist_ratio <- dist_vector / spcov_params[["range"]]
-  spcov_vector_val <- spcov_params[["de"]] * (1 + dist_ratio^2)^(-spcov_params[["extra"]])
+  # spcov_vector_val <- spcov_params[["de"]] * (1 + dist_ratio^2)^(-spcov_params[["extra"]])
+  # log1p preserves small squared distance ratios from the original formula.
+  spcov_vector_val <- spcov_params[["de"]] * exp(-spcov_params[["extra"]] * log1p(dist_ratio^2))
   spcov_vector_val
 }
 

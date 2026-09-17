@@ -28,22 +28,32 @@ use_gloglik_iid <- function(spcov_initial, estmethod, data_object, dist_matrix_l
   sse <- sum(residuals(lmod)^2)
   Xt_X <- crossprod(X, X)
 
-  # l1, l2, l3 are the three log-determinant/quadratic-form pieces of the
-  # -2*loglik formula; with iid errors the correlation matrix is the
-  # identity, so its log-determinant (l1) is exactly zero
-  l1 <- 0 # sum of the logs of the identity (all ones)
-  l2 <- sse
-  # l3 <- 2 * sum(log(diag(abs(R))))
   # log|X'X| via the Cholesky factor's diagonal is numerically more stable
   # than computing det(Xt_X) directly
-  l3 <- 2 * sum(log(diag(chol(Xt_X))))
+  logdet_XtX <- 2 * sum(log(diag(chol(Xt_X))))
 
-  if (estmethod == "reml") {
-    minustwologlik <- as.numeric(l1 + (data_object$n - data_object$p) * log(l2) + l3 + (data_object$n - data_object$p) * (1 + log(2 * pi / (data_object$n - data_object$p))))
-    sigma2 <- sse / (data_object$n - data_object$p)
-  } else if (estmethod == "ml") {
-    minustwologlik <- as.numeric(l1 + data_object$n * log(l2) + data_object$n * (1 + log(2 * pi / data_object$n)))
-    sigma2 <- sse / data_object$n
+  if (spcov_initial$is_known[["ie"]]) {
+    # A fixed iid variance still has a closed-form likelihood; unlike the
+    # estimated case below, retain the supplied value exactly.
+    sigma2 <- spcov_initial$initial[["ie"]]
+    gll_prods <- list(
+      l1 = data_object$n * log(sigma2),
+      l2 = sse / sigma2,
+      l3 = logdet_XtX - data_object$p * log(sigma2)
+    )
+    minustwologlik <- get_minustwologlik(
+      gll_prods, estmethod, data_object$n, data_object$p,
+      spcov_profiled = FALSE
+    )
+  } else {
+    # With estimated iid variance, profile sigma2 out analytically.
+    if (estmethod == "reml") {
+      minustwologlik <- as.numeric((data_object$n - data_object$p) * log(sse) + logdet_XtX + (data_object$n - data_object$p) * (1 + log(2 * pi / (data_object$n - data_object$p))))
+      sigma2 <- sse / (data_object$n - data_object$p)
+    } else if (estmethod == "ml") {
+      minustwologlik <- as.numeric(data_object$n * log(sse) + data_object$n * (1 + log(2 * pi / data_object$n)))
+      sigma2 <- sse / data_object$n
+    }
   }
   spcov_params_val <- spcov_initial$initial
   spcov_params_val[["ie"]] <- sigma2

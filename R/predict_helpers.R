@@ -342,7 +342,8 @@ finalize_interval_bounds <- function(fit, lwr, upr, se, se.fit, add_newdata_rows
 #'   all \code{NULL} when medium mode is not in use
 #'
 #' @return A list with \code{obdata}, \code{randcov_terms} (both possibly
-#'   partition-subsetted), \code{dist_vector}, and \code{cov_vector_val}
+#'   partition-subsetted), \code{obdata_index} (the retained rows of the
+#'   original observed data), \code{dist_vector}, and \code{cov_vector_val}
 #'
 #' @noRd
 get_pred_local_setup <- function(newdata_list, obdata, xcoord, ycoord, dim_coords,
@@ -350,6 +351,7 @@ get_pred_local_setup <- function(newdata_list, obdata, xcoord, ycoord, dim_coord
                                   partition_factor, reform_bar2, partition_index_obdata,
                                   random, local, dist_matrix_full, partition_vector_full,
                                   cov_vector_full) {
+  obdata_index <- seq_len(NROW(obdata))
   # medium-sized data: the caller already built the full observed-by-
   # prediction distance/covariance matrices vectorized across every
   # prediction row, so slice this row out of them instead of reconstructing
@@ -381,7 +383,10 @@ get_pred_local_setup <- function(newdata_list, obdata, xcoord, ycoord, dim_coord
   # distance and has no notion of partition membership -- could silently pick
   # neighbors from another partition, and method = "covariance" would waste
   # neighbor slots on observations whose covariance is always exactly zero
+  # When size retains the full sample, keep every block so the fixed-effect
+  # and latent-uncertainty terms exactly match non-local prediction.
   if (!is.null(partition_vector) && local$method %in% c("distance", "covariance") &&
+    local$size < NROW(obdata) &&
     (is.null(random) || !labels(terms(partition_factor)) %in% labels(terms(random)))) {
     partition_index <- as.vector(partition_vector) == 1
     randcov_terms <- lapply(randcov_terms, function(term) {
@@ -394,6 +399,7 @@ get_pred_local_setup <- function(newdata_list, obdata, xcoord, ycoord, dim_coord
       }
       term
     })
+    obdata_index <- obdata_index[partition_index]
     obdata <- obdata[partition_index, , drop = FALSE]
     partition_vector <- Matrix(1, nrow = 1, ncol = NROW(obdata))
     # medium-mode's dist_vector/cov_vector_val were sliced from the full
@@ -425,7 +431,11 @@ get_pred_local_setup <- function(newdata_list, obdata, xcoord, ycoord, dim_coord
     cov_vector_val <- cov_vector(spcov_params_val, dist_vector, randcov_vector_val, partition_vector)
   }
 
-  list(obdata = obdata, randcov_terms = randcov_terms, dist_vector = dist_vector, cov_vector_val = cov_vector_val)
+  list(
+    obdata = obdata, randcov_terms = randcov_terms,
+    obdata_index = obdata_index,
+    dist_vector = dist_vector, cov_vector_val = cov_vector_val
+  )
 }
 
 #' Compute the fit/var prediction for a single areal (autoregressive) cluster

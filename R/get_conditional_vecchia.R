@@ -78,7 +78,7 @@ get_conditional_vecchia <- function(object, newdata, base_val, local_list, sampl
   size <- local_list$size
 
   spcov_val <- coef(object, type = "spcov")
-  total_var <- spcov_val[["de"]] + spcov_val[["ie"]] + sum(coef(object, type = "randcov"))
+  total_var <- spcov_target_var(spcov_val, object$diagtol) + sum(coef(object, type = "randcov"))
   has_randstruct <- !is.null(object$random) || !is.null(object$partition_factor)
   if (has_randstruct) {
     keep_cols <- unique(c(xcoord, ycoord, all.vars(object$random), all.vars(object$partition_factor)))

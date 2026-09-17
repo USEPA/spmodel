@@ -47,12 +47,9 @@ get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenpr
     SIMPLIFY = FALSE
   )
 
-  # cov params no de   (set ie portion to zero because BLUP only uses cov(dependent error))
-  spcov_params_de_only <- spcov_params
-  spcov_params_de_only[["ie"]] <- 0
   spcov_matrix_de_only_list <- lapply(
     dist_matrix_list,
-    function(x) spcov_matrix(spcov_params = spcov_params_de_only, dist_matrix = x)
+    function(x) spcov_matrix_de(spcov_params = spcov_params, dist_matrix = x)
   )
 
 
@@ -135,10 +132,8 @@ get_fitted_spgautor <- function(w, betahat, spcov_params, data_object, eigenprod
   # latent link-scale vector w plays the role of y in the Gaussian BLUP formula
   SigInv_r <- eigenprods$SigInv %*% w - eigenprods$SigInv_X %*% betahat
 
-  # cov params no de   (set ie portion to zero because BLUP only uses cov(dependent error))
-  spcov_params_de_only <- spcov_params
-  spcov_params_de_only[["ie"]] <- 0
-  spcov_matrix_de_only <- spcov_matrix(spcov_params = spcov_params_de_only, dist_matrix = dist_matrix, M = M)
+  # Build the dependent-error covariance without adding any nugget floor.
+  spcov_matrix_de_only <- spcov_matrix_de(spcov_params = spcov_params, dist_matrix = dist_matrix, M = M)
 
   if (!is.null(data_object$partition_factor)) {
     spcov_matrix_de_only <- spcov_matrix_de_only * data_object$partition_matrix[data_object$observed_index, data_object$observed_index, drop = FALSE]

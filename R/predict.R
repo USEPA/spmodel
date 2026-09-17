@@ -718,7 +718,7 @@ get_pred_splm <- function(newdata_list, prediction_object) {
     # a random slope's contribution to Var(Y0) is sigma^2 * x0^2, not sigma^2
     # (as it would be for a random intercept), so it must be computed for this
     # specific newdata row rather than summed directly from randcov_params_val
-    total_var <- spcov_params_val[["de"]] + spcov_params_val[["ie"]] +
+    total_var <- spcov_target_var(spcov_params_val, diagtol) +
       randcov_newvar(randcov_params_val, newdata_list$row, randcov_terms)
     var <- as.numeric(total_var - base::crossprod(SqrtSigInv_c0, SqrtSigInv_c0) + H %*% base::tcrossprod(cov_betahat, H))
     pred_list <- list(fit = fit, var = var)

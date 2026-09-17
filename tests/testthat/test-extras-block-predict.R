@@ -55,6 +55,74 @@ test_that("get_block_quantities() matches the pre-change dense c0 / row-by-row s
   expect_equal(bq$s0, s0_rowwise, tolerance = 1e-10)
 })
 
+test_that("block covariance includes the stabilized ie on every grid path", {
+  dat <- data.frame(
+    xco = rep(seq_len(6), 4), yco = rep(seq_len(4), each = 6),
+    x = sin(seq_len(24)), grp = factor(rep(c("a", "b"), 12))
+  )
+  dat$z <- 1 + dat$x + cos(seq_len(24))
+  gd <- data.frame(
+    xco = seq(6.2, 8.3, length.out = 8), yco = rep(c(1.3, 3.7), 4),
+    x = cos(seq_len(8)), grp = factor(rep(c("a", "b"), 4))
+  )
+  G <- nrow(gd)
+  nodes <- get_decorrelate_order("maxmin", gd$xco, gd$yco)$order[seq_len(4)]
+
+  for (structure in c("plain", "partition", "random")) {
+    for (ie in c(0, 1e-9, 0.2)) {
+      m <- splm(z ~ x, dat, xcoord = xco, ycoord = yco, ddf = "asymptotic",
+        spcov_initial = spcov_initial("exponential",
+          de = 0.4, ie = ie, range = 2, known = "given"),
+        partition_factor = if (structure == "partition") ~grp else NULL,
+        random = if (structure == "random") ~grp else NULL,
+        randcov_initial = if (structure == "random") randcov_initial(grp = 0.1, known = "given") else NULL
+      )
+      for (diagtol in c(0, 0.003)) {
+        # Exercise an absolute floor as well as the relative floor.
+        m$diagtol <- diagtol
+        effective_ie <- max(ie, 4e-5, diagtol)
+        V <- covmatrix(m)
+        C <- covmatrix(m, gd, cov_type = "pred.obs")
+        T <- covmatrix(m, gd, cov_type = "pred.pred")
+        expect_equal(unname(diag(T)), rep(0.4 + effective_ie +
+          if (structure == "random") 0.1 else 0, G))
+        X <- model.matrix(m)
+        x0 <- colMeans(model.matrix(delete.response(terms(m)), gd))
+        B <- vcov(m)
+
+        for (method in c("exact", "basis", "subset")) {
+          if (method == "exact") {
+            c0 <- colMeans(C)
+            s0 <- mean(T)
+            local <- FALSE
+            bq <- get_block_quantities(m, gd, seq_len(G), chunk = 3L)
+          } else if (method == "basis") {
+            c0 <- colMeans(C)
+            s0 <- mean(T[, nodes, drop = FALSE])
+            local <- list(method = "all", method_new = method, size_new = length(nodes), ordering = "maxmin")
+            bq <- get_block_quantities(m, gd, nodes, chunk = 3L)
+          } else {
+            c0 <- colMeans(C[nodes, , drop = FALSE])
+            s0 <- mean(T[nodes, nodes])
+            local <- list(method = "all", method_new = method, size_new = length(nodes), ordering = "maxmin")
+            bq <- get_block_quantities(m, gd[nodes, , drop = FALSE], seq_along(nodes), chunk = 3L)
+          }
+          expect_equal(bq$s0, s0, tolerance = 1e-12)
+          expect_equal(bq$c0, unname(c0), tolerance = 1e-12)
+          if (method == "subset") {
+            s0 <- s0 + (0.4 + effective_ie) * (1 / G - 1 / length(nodes))
+          }
+          H <- x0 - c0 %*% solve(V, X)
+          variance <- as.numeric(s0 - c0 %*% solve(V, c0) + H %*% B %*% t(H))
+          got <- predict(m, gd, block = TRUE, se.fit = TRUE, local = local)
+          expect_equal(as.numeric(got$se.fit^2), variance, tolerance = 1e-11)
+        }
+        expect_equal(coef(m, "spcov")[["ie"]], ie)
+      }
+    }
+  }
+})
+
 test_that("chunked accumulation is independent of the chunk size", {
   m <- bp_model(200, de = 0.7, ie = 0.3, range = 0.2)
   gd <- bp_grid(1800)
@@ -222,4 +290,24 @@ test_that("block node ordering uses the anisotropy-transformed coordinates", {
     local = list(method = "all", method_new = "basis", size_new = 1500, ordering = "grts"))
   expect_equal(ap$fit, ex$fit, tolerance = 1e-8)
   expect_equal(ap$se.fit, ex$se.fit, tolerance = 0.05)
+
+  # Raw prediction coordinates must reach covmatrix(); transforming the grid
+  # before this point would apply anisotropy a second time.
+  gd_reference <- gd[seq_len(12), , drop = FALSE]
+  S <- as.matrix(covmatrix(m))
+  C <- as.matrix(covmatrix(m, gd_reference, cov_type = "pred.obs"))
+  S0 <- as.matrix(covmatrix(m, gd_reference, cov_type = "pred.pred"))
+  X <- model.matrix(m)
+  X0 <- model.matrix(delete.response(terms(m)), gd_reference)
+  V <- vcov(m)
+  Q <- solve(S)
+  B <- V %*% t(X) %*% Q
+  W <- X0 %*% B + C %*% Q %*% (diag(nrow(X)) - X %*% B)
+  G <- X0 - C %*% Q %*% X
+  pred_cov <- S0 - C %*% Q %*% t(C) + G %*% V %*% t(G)
+  expected_fit <- mean(W %*% model.response(model.frame(m)))
+  expected_se <- sqrt(sum(pred_cov)) / nrow(gd_reference)
+  got <- predict(m, gd_reference, block = TRUE, se.fit = TRUE, local = FALSE)
+  expect_equal(got$fit, expected_fit, tolerance = 1e-8)
+  expect_equal(got$se.fit, expected_se, tolerance = 1e-8)
 })

@@ -267,7 +267,7 @@ decorrelate_data_internal_part2 <- function(spcov_params, randcov_params, decorr
   # no n x n matrix to build or reorder here
 
 
-  total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
+  total_var <- spcov_target_var(spcov_params, data_object$diagtol) + sum(randcov_params)
 
   # get_decorrelated_value() is applied independently to each ordered
   # observation's index; each call only reads the (fixed) earlier rows
@@ -416,7 +416,7 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
 
 
   index <- seq(1, data_object$n)
-  total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
+  total_var <- spcov_target_var(spcov_params, data_object$diagtol) + sum(randcov_params)
 
   # do ordering here
   if (is.null(ordering)) {

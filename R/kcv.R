@@ -84,6 +84,32 @@ kcv <- function(object, ...) {
   UseMethod("kcv", object)
 }
 
+#' Translate local prediction settings into valid fold-fitting settings
+#'
+#' Prediction neighborhoods use methods such as \code{"covariance"} and
+#' \code{"distance"}, while model fitting partitions observations with
+#' \code{"kmeans"}/\code{"random"} or an explicit index. Keep these two
+#' contracts separate during local k-fold cross validation.
+#'
+#' @noRd
+get_kcv_estimation_local <- function(object, fold_rows, prediction_local) {
+  fit_local <- list(
+    var_adjust = "none",
+    parallel = prediction_local$parallel
+  )
+  if (isTRUE(prediction_local$parallel)) {
+    fit_local$ncores <- prediction_local$ncores
+  }
+
+  if (!is.null(object$local_index)) {
+    fit_local$index <- object$local_index[-fold_rows]
+  } else {
+    fit_local$method <- "kmeans"
+    fit_local$size <- min(prediction_local$size, object$n - length(fold_rows))
+  }
+  fit_local
+}
+
 #' @param interval Whether to also report empirical k-fold cross validation
 #'   prediction interval coverage in the returned fit statistics. \code{"none"}
 #'   (the default) omits it; \code{"prediction"} reports it (see Details). Only
@@ -180,12 +206,14 @@ kcv.splm <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local, i
     # local/big data: avoid ever forming the full n x n covariance matrix.
     # Instead, for each fold, refit with the covariance parameters held known
     # (spcov_initial()/randcov_initial() with known = "given" route fitting to
-    # the non-iterative use_gloglik_known() path -- no optim() call, so this is
-    # cheap regardless of n) and predict the now-missing fold via predict(),
+    # the non-iterative use_gloglik_known() path, avoiding covariance optimization)
+    # and predict the now-missing fold via predict(),
     # which passes local through to its own nearest-neighbor approximation.
     # betahat is genuinely re-estimated per fold either way (unlike
     # loocv_local(), which keeps betahat fixed -- a negligible approximation
     # for one held-out row, but not for a fold of this size).
+    # the full covariance matrix is reused across folds (no new covariance
+    # matrix is recomputed/used within folds)
     response_name <- all.vars(object$formula)[1]
 
     spcov_params_val <- coef(object, type = "spcov")
@@ -203,6 +231,7 @@ kcv.splm <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local, i
     for (fold_rows in fold_list) {
       data_train <- object$obdata
       data_train[[response_name]][fold_rows] <- NA
+      fit_local <- get_kcv_estimation_local(object, fold_rows, local_list)
 
       # splm()'s xcoord/ycoord use non-standard evaluation (substitute()) to
       # support bare unquoted column names, so object$xcoord/object$ycoord
@@ -213,13 +242,15 @@ kcv.splm <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local, i
         xcoord = object$xcoord, ycoord = object$ycoord, estmethod = object$estmethod,
         anisotropy = object$anisotropy, random = object$random,
         randcov_initial = randcov_initial_val, partition_factor = object$partition_factor,
-        local = local, ddf = "asymptotic"
+        local = fit_local, ddf = "asymptotic"
       ))
+      # Reuse full-data coefficient uncertainty, as in local loocv().
+      refit$vcov$fixed <- vcov(object)
 
       # refit$missing_index (ascending, from which(is.na(...))) always equals
       # fold_rows (ascending, from split()), so predict()'s default no-newdata
       # output lines up positionally with fold_rows with no reordering needed
-      pred <- predict(refit, se.fit = se_needed, local = local, interval = "none")
+      pred <- predict(refit, se.fit = se_needed, local = local_list, interval = "none")
       if (se_needed) {
         cv_predict_val[fold_rows] <- pred$fit
         cv_predict_se[fold_rows] <- pred$se.fit

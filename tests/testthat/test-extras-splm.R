@@ -546,6 +546,154 @@ test_that("the model runs for ie", {
   expect_equal(as.vector(coef(mod1, "spcov")), as.vector(coef(mod2, "spcov")), tolerance = 0.01)
 })
 
+test_that("known Gaussian iid variance is retained for none and ie", {
+  dat <- exdata
+  dat$off <- 0.2 * sin(seq_len(nrow(dat)))
+  X <- model.matrix(y ~ x + offset(off), dat)
+  expected_vcov <- 0.2 * solve(crossprod(X))
+
+  for (estmethod in c("ml", "reml")) {
+    for (spcov_type in c("none", "ie")) {
+      fit <- splm(y ~ x + offset(off), dat,
+        estmethod = estmethod, ddf = "asymptotic",
+        spcov_initial = spcov_initial(spcov_type, ie = 0.2, known = "given")
+      )
+      expect_equal(coef(fit, "spcov")[["ie"]], 0.2)
+      expect_equal(as.matrix(covmatrix(fit)), diag(0.2, nrow(dat)))
+      expect_equal(vcov(fit), expected_vcov, tolerance = 1e-10)
+    }
+  }
+})
+
+test_that("numerical nugget floor is excluded from BLUPs and included in prediction variance", {
+  n_obs <- 45
+  dat <- data.frame(
+    xc = seq(0, by = 1000, length.out = n_obs),
+    yc = 700 * sin(seq_len(n_obs) / 4),
+    x = seq(-1, 1, length.out = n_obs),
+    off = 0.2 * cos(seq_len(n_obs) / 5)
+  )
+  dat$y <- 1 + 0.7 * dat$x + dat$off + 0.35 * sin(seq_len(n_obs) / 3)
+  newdata <- data.frame(
+    xc = c(2500, 8500, 17500, 32500),
+    yc = c(300, -450, 600, -200),
+    x = c(-0.8, -0.25, 0.35, 0.8),
+    off = c(0.1, -0.05, 0.15, -0.1)
+  )
+  de <- 2
+  range <- 12000
+  dist_obs <- sqrt(
+    outer(dat$xc, dat$xc, "-")^2 + outer(dat$yc, dat$yc, "-")^2
+  )
+  dist_pred <- sqrt(
+    outer(newdata$xc, dat$xc, "-")^2 + outer(newdata$yc, dat$yc, "-")^2
+  )
+  K <- de * exp(-dist_obs / range)
+  C <- de * exp(-dist_pred / range)
+
+  for (ie in c(0, 1e-9, 0.2)) {
+    fit <- splm(y ~ x + offset(off), dat,
+      xcoord = xc, ycoord = yc, estmethod = "reml", ddf = "asymptotic",
+      spcov_initial = spcov_initial("exponential",
+        de = de, ie = ie, range = range, known = "given"
+      )
+    )
+    effective_ie <- max(ie, 1e-4 * de)
+    V <- K + diag(effective_ie, n_obs)
+    V_inv <- solve(V)
+    X <- model.matrix(fit)
+    y <- model.response(model.frame(fit)) - model.offset(model.frame(fit))
+    B <- solve(crossprod(X, V_inv %*% X))
+    beta_reference <- B %*% crossprod(X, V_inv %*% y)
+    residual_weight <- V_inv %*% (y - X %*% beta_reference)
+
+    expect_equal(coef(fit, "spcov")[["ie"]], ie)
+    expect_equal(unname(coef(fit)), as.numeric(beta_reference), tolerance = 1e-10)
+    expect_equal(
+      unname(fitted(fit, "spcov")$de),
+      as.numeric(K %*% residual_weight),
+      tolerance = 1e-10
+    )
+    expect_equal(
+      unname(fitted(fit, "spcov")$ie),
+      as.numeric(ie * residual_weight),
+      tolerance = 1e-10
+    )
+
+    X0 <- model.matrix(delete.response(terms(fit)), newdata)
+    H <- X0 - C %*% V_inv %*% X
+    fit_reference <- as.numeric(
+      X0 %*% beta_reference + C %*% residual_weight + newdata$off
+    )
+    var_reference <- de + effective_ie -
+      rowSums((C %*% V_inv) * C) + rowSums((H %*% B) * H)
+    full_prediction <- predict(fit, newdata, se.fit = TRUE, local = FALSE)
+    expect_equal(unname(full_prediction$fit), fit_reference, tolerance = 1e-10)
+    expect_equal(unname(full_prediction$se.fit), sqrt(as.numeric(var_reference)), tolerance = 1e-10)
+
+    local_prediction <- predict(fit, newdata, se.fit = TRUE,
+      local = list(method = "distance", size = 12, parallel = FALSE)
+    )
+    local_reference <- lapply(seq_len(nrow(newdata)), function(i) {
+      keep <- order(dist_pred[i, ])[seq_len(12)]
+      V_local <- V[keep, keep, drop = FALSE]
+      C_local <- C[i, keep, drop = FALSE]
+      X_local <- X[keep, , drop = FALSE]
+      y_local <- y[keep]
+      V_local_inv <- solve(V_local)
+      residual_local <- y_local - X_local %*% beta_reference
+      H_local <- X0[i, , drop = FALSE] - C_local %*% V_local_inv %*% X_local
+      list(
+        fit = as.numeric(
+          X0[i, , drop = FALSE] %*% beta_reference +
+            C_local %*% V_local_inv %*% residual_local + newdata$off[i]
+        ),
+        var = as.numeric(
+          de + effective_ie -
+            C_local %*% V_local_inv %*% t(C_local) + H_local %*% B %*% t(H_local)
+        )
+      )
+    })
+    expect_equal(
+      unname(local_prediction$fit),
+      vapply(local_reference, `[[`, numeric(1), "fit"),
+      tolerance = 1e-10
+    )
+    expect_equal(
+      unname(local_prediction$se.fit),
+      sqrt(vapply(local_reference, `[[`, numeric(1), "var")),
+      tolerance = 1e-10
+    )
+  }
+
+  params <- spcov_params("exponential", de = de, ie = 0, range = range)
+  expect_equal(as.matrix(cov_matrix_cross(params, dist_pred)), C)
+
+  dat$part <- factor(rep(c("a", "b", "c"), each = 15))
+  partition_fit <- splm(y ~ x + offset(off), dat,
+    xcoord = xc, ycoord = yc, partition_factor = ~part,
+    estmethod = "reml", ddf = "asymptotic",
+    spcov_initial = spcov_initial("exponential",
+      de = de, ie = 0, range = range, known = "given"
+    )
+  )
+  same_partition <- outer(dat$part, dat$part, "==")
+  K_partition <- K * same_partition
+  V_partition <- K_partition + diag(1e-4 * de, n_obs)
+  X_partition <- model.matrix(partition_fit)
+  y_partition <- model.response(model.frame(partition_fit)) -
+    model.offset(model.frame(partition_fit))
+  residual_weight_partition <- solve(
+    V_partition,
+    y_partition - X_partition %*% coef(partition_fit)
+  )
+  expect_equal(
+    unname(fitted(partition_fit, "spcov")$de),
+    as.numeric(K_partition %*% residual_weight_partition),
+    tolerance = 1e-10
+  )
+})
+
 
 test_that("the model runs for cubic", {
   spcov_type <- "cubic"
@@ -693,6 +841,101 @@ test_that("the model runs for cauchy", {
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml"), NA)
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "sv-wls"), NA)
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "sv-cl"), NA)
+})
+
+test_that("cauchy covariance is stable for large range and shape", {
+  ordinary_params <- spcov_params("cauchy",
+    de = 2.3, ie = 0.4, range = 1.7, extra = 0.8
+  )
+  dist_vector <- c(0, 0.1, 1, 5)
+  ordinary_reference <- ordinary_params[["de"]] *
+    (1 + (dist_vector / ordinary_params[["range"]])^2)^(-ordinary_params[["extra"]])
+  expect_equal(spcov_vector(ordinary_params, dist_vector), ordinary_reference)
+
+  dist_matrix <- as.matrix(dist(dist_vector))
+  matrix_reference <- ordinary_params[["de"]] *
+    (1 + (dist_matrix / ordinary_params[["range"]])^2)^(-ordinary_params[["extra"]])
+  diag(matrix_reference) <- diag(matrix_reference) + ordinary_params[["ie"]]
+  dense_result <- spcov_matrix(ordinary_params, dist_matrix)
+  expect_equal(dense_result, matrix_reference)
+  expect_equal(
+    as.matrix(spcov_matrix(ordinary_params, Matrix::Matrix(dist_matrix, sparse = TRUE))),
+    matrix_reference
+  )
+
+  extreme_params <- spcov_params("cauchy",
+    de = 1, ie = 0, range = 1e9, extra = 1e16
+  )
+  extreme_distances <- matrix(c(0, 1, 1, 0), 2)
+  gaussian_reference <- exp(-0.01)
+  extreme_matrix <- spcov_matrix(extreme_params, extreme_distances)
+  expect_equal(extreme_matrix[1, 2], gaussian_reference, tolerance = 1e-12)
+  expect_equal(spcov_vector(extreme_params, 1), gaussian_reference, tolerance = 1e-12)
+  expect_equal(spcov_vector(extreme_params, 0), 1)
+  expect_equal(diag(extreme_matrix), rep(1.0001, 2))
+
+  gaussian_range <- 10
+  shape <- c(1e4, 1e8, 1e16)
+  limit_distance <- 2
+  limit_values <- vapply(shape, function(extra) {
+    params <- spcov_params("cauchy",
+      de = 1, ie = 0, range = gaussian_range * sqrt(extra), extra = extra
+    )
+    spcov_vector(params, limit_distance)
+  }, numeric(1))
+  limit_reference <- exp(-(limit_distance / gaussian_range)^2)
+  expect_true(all(diff(abs(limit_values - limit_reference)) < 0))
+  expect_equal(tail(limit_values, 1), limit_reference, tolerance = 1e-15)
+})
+
+test_that("known cauchy fits match the anisotropic Gaussian limit", {
+  dat <- data.frame(
+    y = c(1.1, 2.2, 1.4, 2.8, 1.9, 3.2, 2.4, 3.5),
+    x = c(-1, -0.6, -0.2, 0.1, 0.4, 0.7, 1, 1.3),
+    xc = c(0, 1, 2, 4, 5, 7, 8, 10),
+    yc = c(0, 2, 1, 3, 6, 5, 9, 8)
+  )
+  newdata <- data.frame(
+    x = c(-0.4, 0.3, 1.1),
+    xc = c(1.5, 4.5, 9),
+    yc = c(1, 4, 7)
+  )
+  cauchy_initial <- spcov_initial("cauchy",
+    de = 0.8, ie = 0.2, range = 1e9, extra = 1e16,
+    rotate = 0.35, scale = 0.6, known = "given"
+  )
+  gaussian_initial <- spcov_initial("gaussian",
+    de = 0.8, ie = 0.2, range = 10,
+    rotate = 0.35, scale = 0.6, known = "given"
+  )
+  cauchy_fit <- splm(y ~ x, dat,
+    xcoord = xc, ycoord = yc, spcov_initial = cauchy_initial,
+    anisotropy = TRUE, estmethod = "reml", ddf = "asymptotic"
+  )
+  gaussian_fit <- splm(y ~ x, dat,
+    xcoord = xc, ycoord = yc, spcov_initial = gaussian_initial,
+    anisotropy = TRUE, estmethod = "reml", ddf = "asymptotic"
+  )
+
+  expect_equal(coef(cauchy_fit, "spcov"), cauchy_initial$initial)
+  expect_equal(logLik(cauchy_fit), logLik(gaussian_fit), tolerance = 1e-12)
+  expect_equal(
+    as.matrix(covmatrix(cauchy_fit)),
+    as.matrix(covmatrix(gaussian_fit)),
+    tolerance = 1e-12
+  )
+  for (cov_type in c("pred.obs", "pred.pred")) {
+    expect_equal(
+      as.matrix(covmatrix(cauchy_fit, newdata, cov_type = cov_type)),
+      as.matrix(covmatrix(gaussian_fit, newdata, cov_type = cov_type)),
+      tolerance = 1e-12
+    )
+  }
+  expect_equal(
+    predict(cauchy_fit, newdata, se.fit = TRUE),
+    predict(gaussian_fit, newdata, se.fit = TRUE),
+    tolerance = 1e-12
+  )
 })
 
 test_that("the model runs for pexponential", {

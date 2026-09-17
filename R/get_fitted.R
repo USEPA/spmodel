@@ -28,15 +28,12 @@ get_fitted_splm <- function(betahat, spcov_params, data_object, eigenprods_list,
   ### this gives siginv (y - x beta)
   SigInv_r_list <- lapply(eigenprods_list, function(x) x$SigInv_y - x$SigInv_X %*% betahat)
 
-  # cov params no de   (set ie portion to zero because BLUP only uses cov(dependent error))
-  spcov_params_de_only <- spcov_params
-  spcov_params_de_only[["ie"]] <- 0
   # covariance matrix built from only the dependent-error (spatially correlated)
   # component -- the independent-error (nugget) component contributes nothing to
   # the BLUP of the spatial signal, since it has zero covariance with any other observation
   spcov_matrix_de_only_list <- lapply(
     dist_matrix_list,
-    function(x) spcov_matrix(spcov_params = spcov_params_de_only, dist_matrix = x)
+    function(x) spcov_matrix_de(spcov_params = spcov_params, dist_matrix = x)
   )
 
 
@@ -121,10 +118,8 @@ get_fitted_spautor <- function(betahat, spcov_params, data_object, eigenprods,
   ### this gives siginv (y - x beta)
   SigInv_r <- eigenprods$SigInv_y - eigenprods$SigInv_X %*% betahat
 
-  # cov params no de   (set ie portion to zero because BLUP only uses cov(dependent error))
-  spcov_params_de_only <- spcov_params
-  spcov_params_de_only[["ie"]] <- 0
-  spcov_matrix_de_only <- spcov_matrix(spcov_params = spcov_params_de_only, dist_matrix = dist_matrix, M = M)
+  # Build the dependent-error covariance without adding any nugget floor.
+  spcov_matrix_de_only <- spcov_matrix_de(spcov_params = spcov_params, dist_matrix = dist_matrix, M = M)
 
   if (!is.null(data_object$partition_factor)) {
     # zero out covariance between observations in different partitions -- a

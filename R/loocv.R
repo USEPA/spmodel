@@ -430,8 +430,9 @@ loocv_local <- function(row, context, se.fit, local_list) {
 #' @param object A fitted model object from [splm()]
 #' @param cv_predict Whether to return the leave-one-out fitted values
 #' @param se.fit Whether to return the leave-one-out prediction standard errors
-#' @param local A list or logical controlling the big data approximation for
-#'   parallelizing the (independent, so embarrassingly parallel) standard error calculation
+#' @param local A list or logical, validated for consistency with other methods;
+#'   the vectorized iid shortcut does not require local approximation or parallelization
+#'   given it is a single vectorized operation
 #' @param interval See \code{loocv.splm()}'s \code{interval} argument
 #' @param level See \code{loocv.splm()}'s \code{level} argument
 #'
@@ -443,38 +444,26 @@ loocv_local <- function(row, context, se.fit, local_list) {
 #'
 #' @noRd
 loocv_iid <- function(object, cv_predict, se.fit, local, interval = "none", level = 0.95) {
-  # set to FALSE unless it is a list with parallel
+  # Validate supplied settings even though the IID calculation is vectorized.
   if (is.null(local) || is.logical(local)) local <- FALSE
-  local_list <- get_local_list_prediction(local)
+  get_local_list_prediction(local)
   # interval = "prediction" needs se.fit internally to build the interval even
   # when the caller didn't request se.fit in the return value
   se_needed <- se.fit || interval == "prediction"
 
   model_frame <- model.frame(object)
-  X <- model.matrix(object)
   y <- model.response(model_frame)
   # classical PRESS-residual identity: for ordinary (independent-error) least
   # squares, the leave-one-out residual for row i equals its ordinary
   # residual divided by (1 - leverage_i), with no need to refit n models
-  cv_predict_error <- residuals(object) / (1 - hatvalues(object))
+  # 1 - h_ii equals 1 - v_i / total_var, where v_i = sigma^2 * h_ii and total_var = sigma^2.
+  loo_denom <- 1 - hatvalues(object)
+  cv_predict_error <- residuals(object) / loo_denom
   cv_predict_val <- y - cv_predict_error
 
-  # parallel stuff
   if (se_needed) {
     total_var <- coef(object, type = "spcov")[["ie"]]
-    if (local_list$parallel) {
-      cl <- parallel::makeCluster(local_list$ncores)
-      cv_predict_se_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv_iid_se,
-        vcov(object),
-        Xmat = X, total_var = total_var
-      )
-      cl <- parallel::stopCluster(cl)
-    } else {
-      cv_predict_se_list <- lapply(seq_len(object$n), get_loocv_iid_se, vcov(object),
-        Xmat = X, total_var = total_var
-      )
-    }
-    cv_predict_se <- vapply(cv_predict_se_list, function(x) x$se.fit, numeric(1))
+    cv_predict_se <- sqrt(total_var / loo_denom)
   }
 
   bias <- mean(cv_predict_error)

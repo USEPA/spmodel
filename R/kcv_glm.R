@@ -108,10 +108,10 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
     }
   } else {
     # local/big data: refit per fold with the covariance and dispersion
-    # parameters held known (see kcv.splm()'s local branch for why this is
-    # cheap regardless of n), predicting the now-missing fold on the link
-    # scale via predict(), which passes local through to its own
-    # nearest-neighbor approximation
+    # parameters held known, avoiding covariance optimization and predicting
+    # the now-missing fold on the link scale via predict(), which passes local through to its own
+    # nearest-neighbor approximation (but does not recompute
+    # the covariance matrix of betahat for computational efficiency).
     response_name <- all.vars(object$formula)[1]
 
     spcov_params_val <- coef(object, type = "spcov")
@@ -132,6 +132,7 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
     for (fold_rows in fold_list) {
       data_train <- object$obdata
       data_train[[response_name]][fold_rows] <- NA
+      fit_local <- get_kcv_estimation_local(object, fold_rows, local_list)
 
       # xcoord/ycoord must go through do.call() -- see kcv.splm()'s local
       # branch for why a direct call would break
@@ -141,12 +142,14 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
         xcoord = object$xcoord, ycoord = object$ycoord, estmethod = object$estmethod,
         anisotropy = object$anisotropy, random = object$random,
         randcov_initial = randcov_initial_val, partition_factor = object$partition_factor,
-        local = local
+        local = fit_local
       ))
+      # Preserve both covariance variants; prediction uses the uncorrected one.
+      refit$vcov$fixed <- object$vcov$fixed
 
       # refit$missing_index (ascending) always equals fold_rows (ascending),
       # so predict()'s default no-newdata output lines up positionally
-      pred <- predict(refit, type = "link", se.fit = se.fit, local = local, interval = "none")
+      pred <- predict(refit, type = "link", se.fit = se.fit, local = local_list, interval = "none")
       if (se.fit) {
         cv_predict_val[fold_rows] <- pred$fit
         cv_predict_se[fold_rows] <- pred$se.fit

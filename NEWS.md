@@ -5,9 +5,18 @@
 * Added big data support for conditional simulation (`conditional()`) via the `local` argument.
 * Added big data support for simulating spatial data (`sprnorm()`, `sprbinom()`, `sprbeta()`, `sprpois()`, `sprnbinom()`, `sprgamma()`, and `sprinvgauss()`) via the `local` argument.
 
+## Minor Updates
+
+* When `local` is specified, `loocv()` prediction standard errors for `splm()` objects with `spcov_type` equal to `"none"` or `"ie"` now return predictions and standard errors based on the reestimated fixed effects, rather than via the full-data approximations used by other `spcov_type`s.
+* For `splm()` and `spglm()` model objects fit with with `local`, `kcv(object, local, ...)` now reuses the covariance matrix from `object` across folds rather than refitting it for each fold (for computational efficiency).
+* Minor documentation updates.
+* Minor internal consistency updates.
+
 ## Bug Fixes
 
 * Fixed a bug that could falsely flag separation warnings in `spglm()` and `spgautor()` for  binomial responses when `size > 1`.
+* Fixed a bug that could transform anisotropic coordinates twice for block prediction and `spglm()` prediction standard errors.
+* Fixed a bug that could cause improper row alignment for local `spglm()` predictions with partition factors.
 
 # spmodel 0.14.0
 

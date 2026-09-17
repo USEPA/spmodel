@@ -322,6 +322,23 @@ The loocv prediction of $y_i$ is then given by \begin{equation*}
 \end{equation*}
 where $\mathbf{Q}_i = \mathbf{X}_i - \hat{\boldsymbol{\Sigma}}_{i, -i} \hat{\boldsymbol{\Sigma}}^{-1}_{-i, -i} \mathbf{X}_{-i}$. These formulas are analogous to the formulas used to obtain linear unbiased predictions of unobserved data and prediction variances. Model fits are evaluated using several statistics: bias, mean-squared-prediction error (MSPE), root-mean-squared-prediction error (RMSPE), and the squared correlation (cor2) between the observed data and leave-one-out predictions (regarded as a prediction version of r-squared appropriate for comparing across spatial and nonspatial models).
 
+### `loocv()`: The `"none"` and `"ie"` Simplification {#sec:loocv-iid-lm}
+
+For `splm()` objects with covariance type `"none"` or `"ie"` and no random effects, `loocv()` uses an exact solution for predictions and standard errors. Let $e_i$ be the response residual and $h_{ii} = \mathbf{X}_i(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}_i^\top$ be its leverage (hat value). Then the leave-one-out residual and prediction are
+\begin{equation*}
+  y_i - \hat{y}_i = \frac{e_i}{1 - h_{ii}}, \qquad
+  \hat{y}_i = y_i - \frac{e_i}{1 - h_{ii}}.
+\end{equation*}
+When the model includes an offset, $e_i$ is computed from the offset-inclusive fitted response, so this identity also returns an offset-inclusive prediction.
+
+Writing $\hat\sigma^2_{ie}$ for the full-data independent-error variance (`none`/`ie`), the general prediction variance above simplifies to
+\begin{equation*}
+  \dot\sigma_i^2
+  = \hat\sigma^2_{ie}\left[1 + \mathbf{X}_i(\mathbf{X}_{-i}^\top\mathbf{X}_{-i})^{-1}\mathbf{X}_i^\top\right]
+  = \frac{\hat\sigma^2_{ie}}{1 - h_{ii}}.
+\end{equation*}
+Thus `se.fit` (the standard error used for prediction intervals) is $\sqrt{\hat\sigma^2_{ie}/(1-h_{ii})}$.
+
 ### `kcv()`: Block Generalization {#sec:kcv-lm}
 
 `kcv()` replaces each single held-out observation $i$ above with a held-out fold $F$, a set of (approximately $n / k$) row indices held out together, so $-i$ becomes $-F$ throughout (e.g., $\hat{\boldsymbol{\Sigma}}_{F, -F}$ is the covariance between the held-out fold and every other observation). The Helmert-Wolf-Blocking result of @wolf1978helmert used above is a general block-partitioned-matrix identity, so it generalizes to a fold of any size the same way: only the scalar $\tilde{\boldsymbol{\Sigma}}_{i, i}^{-1}$ becomes an $m \times m$ matrix inverse, where $m = |F|$ is the fold size, and \begin{equation*}
@@ -369,7 +386,9 @@ Prediction intervals are also available upon request. Setting `interval = "predi
 
 ### Big Data {#sec:bigdata-loocv-lm}
 
-Options for big data leave-one-out cross validation rely on the `local` argument, which is passed to `predict()`. The `local` list for `predict()` is explained in detail in the `predict()` section, but we provide a short summary of how `local` interacts with `loocv()` and `kcv()` here.
+Options for big data cross validation rely on the `local` argument. The `local` list for `predict()` is explained in detail in the `predict()` section, but we provide a short summary of how `local` interacts with `loocv()` and `kcv()` here.
+
+The IID `loocv()` shortcut described above is an exception to neighborhood-based approximation. Eligible `splm()` objects use this shortcut regardless of `local = FALSE`, `local = TRUE`, or a `local` list: `method` and `size` do not change their leave-one-out predictions or standard errors. A list containing `parallel = TRUE` and `ncores` can still parallelize the standard-error calculations (including those needed for prediction intervals). This shortcut accounts for re-estimating $\boldsymbol\beta$ without the held-out observation; it does not hold the full-data coefficient estimate fixed as the local approximation described below does.
 
 For `splm()` and `spautor()` objects, the `local` method can be `"all"`. When the `local` method is `"all"`, all of the data are used for leave-one-out cross validation (i.e., it is implemented exactly as previously described). Parallelization is implemented when setting `parallel = TRUE` in `local`, and the number of cores to use for parallelization is specified via `ncores`.
 

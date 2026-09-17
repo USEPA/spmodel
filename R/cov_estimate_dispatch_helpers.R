@@ -43,14 +43,16 @@ run_gloglik_dispatch_splm <- function(spcov_initial_val, randcov_initial_val, da
   de_known_zero <- de_known && (spcov_initial_val$initial[["de"]] == 0)
   ie_known <- spcov_initial_val$is_known[["ie"]]
 
-  if (all(spcov_initial_val$is_known, randcov_initial_val$is_known)) {
+  if (allow_iid && de_known_zero) {
+    # The iid path handles both estimated and fixed ie variance and
+    # does not require the deliberately omitted distance matrices.
+    use_gloglik_iid(spcov_initial_val, estmethod, data_object, dist_matrix_list)
+  } else if (all(spcov_initial_val$is_known, randcov_initial_val$is_known)) {
     if (data_object$anisotropy) {
       use_gloglik_known_anis(spcov_initial_val, data_object, estmethod, randcov_initial_val)
     } else {
       use_gloglik_known(spcov_initial_val, data_object, estmethod, dist_matrix_list, randcov_initial_val)
     }
-  } else if (allow_iid && de_known_zero) {
-    use_gloglik_iid(spcov_initial_val, estmethod, data_object, dist_matrix_list)
   } else if (any(de_known && !de_known_zero, ie_known, randcov_initial_val$is_known)) {
     run_gloglik_optim_splm(spcov_initial_val, randcov_initial_val, data_object, estmethod, dist_matrix_list, optim_dotlist, spcov_profiled = FALSE)
   } else {

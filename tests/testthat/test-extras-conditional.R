@@ -261,6 +261,32 @@ test_that("conditional.splm() draws are unchanged from a known-good seeded snaps
   )
 })
 
+test_that("Vecchia conditional simulation uses the stabilized target variance", {
+  dat <- exdata[seq_len(12), , drop = FALSE]
+  de <- 2
+  fit <- splm(y ~ x, dat,
+    xcoord = xcoord, ycoord = ycoord, ddf = "asymptotic",
+    spcov_initial = spcov_initial("exponential",
+      de = de, ie = 0, range = 1, known = "given"
+    )
+  )
+  target <- newexdata[1, , drop = FALSE]
+  samples <- 4
+  V <- as.matrix(covmatrix(fit))
+  C <- as.numeric(covmatrix(fit, target, cov_type = "pred.obs"))
+  conditional_var <- de + 1e-4 * de - as.numeric(C %*% solve(V, C))
+
+  set.seed(613)
+  z <- matrix(rnorm(samples), nrow = 1)
+  set.seed(613)
+  observed <- get_conditional_vecchia(
+    fit, target, matrix(0, nrow(dat), samples),
+    local_list = list(order = 1L, method = "all", size = Inf),
+    samples = samples
+  )
+  expect_equal(observed, sqrt(conditional_var) * z, tolerance = 1e-12)
+})
+
 test_that("conditional() local$approximation = 'vecchia' works for splm", {
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))

@@ -23,6 +23,45 @@ exdata$count <- rpois(n, lambda = 5)
 exdata$cont <- rgamma(n, shape = 1, rate = 1)
 exdata$offset <- 1.2
 
+spglm_prediction_fixture <- function() {
+  set.seed(90210)
+  n <- 30
+  dat <- data.frame(
+    cx = rep(seq_len(6), 5),
+    cy = rep(seq_len(5), each = 6),
+    x = seq(-1, 1, length.out = n),
+    off = 0.2 * sin(seq_len(n)),
+    part = factor(rep(c("a", "b", "c"), length.out = n))
+  )
+  dat$pois <- rpois(n, exp(-0.2 + 0.3 * dat$x + dat$off))
+  pred <- data.frame(
+    cx = c(1.2, 2.4, 3.6, 4.8, 2.1, 5.2),
+    cy = c(1.4, 2.7, 3.3, 4.2, 4.5, 1.8),
+    x = seq(-0.8, 0.8, length.out = 6),
+    off = 0.1 * cos(seq_len(6)),
+    part = factor(c("a", "b", "c", "a", "b", "c"), levels = c("a", "b", "c"))
+  )
+  list(data = dat, pred = pred)
+}
+
+spglm_prediction_reference <- function(object, newdata) {
+  S <- as.matrix(covmatrix(object))
+  C <- as.matrix(covmatrix(object, newdata, cov_type = "pred.obs"))
+  S0 <- as.matrix(covmatrix(object, newdata, cov_type = "pred.pred"))
+  X <- model.matrix(object)
+  X0 <- model.matrix(delete.response(terms(object)), newdata)
+  V <- vcov(object, var_correct = FALSE)
+  Q <- solve(S)
+  B <- V %*% t(X) %*% Q
+  W <- X0 %*% B + C %*% Q %*% (diag(nrow(X)) - X %*% B)
+  G <- X0 - C %*% Q %*% X
+  variance <- S0 - C %*% Q %*% t(C) + G %*% V %*% t(G)
+  P <- Q - Q %*% X %*% B
+  variance <- variance + W %*% solve(P + diag(exp(fitted(object, "link")))) %*% t(W)
+  w <- fitted(object, "link") - model.offset(model.frame(object))
+  list(fit = as.vector(newdata$off + W %*% w), variance = variance)
+}
+
 test_that("the model runs for binomial data", {
   spgmod <- spglm(bern ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml")
   expect_s3_class(spgmod, "spglm")
@@ -163,6 +202,177 @@ test_that("ml boundary regression: an optimizer that wanders to the floor is rec
   mod_exp_reml <- spglm(y ~ x, family = "poisson", data = coords, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml")
   mod_none_reml <- spglm(y ~ x, family = "poisson", data = coords, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "reml")
   expect_true(AIC(mod_exp_reml) < AIC(mod_none_reml))
+})
+
+test_that("anisotropic prediction uncertainty uses raw coordinates", {
+  fixture <- spglm_prediction_fixture()
+  dat <- fixture$data
+  pred <- fixture$pred
+  fit <- spglm(pois ~ x + cx + offset(off), "poisson", dat,
+    xcoord = cx, ycoord = cy, anisotropy = TRUE,
+    spcov_initial = spcov_initial("exponential",
+      de = 0.15, ie = 0.12, range = 4, rotate = 0.6, scale = 0.45,
+      known = "given"
+    )
+  )
+  expected <- spglm_prediction_reference(fit, pred)
+  got <- predict(fit, pred, type = "link", se.fit = TRUE, local = FALSE)
+  expect_equal(unname(got$fit), expected$fit, tolerance = 1e-8)
+  expect_equal(unname(got$se.fit), unname(sqrt(diag(expected$variance))), tolerance = 1e-8)
+})
+
+test_that("partitioned local prediction keeps row-dependent inputs aligned", {
+  fixture <- spglm_prediction_fixture()
+  dat <- fixture$data
+  pred <- fixture$pred
+  fit <- spglm(pois ~ x + offset(off), "poisson", dat,
+    xcoord = cx, ycoord = cy, partition_factor = ~part,
+    spcov_initial = spcov_initial("exponential",
+      de = 0.15, ie = 0.12, range = 4, known = "given"
+    )
+  )
+  exact <- predict(fit, pred, type = "link", se.fit = TRUE, local = FALSE)
+  for (method in c("covariance", "distance")) {
+    for (byrow_threshold in c(0, Inf)) {
+      local <- predict(fit, pred, type = "link", se.fit = TRUE,
+        local = list(
+          method = method, size = nrow(dat), parallel = FALSE,
+          byrow_threshold = byrow_threshold
+        )
+      )
+      expect_equal(local$fit, exact$fit, tolerance = 1e-8)
+      expect_equal(local$se.fit, exact$se.fit, tolerance = 1e-8)
+    }
+  }
+
+  weights <- predict(fit, pred, type = "weight",
+    local = list(method = "covariance", size = 5, parallel = FALSE)
+  )
+  expect_equal(ncol(weights), nrow(dat))
+})
+
+test_that("covariance components retain original observation order", {
+  fixture <- spglm_prediction_fixture()
+  dat <- fixture$data
+  init <- spcov_initial("exponential", de = 0.15, ie = 0.12, range = 4, known = "given")
+  fits <- list(
+    partition = spglm(pois ~ x + offset(off), "poisson", dat,
+      xcoord = cx, ycoord = cy, partition_factor = ~part, spcov_initial = init
+    ),
+    local = spglm(pois ~ x + offset(off), "poisson", dat,
+      xcoord = cx, ycoord = cy, spcov_initial = init,
+      local = list(index = rep(1:3, length.out = nrow(dat)), var_adjust = "theoretical")
+    )
+  )
+
+  for (nm in names(fits)) {
+    fit <- fits[[nm]]
+    r <- fitted(fit, "link") - model.offset(model.frame(fit)) -
+      as.vector(model.matrix(fit) %*% coef(fit))
+    S <- as.matrix(covmatrix(fit))
+    if (nm == "local") {
+      S <- S * outer(fit$local_index, fit$local_index, "==")
+    }
+    nugget <- coef(fit, "spcov")[["ie"]] * as.vector(solve(S, r))
+    expect_equal(unname(fitted(fit, "spcov")$ie), nugget, tolerance = 1e-8)
+    expect_named(fitted(fit, "spcov")$ie, as.character(fit$observed_index))
+  }
+})
+
+test_that("spglm numerical floor is excluded from BLUPs and included in prediction variance", {
+  n_obs <- 18
+  dat <- data.frame(
+    xc = seq(0, 17),
+    yc = rep(c(0, 0.5), 9),
+    x = seq(-1, 1, length.out = n_obs),
+    off = 0.15 * sin(seq_len(n_obs)),
+    y = c(1, 2, 1, 3, 2, 4, 2, 3, 5, 4, 6, 5, 7, 5, 8, 7, 9, 8)
+  )
+  newdata <- data.frame(
+    xc = c(2.5, 8.5, 15.5),
+    yc = c(0.25, 0.75, 0.25),
+    x = c(-0.6, 0.1, 0.8),
+    off = c(0.1, -0.05, 0.2)
+  )
+  de <- 0.4
+  ie <- 0
+  range <- 4
+  fit <- spglm(y ~ x + offset(off), "poisson", dat,
+    xcoord = xc, ycoord = yc,
+    spcov_initial = spcov_initial("exponential",
+      de = de, ie = ie, range = range, known = "given"
+    )
+  )
+
+  dist_obs <- sqrt(
+    outer(dat$xc, dat$xc, "-")^2 + outer(dat$yc, dat$yc, "-")^2
+  )
+  dist_pred <- sqrt(
+    outer(newdata$xc, dat$xc, "-")^2 + outer(newdata$yc, dat$yc, "-")^2
+  )
+  K <- de * exp(-dist_obs / range)
+  C <- de * exp(-dist_pred / range)
+  effective_ie <- max(ie, 1e-4 * de, fit$diagtol)
+  V <- K + diag(effective_ie, n_obs)
+  V_inv <- solve(V)
+  X <- model.matrix(fit)
+  X0 <- model.matrix(delete.response(terms(fit)), newdata)
+  beta <- coef(fit)
+  w <- fitted(fit, "link") - model.offset(model.frame(fit))
+  residual_weight <- V_inv %*% (w - X %*% beta)
+  B <- vcov(fit, var_correct = FALSE)
+
+  expect_equal(coef(fit, "spcov")[["ie"]], ie)
+  expect_equal(
+    unname(fitted(fit, "spcov")$de),
+    as.numeric(K %*% residual_weight),
+    tolerance = 1e-10
+  )
+  expect_equal(unname(fitted(fit, "spcov")$ie), rep(0, n_obs))
+
+  H <- X0 - C %*% V_inv %*% X
+  fit_reference <- as.numeric(X0 %*% beta + C %*% residual_weight + newdata$off)
+  var_reference <- de + effective_ie - rowSums((C %*% V_inv) * C) +
+    rowSums((H %*% B) * H)
+  full_prediction <- predict(fit, newdata,
+    type = "link", se.fit = TRUE, var_correct = FALSE, local = FALSE
+  )
+  expect_equal(unname(full_prediction$fit), fit_reference, tolerance = 1e-10)
+  expect_equal(unname(full_prediction$se.fit), sqrt(as.numeric(var_reference)), tolerance = 1e-10)
+
+  local_prediction <- predict(fit, newdata,
+    type = "link", se.fit = TRUE, var_correct = FALSE,
+    local = list(method = "distance", size = 8, parallel = FALSE)
+  )
+  local_reference <- lapply(seq_len(nrow(newdata)), function(i) {
+    keep <- order(dist_pred[i, ])[seq_len(8)]
+    V_local <- V[keep, keep, drop = FALSE]
+    C_local <- C[i, keep, drop = FALSE]
+    X_local <- X[keep, , drop = FALSE]
+    w_local <- w[keep]
+    V_local_inv <- solve(V_local)
+    H_local <- X0[i, , drop = FALSE] - C_local %*% V_local_inv %*% X_local
+    list(
+      fit = as.numeric(
+        X0[i, , drop = FALSE] %*% beta +
+          C_local %*% V_local_inv %*% (w_local - X_local %*% beta) + newdata$off[i]
+      ),
+      var = as.numeric(
+        de + effective_ie - C_local %*% V_local_inv %*% t(C_local) +
+          H_local %*% B %*% t(H_local)
+      )
+    )
+  })
+  expect_equal(
+    unname(local_prediction$fit),
+    vapply(local_reference, `[[`, numeric(1), "fit"),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    unname(local_prediction$se.fit),
+    sqrt(vapply(local_reference, `[[`, numeric(1), "var")),
+    tolerance = 1e-10
+  )
 })
 
 test_that("size > 1 binomial spglm fit checks fitted probabilities, not fitted successes", {

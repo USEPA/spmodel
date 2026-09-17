@@ -202,27 +202,32 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   # maps partition order back to the original data order
   # reorder relevant quantities
   ## fitted
-  fitted$response <- fitted$response[order(data_object$order)]
+  original_order <- order(data_object$order)
+  fitted$response <- fitted$response[original_order]
   names(fitted$response) <- data_object$observed_index
-  fitted$link <- fitted$link[order(data_object$order)]
+  fitted$link <- fitted$link[original_order]
   names(fitted$link) <- data_object$observed_index
-  hatvalues <- hatvalues[order(data_object$order)]
+  fitted$spcov$de <- fitted$spcov$de[original_order]
+  names(fitted$spcov$de) <- data_object$observed_index
+  fitted$spcov$ie <- fitted$spcov$ie[original_order]
+  names(fitted$spcov$ie) <- data_object$observed_index
+  hatvalues <- hatvalues[original_order]
   names(hatvalues) <- data_object$observed_index
-  residuals$response <- residuals$response[order(data_object$order)]
+  residuals$response <- residuals$response[original_order]
   names(residuals$response) <- data_object$observed_index
-  residuals$deviance <- residuals$deviance[order(data_object$order)]
+  residuals$deviance <- residuals$deviance[original_order]
   names(residuals$deviance) <- data_object$observed_index
-  residuals$pearson <- residuals$pearson[order(data_object$order)]
+  residuals$pearson <- residuals$pearson[original_order]
   names(residuals$pearson) <- data_object$observed_index
-  residuals$standardized <- residuals$standardized[order(data_object$order)]
+  residuals$standardized <- residuals$standardized[original_order]
   names(residuals$standardized) <- data_object$observed_index
-  cooks_distance <- cooks_distance[order(data_object$order)]
+  cooks_distance <- cooks_distance[original_order]
   names(cooks_distance) <- data_object$observed_index
-  y <- y[order(data_object$order)]
+  y <- y[original_order]
   if (is.null(data_object$size)) {
     size <- NULL
   } else {
-    size <- data_object$size[order(data_object$order)]
+    size <- data_object$size[original_order]
   }
 
 

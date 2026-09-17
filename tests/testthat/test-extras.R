@@ -1047,6 +1047,43 @@ test_that("logLik appropriately errors", {
 ############################ loocv (test-loocv.R)
 ##############################################################################
 
+test_that("exact iid loocv uncertainty matches fixed-covariance refits", {
+  dat <- data.frame(x = seq(-1.5, 2, length.out = 16), off = 0.2 * sin(seq_len(16)))
+  dat$y <- 1 + 0.4 * dat$x + dat$off + 0.45 * cos(seq_len(16))
+  for (type in c("none", "ie")) {
+    for (use_offset in c(FALSE, TRUE)) {
+      formula <- if (use_offset) y ~ x + offset(off) else y ~ x
+      initial <- spcov_initial(type, ie = 0.2, known = "given")
+      fit <- splm(formula, dat, spcov_initial = initial, ddf = "asymptotic")
+      X <- model.matrix(fit)
+      variance_reference <- vapply(seq_len(nrow(dat)), function(i) {
+        xi <- X[i, , drop = FALSE]
+        0.2 + as.numeric(xi %*% (0.2 * solve(crossprod(X[-i, , drop = FALSE]))) %*% t(xi))
+      }, numeric(1))
+      refits <- lapply(seq_len(nrow(dat)), function(i) {
+        reduced <- splm(formula, dat[-i, ], spcov_initial = initial, ddf = "asymptotic")
+        predict(reduced, dat[i, , drop = FALSE], se.fit = TRUE)
+      })
+      fit_reference <- vapply(refits, function(x) as.numeric(x$fit), numeric(1))
+      se_reference <- vapply(refits, function(x) as.numeric(x$se.fit), numeric(1))
+      got <- loocv(fit, cv_predict = TRUE, se.fit = TRUE, local = FALSE,
+        interval = "prediction", level = 0.8)
+      expect_equal(as.numeric(got$cv_predict), fit_reference, tolerance = 1e-12)
+      expect_equal(got$se.fit^2, variance_reference, tolerance = 1e-12)
+      expect_equal(got$se.fit, se_reference, tolerance = 1e-12)
+      expect_equal(got$se.fit, as.vector(sqrt(0.2 / (1 - hatvalues(fit)))), tolerance = 1e-12)
+      for (local in list(TRUE, list(method = "distance", size = 4), list(parallel = TRUE, ncores = 2))) {
+        expect_equal(loocv(fit, cv_predict = TRUE, se.fit = TRUE, local = local,
+          interval = "prediction", level = 0.8), got)
+      }
+      coverage <- mean(abs(dat$y - fit_reference) <= qnorm(0.9) * se_reference)
+      expect_equal(got$stats$cover.8, coverage)
+      expect_equal(loocv(fit, interval = "prediction", level = 0.8)$cover.8, coverage)
+      expect_equal(coef(fit, "spcov")[["ie"]], 0.2)
+    }
+  }
+})
+
 test_that("loocv works geo", {
   spmod <- splm(y ~ x, exdata, "exponential", xcoord, ycoord)
   expect_type(loocv(spmod), "list")

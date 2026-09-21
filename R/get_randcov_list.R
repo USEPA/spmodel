@@ -47,16 +47,22 @@ get_randcov_Z <- function(randcov_name, data, ZZt = TRUE, ZtZ = FALSE, xlev_list
   }
   # built directly as a sparse indicator from factor codes rather than via a
   # dense model.matrix(), which would allocate an n x nlevels dense matrix
-  # before ever going sparse -- expensive when the grouping variable has many levels
-  Z_factor <- Z_frame[[1]]
-  if (!is.factor(Z_factor)) Z_factor <- factor(Z_factor)
+  # before ever going sparse, expensive when the grouping variable has many
+  # levels. An interaction/nested grouping (Z_frame has more than one column)
+  # is crossed into a single factor first.
+  Z_factors <- lapply(Z_frame, function(x) if (is.factor(x)) x else factor(x))
+  Z_factor <- interaction(Z_factors, drop = FALSE, sep = ":")
   Z_index <- Matrix::t(Matrix::fac2sparse(Z_factor, drop.unused.levels = FALSE))
-  # fac2sparse() names columns by bare factor level (e.g. "a"), but downstream
-  # per-level output (e.g. fitted(object, type = "randcov")) and the
-  # model.matrix()-based prediction-time equivalent (get_randcov_vectors())
-  # both expect model.matrix()'s "varname + level" convention (e.g. "groupa")
-  # -- restore it here so level names match between fitting and prediction
-  colnames(Z_index) <- get_factor_level_names(names(Z_frame)[1], levels(Z_factor))
+  # fac2sparse() names columns by bare (crossed) factor level (e.g. "a" or
+  # "a:x"), but downstream per-level output (e.g. fitted(object, type =
+  # "randcov")) and the model.matrix()-based prediction-time equivalent
+  # (model_matrix_group_labels()) both expect model.matrix()'s "varname +
+  # level" convention (e.g. "groupa", or "g1a:g2x" for a crossed term);
+  # restore it here so level names match between fitting and prediction
+  colnames(Z_index) <- Reduce(
+    function(a, b) as.vector(outer(a, b, paste, sep = ":")),
+    Map(get_factor_level_names, names(Z_frame), lapply(Z_factors, levels))
+  )
   if (bar_split[[1]] == "1") {
     # "1 | group" (random intercept): Z is just the grouping indicator matrix
     Z <- Z_index
@@ -122,8 +128,10 @@ get_randcov_groups <- function(random, data) {
     if (any(!attr(terms(Z_frame), "dataClasses") %in% c("character", "factor", "ordered"))) {
       stop("Random effect grouping variables must be categorical or factor.", call. = FALSE)
     }
-    group <- Z_frame[[1]]
-    if (!is.factor(group)) group <- factor(group)
+    # cross multiple grouping variables (interaction/nested random effect)
+    # into a single factor; see get_randcov_Z() above
+    Z_factors <- lapply(Z_frame, function(x) if (is.factor(x)) x else factor(x))
+    group <- interaction(Z_factors, drop = FALSE, sep = ":")
     if (bar_split[[1]] == "1") {
       # "1 | group" (random intercept): every row contributes coefficient 1
       coef <- rep(1, NROW(data))

@@ -78,6 +78,25 @@ test_that("the model runs for exponential (random nested subgroup)", {
   expect_error(suppressWarnings(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spcov_initial_val, estmethod = "ml", random = ~ group / subgroup, randcov_initial = randcov_initial_val)), NA)
 })
 
+test_that("nested random effect (group/subgroup) uses the full crossed grouping, not just group (regression test)", {
+  # bug test where the "group:subgroup" term's design matrix
+  # should not collapse to only the first group's levels (instead of group/subgroup combinations)
+  n_combos_observed <- nlevels(droplevels(interaction(exdata$group, exdata$subgroup)))
+  expect_true(n_combos_observed > nlevels(exdata$group))
+
+  Z_nested <- get_randcov_Z("1 | group:subgroup", exdata)$Z
+  expect_equal(ncol(Z_nested), n_combos_observed)
+
+  spmod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", random = ~ group / subgroup)
+  expect_true("1 | group:subgroup" %in% names(coef(spmod, type = "randcov")))
+
+  # fitted(type = "randcov") returns one BLUP per level of each random
+  # effect term
+  nested_blups <- fitted(spmod, type = "randcov")[["1 | group:subgroup"]]
+  expect_equal(length(nested_blups), n_combos_observed)
+  expect_equal(sort(names(nested_blups)), sort(colnames(Z_nested)))
+})
+
 test_that("the model runs for exponential (random and partitioning)", {
   spcov_type <- "exponential"
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group, partition_factor = ~group), NA)

@@ -17,6 +17,7 @@
 * Fixed a bug that could falsely flag separation warnings in `spglm()` and `spgautor()` for  binomial responses when `size > 1`.
 * Fixed a bug that could transform anisotropic coordinates twice for block prediction and `spglm()` prediction standard errors.
 * Fixed a bug that could cause improper row alignment for local `spglm()` predictions with partition factors.
+* Fixed a bug that could cause a random effect grouping term which crossed or nested more than one variable (e.g., `random = ~ (1 | group1:group2)` or `random = ~ group1 / group2`) to use only the first grouping variable when fitting `splm()` or `spglm()` model objects.
 
 # spmodel 0.14.0
 

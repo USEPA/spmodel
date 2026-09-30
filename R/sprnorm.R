@@ -241,9 +241,12 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
       )
     }
 
-    if (missing(randcov_params)) {
-      randcov_params <- NULL
-    } else {
+    random <- NULL
+    randcov_init <- NULL
+    if (!missing(randcov_params) && !is.null(randcov_params) &&
+        length(randcov_params) > 0L) {
+      random <- get_simulation_random(randcov_params, env = environment())
+      names(randcov_params) <- labels(terms(random))
       randcov_init <- randcov_initial(randcov_params, known = "given")
     }
     if (missing(partition_factor)) {
@@ -263,6 +266,7 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
         formula = ...response... ~ 1,
         data = data,
         spcov_initial = spcov_init,
+        random = random,
         randcov_initial = randcov_init,
         partition_factor = partition_factor,
         xcoord = "...xcoord...",
@@ -281,6 +285,7 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
         formula = ...response... ~ 1,
         data = data,
         spcov_initial = spcov_init,
+        random = random,
         randcov_initial = randcov_init,
         partition_factor = partition_factor,
         xcoord = "...xcoord...",
@@ -389,11 +394,14 @@ sprnorm.none <- function(spcov_params, mean = 0, samples = 1, data, randcov_para
   dist_matrix <- diag(n)
 
   # compute the random effects covariance matrix
-  if (missing(randcov_params)) {
+  if (missing(randcov_params) || is.null(randcov_params) || length(randcov_params) == 0L) {
     randcov_params <- NULL
     randcov_Zs <- NULL
   } else {
-    names(randcov_params) <- get_randcov_names(reformulate(paste("(", names(randcov_params), ")", sep = "")))
+    random <- get_simulation_random(randcov_params, env = environment())
+    init <- randcov_initial(randcov_params, known = "given")
+    names(init$initial) <- names(init$is_known) <- labels(terms(random))
+    randcov_params <- validate_randcov_initial(init)$initial
     randcov_Zs <- get_randcov_Zs(data = data, names(randcov_params))
   }
 
@@ -490,11 +498,14 @@ sprnorm.car <- function(spcov_params, mean = 0, samples = 1, data, randcov_param
   dist_matrix <- W
 
   # compute the random effects covariance matrix
-  if (missing(randcov_params)) {
+  if (missing(randcov_params) || is.null(randcov_params) || length(randcov_params) == 0L) {
     randcov_params <- NULL
     randcov_Zs <- NULL
   } else {
-    names(randcov_params) <- get_randcov_names(reformulate(paste("(", names(randcov_params), ")", sep = "")))
+    random <- get_simulation_random(randcov_params, env = environment())
+    init <- randcov_initial(randcov_params, known = "given")
+    names(init$initial) <- names(init$is_known) <- labels(terms(random))
+    randcov_params <- validate_randcov_initial(init)$initial
     randcov_Zs <- get_randcov_Zs(data = data, names(randcov_params))
   }
 

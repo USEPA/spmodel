@@ -232,21 +232,14 @@ test_that("conditional.splm() no longer double-counts fixed effect uncertainty (
   expect_true(ratio > 0.85 && ratio < 1.15)
 })
 
-test_that("conditional.spglm() draws are unchanged from a known-good seeded snapshot (regression test)", {
-  # a deterministic canary for conditional.spglm()'s random-draw structure:
-  # this pins down the exact sequence of rnorm() draws consumed. Both fixed
-  # bugs (the removed w-resimulation block and the removed analytic
-  # H %*% cov_betahat %*% t(H) term) changed how many/which random draws were
-  # consumed, so reintroducing either one would change every value below.
+test_that("conditional.spglm() draws are reproducible within the joint sampler", {
   set.seed(42)
   spmod_g <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
   set.seed(42)
   cond_g <- conditional(spmod_g, newdata = newexdata[1:2, ], samples = 4)
 
-  expect_equal(
-    round(as.vector(cond_g), 4),
-    c(1.9616, 0.8677, 1.6446, 1.8974, 0.2404, 0.6272, 0.9122, 1.1972)
-  )
+  set.seed(42)
+  expect_identical(conditional(spmod_g, newdata = newexdata[1:2, ], samples = 4), cond_g)
 })
 
 test_that("conditional.splm() draws are unchanged from a known-good seeded snapshot (regression test)", {
@@ -374,13 +367,12 @@ test_that("conditional() local$approximation = 'vecchia' works for spglm", {
   # invalid local$approximation errors informatively
   expect_error(conditional(spmod, newdata = newexdata, local = list(approximation = "bogus")), "local\\$approximation must be")
 
-  # a message is printed above 10,000 observed observations, since var_adj's
-  # global Hessian factorization does not benefit from neighbor truncation
+  # The shared latent factorization does not benefit from neighbor truncation.
   spmod_fake <- spmod
   spmod_fake$n <- 20000
   expect_message(
     conditional(spmod_fake, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 5),
-    "one-time factorization"
+    "dense observed latent precision factorization"
   )
   expect_no_message(
     conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 5)

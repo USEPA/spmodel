@@ -183,7 +183,8 @@ number of rows in \code{newdata} and b is the number of samples.
 If \code{output = "beta"}, an p x b matrix of conditional simulations for each
 element in \code{coef(object)}, where p is the
 number of fixed effects and b is the number of samples.
-If \code{output = "object"}, an n x b matrix of observed data values, where n is the
+If \code{output = "object"}, an n x b matrix of observed responses (\code{splm()})
+or fitted link values (including offsets) (\code{spglm()}), where n is the
 number of rows in \code{data} and b is the number of samples.
 If \code{output = "cov"}/\code{"spcov"}/\code{"randcov"}
 (\code{simulate_covparams = TRUE} only), a (covariance parameter) x b
@@ -207,8 +208,9 @@ conditional simulations are returned for each row of \code{newdata}.
 If \code{"beta"} is in \code{output},
 conditional simulations are returned for each fixed effect
 (i.e., element of \code{coef(object)}. If \code{"object"} is in \code{output},
-the observed data from \code{object} is returned once for each row of
-\code{newdata}. For example, \code{c("newdata", "beta")} returns
+observed responses (\code{splm()}) or fitted link values (including offsets)
+(\code{spglm()}) is returned once for each row of \code{newdata}.
+For example, \code{c("newdata", "beta")} returns
 the conditional simulations both for \code{newdata} and for the
 fixed effects. If \code{"cov"}/\code{"spcov"}/\code{"randcov"} is in
 \code{output} (only available when \code{simulate_covparams = TRUE}),
@@ -224,13 +226,7 @@ observations from distinct blocks are assumed conditionally independent
 (given the base sample). Parallelization generally further speeds up
 computations. When \code{local$approximation} is \code{"vecchia"}, no such
 independence assumption is made -- see the \code{local} argument above
-for details. For \code{spglm()} model objects, both \code{local$approximation}s
-propagate the latent process's own estimation uncertainty
-(\code{var_adj}) analytically rather than by simulation; for
-\code{"vecchia"} this requires factorizing a dense matrix over all
-observed data one time, since this particular source of uncertainty is
-not spatially local and so cannot be shrunk by neighbor truncation the
-way the rest of the simulation is -- see the \code{local} argument above.
+for details.
 }
 \examples{
 set.seed(0)

@@ -9,6 +9,7 @@
 
 * When `local` is specified, `loocv()` prediction standard errors for `splm()` objects with `spcov_type` equal to `"none"` or `"ie"` now return predictions and standard errors based on the reestimated fixed effects, rather than via the full-data approximations used by other `spcov_type`s.
 * For `splm()` and `spglm()` model objects fit with with `local`, `kcv(object, local, ...)` now reuses the covariance matrix from `object` across folds rather than refitting it for each fold (for computational efficiency).
+* Conditional simulation for `spglm()` objects now draws latent means and conditions upon them to draw new fixed effects, rather than incorportaing variation from the latent means into the conditional covariance directly.
 * Minor documentation updates.
 * Minor internal consistency updates.
 

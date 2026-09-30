@@ -132,98 +132,22 @@ get_conditional_new_from_base_adjust <- function(newdata_list, object, SqrtSigIn
   new_val <- new_val + cond_mu
 }
 
-#' Simulate one block of a base-and-block conditional simulation, adjusted
-#' for latent-process (\code{w}) estimation uncertainty (\code{spglm} models)
+#' Simulate spatial residuals conditional on coupled latent and beta draws
 #'
-#' GLM analog of \code{\link{get_conditional_new_from_base_adjust}()}, used
-#' by \code{conditional.spglm()}. As in the Gaussian case, fixed-effect
-#' (beta) uncertainty is supplied purely by the caller's simulated beta
-#' draws, so no analytic fixed-effect correction is added here. The
-#' link-scale latent process \code{w}, however, is held fixed at its fitted
-#' value by the caller (not simulated) -- its own Laplace-approximate
-#' posterior uncertainty (\code{cov_lowchol_mH}) is instead supplied
-#' analytically here via \code{var_adj}, computed from the prediction weights
-#' implied by that approximation. Simulating a new \code{w} upstream and
-#' including \code{var_adj} here would double-count the same uncertainty.
-#'
-#' As in \code{\link{get_conditional_new_from_base_adjust}()}, the conditional
-#' mean is linear in the per-draw residual \code{w_base - X_base \%*\% beta_b},
-#' so the code solves \code{cov_lowchol_base} against \code{w_base} and
-#' \code{X_base} once (the latter, \code{SqrtSigInv_X}, is already computed by
-#' \code{conditional.spglm()} for \code{var_adj} and simply reused here) and
-#' this function recombines with each block's own \code{new_betahat} only
-#' after crossprod-ing with \code{SqrtSigInv_c0}.
-#'
-#' @param newdata_list A list with elements \code{x0} (the newdata design
-#'   matrix for this block) and \code{newdata} (the newdata rows for this
-#'   block).
-#' @param object A fitted \code{spglm} model object.
-#' @param SqrtSigInv_w \code{forwardsolve(cov_lowchol_base, w_base)}, computed
-#'   once by the caller (shared across every block).
-#' @param SqrtSigInv_X \code{forwardsolve(cov_lowchol_base, X_base)}, computed
-#'   once by the caller for \code{var_adj} and reused here (shared across
-#'   every block).
-#' @param new_betahat A matrix of simulated beta draws, one column per
-#'   simulation.
-#' @param cov_lowchol_base The lower triangular Cholesky factor of the base
-#'   locations' covariance matrix.
-#' @param samples The number of simulations.
-#' @param SigInv The precision matrix of the base locations' covariance
-#'   matrix.
-#' @param SigInv_X \code{Sigma_base^-1 \%*\% X}.
-#' @param wts_beta \code{cov_betahat \%*\% t(SigInv_X)}, prediction weights
-#'   for the fixed effect contribution.
-#' @param cov_lowchol_mH The lower triangular Cholesky factor of the negative
-#'   Hessian of the joint log-likelihood for \code{w} (see
-#'   \code{conditional.spglm()}), used to weight the \code{var_adj}
-#'   adjustment below.
-#'
-#' @return A matrix of simulated link-scale residuals at this block's
-#'   \code{newdata} rows, one column per simulation.
-#'
+#' @param newdata_list List containing newdata for one block.
+#' @param object A fitted spglm object with the selected base data.
+#' @param SqrtSigInv_residual Whitened sampled base residuals w - X beta.
+#' @param cov_lowchol_base Lower Cholesky factor of the base covariance.
+#' @param samples Number of draws.
+#' @return Simulated link-scale residuals, one draw per column.
 #' @noRd
-get_conditional_new_from_base_adjust_glm <- function(newdata_list, object, SqrtSigInv_w, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH) {
-
-  x0 <- newdata_list$x0
+get_conditional_new_from_base_adjust_glm <- function(newdata_list, object, SqrtSigInv_residual, cov_lowchol_base, samples) {
   newdata <- newdata_list$newdata
-
-  newdata_n <- NROW(newdata)
   cov_base_new <- covmatrix(object, newdata, cov_type = "obs.pred")
   cov_new <- covmatrix(object, newdata, cov_type = "pred.pred")
-
-
   SqrtSigInv_c0 <- forwardsolve(cov_lowchol_base, cov_base_new)
-
-  # ordinary kriging conditional covariance -- betahat uncertainty is already
-  # supplied by the caller's simulated beta draws, so it is not added here
-  cond_cov <- cov_new - crossprod(SqrtSigInv_c0, SqrtSigInv_c0)
-
-  # prediction weights for the new locations under the Laplace
-  # approximation's linear predictor for w (same structure as the universal
-  # kriging weights used elsewhere in the package, combining a fixed effect
-  # term and a covariance-based term)
-  c0 <- t(cov_base_new)
-  wts_pred <- x0 %*% wts_beta + c0 %*% SigInv - (c0 %*% SigInv_X) %*% wts_beta
-  wts_pred <- t(wts_pred)
-  # project those weights through the Laplace posterior precision's Cholesky
-  # factor to get the additional predictive variance contributed by not
-  # knowing w exactly (only its Laplace-approximate posterior)
-  SqrtmHInv_wts_pred <- forwardsolve(cov_lowchol_mH, wts_pred)
-  var_adj <- crossprod(SqrtmHInv_wts_pred, SqrtmHInv_wts_pred)
-
-  # fold the linearization-uncertainty adjustment into the conditional
-  # covariance before factoring it, so the extra uncertainty from only
-  # knowing w up to its Laplace-approximate posterior actually widens the
-  # simulated draws below
-  cond_cov <- var_adj + cond_cov
-
+  cond_cov <- as.matrix(cov_new - crossprod(SqrtSigInv_c0))
   chol_cond_cov <- t(chol(cond_cov))
-  new_val <- vapply(seq_len(samples), function(x) as.numeric(chol_cond_cov %*% rnorm(newdata_n)), numeric(newdata_n))
-
-  # conditional mean, split into a fixed (not-per-sample) piece against
-  # w_base and a cheap p-column piece against X_base
-  cond_mu_w <- crossprod(SqrtSigInv_c0, SqrtSigInv_w)
-  cond_mu_X <- crossprod(SqrtSigInv_c0, SqrtSigInv_X)
-  cond_mu <- as.numeric(cond_mu_w) - cond_mu_X %*% new_betahat
-  new_val <- new_val + cond_mu
+  new_val <- chol_cond_cov %*% matrix(rnorm(NROW(newdata) * samples), NROW(newdata), samples)
+  new_val + crossprod(SqrtSigInv_c0, SqrtSigInv_residual)
 }

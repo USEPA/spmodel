@@ -147,8 +147,9 @@
 #'   If \code{"beta"} is in \code{output},
 #'   conditional simulations are returned for each fixed effect
 #'   (i.e., element of \code{coef(object)}. If \code{"object"} is in \code{output},
-#'   the observed data from \code{object} is returned once for each row of
-#'   \code{newdata}. For example, \code{c("newdata", "beta")} returns
+#'   observed responses (\code{splm()}) or fitted link values (including offsets)
+#'   (\code{spglm()}) is returned once for each row of \code{newdata}.
+#'   For example, \code{c("newdata", "beta")} returns
 #'   the conditional simulations both for \code{newdata} and for the
 #'   fixed effects. If \code{"cov"}/\code{"spcov"}/\code{"randcov"} is in
 #'   \code{output} (only available when \code{simulate_covparams = TRUE}),
@@ -164,13 +165,7 @@
 #'   (given the base sample). Parallelization generally further speeds up
 #'   computations. When \code{local$approximation} is \code{"vecchia"}, no such
 #'   independence assumption is made -- see the \code{local} argument above
-#'   for details. For \code{spglm()} model objects, both \code{local$approximation}s
-#'   propagate the latent process's own estimation uncertainty
-#'   (\code{var_adj}) analytically rather than by simulation; for
-#'   \code{"vecchia"} this requires factorizing a dense matrix over all
-#'   observed data one time, since this particular source of uncertainty is
-#'   not spatially local and so cannot be shrunk by neighbor truncation the
-#'   way the rest of the simulation is -- see the \code{local} argument above.
+#'   for details.
 #'
 #' @return If \code{output = "newdata"}, an a x b matrix of conditional simulations
 #'   for each row in \code{newdata}, where a is the
@@ -178,7 +173,8 @@
 #'   If \code{output = "beta"}, an p x b matrix of conditional simulations for each
 #'   element in \code{coef(object)}, where p is the
 #'   number of fixed effects and b is the number of samples.
-#'   If \code{output = "object"}, an n x b matrix of observed data values, where n is the
+#'   If \code{output = "object"}, an n x b matrix of observed responses (\code{splm()})
+#'   or fitted link values (including offsets) (\code{spglm()}), where n is the
 #'   number of rows in \code{data} and b is the number of samples.
 #'   If \code{output = "cov"}/\code{"spcov"}/\code{"randcov"}
 #'   (\code{simulate_covparams = TRUE} only), a (covariance parameter) x b
@@ -446,49 +442,28 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
     newdata_size <- rep(1, NROW(newdata))
   }
 
-  # spglm() models a latent Gaussian process w on the link scale via a
-  # Laplace approximation (analogous to a GLMM's linear predictor); w plays
-  # the role that the observed y plays in conditional.splm() above. Unlike y,
-  # w is not observed directly and its own estimation uncertainty is
-  # propagated analytically via var_adj below rather than by simulating a new
-  # draw of w (see get_conditional_new_from_base_adjust_glm())
-  w <- fitted(object, type = "link")
-  y <- object$y
-  size <- object$size
-  base_val_w <- matrix(rep(w, times = samples), ncol = samples)
+  base_val_w <- matrix(rep(fitted(object, type = "link"), times = samples), ncol = samples)
   if (length(output) == 1 && output == "object") {
     return(base_val_w)
   }
-  # handle offset: everything below that is built from Sigma (SqrtSigInv_w,
-  # base_val, i.e., the conditional draws) uses the offset-free w, while get_D() below
-  # is a derivative of the data model and so must stay on the offset-inclusive
-  # linear predictor; see w_offset_free()
-  offset_obdata <- model.offset(model.frame(object))
-  w <- w_offset_free(w, offset_obdata)
-
-
+  if (inherits(newdata, "sf")) {
+    newdata <- sf_to_df(suppressWarnings(sf::st_centroid(newdata)))
+    names(newdata)[names(newdata) == ".xcoord"] <- object$xcoord
+    names(newdata)[names(newdata) == ".ycoord"] <- object$ycoord
+  }
+  if (object$dim_coords == 1) newdata[[object$ycoord]] <- 0
+  check_newdata_coords(newdata, object$xcoord, object$ycoord)
   local_list <- get_local_list_conditional(local, object, newdata)
-  if (local_list$approximation == "vecchia" && object$n > 10000) {
-    message("local$approximation = \"vecchia\" for spglm() model objects requires a one-time factorization of a dense ", object$n, " x ", object$n, " matrix to account for uncertainty in the latent spatial process. This step does not benefit from vecchia's neighbor truncation (unlike the rest of the simulation) and may be slow and memory-intensive for large observed sample sizes. See Details.")
+  if (object$n > 10000) {
+    message("Spatial generalized linear model conditional simulation requires a dense observed latent precision factorization, even with local simulation. See Details.")
   }
-
-  betahat <- coef(object)
   X <- model.matrix(object)
+  joint <- get_conditional_glm_joint(object)
+  draws <- draw_conditional_glm_joint(joint, samples)
+  new_betahat <- draws$beta
+  base_val <- draws$w - X %*% new_betahat
+  rm(draws, joint)
 
-  # same composition sampling idea as conditional.splm(): draw beta from its
-  # asymptotic sampling distribution N(betahat, vcov(object)) so fixed effect
-  # uncertainty propagates into the conditional draws of w below
-  cov_betahat_lowchol <- t(chol(vcov(object)))
-  new_betahat <- vapply(seq_len(samples), function(x) as.numeric(cov_betahat_lowchol %*% rnorm(length(betahat))), numeric(length(betahat)))
-  # beta0 force to matrix
-  if (!is.matrix(new_betahat)) {
-    new_betahat <- matrix(new_betahat, nrow = 1)
-  }
-  new_betahat <- sweep(new_betahat, 1, betahat, "+")
-  # new_fitted <- X %*% new_betahat
-  # new_resid <- w - new_fitted
-
-  # now simulate beta and add
   newdata_model_list <- get_newdata_model_matrix(object, newdata)
   newdata <- newdata_model_list$newdata
   newdata_model <- newdata_model_list$newdata_model
@@ -500,78 +475,17 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
 
-  # big data approximation, part 1 (see conditional.splm() for part 2, the
-  # newdata blocking, applied identically below): restrict to a
-  # spatially-representative base sample, keeping X/w/y/size in sync. Skipped
-  # entirely when local_list$approximation == "vecchia", which always conditions on
-  # ALL observed data (not subsampled, see get_conditional_vecchia_glm()).
+  # Subset shared full-fit draws after coupling w and beta.
   if (local_list$approximation != "vecchia" && local_list$method_base != "all") {
     object$obdata <- object$obdata[local_list$index$base, , drop = FALSE]
-    X <- X[local_list$index$base, , drop = FALSE]
-    w <- w[local_list$index$base]
-    y <- y[local_list$index$base]
-    if (!is.null(size)) {
-      size <- size[local_list$index$base]
-    }
-    # keep the offset aligned with w and y so the get_D() call below can put it back
-    if (!is.null(offset_obdata)) {
-      offset_obdata <- offset_obdata[local_list$index$base]
-    }
+    base_val <- base_val[local_list$index$base, , drop = FALSE]
   }
 
-  # Covariance components needed by var_adj (applied later, in
-  # get_conditional_new_from_base_adjust_glm()/get_conditional_vecchia_glm())
-  # -- the analytic adjustment for w's own Laplace-approximate estimation
-  # uncertainty:
-  #  - SigInv: precision of the spatial covariance matrix of w
-  #  - Ptheta: SigInv adjusted for fixed effect estimation uncertainty (the
-  #    usual "residual maker" projection SigInv - SigInv X (X'SigInv X)^-1 X'SigInv)
-  #  - D: GLM working-weight curvature of the response log-likelihood in w
-  #    (see get_D()), i.e. the data's contribution to the Hessian
-  #  - cov_lowchol_mH: Cholesky factor of -(D - Ptheta), the negative Hessian
-  #    of the joint log-likelihood for w -- var_adj uses its inverse (the
-  #    Laplace-approximate posterior covariance of w) to inflate the
-  #    predictive variance analytically instead of by simulating a new w
-  # This factorization is O(n^3) in whichever data it is computed over -- the
-  # (possibly subsampled) base sample for "low-rank", or all observed data for
-  # "vecchia", since var_adj reflects
-  # uncertainty in the single joint Laplace posterior for w, which is not a
-  # spatially-local quantity that vecchia's neighbor truncation can shrink without further investigation
-  # (see get_conditional_vecchia_glm() and conditional()'s Details).
-  cov_lowchol_base <- t(chol(covmatrix(object)))
-  SigInv <- chol2inv(t(cov_lowchol_base))
-  SqrtSigInv_X <- forwardsolve(cov_lowchol_base, X)
-  SigInv_X <- backsolve(t(cov_lowchol_base), SqrtSigInv_X)
-  # solved once and reused for every block's conditional mean below (see
-  # get_conditional_new_from_base_adjust_glm()). SqrtSigInv_X
-  # above can be used for var_adj
-  SqrtSigInv_w <- forwardsolve(cov_lowchol_base, cbind(w))
-  cov_betahat <- vcov(object, var_correct = FALSE)
-  Ptheta <- SigInv - SigInv_X %*% tcrossprod(cov_betahat, SigInv_X)
-  # get_D() differentiates the data model, so unlike every spatial quantity
-  # above it is evaluated at the offset-inclusive linear predictor
-  D <- get_D(
-    object$family, if (is.null(offset_obdata)) w else w + as.vector(offset_obdata),
-    y, size, as.vector(object$coefficients$dispersion)
-  )
-  cov_lowchol_mH <- t(chol(Matrix::forceSymmetric(-1 * (D - Ptheta)))) # this is actually the inverse of covariance matrix of w
-  wts_beta <- tcrossprod(cov_betahat, SigInv_X)
-
-  # w is held fixed at its fitted (Laplace-mode) value rather than simulated:
-  # var_adj (applied in get_conditional_new_from_base_adjust_glm()) already
-  # supplies w's own estimation uncertainty analytically, so simulating a new
-  # draw of w here on top of that would double-count it. residualizing the
-  # (fixed) w against the simulated fixed effect trend plays the same role
-  # as new_resid in conditional.splm()
-  base_val <- w - X %*% new_betahat
-
   if (local_list$approximation == "vecchia") {
-    # vecchia: every newdata location is simulated sequentially, conditional
-    # on ALL observed data plus every earlier-simulated newdata location, with
-    # var_adj folded in only between pairs of predicted (never observed)
-    # locations (see get_conditional_vecchia_glm())
-    new_val <- get_conditional_vecchia_glm(object, newdata, newdata_model, base_val, local_list, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
+    new_val <- get_conditional_vecchia_glm(object, newdata, base_val, local_list, samples)
   } else {
+    cov_lowchol_base <- t(chol(as.matrix(covmatrix(object))))
+    SqrtSigInv_residual <- forwardsolve(cov_lowchol_base, base_val)
     if (local_list$method_new != "all") {
       x0 <- lapply(local_list$index$new, function(x) newdata_model[x, , drop = FALSE])
       newdata <- lapply(local_list$index$new, function(x) newdata[x, , drop = FALSE])
@@ -583,10 +497,10 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
 
     if (local_list$parallel) {
       cl <- parallel::makeCluster(local_list$ncores)
-      new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust_glm, object, SqrtSigInv_w, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
-      cl <- parallel::stopCluster(cl)
+      on.exit(parallel::stopCluster(cl), add = TRUE)
+      new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust_glm, object, SqrtSigInv_residual, cov_lowchol_base, samples)
     } else {
-      new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust_glm, object, SqrtSigInv_w, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
+      new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust_glm, object, SqrtSigInv_residual, cov_lowchol_base, samples)
     }
 
 

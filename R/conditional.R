@@ -14,7 +14,7 @@
 #'   \code{c("newdata", "beta", "object")}. If \code{simulate_covparams = TRUE},
 #'   the output type can also be any subset of \code{c("cov", "spcov", "randcov")}.
 #'    The default is \code{"newdata"}. See Details for more.
-#' @param type For \code{spglm()} model objects, the scale of the conditional
+#' @param type For \code{spglm()} and \code{spgautor()} model objects, the scale of the conditional
 #'   simulations for \code{newdata}.
 #'   When \code{type = "link"}, the predicted means on the
 #'   link scale are returned. When \code{type = "response"}, the predicted means
@@ -24,7 +24,8 @@
 #'   from \code{object}. The default is \code{"link"}.
 #' @param samples  The number of conditional simulations. The default is
 #'   \code{1,000}.
-#' @param local An optional logical or list controlling the big data approximation.
+#' @param local For \code{splm()} and \code{spglm()} model objects, an optional logical or list
+#'   controlling the big data approximation.
 #'   If omitted, \code{local} is set
 #'   to \code{TRUE} or \code{FALSE} based on the whether the observed
 #'   or prediction sample size (the number of
@@ -79,6 +80,9 @@
 #'           and \code{TRUE} otherwise.
 #'         \item \code{size_new}: The (approximate) number of observations used
 #'           for each block. The default is 1,000. See Details for more.
+#'         \item \code{chunk_size}: For \code{spglm()} model objects, the
+#'           maximum number of \code{samples} columns processed simultaneously.
+#'           The default is 1,000. \code{chunk_size} is purely computational and does not affect corretness.
 #'         \item \code{parallel}: If \code{TRUE}, parallel processing via the
 #'           parallel package is automatically used. The default is \code{FALSE}.
 #'         \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
@@ -92,11 +96,12 @@
 #'       reorder_new = "random", kmeans_new = TRUE, parallel = FALSE)}.
 #'     \item \code{"vecchia"}: every \code{newdata} location is simulated one
 #'       at a time (in some order over \code{newdata}), each conditional on
-#'       \strong{all} observed data plus every already-simulated
+#'       neighbors selected from all observed data plus each already-simulated
 #'       \code{newdata} location (not a single shared base sample).
 #'       \code{newdata} locations are never assumed conditionally independent
-#'       of one another. This is exact (matches \code{local = FALSE}) when
-#'       \code{method = "all"}; \code{method = "distance"}/\code{"covariance"}
+#'       of one another. This matches \code{local = FALSE} when
+#'       \code{method = "all"};
+#'       \code{method = "distance"}/\code{"covariance"}
 #'       truncate the conditioning set to a fixed number of neighbors
 #'       sorted by distance or covariance with the new observation. No parallelization
 #'       exists because the algorithm is inherently sequential, as each new observation
@@ -121,6 +126,9 @@
 #'           \code{"random"}, or \code{"none"} (same options as
 #'           \code{decorrelate()}'s \code{ordering} argument). The default is
 #'           \code{"maxmin"}.
+#'         \item \code{chunk_size}: For \code{spglm()} model objects, the
+#'           maximum number of \code{samples} columns processed simultaneously.
+#'           The default is 1,000. \code{chunk_size} is purely computational and does not affect corretness.
 #'       }
 #'   }
 #'       When \code{local = TRUE}, \code{local} is transformed into
@@ -147,8 +155,8 @@
 #'   If \code{"beta"} is in \code{output},
 #'   conditional simulations are returned for each fixed effect
 #'   (i.e., element of \code{coef(object)}. If \code{"object"} is in \code{output},
-#'   observed responses (\code{splm()}) or fitted link values (including offsets)
-#'   (\code{spglm()}) is returned once for each row of \code{newdata}.
+#'   observed responses (\code{splm()} or \code{spautor()}) or fitted link values (including offsets)
+#'   (\code{spglm()} or \code{spgautor()}) are returned once for each row of \code{newdata}.
 #'   For example, \code{c("newdata", "beta")} returns
 #'   the conditional simulations both for \code{newdata} and for the
 #'   fixed effects. If \code{"cov"}/\code{"spcov"}/\code{"randcov"} is in
@@ -173,9 +181,9 @@
 #'   If \code{output = "beta"}, an p x b matrix of conditional simulations for each
 #'   element in \code{coef(object)}, where p is the
 #'   number of fixed effects and b is the number of samples.
-#'   If \code{output = "object"}, an n x b matrix of observed responses (\code{splm()})
-#'   or fitted link values (including offsets) (\code{spglm()}), where n is the
-#'   number of rows in \code{data} and b is the number of samples.
+#'   If \code{output = "object"}, an n x b matrix of observed responses
+#'   (\code{splm()} and \code{spautor()}) or fitted link values including offsets
+#'   (\code{spglm()} and \code{spgautor()}), where n is the number of rows in \code{data} and b is the number of samples.
 #'   If \code{output = "cov"}/\code{"spcov"}/\code{"randcov"}
 #'   (\code{simulate_covparams = TRUE} only), a (covariance parameter) x b
 #'   matrix of the of conditoinal simulations for each covariance parameter, where b is the
@@ -442,7 +450,9 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
     newdata_size <- rep(1, NROW(newdata))
   }
 
-  base_val_w <- matrix(rep(fitted(object, type = "link"), times = samples), ncol = samples)
+  base_val_w <- if ("object" %in% output) {
+    matrix(rep(fitted(object, type = "link"), times = samples), ncol = samples)
+  } else NULL
   if (length(output) == 1 && output == "object") {
     return(base_val_w)
   }
@@ -454,16 +464,11 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   if (object$dim_coords == 1) newdata[[object$ycoord]] <- 0
   check_newdata_coords(newdata, object$xcoord, object$ycoord)
   local_list <- get_local_list_conditional(local, object, newdata)
-  if (object$n > 10000) {
-    message("Spatial generalized linear model conditional simulation requires a dense observed latent precision factorization, even with local simulation. See Details.")
+  exact <- local_list$exact
+  lowrank <- !exact && local_list$approximation == "low-rank"
+  if (exact && object$n > 10000) {
+    message("Exact spatial generalized linear model conditional simulation requires a dense observed latent precision factorization. See Details.")
   }
-  X <- model.matrix(object)
-  joint <- get_conditional_glm_joint(object)
-  draws <- draw_conditional_glm_joint(joint, samples)
-  new_betahat <- draws$beta
-  base_val <- draws$w - X %*% new_betahat
-  rm(draws, joint)
-
   newdata_model_list <- get_newdata_model_matrix(object, newdata)
   newdata <- newdata_model_list$newdata
   newdata_model <- newdata_model_list$newdata_model
@@ -475,43 +480,23 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
 
-  # Subset shared full-fit draws after coupling w and beta.
-  if (local_list$approximation != "vecchia" && local_list$method_base != "all") {
-    object$obdata <- object$obdata[local_list$index$base, , drop = FALSE]
-    base_val <- base_val[local_list$index$base, , drop = FALSE]
-  }
-
-  if (local_list$approximation == "vecchia") {
-    new_val <- get_conditional_vecchia_glm(object, newdata, base_val, local_list, samples)
+  if (lowrank) {
+    draws <- get_conditional_glm_lowrank(object, newdata, newdata_model, local_list, samples)
+    new_val <- draws$newdata
+    new_betahat <- draws$beta
+  } else if (local_list$approximation == "vecchia") {
+    draws <- get_conditional_vecchia_glm(object, newdata, newdata_model, local_list, samples)
+    new_val <- draws$newdata
+    new_betahat <- draws$beta
   } else {
-    cov_lowchol_base <- t(chol(as.matrix(covmatrix(object))))
-    SqrtSigInv_residual <- forwardsolve(cov_lowchol_base, base_val)
-    if (local_list$method_new != "all") {
-      x0 <- lapply(local_list$index$new, function(x) newdata_model[x, , drop = FALSE])
-      newdata <- lapply(local_list$index$new, function(x) newdata[x, , drop = FALSE])
-    } else {
-      x0 <- list(newdata_model)
-      newdata <- list(newdata)
-    }
-    newdata_list <- mapply(x = x0, y = newdata, FUN = function(x, y) list(x0 = x, newdata = y), SIMPLIFY = FALSE)
-
-    if (local_list$parallel) {
-      cl <- parallel::makeCluster(local_list$ncores)
-      on.exit(parallel::stopCluster(cl), add = TRUE)
-      new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust_glm, object, SqrtSigInv_residual, cov_lowchol_base, samples)
-    } else {
-      new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust_glm, object, SqrtSigInv_residual, cov_lowchol_base, samples)
-    }
-
-
-    new_val <- do.call("rbind", new_val)
-    if (local_list$method_new != "all") {
-      index_new <- do.call("c", local_list$index$new)
-      new_val <- new_val[order(index_new), , drop = FALSE]
-    }
+    joint <- get_conditional_glm_joint(object)
+    draws <- draw_conditional_glm_joint(joint, samples, residual = TRUE)
+    new_betahat <- draws$beta
+    new_val <- get_conditional_new_from_base_adjust_glm(list(newdata = newdata),
+      object, draws$residual, joint$cov_lowchol, samples)
+    new_val <- newdata_model %*% new_betahat + new_val
+    rm(draws, joint)
   }
-
-  new_val <- newdata_model %*% new_betahat + new_val
 
   if (!is.null(offset)) {
     new_val <- sweep(new_val, 1, offset, "+")
@@ -617,5 +602,6 @@ invlink_conditional <- function(mu_link, type, dispersion, family, newdata_size)
     val <- sweep(val, 1, newdata_size, "*")
   }
 
+  if (is.null(dim(val))) dim(val) <- c(n_newdata, n_sim)
   val
 }

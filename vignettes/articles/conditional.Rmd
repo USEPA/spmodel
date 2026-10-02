@@ -46,7 +46,7 @@ set.seed(0)
 
 # Conditional Simulation in `spmodel`
 
-`predict()` returns a single best prediction (and its standard error) at each new location, one location at a time. However, `predict()` does not tell us how predictions at different locations may relate to one another. Suppose we instead want to know something about the entire predicted surface at once (e.g., quantiles, extreme values, threshold exceedances, etc.). Answering these types of questions requires jointly simulating the predicted surface, not just each location's pointwise mean and standard error. `conditional()` provides exactly this: repeated draws from the joint distribution of the response (or, for `spglm()` models, the latent process) at a set of new locations, conditional on the observed data. Though typically the focus on conditional simulation is on predictions at new locations, `conditional()` also provides simulated values of covariance and fixed effect model parameters. For technical details regarding conditional simulation, see @zimmerman2024spatial and the Technical Details vignette.
+`predict()` returns a single best prediction (and its standard error) at each new location, one location at a time. However, `predict()` does not tell us how predictions at different locations may relate to one another. Suppose we instead want to know something about the entire predicted surface at once (e.g., quantiles, extreme values, threshold exceedances, etc.). Answering these types of questions requires jointly simulating the predicted surface, not just each location's pointwise mean and standard error. `conditional()` provides exactly this: repeated draws from the joint distribution of the response (or, for `spglm()` models, the latent process) at a set of new locations, conditional on the observed data. Though typically the focus on conditional simulation is on predictions at new locations, `conditional()` also provides simulated values of covariance and fixed effect model parameters. `conditional()` supports `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects; large data support exists for `splm()` and `spglm()` model objects via the `local` argument. For technical details regarding conditional simulation, see @zimmerman2024spatial and the Technical Details vignette.
 
 The `sulfate` data is an `sf` object that contains sulfate measurements in the conterminous United States (CONUS). We first visualize the distribution of the sulfate data by running
 ```{r}
@@ -123,7 +123,6 @@ ci_bounds <- as.numeric(quantile(prop_exceed, probs = c(0.025, 0.975)))
 c(lwr = ci_bounds[1], upr = ci_bounds[2])
 ```
 
-
 ## Propagating Covariance Parameter Uncertainty
 
 By default, every draw in `sulf_cond` shares the same fitted covariance parameters -- only the fixed effects and the spatial field are resimulated. For `splm()` model objects fit with `ddf = "satterthwaite"` (the default when the sample size is 500 or fewer, as it is here), setting `simulate_covparams = TRUE` additionally resamples the covariance parameters themselves for each draw, propagating their own estimation uncertainty into the result. This is considerably more expensive than the default (a fresh factorization is required for every sample), so it is generally reserved for small-to-moderate sample sizes and a reduced `samples`.
@@ -162,7 +161,7 @@ ggplot(data.frame(range = cond_list$cov[3, ]), aes(x = range)) +
 
 # Spatial Generalized Linear Models
 
-`conditional()` also works for `spglm()` model objects. Because these models describe a latent process $\mathbf{w}$ on the link scale rather than the response directly, the `type` argument controls the scale of the simulated values: `type = "link"` (the default) returns simulations of $\mathbf{w}$, `type = "response"` returns simulations of the mean on the response (inverse link) scale, and `type = "new"` additionally simulates a new observation from the response distribution (e.g., a new Poisson count) with that mean.
+`conditional()` also works for spatial generalized linear models, though there are some additional details. Because these models describe a latent process $\mathbf{w}$ on the link scale rather than the response directly, the `type` argument controls the scale of the simulated values: `type = "link"` (the default) returns simulations of $\mathbf{w}$, `type = "response"` returns simulations of the mean on the response (inverse link) scale, and `type = "new"` additionally simulates a new observation from the response distribution (e.g., a new Poisson count) with that mean.
 
 We fit a spatial logistic regression model of moose presence and simulate new observations at the locations in `moose_preds`:
 ```{r}

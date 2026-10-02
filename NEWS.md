@@ -2,6 +2,7 @@
 
 ## Major Updates
 
+* Added support for conditional simulation via `conditional()` for `spautor()` and `spgautor()` model objects, which draws simulated values from the distribution of `newdata` conditional on observed data.
 * Added big data support for conditional simulation (`conditional()`) via the `local` argument.
 * Added big data support for simulating spatial data (`sprnorm()`, `sprbinom()`, `sprbeta()`, `sprpois()`, `sprnbinom()`, `sprgamma()`, and `sprinvgauss()`) via the `local` argument.
 
@@ -9,7 +10,7 @@
 
 * When `local` is specified, `loocv()` prediction standard errors for `splm()` objects with `spcov_type` equal to `"none"` or `"ie"` now return predictions and standard errors based on the reestimated fixed effects, rather than via the full-data approximations used by other `spcov_type`s.
 * For `splm()` and `spglm()` model objects fit with with `local`, `kcv(object, local, ...)` now reuses the covariance matrix from `object` across folds rather than refitting it for each fold (for computational efficiency).
-* Conditional simulation for `spglm()` objects now draws latent means and conditions upon them to draw new fixed effects, rather than incorportaing variation from the latent means into the conditional covariance directly.
+* Updated the `conditional()` sampling for `spglm()` model objects to first simulate fixed effects and then the latent means given the fixed effects.
 * Minor documentation updates.
 * Minor internal consistency updates.
 

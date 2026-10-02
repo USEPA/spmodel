@@ -608,6 +608,7 @@ get_local_list_conditional <- function(local, object, newdata) {
     }
   }
 
+  exact <- identical(local, FALSE)
   if (is.logical(local)) {
     if (local) {
       local <- list()
@@ -639,7 +640,7 @@ get_local_list_conditional <- function(local, object, newdata) {
   # to parallelize over the way "low-rank" has. get_local_list_conditional_vecchia()
   # already warns if the user set parallel = TRUE, so this is just a guard
   if (local$approximation == "low-rank" && local$parallel) {
-    n_index <- length(unique(local$index))
+    n_index <- if (local$method_new == "all") 1L else length(local$index$new)
     if ("ncores" %in% names(local)) {
       cores_available <- parallel::detectCores()
       local$ncores <- min(n_index, local$ncores, cores_available)
@@ -649,6 +650,7 @@ get_local_list_conditional <- function(local, object, newdata) {
     }
   }
 
+  local$exact <- exact
   local
 
 }
@@ -742,7 +744,7 @@ get_local_list_conditional_lowrank <- function(local, object, newdata, n, n_pred
     groups <- ceiling(n_pred / local$size_new) # consider adding groups as an argument
 
     if (local$kmeans_new) {
-      kmeans_arg_names <- setdiff(names(local), c("approximation", "method_base", "method_new", "size_base", "size_new", "reorder_base", "reorder_new", "kmeans_new", "parallel", "ncores"))
+      kmeans_arg_names <- setdiff(names(local), c("approximation", "method_base", "method_new", "size_base", "size_new", "reorder_base", "reorder_new", "kmeans_new", "parallel", "ncores", "chunk_size", "exact"))
       kmeans_args <- local[kmeans_arg_names]
 
       # kmeans() needs plain x/y coordinate columns; if newdata is an sf
@@ -799,6 +801,10 @@ get_local_list_conditional_vecchia <- function(local, object, newdata) {
   if (!"method" %in% names_local) local$method <- "covariance"
   if (!local$method %in% c("all", "distance", "covariance")) {
     stop("local$method must be \"all\", \"distance\", or \"covariance\".", call. = FALSE)
+  }
+  if (local$method != "all" && (!is.numeric(local$size) || length(local$size) != 1L || is.na(local$size) ||
+      !is.finite(local$size) || local$size < 1 || local$size != floor(local$size))) {
+    stop("local$size must be a positive integer.", call. = FALSE)
   }
   if (!"ordering" %in% names_local) local$ordering <- "maxmin"
   if (!local$ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {

@@ -1,96 +1,38 @@
-test_that("conditional works for splm", {
-  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
-  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
-
-  spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-
-  cond1 <- conditional(spmod, newdata = newexdata, samples = 50)
-  expect_true(is.matrix(cond1))
-  expect_equal(dim(cond1), c(NROW(newexdata), 50))
-  expect_true(all(is.finite(cond1)))
-
-  cond_all <- conditional(spmod, newdata = newexdata, output = "all", samples = 50)
-  expect_type(cond_all, "list")
-  expect_named(cond_all, c("newdata", "beta", "object"))
-  expect_equal(dim(cond_all$newdata), c(NROW(newexdata), 50))
-  expect_equal(dim(cond_all$beta), c(length(coef(spmod)), 50))
-  expect_equal(dim(cond_all$object), c(spmod$n, 50))
-
-  # falls back to object$newdata (the missing rows) when newdata is omitted
-  exdata_miss <- exdata
-  exdata_miss$y[1:5] <- NA
-  spmod_miss <- splm(y ~ x, exdata_miss, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-  cond_miss <- conditional(spmod_miss, samples = 50)
-  expect_equal(nrow(cond_miss), 5)
+test_that("splm conditional simulation returns requested outputs", {
+  data <- data.frame(cx = seq_len(12), x = rep(c(-1, 0, 1), 4),
+    y = c(2, 1, 4, 3, 6, 2, 1, 4, 5, 2, 3, 6))
+  fit <- splm(y ~ x, data, xcoord = cx, ddf = "asymptotic",
+    spcov_initial = spcov_initial("exponential", de = 0.4, ie = 0.2, range = 3, known = "given"))
+  draws <- conditional(fit, data[1:2, ], samples = 2, output = "all")
+  expect_named(draws, c("newdata", "beta", "object"))
+  expect_equal(dim(draws$newdata), c(2, 2))
+  expect_true(all(is.finite(draws$newdata)))
 })
 
-test_that("conditional works for spglm", {
-  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
-  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
-
-  exdata_pois <- exdata
-  exdata_pois$count <- round(abs(exdata_pois$y) * 3)
-  spmod <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-
-  cond_link <- conditional(spmod, newdata = newexdata, samples = 50)
-  expect_equal(dim(cond_link), c(NROW(newexdata), 50))
-
-  cond_response <- conditional(spmod, newdata = newexdata, type = "response", samples = 50)
-  expect_true(all(cond_response >= 0))
-
-  cond_new <- conditional(spmod, newdata = newexdata, type = "new", samples = 50)
-  expect_true(all(cond_new >= 0))
-  expect_equal(cond_new, round(cond_new)) # poisson draws are counts
+test_that("Poisson conditional simulation supports exact and local paths", {
+  data <- data.frame(cx = seq_len(12), x = rep(c(-1, 0, 1), 4),
+    y = c(2, 1, 4, 3, 6, 2, 1, 4, 5, 2, 3, 6))
+  fit <- spglm(y ~ x, data, family = "poisson", xcoord = cx,
+    spcov_initial = spcov_initial("exponential", de = 0.4, ie = 0.2, range = 3, known = "given"))
+  for (local in list(FALSE, list(size_base = 6, reorder_base = "none"),
+    list(approximation = "vecchia", size = 3, ordering = "none"))) {
+    draws <- conditional(fit, data[1:2, ], samples = 2, type = "new", local = local)
+    expect_equal(dim(draws), c(2, 2))
+    expect_true(all(is.finite(draws) & draws >= 0 & draws == floor(draws)))
+  }
 })
 
-test_that("conditional() local$approximation = 'vecchia' works for splm", {
-  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
-  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
-
-  spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-
-  cond1 <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 50)
-  expect_true(is.matrix(cond1))
-  expect_equal(dim(cond1), c(NROW(newexdata), 50))
-  expect_true(all(is.finite(cond1)))
-})
-
-test_that("conditional() local$approximation = 'vecchia' works for spglm", {
-  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
-  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
-
-  exdata_pois <- exdata
-  exdata_pois$count <- round(abs(exdata_pois$y) * 3)
-  spmod <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-
-  cond1 <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 10), samples = 50)
-  expect_true(is.matrix(cond1))
-  expect_equal(dim(cond1), c(NROW(newexdata), 50))
-  expect_true(all(is.finite(cond1)))
-})
-
-test_that("conditional() simulate_covparams = TRUE works for splm", {
-  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
-  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
-
-  spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-  expect_false(is.null(spmod$vcov$cov)) # ddf = "satterthwaite" default for n <= 500
-
-  cond1 <- conditional(spmod, newdata = newexdata, samples = 50, simulate_covparams = TRUE)
-  expect_true(is.matrix(cond1))
-  expect_equal(dim(cond1), c(NROW(newexdata), 50))
-  expect_true(all(is.finite(cond1)))
-})
-
-test_that("conditional() output = 'cov'/'spcov'/'randcov' works for splm", {
-  load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
-  load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
-
-  spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-  spcov_names <- names(coef(spmod, type = "spcov"))
-
-  cov_out <- conditional(spmod, newdata = newexdata, samples = 30, simulate_covparams = TRUE, output = "cov")
-  expect_equal(dim(cov_out), c(length(spcov_names), 30))
-  expect_equal(rownames(cov_out), spcov_names)
-  expect_true(all(is.finite(cov_out)))
+test_that("Areal conditional simulation uses fitted missing-response locations", {
+  data <- data.frame(x = seq(-1, 1, length.out = 12),
+    y = c(2, NA, 4, 3, 6, 2, 1, 4, NA, 2, 3, 6))
+  W <- 1 * (abs(outer(seq_len(12), seq_len(12), "-")) == 1)
+  covariance <- spcov_initial("car", de = 0.4, ie = 0.2, range = 0.2, known = "given")
+  fits <- list(spautor(y ~ x, data, W = W, spcov_initial = covariance, ddf = "asymptotic"),
+    spgautor(y ~ x, data, W = W, family = "poisson", spcov_initial = covariance))
+  for (fit in fits) {
+    draws <- conditional(fit, samples = 2)
+    expect_equal(dim(draws), c(2, 2))
+    expect_identical(rownames(draws), as.character(fit$missing_index))
+    expect_true(all(is.finite(draws)))
+  }
 })

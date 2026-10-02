@@ -136,18 +136,19 @@ get_conditional_new_from_base_adjust <- function(newdata_list, object, SqrtSigIn
 #'
 #' @param newdata_list List containing newdata for one block.
 #' @param object A fitted spglm object with the selected base data.
-#' @param SqrtSigInv_residual Whitened sampled base residuals w - X beta.
+#' @param residual Sampled base residuals w - X beta.
 #' @param cov_lowchol_base Lower Cholesky factor of the base covariance.
 #' @param samples Number of draws.
 #' @return Simulated link-scale residuals, one draw per column.
 #' @noRd
-get_conditional_new_from_base_adjust_glm <- function(newdata_list, object, SqrtSigInv_residual, cov_lowchol_base, samples) {
+get_conditional_new_from_base_adjust_glm <- function(newdata_list, object, residual, cov_lowchol_base, samples) {
   newdata <- newdata_list$newdata
   cov_base_new <- covmatrix(object, newdata, cov_type = "obs.pred")
   cov_new <- covmatrix(object, newdata, cov_type = "pred.pred")
   SqrtSigInv_c0 <- forwardsolve(cov_lowchol_base, cov_base_new)
+  wts_residual <- backsolve(t(cov_lowchol_base), SqrtSigInv_c0)
   cond_cov <- as.matrix(cov_new - crossprod(SqrtSigInv_c0))
   chol_cond_cov <- t(chol(cond_cov))
   new_val <- chol_cond_cov %*% matrix(rnorm(NROW(newdata) * samples), NROW(newdata), samples)
-  new_val + crossprod(SqrtSigInv_c0, SqrtSigInv_residual)
+  new_val + crossprod(wts_residual, residual)
 }

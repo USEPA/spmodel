@@ -1680,37 +1680,37 @@ For spatial linear models, prediction standard errors are determined on the offs
 
 # Conditional Simulation (`conditional()`) {#sec:conditional}
 
-`predict()` returns a single best linear unbiased prediction (and its uncertainty) at each new location. `conditional()` instead draws `samples` full realizations of $\mathbf{y}_u$ (or, for `spglm()`, $\mathbf{w}_u$) from its predictive distribution, jointly across every location in `newdata`, conditional on the observed data.
+`predict()` returns a single best linear unbiased prediction (and its uncertainty) at each new location. `conditional()` instead draws `samples` full realizations of $\mathbf{y}_u$ (or, for spatial generalized linear models, $\mathbf{w}_u$) from its predictive distribution, jointly across every location in `newdata`, conditional on the observed data.
 
 The distinction matters whenever a nonlinear function of the entire predicted surface is of interest, such as a quantile of the predicted values or the proportion of `newdata` locations exceeding a threshold. The marginal prediction intervals of `interval = "prediction"` cannot answer those questions, because they describe each location one at a time and say nothing about how predictions at different locations vary together (i.e., co-vary). A simple example makes the gap concrete. Suppose a surface is predicted at 100 locations and each has a 10% chance of exceeding some threshold. If the exceedances were independent, roughly 10 locations would exceed the threshold in almost every realization. Under strong spatial dependence, most realizations have almost no exceedances and a few have a large connected patch of them. Both situations produce identical marginal prediction intervals, and only the simulated realizations distinguish them.
 
 Every variant of `conditional()` uses the same two-step composition sampling algorithm. For each of $b = 1, \dots, B$ (`samples`) draws:
 
-1. Simulate $\hat{\boldsymbol{\beta}}_b \sim N(\hat{\boldsymbol{\beta}}, \text{Var}(\hat{\boldsymbol{\beta}}))$, using the same $\text{Var}(\hat{\boldsymbol{\beta}})$ `vcov()` returns.
-2. Simulate the predictions for `newdata` conditional on the observed data, using $\hat{\boldsymbol{\beta}}_b$ (not $\hat{\boldsymbol{\beta}}$) to form the prediction.
+1. Simulate $\boldsymbol{\beta}_b \sim N(\hat{\boldsymbol{\beta}}, \text{Var}(\hat{\boldsymbol{\beta}}))$, using the same $\text{Var}(\hat{\boldsymbol{\beta}})$ `vcov()` returns. For spatial generalized linear models, also account for latent uncertainty conditional on $\boldsymbol{\beta}_b$.
+2. Simulate the predictions for `newdata` conditional on the observed data, using $\boldsymbol{\beta}_b$ (not $\hat{\boldsymbol{\beta}}$) to form the prediction.
 
-For spatial generalized linear models, a step occurs before 1., which simulates a latent $\mathbf{w}_b$ from the distribution of $\mathbf{w}$ and then simulates the $\hat{\boldsymbol{\beta}}_b$ conditional on that $\mathbf{w}_b$ (i.e., centered at $(\mathbf{X}^\top \boldsymbol{\Sigma}^{-1}\mathbf{X})^{-1}\mathbf{X}^\top \boldsymbol{\Sigma}^{-1}\mathbf{w}_b$).
+Step 1 accounts for parameter uncertainty, while step 2 subtracts the sampled mean, simulates spatially dependent errors, and adds the sampled mean back to these errors. First form the residuals as $\mathbf{y}_o-\mathbf{X}_o\boldsymbol{\beta}_b$ (or $\mathbf{w}_{o,b}-\mathbf{X}_o\boldsymbol{\beta}_b$ for generalized linear models). Treat these residuals as the "response" in the spatial conditioning calculations to determine conditional means and covariances for errors at the new locations. Simulate new errors from that conditional distribution, then add $\mathbf{X}_u\boldsymbol{\beta}_b$ (and any new-location offsets).
 
-In short, Step 2 subtracts the fitted mean, simulates spatially dependent errors, and adds the fitted mean back to these errors. First, first form the fitted residuals as $\mathbf{y}_o-\mathbf{X}_o\hat{\boldsymbol{\beta}}_b$ (or $\mathbf{w}_b-\mathbf{X}_o\hat{\boldsymbol{\beta}}_b$ for generalized linear models). Treat these fitted residuals as the "response" in the spatial conditioning calculations to determine conditional means and covariances for the new observations (i.e., errors). Simulate new errors from that conditional distribution, then add $\mathbf{X}_u\hat{\boldsymbol{\beta}}_b$ (and any new-location offsets).
+By the law of total variance, this correctly propagates $\hat{\boldsymbol{\beta}}$'s own estimation uncertainty into the simulated draws without double-counting: step 2's conditional covariance ignores uncertainty about $\hat{\boldsymbol{\beta}}$ (no additive correction is made for $\hat{\boldsymbol{\beta}}$ uncertainty, omitting the $\dot{\boldsymbol{\Sigma}}_u$'s $\mathbf{Q}(\mathbf{X}_o^\top\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X}_o)^{-1}\mathbf{Q}^\top$ term from \eqref{eq:blup_cov}) because this uncertainty is already accommodated through resampling $\boldsymbol{\beta}_b$ in step 1.
 
-By the law of total variance, this correctly propagates $\hat{\boldsymbol{\beta}}$'s own estimation uncertainty into the simulated draws without double-counting: step 2's conditional covariance ignores uncertainty about $\hat{\boldsymbol{\beta}}$ (no additive correction is made for $\hat{\boldsymbol{\beta}}$ uncertainty, omitting the $\dot{\boldsymbol{\Sigma}}_u$'s $\mathbf{Q}(\mathbf{X}_o^\top\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X}_o)^{-1}\mathbf{Q}^\top$ term from \eqref{eq:blup_cov}) because this uncertainty is already accommodated through resampling $\hat{\boldsymbol{\beta}}_b$ in step 1.
+For both linear and generalized linear models, the covariance square roots below are implemented using Cholesky factors. For example, if $\hat{\boldsymbol{\Sigma}}_u^*=\mathbf{L}\mathbf{L}^\top$ (where $\mathbf{L} is lower triangular), use $\mathbf{L}\mathbf{e}_b$ for $\hat{\boldsymbol{\Sigma}}_u^{*1/2}\mathbf{e}_b$, whch implies the correct covariance but is more computationally efficient than computing the square root.
 
-## `splm()` {#sec:conditional-splm}
+## `splm()` and `spautor()` {#sec:conditional-splm}
 
 ### Exact Conditional Simulation
 
-Conditional on $\hat{\boldsymbol{\beta}}_b$, conditioning yields the prediction \begin{equation}\label{eq:cond_splm}
-  \mathbf{y}_{u, b} = \mathbf{X}_u \hat{\boldsymbol{\beta}}_b + \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}(\mathbf{y}_o - \mathbf{X}_o\hat{\boldsymbol{\beta}}_b) + \hat{\boldsymbol{\Sigma}}_u^{*1/2}\mathbf{e}_b,
-\end{equation} where $\mathbf{e}_b$ is a standard normal random vector and $\hat{\boldsymbol{\Sigma}}_u^* = \hat{\boldsymbol{\Sigma}}_u - \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}\hat{\boldsymbol{\Sigma}}_{uo}^\top$ is the conditional covariance. The first two terms of \eqref{eq:cond_splm} are just the kriging predictor of \eqref{eq:blup} evaluated at $\hat{\boldsymbol{\beta}}_b$; the third adds correlated noise with exactly the covariance the prediction leaves unexplained. Adding that noise is what turns a smooth surface of predictions into a plausible realization of the process, and using $\hat{\boldsymbol{\Sigma}}_u^{*1/2}$ rather than independent noise is what makes neighboring locations in a draw move together the way the fitted model says they should. Because $\hat{\boldsymbol{\Sigma}}_u^{*1/2}$ and the Cholesky factor of $\hat{\boldsymbol{\Sigma}}_o$ do not depend on $b$, they only must be computed once and are then reused across every draw. Thus only $\hat{\boldsymbol{\beta}}_b$ and $\mathbf{e}_b$ change from draw to draw, which is what enables `conditional()` to remain computationally efficient, even at `samples` = 1,000 (the default).
+Given $\boldsymbol{\beta}_b$, conditioning yields the prediction \begin{equation}\label{eq:cond_splm}
+  \mathbf{y}_{u, b} = \mathbf{X}_u \boldsymbol{\beta}_b + \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}(\mathbf{y}_o - \mathbf{X}_o\boldsymbol{\beta}_b) + \hat{\boldsymbol{\Sigma}}_u^{*1/2}\mathbf{e}_b,
+\end{equation} where $\mathbf{e}_b$ is a standard normal random vector and $\hat{\boldsymbol{\Sigma}}_u^* = \hat{\boldsymbol{\Sigma}}_u - \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}\hat{\boldsymbol{\Sigma}}_{uo}^\top$ is the conditional covariance. The first two terms of \eqref{eq:cond_splm} are just the kriging predictor of \eqref{eq:blup} evaluated at $\boldsymbol{\beta}_b$; the third adds correlated noise with exactly the covariance the prediction leaves unexplained. Adding that noise is what turns a smooth surface of predictions into a plausible realization of the process, and using $\hat{\boldsymbol{\Sigma}}_u^{*1/2}$ rather than independent noise is what makes neighboring locations in a draw move together the way the fitted model says they should. Because $\hat{\boldsymbol{\Sigma}}_u^{*1/2}$ and the Cholesky factor of $\hat{\boldsymbol{\Sigma}}_o$ do not depend on $b$, they only must be computed once and are then reused across every draw. Thus only $\boldsymbol{\beta}_b$ and $\mathbf{e}_b$ change from draw to draw, which is what enables `conditional()` to remain computationally efficient, even at `samples` = 1,000 (the default).
 
 With offsets, replace $\mathbf{y}_o$ by $\mathbf{y}_o-\mathbf{o}_o$ in \eqref{eq:cond_splm} and add the new-site offsets $\mathbf{o}_u$ to the simulated responses.
 
 ### Big Data: Low-Rank and Vecchia Approximations {#sec:conditional-bigdata-splm}
 
-The `local` argument to `conditional()` approximates the residual simulation in step 2. The draw of $\hat{\boldsymbol{\beta}}_b$ comes first and is shared across all prediction locations. Both methods simulate spatial residuals conditional on $\mathbf{y}_o-\mathbf{X}_o\hat{\boldsymbol{\beta}}_b$, then add $\mathbf{X}_u\hat{\boldsymbol{\beta}}_b$ to obtain $\mathbf{y}_{u,b}$:
+The `local` argument to `conditional()` approximates the residual simulation in step 2 (`splm()` only). The draw of $\boldsymbol{\beta}_b$ comes first and is shared across all prediction locations. Both methods simulate spatial residuals conditional on $\mathbf{y}_o-\mathbf{X}_o\boldsymbol{\beta}_b$, then add $\mathbf{X}_u\boldsymbol{\beta}_b$ to obtain $\mathbf{y}_{u,b}$:
 
-- Low-rank: evaluate \eqref{eq:cond_splm} using the base rows of $\mathbf{y}_o$ and $\mathbf{X}_o$ and the corresponding submatrices of $\hat{\boldsymbol{\Sigma}}_o$ and $\hat{\boldsymbol{\Sigma}}_{uo}$. The base is a size-`size_base` spatially representative subsample of the observed locations. `newdata` may also be split into blocks, each simulated conditional on the base residuals $\mathbf{y}_o-\mathbf{X}_o\hat{\boldsymbol{\beta}}_b$. The blocks' additional spatial errors are independent given the observed data and shared coefficient draw.
-- Vecchia: simulate each new location conditional on the observed residuals $\mathbf{y}_o-\mathbf{X}_o\hat{\boldsymbol{\beta}}_b$ and previously simulated new residuals $\mathbf{y}_{u,b}-\mathbf{X}_u\hat{\boldsymbol{\beta}}_b$. The conditioning set can include all available locations (`method = "all"`) or be restricted to the `size` nearest or most correlated neighbors. With all locations, this gives the same joint distribution as `local = FALSE`.
+- Low-rank: evaluate \eqref{eq:cond_splm} using the base rows of $\mathbf{y}_o$ and $\mathbf{X}_o$ and the corresponding submatrices of $\hat{\boldsymbol{\Sigma}}_o$ and $\hat{\boldsymbol{\Sigma}}_{uo}$. The base is a size-`size_base` spatially representative subsample of the observed locations. `newdata` may also be split into blocks, each simulated conditional on the base residuals $\mathbf{y}_o-\mathbf{X}_o\boldsymbol{\beta}_b$. The blocks' additional spatial errors are independent given the observed data and shared coefficient draw.
+- Vecchia: simulate each new location conditional on the observed residuals $\mathbf{y}_o-\mathbf{X}_o\boldsymbol{\beta}_b$ and previously simulated new residuals $\mathbf{y}_{u,b}-\mathbf{X}_u\boldsymbol{\beta}_b$. The conditioning set can include all available locations (`method = "all"`) or be restricted to the `size` nearest or most correlated neighbors. With all locations, this gives the same joint distribution as `local = FALSE`.
 
 Low-rank reduces the size of the observed covariance factorization by selecting a base. Vecchia instead conditions sequentially on small neighbor sets when truncated. The order of new locations is set by `ordering` (e.g., `"maxmin"`; see the Spatial Decorrelation Transformation section). Each new residual can depend on earlier draws, so Vecchia is not as easily parallelized as low-rank prediction blocks [@katzfuss2024GPvecchia].
 
@@ -1719,54 +1719,125 @@ Low-rank reduces the size of the observed covariance factorization by selecting 
 By default, every draw in \eqref{eq:cond_splm} shares the same fitted covariance parameters $\hat{\boldsymbol{\theta}}$ and only $\hat{\boldsymbol{\beta}}$ and the predictions are resimulated. `simulate_covparams = TRUE` (`splm()` model objects only) additionally resamples $\boldsymbol{\theta}$ itself, once per draw:
 
 1. Simulate $\boldsymbol{\theta}_b \sim N(\hat{\boldsymbol{\theta}}, \widehat{\text{Var}}(\hat{\boldsymbol{\theta}}))$, the same variance-covariance matrix `vcov(object, type = "cov")` returns and `satterthwaite()` uses. Draws for which $\boldsymbol{\theta}_b$ is not a valid covariance parameter vector (e.g. a negative variance) are rejected and redrawn, up to a maximum number of attempts, after which $\boldsymbol{\theta}_b$ is instead clamped componentwise to the nearest valid value (e.g., zero).
-2. Rebuild $\hat{\boldsymbol{\Sigma}}_{o, b}$ at $\boldsymbol{\theta}_b$, and redraw $\hat{\boldsymbol{\beta}}_b \sim N(\hat{\boldsymbol{\beta}}, (\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_{o, b}^{-1} \mathbf{X}_o)^{-1})$ -- i.e., $\hat{\boldsymbol{\beta}}_b$'s own sampling covariance is now evaluated at $\boldsymbol{\theta}_b$, not at $\hat{\boldsymbol{\theta}}$.
-3. Evaluate \eqref{eq:cond_splm} at $\boldsymbol{\theta}_b$ and $\hat{\boldsymbol{\beta}}_b$.
+2. Rebuild $\hat{\boldsymbol{\Sigma}}_{o, b}$ at $\boldsymbol{\theta}_b$, and redraw $\boldsymbol{\beta}_b \sim N(\hat{\boldsymbol{\beta}}, (\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}_{o, b}^{-1} \mathbf{X}_o)^{-1})$ -- i.e., $\boldsymbol{\beta}_b$'s own sampling covariance is now evaluated at $\boldsymbol{\theta}_b$, not at $\hat{\boldsymbol{\theta}}$.
+3. Evaluate \eqref{eq:cond_splm} at $\boldsymbol{\theta}_b$ and $\boldsymbol{\beta}_b$.
 
-Because $\boldsymbol{\theta}$ changes on every draw, nothing can be shared across draws the way it is in `splm()` and hence, every draw requires its own $O(n^3)$ factorization of $\hat{\boldsymbol{\Sigma}}_{o, b}$ (and, if `newdata` is large, of $\hat{\boldsymbol{\Sigma}}_{u, b}^*$ as well). This is substantially more computationally expensive than the default which treats $\boldsymbol{\theta}$ as fixed. Because $\widehat{\text{Var}}(\hat{\boldsymbol{\theta}})$ is required, `simulate_covparams = TRUE` requires `object$ddf` to be non-`NULL` (i.e., the model was fit with `ddf = "satterthwaite"`) and is automatically forced to `FALSE` when big data approximations are desired.
+Because $\boldsymbol{\theta}$ changes on every draw, the covariance factors cannot be shared as when $\boldsymbol{\theta}$ is fixed, and every draw requires its own $O(n^3)$ factorization of $\hat{\boldsymbol{\Sigma}}_{o, b}$ (and, if `newdata` is large, of $\hat{\boldsymbol{\Sigma}}_{u, b}^*$ as well). This is substantially more computationally expensive than the default which treats $\boldsymbol{\theta}$ as fixed. Because $\widehat{\text{Var}}(\hat{\boldsymbol{\theta}})$ is required, `simulate_covparams = TRUE` requires `object$ddf` to be non-`NULL` (i.e., the model was fit with `ddf = "satterthwaite"`) and is automatically forced to `FALSE` when big data approximations are desired.
 
-## `spglm()` {#sec:conditional-spglm}
+## `spglm()` and `spgautor()` {#sec:conditional-spglm}
 
 ### Exact Conditional Simulation
 
-`conditional.spglm()` first simulates the latent process at the observed locations, before step 1:
+For spatial linear models, $\mathbf{y}_o$ (the quantity we are modeling) is directly observed. For spatial generalized linear models, $\mathbf{w}_o$ (the quantity we are modleing) instead must be estimated. Thus, conditional simulation for spatial generalized linear models must account for uncertainty in both $\hat{\boldsymbol{\beta}}$ and $\hat{\mathbf{w}}_o$ jointly. First let
+\begin{align*}
+  \mathbf{w}_{o,b} &= \hat{\mathbf{w}}_o + \mathbf{e}_{w,b},\\
+  \boldsymbol{\beta}_b &= \hat{\boldsymbol{\beta}} + \mathbf{B}\mathbf{e}_{w,b} + \mathbf{e}_{\beta,b},
+\end{align*}
+where $\mathbf{e}_{w,b}\sim N(\mathbf{0},(-\mathbf{G}_o)^{-1})$ and $\mathbf{e}_{\beta,b}\sim N(\mathbf{0},\mathbf{C}_0)$, with
 \begin{equation*}
-  \mathbf{w}_b \sim N\left(\hat{\mathbf{w}}_o, (-\mathbf{G}_o)^{-1}\right),
+  \mathbf{C}_0=(\mathbf{X}_o^\top\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X}_o)^{-1},
+  \qquad \mathbf{B}=\mathbf{C}_0\mathbf{X}_o^\top\hat{\boldsymbol{\Sigma}}_o^{-1},
 \end{equation*}
-where $\hat{\mathbf{w}}_o$ contains the fitted values of the latent process at the observed locations (denoted $\mathbf{a}$ in the Laplace derivation). As in Model Fitting, $\mathbf{G}$ denotes the Hessian; $\mathbf{G}_o$ is this Hessian evaluated at $\hat{\mathbf{w}}_o$ and the fitted covariance and dispersion parameters.
+and $\mathbf{e}_{w,b}$ and $\mathbf{e}_{\beta,b}$ are independent.
+Here $\mathbf{G}_o$ is the Hessian from the fitted model. These quantities have means $\hat{\mathbf{w}}_o$ and $\hat{\boldsymbol{\beta}}$ (treated here as constants), and
+\begin{align*}
+  \text{Cov}(\boldsymbol{\beta}_b)
+  &=\mathbf{C}_0+\mathbf{B}(-\mathbf{G}_o)^{-1}\mathbf{B}^\top
+    =\mathbf{C}_{adj},\\
+  \text{Cov}(\mathbf{w}_{o,b},\boldsymbol{\beta}_b)
+  &=\text{Cov}(\mathbf{e}_{w,b},\mathbf{B}\mathbf{e}_{w,b})
+    =(-\mathbf{G}_o)^{-1}\mathbf{B}^\top.
+\end{align*}
+These errors can be written as a linear combination of independent standard normal random variables and hence, they are jointly normal.
 
-Define the coefficient weights
+For jointly normal vectors $\mathbf{y}_1,\mathbf{y}_2$ with means $\boldsymbol{\mu}_1,\boldsymbol{\mu}_2$ and covariance blocks $\boldsymbol{\Sigma}_{ij}$,
 \begin{equation*}
-  \mathbf{B} = (\mathbf{X}_o^\top\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X}_o)^{-1}\mathbf{X}_o^\top\hat{\boldsymbol{\Sigma}}_o^{-1}.
+  \mathbf{y}_1\mid\mathbf{y}_2\sim N\left(
+  \boldsymbol{\mu}_1+\boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}
+  (\mathbf{y}_2-\boldsymbol{\mu}_2),
+  \boldsymbol{\Sigma}_{11}-\boldsymbol{\Sigma}_{12}
+  \boldsymbol{\Sigma}_{22}^{-1}\boldsymbol{\Sigma}_{12}^\top\right).
 \end{equation*}
-Step 1 then draws
+Substitution with the relevant quantities gives
+\begin{align*}
+  \text{E}(\mathbf{w}_{o,b}\mid\boldsymbol{\beta}_b)
+  &=\hat{\mathbf{w}}_o+(-\mathbf{G}_o)^{-1}\mathbf{B}^\top
+    \mathbf{C}_{adj}^{-1}(\boldsymbol{\beta}_b-\hat{\boldsymbol{\beta}}),\\
+  \text{Cov}(\mathbf{w}_{o,b}\mid\boldsymbol{\beta}_b)
+  &=(-\mathbf{G}_o)^{-1}-(-\mathbf{G}_o)^{-1}\mathbf{B}^\top
+    \mathbf{C}_{adj}^{-1}\mathbf{B}(-\mathbf{G}_o)^{-1}\\
+  &=(-\mathbf{G}_o+\mathbf{B}^\top\mathbf{C}_0^{-1}\mathbf{B})^{-1}
+    =(-\mathbf{G}_{o\mid\beta})^{-1},
+\end{align*}
+where the second equality follows from Sherman-Morrison-Woodbury and
 \begin{equation*}
-  \hat{\boldsymbol{\beta}}_b \mid \mathbf{w}_b \sim N\left(\mathbf{B}\mathbf{w}_b, (\mathbf{X}_o^\top\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X}_o)^{-1}\right),
+  \mathbf{G}_{o\mid\beta}
+  =\mathbf{G}_o-\mathbf{B}^\top\mathbf{C}_0^{-1}\mathbf{B}
+  =\mathbf{D}_o-\hat{\boldsymbol{\Sigma}}_o^{-1}.
 \end{equation*}
-The covariance here is the uncorrected covariance returned by `vcov(object, var_correct = FALSE)`. Because $\mathbf{B}\hat{\mathbf{w}}_o=\hat{\boldsymbol{\beta}}$, averaging over $\mathbf{w}_b$ gives mean $\hat{\boldsymbol{\beta}}$ and the full covariance returned by `vcov(object)`:
-\begin{equation*}
-  \text{Var}(\hat{\boldsymbol{\beta}}_b) = \mathbf{B}(-\mathbf{G}_o)^{-1}\mathbf{B}^\top + (\mathbf{X}_o^\top\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X}_o)^{-1}.
-\end{equation*}
+The last equality uses $\mathbf{G}_o=\mathbf{D}_o-\mathbf{P}_\theta$ and $\mathbf{P}_\theta=\hat{\boldsymbol{\Sigma}}_o^{-1}-\mathbf{B}^\top\mathbf{C}_0^{-1}\mathbf{B}$.
 
-Step 2 uses the same $\mathbf{w}_b$ and $\hat{\boldsymbol{\beta}}_b$ to simulate
+The $\boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}$ quantity from the conditional mean can be written as
+\begin{equation*}
+  \mathbf{M}_o=(-\mathbf{G}_o)^{-1}\mathbf{B}^\top\mathbf{C}_{adj}^{-1}.
+\end{equation*}
+If we substitute $-\mathbf{G}_{o\mid\beta}=-\mathbf{G}_o+\mathbf{B}^\top\mathbf{C}_0^{-1}\mathbf{B}$ it follows that:
+\begin{align*}
+  (-\mathbf{G}_{o\mid\beta})(-\mathbf{G}_o)^{-1}\mathbf{B}^\top
+  &=(-\mathbf{G}_o+\mathbf{B}^\top\mathbf{C}_0^{-1}\mathbf{B})
+    (-\mathbf{G}_o)^{-1}\mathbf{B}^\top\\
+  &=\mathbf{B}^\top+\mathbf{B}^\top\mathbf{C}_0^{-1}
+    \mathbf{B}(-\mathbf{G}_o)^{-1}\mathbf{B}^\top\\
+  &=\mathbf{B}^\top\mathbf{C}_0^{-1}\mathbf{C}_0
+    +\mathbf{B}^\top\mathbf{C}_0^{-1}\mathbf{B}(-\mathbf{G}_o)^{-1}\mathbf{B}^\top\\
+  &=\mathbf{B}^\top\mathbf{C}_0^{-1}
+    \{\mathbf{C}_0+\mathbf{B}(-\mathbf{G}_o)^{-1}\mathbf{B}^\top\}\\
+  &=\mathbf{B}^\top\mathbf{C}_0^{-1}\mathbf{C}_{adj}.
+\end{align*}
+Right-multiplying by $\mathbf{C}_{adj}^{-1}$ yields
+\begin{equation*}
+  (-\mathbf{G}_{o\mid\beta})\mathbf{M}_o
+  =\mathbf{B}^\top\mathbf{C}_0^{-1},
+\end{equation*}
+and left-multiplying by $(-\mathbf{G}_{o\mid\beta})^{-1}$ yields
+\begin{equation*}
+  \mathbf{M}_o=(-\mathbf{G}_{o\mid\beta})^{-1}\mathbf{B}^\top\mathbf{C}_0^{-1}.
+\end{equation*}
+Finally, recall $\mathbf{B}=\mathbf{C}_0\mathbf{X}_o^\top\hat{\boldsymbol{\Sigma}}_o^{-1}$, which implies
+\begin{equation*}
+  \mathbf{B}^\top\mathbf{C}_0^{-1}
+  =\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X}_o\mathbf{C}_0\mathbf{C}_0^{-1}
+  =\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X}_o.
+\end{equation*}
+Thus an equivalent form of $\mathbf{M}_o$ is
+\begin{equation*}
+  \mathbf{M}_o=(-\mathbf{G}_{o\mid\beta})^{-1}\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X}_o,
+\end{equation*}
+preferred computationally because it only requires one Hessian-based factorization (instead of two from the direct formula, $[(-\mathbf{G}_o)^{-1}-(-\mathbf{G}_o)^{-1}\mathbf{B}^\top
+    \mathbf{C}_{adj}^{-1}\mathbf{B}(-\mathbf{G}_o)^{-1}]$).
+
+We can use the joint distribution to obtain the coefficient marginal and latent conditional distributions required for conditional simulation:
+\begin{align*}
+  \boldsymbol{\beta}_b&\sim N(\hat{\boldsymbol{\beta}},\mathbf{C}_{adj}),\\
+  \mathbf{w}_{o,b}\mid\boldsymbol{\beta}_b
+  &\sim N\left(\hat{\mathbf{w}}_o+\mathbf{M}_o
+    (\boldsymbol{\beta}_b-\hat{\boldsymbol{\beta}}),
+    (-\mathbf{G}_{o\mid\beta})^{-1}\right).
+\end{align*}
+
+After obtaining these draws, form residuals $\mathbf{r}_{o,b}=\mathbf{w}_{o,b}-\mathbf{X}_o\boldsymbol{\beta}_b$ and proceed with step 2:
 \begin{equation}\label{eq:cond_spglm}
-  \mathbf{w}_{u, b} = \mathbf{X}_u \hat{\boldsymbol{\beta}}_b + \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}(\mathbf{w}_b - \mathbf{X}_o\hat{\boldsymbol{\beta}}_b) + \hat{\boldsymbol{\Sigma}}_u^{*1/2}\mathbf{e}_b,
+  \mathbf{w}_{u,b}=\mathbf{X}_u\boldsymbol{\beta}_b+
+  \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{r}_{o,b}
+  +\hat{\boldsymbol{\Sigma}}_u^{*1/2}\mathbf{e}_b,
 \end{equation}
-where $\hat{\boldsymbol{\Sigma}}_u^*$ is the same conditional covariance as \eqref{eq:cond_splm}, and $\mathbf{e}_b$ is an independent standard normal vector. Sampling $\mathbf{w}_b$ already propagates latent uncertainty, so the analytical correction $\boldsymbol{\Lambda}(-\mathbf{G}_o)^{-1}\boldsymbol{\Lambda}^\top$ from \eqref{eq:glm_blup_cov} is not added again.
+where $\mathbf{e}_b$ is a standard normal random vector and $\hat{\boldsymbol{\Sigma}}_u^*$ is the conditional covariance defined in \eqref{eq:cond_splm}. Sampling $\mathbf{w}_{o,b}$ already propagates latent uncertainty, so no additional analytical latent-variance correction is added.
 
-With offsets, $\hat{\mathbf{w}}_o$ and $\mathbf{w}_b$ exclude the observed offsets, the response derivatives in the Hessian use $\hat{\mathbf{w}}_o+\mathbf{o}_o$, and new-site offsets $\mathbf{o}_u$ are added to \eqref{eq:cond_spglm}. The resulting draws are on the link scale (`type = "link"`). `type = "response"` applies the inverse link (and multiplies binomial probabilities by `newdata_size`); `type = "new"` additionally draws observations using the fitted dispersion and requested sizes. `simulate_covparams` is not available for `spglm()` model objects.
+With offsets, $\hat{\mathbf{w}}_o$ and $\mathbf{w}_{o,b}$ exclude observed offsets, the response derivatives use $\hat{\mathbf{w}}_o+\mathbf{o}_o$, and new-site offsets $\mathbf{o}_u$ are added to \eqref{eq:cond_spglm}. The resulting draws are on the link scale (`type = "link"`). `type = "response"` applies the inverse link (and multiplies binomial probabilities by `newdata_size`); `type = "new"` additionally draws conditionally independent responses using the fitted dispersion and requested sizes. `simulate_covparams` is unavailable for spatial generalized linear models.
 
 ### Big Data: Low-Rank and Vecchia Approximations {#sec:conditional-bigdata-spglm}
 
-As for `splm()`, the `local` argument to `conditional()` approximates the residual simulation in step 2. The draw of $\mathbf{w}_b$ and the subsequent draw of $\hat{\boldsymbol{\beta}}_b$ conditional on $\mathbf{w}_b$ come first and are shared across all prediction locations. Both methods simulate spatial residuals conditional on $\mathbf{w}_b-\mathbf{X}_o\hat{\boldsymbol{\beta}}_b$, then add $\mathbf{X}_u\hat{\boldsymbol{\beta}}_b$ to obtain $\mathbf{w}_{u,b}$:
-
-- Low-rank: evaluate \eqref{eq:cond_spglm} using the base rows of $\mathbf{w}_b$ and $\mathbf{X}_o$ and the corresponding submatrices of $\hat{\boldsymbol{\Sigma}}_o$ and $\hat{\boldsymbol{\Sigma}}_{uo}$. The base is a size-`size_base` spatially representative subsample of the observed locations. `newdata` may also be split into blocks, each simulated conditional on the base residuals $\mathbf{w}_b-\mathbf{X}_o\hat{\boldsymbol{\beta}}_b$. The blocks' additional spatial errors are independent given the shared latent and coefficient draws.
-- Vecchia: simulate each new location conditional on the sampled observed residuals $\mathbf{w}_b-\mathbf{X}_o\hat{\boldsymbol{\beta}}_b$ and previously simulated new residuals $\mathbf{w}_{u,b}-\mathbf{X}_u\hat{\boldsymbol{\beta}}_b$. The conditioning set can include all available locations (`method = "all"`) or be restricted to the `size` nearest or most correlated neighbors. With all locations, this gives the same joint distribution as `local = FALSE`.
-
-Sampling $\mathbf{w}_b$ still requires a dense factorization of $-\mathbf{G}_o$ over all observed sites. Selecting a smaller prediction base or fewer neighbors reduces the residual-simulation work, but does not reduce this initial cost.
-
-## `spautor()` and `spgautor()`
-
-`conditional()` currently has no methods for `spautor()` or `spgautor()` objects. These models support `predict()` at missing-response locations included in the fitted neighborhood structure. Conditional simulation would require extracting the observed and unobserved covariance blocks from that joint areal covariance before applying the corresponding formulas above; this is not currently implemented.
+For large-data approximations (`spglm()` only), replace $\mathbf{D}_o,\hat{\boldsymbol{\Sigma}}_o,\mathbf{X}_o,\hat{\mathbf{w}}_o$ and $\hat{\boldsymbol{\Sigma}}_{uo}$ with the corresponding quantities computed from only observations in the respective local neighborhood (or base sample for low-rank), then recompute $\mathbf{G}_{o\mid\beta}$ and $\mathbf{M}_o$ from those reduced matrices. The quantities $\hat{\boldsymbol{\beta}}$ and $\mathbf{C}_{adj}$ are taken from the full fitted model (i.e., not recomputed for each local neighborhood). Once the residuals $\mathbf{r}_{o,b}$ are constructed, the low-rank and Vecchia approximations are applied in the same manner as for spatial linear models (`splm()`).
 
 # The Empirical Semivariogram and Autocovariance (`esv()` and `eacf()`) {#sec:esv}
 

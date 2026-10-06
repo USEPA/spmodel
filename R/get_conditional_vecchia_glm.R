@@ -1,141 +1,74 @@
-#' Prepare a GLM neighborhood conditional given coefficients and earlier draws
-#' @param covariance Spatial covariance, observed rows followed by target and previous rows.
-#' @param X Observed neighborhood design.
-#' @param Xnew Target and previous prediction design, in that order.
-#' @param w Offset-free fitted latent values at observed neighbors.
-#' @param D Observed response Hessian diagonal at fitted link values.
-#' @param betahat Fitted coefficient vector.
-#' @return Fixed intercept, coefficient/previous-value weights, and variance.
-#' @noRd
-get_conditional_glm_neighborhood <- function(covariance, X, Xnew, w, D, betahat) {
-  n <- NROW(X)
-  target <- n + seq_len(NROW(Xnew))
-  S <- covariance[target, target, drop = FALSE]
-  mu <- as.numeric(Xnew %*% betahat)
-  F <- Xnew
-  if (n) {
-    observed <- seq_len(n)
-    cov_lowchol <- t(chol(covariance[observed, observed, drop = FALSE]))
-    Z <- forwardsolve(cov_lowchol, X)
-    mH <- diag(n) - crossprod(cov_lowchol, D * cov_lowchol)
-    conditional_chol <- tryCatch(chol(mH), error = function(e) {
-      stop("The neighborhood latent precision is not positive definite; increase local$size or check the fitted model.", call. = FALSE)
-    })
-    E <- forwardsolve(cov_lowchol, covariance[observed, target, drop = FALSE])
-    M <- backsolve(conditional_chol, forwardsolve(t(conditional_chol), Z))
-    uncertainty <- forwardsolve(t(conditional_chol), E)
-    S <- S - crossprod(E) + crossprod(uncertainty)
-    mu <- mu + as.numeric(crossprod(E, forwardsolve(cov_lowchol, w) - Z %*% betahat))
-    F <- Xnew - crossprod(E, Z) + crossprod(E, M)
-  }
-  previous <- seq_len(NROW(Xnew))[-1L]
-  weights <- numeric()
-  variance <- S[1L, 1L]
-  intercept <- mu[1L]
-  coefficient <- F[1L, ]
-  if (length(previous)) {
-    previous_chol <- chol(S[previous, previous, drop = FALSE])
-    weights <- as.numeric(backsolve(previous_chol,
-      forwardsolve(t(previous_chol), S[previous, 1L, drop = FALSE])))
-    intercept <- intercept - sum(weights * mu[previous])
-    coefficient <- coefficient - as.numeric(crossprod(weights, F[previous, , drop = FALSE]))
-    variance <- variance - sum(weights * S[previous, 1L])
-  }
-  if (variance < -sqrt(.Machine$double.eps) * max(abs(S[1L, 1L]), .Machine$double.eps)) {
-    stop("The neighborhood conditional variance is negative; check the fitted model.", call. = FALSE)
-  }
-  list(intercept = intercept, coefficient = as.numeric(coefficient),
-    weights = weights, variance = max(variance, 0))
-}
-
-#' Prepare fixed Vecchia GLM operators without full observed latent draws
-#' @param object A fitted spglm object.
-#' @param newdata Processed prediction data in original row order.
-#' @param Xnew Aligned prediction design matrix.
-#' @param local_list Resolved Vecchia settings.
-#' @return Ordered neighborhood operators and shared coefficient factor.
-#' @noRd
+# Prepare the complete observed latent sequence. Response neighbors K may be
+# undrawn; latent neighbors N must precede i. Two separate steps
 get_conditional_vecchia_glm_context <- function(object, newdata, Xnew, local_list) {
-  n <- NROW(object$obdata)
-  m <- NROW(newdata)
-  ord <- local_list$order
   X <- model.matrix(object)
-  betahat <- coef(object)
-  coefficient_factor <- t(chol(vcov(object)))
+  n <- NROW(X)
   eta <- fitted(object, type = "link")
-  w <- w_offset_free(eta, model.offset(model.frame(object)))
-  D <- diag(get_D(object$family, eta, object$y, object$size,
-    as.vector(coef(object, type = "dispersion"))))
-  columns <- unique(c(object$xcoord, object$ycoord, all.vars(object$random), all.vars(object$partition_factor)))
-  pool <- rbind(object$obdata[, columns, drop = FALSE], newdata[ord, columns, drop = FALSE])
-  covariance <- object[c("coefficients", "random", "partition_factor", "anisotropy",
-    "xcoord", "ycoord", "dim_coords", "diagtol")]
-  class(covariance) <- class(object)
-  coords <- pool[, c(object$xcoord, object$ycoord), drop = FALSE]
-  if (object$anisotropy) {
-    spcov <- coef(object, type = "spcov")
-    transformed <- transform_anis(pool, object$xcoord, object$ycoord, spcov[["rotate"]], spcov[["scale"]])
-    coords <- data.frame(x = transformed$xcoord_val, y = transformed$ycoord_val)
+  w <- as.numeric(w_offset_free(eta, model.offset(model.frame(object))))
+  D <- diag(get_D(object$family, eta, object$y, object$size, as.vector(coef(object, type = "dispersion"))))
+  if (any(!is.finite(w)) || any(!is.finite(D))) stop("Observed latent values and response curvature must be finite.", call. = FALSE)
+  covariance <- get_conditional_vecchia_covariance(object, object$obdata)
+  ord <- conditional_vecchia_order(covariance$coords, local_list$ordering)
+  operators <- vector("list", n)
+  all_sites <- seq_len(n)
+  for (k in seq_len(n)) {
+    i <- ord[k]
+    # Compute scores once over the observed sites. N is restricted to predecessors;
+    # K may include undrawn sites. The current response uses one slot in K's budget,
+    # and overlap between N and K is not refilled. Thus |A| <= 2 * size.
+    scores <- if (local_list$method != "all") conditional_vecchia_scores(covariance, i, local_list$method) else NULL
+    N <- conditional_vecchia_neighbors(covariance, i, ord[seq_len(k - 1L)], local_list$size, local_list$method, scores)
+    K <- c(i, conditional_vecchia_neighbors(covariance, i, all_sites, local_list$size - 1L, local_list$method, scores))
+    A <- unique(c(i, N, K))
+    label <- paste("Observed site", i, "neighborhood")
+    # Step 1 constructs a proper Gaussian, centered at fitted w_A plus M_A delta.
+    gaussian <- prepare_conditional_local_gaussian(conditional_vecchia_covariance(covariance, A),
+      X[A, , drop = FALSE], w[A], D[A], label)
+    # Step 2 conditions that same Gaussian on N and caches only the target.
+    op <- prepare_conditional_latent_operator(gaussian, 1L, match(N, A), label)
+    op$i <- i
+    op$neighbors <- N
+    operators[[k]] <- op
   }
-  operators <- vector("list", m)
-  for (i in seq_len(m)) {
-    candidates <- seq_len(n + i - 1L)
-    if (local_list$method != "all" && length(candidates) > local_list$size) {
-      if (local_list$method == "distance") {
-        distance <- as.numeric(spdist_vectors2(coords[n + i, 1L], coords[n + i, 2L],
-          coords[candidates, 1L], coords[candidates, 2L], sparse = FALSE))
-        neighbors <- order(distance)[seq_len(local_list$size)]
-      } else {
-        covariance$obdata <- pool[candidates, , drop = FALSE]
-        association <- covmatrix(covariance, pool[n + i, , drop = FALSE], cov_type = "pred.obs")
-        neighbors <- order(abs(as.numeric(association)), decreasing = TRUE)[seq_len(local_list$size)]
-      }
-    } else {
-      neighbors <- candidates
-    }
-    observed <- neighbors[neighbors <= n]
-    previous <- neighbors[neighbors > n] - n
-    prediction <- c(i, previous)
-    covariance$obdata <- pool[c(observed, n + prediction), , drop = FALSE]
-    operator <- get_conditional_glm_neighborhood(covmatrix(covariance),
-      X[observed, , drop = FALSE], Xnew[ord[prediction], , drop = FALSE],
-      w[observed], D[observed], betahat)
-    operator$previous <- previous
-    operators[[i]] <- operator
-  }
-  list(operators = operators, order = ord, betahat = betahat, coefficient_factor = coefficient_factor)
+  prediction <- if (NROW(newdata)) prepare_conditional_vecchia(object, newdata, local_list) else NULL
+  list(operators = operators, order = ord, prediction = prediction, X = X,
+    betahat = coef(object), coefficient_factor = t(chol(vcov(object))))
 }
 
-#' Simulate Vecchia GLM latent values using cached neighborhood conditionals
-#' @param object A fitted spglm object.
-#' @param newdata Processed prediction data in original row order.
-#' @param Xnew Aligned prediction design matrix.
-#' @param local_list Resolved Vecchia settings.
-#' @param samples Number of draws.
-#' @return Coefficient and offset-free prediction matrices.
-#' @noRd
-get_conditional_vecchia_glm <- function(object, newdata, Xnew, local_list, samples) {
+# Draw shared coefficients, observed latent values, and prediction residuals.
+# Optional latent output retains the field used for prediction.
+get_conditional_vecchia_glm <- function(object, newdata, Xnew, local_list, samples, latent = FALSE) {
   chunk_size <- get_conditional_glm_chunk_size(local_list)
   context <- get_conditional_vecchia_glm_context(object, newdata, Xnew, local_list)
-  m <- NROW(newdata)
+  n <- NROW(context$X)
+  m <- NROW(Xnew)
   p <- length(context$betahat)
   beta <- matrix(NA_real_, p, samples, dimnames = list(names(context$betahat), NULL))
   new_val <- matrix(NA_real_, m, samples, dimnames = list(rownames(Xnew), NULL))
+  observed <- if (latent) matrix(NA_real_, n, samples, dimnames = list(rownames(context$X), NULL)) else NULL
+  # Matrix preparation is outside this loop. Chunking bounds working storage;
+  # every column gets one shared coefficient draw for all observed/prediction sites.
   for (start in seq.int(1L, samples, by = chunk_size)) {
     columns <- seq.int(start, min(samples, start + chunk_size - 1L))
     count <- length(columns)
     delta <- context$coefficient_factor %*% matrix(rnorm(p * count), p, count)
     beta[, columns] <- sweep(delta, 1L, context$betahat, "+")
-    draws <- matrix(NA_real_, m, count)
-    for (i in seq_len(m)) {
-      operator <- context$operators[[i]]
-      mu <- operator$intercept + as.numeric(crossprod(operator$coefficient, delta))
-      if (length(operator$previous)) {
-        mu <- mu + as.numeric(crossprod(operator$weights, draws[operator$previous, , drop = FALSE]))
-      }
-      draws[i, ] <- mu + sqrt(operator$variance) * rnorm(count)
+    w <- matrix(NA_real_, n, count)
+    # Apply w_i = c_i + t_i delta + g_i w_N + sqrt(v_i) e_i to all columns.
+    # Only predecessors in N have been drawn; the remaining sites of A contributed
+    # to the prepared Gaussian but are marginalized, not separately sampled here.
+    for (op in context$operators) {
+      mu <- op$intercept + as.numeric(crossprod(op$coefficient, delta))
+      if (length(op$neighbors)) mu <- mu + as.numeric(crossprod(op$weights, w[op$neighbors, , drop = FALSE]))
+      w[op$i, ] <- mu + sqrt(op$variance) * rnorm(count)
     }
-    new_val[context$order, columns] <- draws
+    if (latent) observed[, columns] <- w
+    if (m) {
+      # Once w is drawn, w - X beta is known within each simulation. Reuse the
+      # spatial residual conditionals, then restore the same coefficient trend.
+      residual <- draw_conditional_vecchia(context$prediction, w - context$X %*% beta[, columns, drop = FALSE], count)
+      new_val[, columns] <- Xnew %*% beta[, columns, drop = FALSE] + residual
+    }
   }
-  list(beta = beta, newdata = new_val)
+  list(beta = beta, newdata = new_val, latent = observed)
 }

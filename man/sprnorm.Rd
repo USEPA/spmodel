@@ -99,7 +99,7 @@ non-missing observations in \code{data}) -- if the desired sample size exceeds 5
 and there are no random effects specified via \code{random}.
 If \code{FALSE}, no big data approximation is implemented.
 If a list is provided, \code{local$approximation} selects which big data
-approximation is used and can take on the values
+approximation is used (the default is \code{"vecchia"}), and can take on the values
 \itemize{
 \item \code{"low-rank"}: a base sample is drawn from the data, the
 remaining locations are split into blocks, and each block is
@@ -135,8 +135,7 @@ parallel package is automatically used. The default is \code{FALSE}.
 \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
 parallelize over. The default is the number of available cores on your machine.
 }
-If \code{local$approximation} is \code{"low-rank"} (either explicitly or via
-\code{local = TRUE}), defaults for the remaining \code{"low-rank"}
+If \code{local$approximation} is \code{"low-rank"}, defaults for the remaining \code{"low-rank"}
 settings are chosen such that \code{local} is transformed into
 \code{list(approximation = "low-rank", method_base = "base", size_base = 5000,
       reorder_base = "grts", size_new = 1000, kmeans_new = TRUE, parallel = FALSE)}.
@@ -172,12 +171,8 @@ is \code{"distance"} or \code{"covariance"}. The default is 30.
 \code{"vecchia"}.
 }
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{  When \code{local = TRUE}, \code{local} is transformed into
-  \code{list(approximation = "low-rank", method_base = "base", size_base = 5000,
-      reorder_base = "grts", method_new = "base", size_new = 1000,
-      reorder_new = "random", kmeans_new = TRUE, parallel = FALSE)}.
-  When \code{local} is a list, at least one list element must be provided to
-  initialize default arguments for the other list elements. See Details for more.
+\if{html}{\out{<div class="sourceCode">}}\preformatted{  With \code{local = TRUE} or \code{local = list()}, the default is
+  \code{list(approximation = "vecchia", method = "covariance", size = 30, ordering = "maxmin")}.
 }\if{html}{\out{</div>}}}
 
 \item{W}{Weight matrix specifying the neighboring structure used for car and

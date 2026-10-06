@@ -317,14 +317,14 @@ get_local_list_prediction_block <- function(local) {
 #' approximations for unconditional simulation (see \code{\link{sprnorm}()}'s
 #' \code{local} argument for the full description of each):
 #' \itemize{
-#'   \item \code{"low-rank"} (the default): \code{\link{get_local_list_simulation_lowrank}()}.
+#'   \item \code{"low-rank"}: \code{\link{get_local_list_simulation_lowrank}()}.
 #'     A random or spatially-balanced (GRTS) ordering is used to draw a
 #'     "base" sample, the remaining locations are split into blocks
 #'     (optionally via k-means on coordinates), and
 #'     \code{\link{get_conditional_new_from_base}()} simulates each block
 #'     conditional on the base sample alone (blocks are conditionally
 #'     independent given the base).
-#'   \item \code{"vecchia"}: \code{\link{get_local_list_simulation_vecchia}()}.
+#'   \item \code{"vecchia"} (the default): \code{\link{get_local_list_simulation_vecchia}()}.
 #'     Every location is simulated sequentially, each conditional on every
 #'     earlier-simulated location, optionally truncated to a nearest/most-
 #'     correlated neighbor subset (\code{method}/\code{size} which is the same
@@ -368,7 +368,7 @@ get_local_list_simulation <- function(local, n, data) {
 
   names_local <- names(local)
 
-  if (!"approximation" %in% names_local) local$approximation <- "low-rank"
+  if (!"approximation" %in% names_local) local$approximation <- "vecchia"
   if (!local$approximation %in% c("low-rank", "vecchia")) {
     stop("local$approximation must be \"low-rank\" or \"vecchia\".", call. = FALSE)
   }
@@ -521,6 +521,10 @@ get_local_list_simulation_lowrank <- function(local, n, data) {
 get_local_list_simulation_vecchia <- function(local, n, data) {
 
   names_local <- names(local)
+  lowrank_options <- c("method_base", "size_base", "reorder_base", "size_new", "kmeans_new")
+  if (any(names_local %in% lowrank_options)) {
+    stop("Base and block settings require local$approximation = \"low-rank\".", call. = FALSE)
+  }
 
   if (!"size" %in% names_local) local$size <- 30
   if (!"method" %in% names_local) local$method <- "covariance"
@@ -560,13 +564,13 @@ get_local_list_simulation_vecchia <- function(local, n, data) {
 #' approximations for conditional simulation (see \code{\link{conditional}()}'s
 #' \code{local} argument for the full description of each):
 #' \itemize{
-#'   \item \code{"low-rank"} (the default): \code{\link{get_local_list_conditional_lowrank}()}.
+#'   \item \code{"low-rank"}: \code{\link{get_local_list_conditional_lowrank}()}.
 #'     Two independent big-data decisions: how to subsample the *observed*
 #'     data down to a base sample (\code{method_base}/\code{size_base}/
 #'     \code{reorder_base}), and how to split the *prediction* locations into
 #'     blocks (\code{method_new}/\code{size_new}/\code{reorder_new}/
 #'     \code{kmeans_new}), treated as conditionally independent given the base.
-#'   \item \code{"vecchia"}: \code{\link{get_local_list_conditional_vecchia}()}.
+#'   \item \code{"vecchia"} (the default): \code{\link{get_local_list_conditional_vecchia}()}.
 #'     Every \code{newdata} location is simulated sequentially, each
 #'     conditional on all observed data plus every earlier-simulated
 #'     \code{newdata} location, optionally truncated to a nearest/most-
@@ -619,13 +623,15 @@ get_local_list_conditional <- function(local, object, newdata) {
 
   names_local <- names(local)
 
-  if (!"approximation" %in% names_local) local$approximation <- "low-rank"
+  if (!"approximation" %in% names_local) local$approximation <- "vecchia"
   if (!local$approximation %in% c("low-rank", "vecchia")) {
     stop("local$approximation must be \"low-rank\" or \"vecchia\".", call. = FALSE)
   }
 
   if (local$approximation == "vecchia") {
     local <- get_local_list_conditional_vecchia(local, object, newdata)
+    # Full conditioning uses the same joint calculation as local = FALSE.
+    if (local$method == "all") return(get_local_list_conditional(FALSE, object, newdata))
   } else {
     local <- get_local_list_conditional_lowrank(local, object, newdata, n, n_pred)
   }
@@ -714,8 +720,8 @@ get_local_list_conditional_lowrank <- function(local, object, newdata, n, n_pred
   # default to the full index for whichever side (base/new) ends up not
   # needing subsetting, so local$index below is always well-formed regardless
   # of which of method_base/method_new (independently) is "all"
-  index_base <- seq(1, n)
-  index_new <- seq(1, n_pred)
+  index_base <- seq_len(n)
+  index_new <- seq_len(n_pred)
 
   if (local$method_base != "all") {
 
@@ -796,8 +802,13 @@ get_local_list_conditional_lowrank <- function(local, object, newdata, n, n_pred
 get_local_list_conditional_vecchia <- function(local, object, newdata) {
 
   names_local <- names(local)
+  lowrank_options <- c("method_base", "size_base", "reorder_base", "method_new", "size_new", "reorder_new", "kmeans_new")
+  if (any(names_local %in% lowrank_options)) {
+    stop("Base and block settings require local$approximation = \"low-rank\".", call. = FALSE)
+  }
 
-  if (!"size" %in% names_local) local$size <- 30
+  if (!"size" %in% names_local) local$size <- if (inherits(object, "spglm")) 60L else 30L
+  if ("size_response" %in% names_local) stop("local$size_response is not supported; local$size controls both observed neighborhoods.", call. = FALSE)
   if (!"method" %in% names_local) local$method <- "covariance"
   if (!local$method %in% c("all", "distance", "covariance")) {
     stop("local$method must be \"all\", \"distance\", or \"covariance\".", call. = FALSE)
@@ -815,19 +826,6 @@ get_local_list_conditional_vecchia <- function(local, object, newdata) {
     warning("local$parallel is not used when local$approximation = \"vecchia\". Ignoring.", call. = FALSE)
   }
 
-  # method = "all" disables neighbor truncation entirely, so every newdata
-  # location's conditioning pool always includes ALL observed data (never
-  # subsampled for "vecchia") plus every earlier-simulated newdata location --
-  # unlike the rest of "vecchia" (whose per-location cost is capped by size,
-  # independent of the observed sample size), this makes the total cost scale
-  # roughly like n_pred * n_obs^3 (each of n_pred sequential steps factors a
-  # covariance matrix close to n_obs x n_obs in size). It exists to
-  # numerically verify the exactness identity against local = FALSE on modest
-  # sample sizes, not as a scalable configuration.
-  if (local$method == "all" && object$n > 2000) {
-    warning("local$method = \"all\" should not be used with \"vecchia\" for large sample sizes because of exceedingly long computational times.", call. = FALSE)
-  }
-
   # newdata coordinates for ordering only -- sf objects fall back to
   # centroids, matching the "low-rank" path's kmeans_new handling
   if (inherits(newdata, "sf")) {
@@ -839,9 +837,9 @@ get_local_list_conditional_vecchia <- function(local, object, newdata) {
   xcoord_new <- newdata[[object$xcoord]]
   ycoord_new <- newdata[[object$ycoord]]
 
-  ord <- get_decorrelate_order(local$ordering, xcoord_new, ycoord_new)
-  local$order <- ord$order
-  local$inv_order <- ord$inv_order
+  local$order <- if (local$method == "all") seq_len(NROW(newdata)) else
+    conditional_vecchia_order(cbind(xcoord_new, ycoord_new), local$ordering)
+  local$inv_order <- order(local$order)
 
   local
 }

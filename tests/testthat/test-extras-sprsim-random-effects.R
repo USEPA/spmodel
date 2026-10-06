@@ -13,11 +13,11 @@ test_that("should retain intercept, slope and combined covariance", {
   S <- 0.4 * exp(-distance / 0.3) + diag(0.2, 12)
   same <- outer(data$group, data$group, "==")
   configurations <- list(FALSE,
-    list(method_base = "base", size_base = 6, reorder_base = "none", size_new = 6, reorder_new = "none"),
+    list(approximation = "low-rank", method_base = "base", size_base = 6, reorder_base = "none", size_new = 6, reorder_new = "none"),
     list(approximation = "vecchia", method = "all", ordering = "none"))
   components <- list(c(group = 0.6), c("x | group" = 0.6),
     c("1 | group" = 0.3, "x | group" = 0.6))
-  set.seed(284)
+  set.seed(1)
   for (local in configurations) {
     for (j in seq_along(components)) {
       for (partition in list(NULL, ~ part)) {
@@ -32,16 +32,16 @@ test_that("should retain intercept, slope and combined covariance", {
         expect_lt(max(abs(cov(t(draws)) - target)), 0.09)
       }
     }
-    set.seed(42)
+    set.seed(1)
     omitted <- sprnorm(spatial, data = data, xcoord = cx, ycoord = cy, local = local)
-    set.seed(42)
+    set.seed(1)
     explicit <- sprnorm(spatial, data = data, xcoord = cx, ycoord = cy, local = local, randcov_params = NULL)
     expect_identical(explicit, omitted)
   }
-  set.seed(91)
+  set.seed(1)
   latent <- sprnorm(spatial, data = data, xcoord = cx, ycoord = cy, randcov_params = c(group = 0.6))
   expected <- rpois(12, exp(latent))
-  set.seed(91)
+  set.seed(1)
   actual <- sprpois(spatial, data = data, xcoord = cx, ycoord = cy, randcov_params = c(group = 0.6))
   expect_equal(as.numeric(actual), expected)
 })
@@ -50,14 +50,14 @@ test_that("direct covariance accepts NULL and slope-only components", {
   data <- data.frame(x = seq(-1, 1, length.out = 12), group = factor(rep(1:3, 4)))
   for (spatial in list(spcov_params("none", ie = 0.2), spcov_params("car", de = 0.4, ie = 0.2, range = 0.2, extra = 0))) {
     W <- matrix(1, 12, 12) - diag(12)
-    set.seed(7)
+    set.seed(1)
     omitted <- sprnorm(spatial, data = data, W = W)
-    set.seed(7)
+    set.seed(1)
     explicit <- sprnorm(spatial, data = data, W = W, randcov_params = NULL)
     expect_identical(omitted, explicit)
-    set.seed(8)
+    set.seed(1)
     baseline <- sprnorm(spatial, data = data, W = W, samples = 6000)
-    set.seed(9)
+    set.seed(1)
     slope <- sprnorm(spatial, data = data, W = W, samples = 6000, randcov_params = c("x | group" = 0.6))
     target <- 0.6 * tcrossprod(data$x) * outer(data$group, data$group, "==")
     expect_lt(max(abs(cov(t(slope)) - cov(t(baseline)) - target)), 0.09)

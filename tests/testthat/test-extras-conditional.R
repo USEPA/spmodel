@@ -151,81 +151,62 @@ expect_joint_moments <- function(draws, target) {
   expect_lt(max(abs(rowMeans(draws) - target$mean) / sqrt(diag(S) / s)), 6)
 }
 
-vecchia_joint_reference <- function(fit, newdata, size = Inf, ord = seq_len(NROW(newdata)), method = "distance") {
-  n <- fit$n
-  m <- NROW(newdata)
-  p <- length(coef(fit))
+# Independent small dense reference for tests, copied into extras file.
+vecchia_joint_reference <- function(fit, newdata, size = Inf, ord = seq_len(NROW(newdata)), method = "distance",
+                                    order_o = seq_len(fit$n)) {
+  n <- fit$n; m <- NROW(newdata); p <- length(coef(fit))
   X <- model.matrix(fit)
-  Xnew <- model.matrix(delete.response(terms(fit)), newdata, contrasts.arg = fit$contrasts)[ord, , drop = FALSE]
-  Sigma <- covmatrix(fit)
-  cross <- covmatrix(fit, newdata[ord, , drop = FALSE])
-  full <- rbind(cbind(Sigma, t(cross)), cbind(cross, covmatrix(fit, newdata[ord, , drop = FALSE], cov_type = "pred.pred")))
-  coords <- rbind(fit$obdata[, c(fit$xcoord, fit$ycoord)], newdata[ord, c(fit$xcoord, fit$ycoord)])
+  Xnew <- model.matrix(delete.response(terms(fit)), newdata, contrasts.arg = fit$contrasts)[, colnames(X), drop = FALSE]
+  Sigma <- covmatrix(fit); cross <- covmatrix(fit, newdata)
+  full <- rbind(cbind(Sigma, t(cross)), cbind(cross, covmatrix(fit, newdata, cov_type = "pred.pred")))
+  coords <- as.matrix(rbind(fit$obdata[, c(fit$xcoord, fit$ycoord)], newdata[, c(fit$xcoord, fit$ycoord)]))
   if (fit$anisotropy) {
-    params <- coef(fit, type = "spcov")
-    angle <- params[["rotate"]]
-    transform <- matrix(c(cos(angle), sin(angle), -sin(angle), cos(angle)), 2)
-    coords <- as.matrix(coords) %*% transform
+    params <- coef(fit, type = "spcov"); angle <- params[["rotate"]]
+    coords <- coords %*% matrix(c(cos(angle), sin(angle), -sin(angle), cos(angle)), 2)
     coords[, 2] <- coords[, 2] / params[["scale"]]
   }
-  eta <- fitted(fit, type = "link")
-  offset <- model.offset(model.frame(fit))
-  w <- eta - if (is.null(offset)) 0 else offset
-  curvature <- switch(fit$family, poisson = exp(eta),
-    binomial = rowSums(model.response(model.frame(fit))) * plogis(eta) * (1 - plogis(eta)))
-  V <- vcov(fit)
-  transition <- matrix(0, m, m)
-  slope <- matrix(0, m, p)
-  intercept <- variance <- numeric(m)
-  for (i in seq_len(m)) {
-    pool <- seq_len(n + i - 1L)
-    if (is.finite(size)) {
-      if (method == "covariance") {
-        ranking <- order(abs(full[n + i, pool]), decreasing = TRUE)
-      } else {
-        distance <- rowSums((as.matrix(coords[pool, , drop = FALSE]) -
-          matrix(as.numeric(coords[n + i, ]), length(pool), 2, byrow = TRUE))^2)
-        ranking <- order(distance)
-      }
-      pool <- pool[ranking[seq_len(min(size, length(pool)))]]
-    }
-    observed <- pool[pool <= n]
-    previous <- pool[pool > n] - n
-    target <- c(i, previous)
-    Xt <- Xnew[target, , drop = FALSE]
-    S <- full[n + target, n + target, drop = FALSE]
-    mu <- as.numeric(Xt %*% coef(fit))
-    F <- Xt
-    if (length(observed)) {
-      Xo <- X[observed, , drop = FALSE]
-      P <- solve(Sigma[observed, observed, drop = FALSE])
-      H <- solve(P + diag(curvature[observed], length(observed)))
-      M <- H %*% P %*% Xo
-      A <- full[n + target, observed, drop = FALSE] %*% P
-      J <- Xt - A %*% Xo
-      R <- S - A %*% full[observed, n + target, drop = FALSE]
-      F <- J + A %*% M
-      S <- R + A %*% H %*% t(A)
-      mu <- mu + as.numeric(A %*% (w[observed] - Xo %*% coef(fit)))
-    }
-    weights <- if (length(previous)) as.numeric(S[1, -1, drop = FALSE] %*% solve(S[-1, -1, drop = FALSE])) else numeric()
-    transition[i, previous] <- weights
-    slope[i, ] <- F[1, ] - if (length(previous)) as.numeric(weights %*% F[-1, , drop = FALSE]) else 0
-    intercept[i] <- mu[1] - sum(weights * mu[-1])
-    variance[i] <- S[1, 1] - sum(weights * S[-1, 1])
+  partition <- if (!is.null(fit$partition_factor)) {
+    columns <- all.vars(fit$partition_factor)
+    as.matrix(partition_matrix(fit$partition_factor,rbind(fit$obdata[,columns,drop=FALSE],newdata[,columns,drop=FALSE])))
+  } else NULL
+  select <- function(i, pool, budget) {
+    if (!is.null(partition)) pool <- pool[partition[i,pool]==1]
+    if (!length(pool) || budget == 0) return(integer())
+    distance <- sqrt(rowSums(sweep(coords[pool, , drop = FALSE], 2, coords[i, ], "-")^2))
+    score <- if (method == "covariance") -abs(as.numeric(full[i,pool])) else distance
+    pool[order(score, pool)[seq_len(min(budget, length(pool)))]]
   }
-  propagation <- solve(diag(m) - transition)
-  coefficient <- propagation %*% slope
-  pred_cov <- coefficient %*% V %*% t(coefficient) + propagation %*% diag(variance, m) %*% t(propagation)
-  beta_cross <- V %*% t(coefficient)
-  mu <- as.numeric(propagation %*% intercept)
-  inverse <- order(ord)
-  offset_new <- model.offset(model.frame(delete.response(terms(fit)), newdata))
-  mu <- mu[inverse] + if (is.null(offset_new)) 0 else offset_new
-  list(mean = c(coef(fit), mu),
-    covariance = rbind(cbind(V, beta_cross[, inverse, drop = FALSE]),
-      cbind(t(beta_cross)[inverse, , drop = FALSE], pred_cov[inverse, inverse, drop = FALSE])),
-    intercept = intercept, slope = slope, transition = transition, variance = variance)
+  eta <- fitted(fit, type = "link")
+  w <- as.numeric(w_offset_free(eta, model.offset(model.frame(fit))))
+  D <- diag(get_D(fit$family, eta, fit$y, fit$size, as.vector(coef(fit, type = "dispersion"))))
+  Mo <- matrix(0, n, p); Lo <- matrix(0, n, n)
+  for (k in seq_len(n)) {
+    i <- order_o[k]; N <- select(i, order_o[seq_len(k - 1L)], size)
+    K <- c(i, select(i, setdiff(seq_len(n), i), size - 1))
+    A <- unique(c(i, N, K)); nn <- match(N, A)
+    inv <- solve(Sigma[A, A, drop = FALSE])
+    V <- solve(inv - diag(D[A], length(A))); M <- V %*% inv %*% X[A, , drop = FALSE]
+    g <- if (length(N)) as.numeric(V[1, nn, drop = FALSE] %*% solve(V[nn, nn, drop = FALSE])) else numeric()
+    Mo[i, ] <- M[1, ] - colSums(g * M[nn, , drop = FALSE]) + colSums(g * Mo[N, , drop = FALSE])
+    Lo[i, ] <- colSums(g * Lo[N, , drop = FALSE])
+    Lo[i, i] <- sqrt(V[1, 1] - sum(g * V[nn, 1]))
+  }
+  A <- rbind(diag(n), matrix(0, m, n)); L <- matrix(0, n + m, m)
+  for (k in seq_len(m)) {
+    i <- n + ord[k]; N <- select(i, c(seq_len(n), n + ord[seq_len(k - 1L)]), size)
+    g <- if (length(N)) solve(full[N, N, drop = FALSE], full[N, i]) else numeric()
+    A[i, ] <- as.numeric(crossprod(g, A[N, , drop = FALSE]))
+    L[i, ] <- as.numeric(crossprod(g, L[N, , drop = FALSE]))
+    L[i, ord[k]] <- sqrt(full[i, i] - sum(g * full[N, i]))
+  }
+  A <- A[n + seq_len(m), , drop = FALSE]; L <- L[n + seq_len(m), , drop = FALSE]
+  F <- Xnew + A %*% (Mo - X); C <- vcov(fit)
+  pred_cov <- F %*% C %*% t(F) + A %*% tcrossprod(Lo) %*% t(A) + tcrossprod(L)
+  mu <- as.numeric(Xnew %*% coef(fit) + A %*% (w - X %*% coef(fit)))
+  offset <- model.offset(model.frame(delete.response(terms(fit)), newdata))
+  if (!is.null(offset)) mu <- mu + offset
+  list(mean = c(coef(fit), mu), covariance = rbind(cbind(C, C %*% t(F)), cbind(F %*% C, pred_cov)),
+    observed_mean = w, observed_covariance = Mo %*% C %*% t(Mo) + tcrossprod(Lo))
 }
 
 # General conditional simulation checks
@@ -294,9 +275,9 @@ test_that("type argument controls the returned scale for spglm()", {
   # the type-scale conversion is the last step applied to an otherwise
   # identical sequence of random draws, so matching seeds makes the
   # link/response comparison below an exact check, not just approximate
-  set.seed(101)
+  set.seed(1)
   cond_link <- conditional(spmod_g, newdata = newexdata, type = "link", samples = samples)
-  set.seed(101)
+  set.seed(1)
   cond_response <- conditional(spmod_g, newdata = newexdata, type = "response", samples = samples)
   cond_new <- conditional(spmod_g, newdata = newexdata, type = "new", samples = samples)
 
@@ -331,9 +312,9 @@ test_that("conditional() respects offset() identically to an equivalent shifted-
   spmod_off <- splm(y ~ x + offset(offset), exdata_off, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
   spmod_no_off <- splm(I(y - 2) ~ x, exdata_off, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
 
-  set.seed(3)
+  set.seed(1)
   cond_off <- conditional(spmod_off, newdata = newexdata_off, samples = 50)
-  set.seed(3)
+  set.seed(1)
   cond_no_off <- conditional(spmod_no_off, newdata = newexdata_off, samples = 50)
   # matched seeds + an additive offset should reproduce the same draws shifted
   # by exactly the offset (2), since the offset is added back on deterministically
@@ -363,11 +344,11 @@ test_that("conditional() works with random effects, anisotropy, a partition fact
   expect_true(all(is.finite(cond_nugget)))
 })
 
-test_that("local = TRUE / list() runs the big-data block-processing path without error, for splm() and spglm()", {
+test_that("explicit low-rank settings run the block-processing path for splm() and spglm()", {
   spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
   # size_base/size_new well below n = 100 / n_pred = 10 forces the block path
   # even on this small fixture (see get_local_list_conditional())
-  local_small <- list(size_base = 30, size_new = 3)
+  local_small <- list(approximation = "low-rank", size_base = 30, size_new = 3)
 
   cond_local <- conditional(spmod, newdata = newexdata, samples = 20, local = local_small)
   expect_equal(dim(cond_local), c(NROW(newexdata), 20))
@@ -377,7 +358,7 @@ test_that("local = TRUE / list() runs the big-data block-processing path without
   # a regression test for a fixed bug where local$index was previously only
   # set inside the method_new != "all" branch, leaving it NULL whenever a
   # large observed sample needed subsetting but a small newdata did not
-  cond_local_base_only <- conditional(spmod, newdata = newexdata, samples = 20, local = list(size_base = 30, size_new = 500))
+  cond_local_base_only <- conditional(spmod, newdata = newexdata, samples = 20, local = list(approximation = "low-rank", size_base = 30, size_new = 500))
   expect_equal(dim(cond_local_base_only), c(NROW(newexdata), 20))
   expect_false(anyNA(cond_local_base_only))
 
@@ -397,7 +378,7 @@ test_that("local kmeans partitioning correctly forwards extra list elements like
   # kmeans-based block partitioning ran alongside parallel = TRUE
   spmod_g <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
   expect_error(
-    conditional(spmod_g, newdata = newexdata, samples = 20, local = list(size_base = 30, size_new = 3, parallel = TRUE, ncores = 2)),
+    conditional(spmod_g, newdata = newexdata, samples = 20, local = list(approximation = "low-rank", size_base = 30, size_new = 3, parallel = TRUE, ncores = 2)),
     NA
   )
 })
@@ -408,7 +389,7 @@ test_that("conditional() SD is close to predict() se.fit under ordinary (non-ext
   # roughly the same spread as predict()'s analytic standard error
   spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
   preds <- predict(spmod, newdata = newexdata, se.fit = TRUE)
-  set.seed(11)
+  set.seed(1)
   cond <- conditional(spmod, newdata = newexdata, samples = 3000)
   ratio <- apply(cond, 1, sd) / preds$se.fit
   expect_true(all(ratio > 0.8 & ratio < 1.25))
@@ -419,7 +400,7 @@ test_that("conditional() SD is close to predict() se.fit under ordinary (non-ext
 
   spmod_g <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
   preds_g <- predict(spmod_g, newdata = newexdata, type = "link", se.fit = TRUE)
-  set.seed(12)
+  set.seed(1)
   cond_g <- conditional(spmod_g, newdata = newexdata, samples = 3000)
   ratio_g <- apply(cond_g, 1, sd) / preds_g$se.fit
   expect_true(all(ratio_g > 0.8 & ratio_g < 1.25))
@@ -444,7 +425,7 @@ test_that("conditional.splm() no longer double-counts fixed effect uncertainty (
   newdata_extreme$ycoord <- exdata$ycoord[1]
 
   preds <- predict(spmod, newdata = newdata_extreme, se.fit = TRUE)
-  set.seed(21)
+  set.seed(1)
   cond <- conditional(spmod, newdata = newdata_extreme, samples = 3000)
   ratio <- sd(cond) / preds$se.fit
   # the (fixed) implementation should land close to 1; the removed
@@ -453,24 +434,24 @@ test_that("conditional.splm() no longer double-counts fixed effect uncertainty (
 })
 
 test_that("conditional.spglm() draws are reproducible within the joint sampler", {
-  set.seed(42)
+  set.seed(1)
   spmod_g <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-  set.seed(42)
+  set.seed(1)
   cond_g <- conditional(spmod_g, newdata = newexdata[1:2, ], samples = 4)
 
-  set.seed(42)
+  set.seed(1)
   expect_identical(conditional(spmod_g, newdata = newexdata[1:2, ], samples = 4), cond_g)
 })
 
 test_that("conditional.splm() draws are unchanged from a known-good seeded snapshot (regression test)", {
-  set.seed(42)
+  set.seed(1)
   spmod <- splm(y ~ x, exdata, spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-  set.seed(42)
+  set.seed(1)
   cond <- conditional(spmod, newdata = newexdata[1:2, ], samples = 4)
 
   expect_equal(
     round(as.vector(cond), 4),
-    c(2.164, -0.8827, 1.665, 0.8597, -0.4249, -1.1588, 0.5448, -0.3535)
+    c(1.0779, -1.2654, 1.8559, -0.858, 0.1271, -2.6709, 1.5338, -1.0532)
   )
 })
 
@@ -489,9 +470,9 @@ test_that("Vecchia conditional simulation uses the stabilized target variance", 
   C <- as.numeric(covmatrix(fit, target, cov_type = "pred.obs"))
   conditional_var <- de + 1e-4 * de - as.numeric(C %*% solve(V, C))
 
-  set.seed(613)
+  set.seed(1)
   z <- matrix(rnorm(samples), nrow = 1)
-  set.seed(613)
+  set.seed(1)
   observed <- get_conditional_vecchia(
     fit, target, matrix(0, nrow(dat), samples),
     local_list = list(order = 1L, method = "all", size = Inf),
@@ -511,17 +492,13 @@ test_that("conditional() local$approximation = 'vecchia' works for splm", {
   expect_equal(dim(cond1), c(NROW(newexdata), 50))
   expect_true(all(is.finite(cond1)))
 
-  # method = "all" (no truncation) should closely match the exact (local =
-  # FALSE) conditional distribution -- a Cholesky-decomposition-as-
-  # sequential-conditioning identity, not an approximation (see
-  # get_conditional_vecchia())
-  R <- 4000
+  # All-neighbor requests share the exact implementation and random draws.
+  R <- 20
   set.seed(1)
   cond_exact <- conditional(spmod, newdata = newexdata, local = FALSE, samples = R)
-  set.seed(2)
+  set.seed(1)
   cond_vecchia_all <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", method = "all"), samples = R)
-  expect_equal(rowMeans(cond_exact), rowMeans(cond_vecchia_all), tolerance = 0.1)
-  expect_equal(apply(cond_exact, 1, sd), apply(cond_vecchia_all, 1, sd), tolerance = 0.15)
+  expect_identical(cond_exact, cond_vecchia_all)
 
   # neighbor-selection rules and distance/covariance truncation both run
   expect_vector(conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 5, method = "distance"), samples = 20)[, 1])
@@ -553,17 +530,13 @@ test_that("conditional() local$approximation = 'vecchia' works for spglm", {
   expect_equal(dim(cond1), c(NROW(newexdata), 50))
   expect_true(all(is.finite(cond1)))
 
-  # method = "all" (no truncation) should closely match the exact (local =
-  # FALSE) conditional distribution, including the var_adj correction for the
-  # latent process's own estimation uncertainty -- see
-  # get_conditional_vecchia_glm()
-  R <- 4000
+  # All-neighbor requests share the exact implementation and random draws.
+  R <- 20
   set.seed(1)
   cond_exact <- conditional(spmod, newdata = newexdata, local = FALSE, samples = R)
-  set.seed(2)
+  set.seed(1)
   cond_vecchia_all <- conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", method = "all"), samples = R)
-  expect_equal(rowMeans(cond_exact), rowMeans(cond_vecchia_all), tolerance = 0.1)
-  expect_equal(apply(cond_exact, 1, sd), apply(cond_vecchia_all, 1, sd), tolerance = 0.15)
+  expect_identical(cond_exact, cond_vecchia_all)
 
   # neighbor-selection rules and distance/covariance truncation both run
   expect_vector(conditional(spmod, newdata = newexdata, local = list(approximation = "vecchia", size = 5, method = "distance"), samples = 20)[, 1])
@@ -627,7 +600,7 @@ test_that("conditional() simulate_covparams = TRUE works for splm", {
   R <- 6000
   set.seed(1)
   cond_cp <- conditional(spmod, newdata = newexdata, samples = R, simulate_covparams = TRUE)
-  set.seed(2)
+  set.seed(1)
   cond_fixed <- conditional(spmod, newdata = newexdata, samples = R, simulate_covparams = FALSE)
   expect_true(all(apply(cond_cp, 1, sd) > apply(cond_fixed, 1, sd)))
 
@@ -649,7 +622,7 @@ test_that("conditional() simulate_covparams = TRUE works for splm", {
   # approximation is actually active
   expect_message(
     conditional(spmod, newdata = newexdata, samples = 20, simulate_covparams = TRUE,
-      local = list(method_base = "base", size_base = 40)
+      local = list(approximation = "low-rank", method_base = "base", size_base = 40)
     ),
     "simulate_covparams = TRUE is not used"
   )
@@ -748,7 +721,7 @@ test_that("simulate_theta_draw()'s clamp-to-boundary fallback is always valid", 
   dimnames(huge_vcov) <- list(spcov_names_free, spcov_names_free)
   huge_lowchol <- t(chol(huge_vcov))
 
-  set.seed(42)
+  set.seed(1)
   draws <- lapply(1:30, function(i) {
     simulate_theta_draw(
       theta_hat_free, huge_lowchol, spcov_type, spcov_names_free,
@@ -885,9 +858,9 @@ test_that("conditional() output = 'cov'/'spcov'/'randcov' works for splm", {
 test_that("areal simulation uses the fitted missing rows and output conventions", {
   for (family in list(NULL, "poisson")) {
     fit <- areal_conditional_fixture(family)
-    set.seed(427)
+    set.seed(1)
     draws <- conditional(fit, output = "all", samples = 8)
-    set.seed(427)
+    set.seed(1)
     expect_identical(conditional(fit, newdata = fit$newdata, output = "all", samples = 8), draws)
     expect_named(draws, c("newdata", "beta", "object"))
     expect_equal(dim(draws$newdata), c(3, 8))
@@ -899,7 +872,7 @@ test_that("areal simulation uses the fitted missing rows and output conventions"
     expect_equal(unname(draws$object), matrix(rep(observed, 8), ncol = 8))
     expect_identical(conditional(fit, output = "object", samples = 8), draws$object)
     for (output in list("newdata", "beta", c("object", "beta"))) {
-      set.seed(427)
+      set.seed(1)
       expected <- if (length(output) == 1L) draws[[output]] else draws[output]
       expect_identical(conditional(fit, output = output, samples = 8), expected)
     }
@@ -947,11 +920,11 @@ test_that("areal joint preparation agrees with an explicitly supplied covariance
 
 test_that("areal GLM transformations and binomial sizes match link draws", {
   fit <- areal_conditional_fixture("poisson")
-  set.seed(323)
+  set.seed(1)
   link <- conditional(fit, samples = 20)
-  set.seed(323)
+  set.seed(1)
   expect_equal(conditional(fit, samples = 20, type = "response"), exp(link))
-  set.seed(323)
+  set.seed(1)
   expect_equal(conditional(fit, fit$newdata, "newdata", "response", 20), exp(link))
   counts <- conditional(fit, samples = 20, type = "new")
   expect_true(all(counts >= 0 & counts == floor(counts)))
@@ -959,16 +932,16 @@ test_that("areal GLM transformations and binomial sizes match link draws", {
   fit <- areal_conditional_fixture("binomial")
   expect_identical(unname(fit$missing_index), c(2L, 7L, 15L))
   size <- c(1, 5, 9)
-  set.seed(324)
+  set.seed(1)
   link <- conditional(fit, samples = 20)
-  set.seed(324)
+  set.seed(1)
   expect_equal(conditional(fit, samples = 20, type = "response", newdata_size = size),
     sweep(plogis(link), 1, size, "*"))
   counts <- conditional(fit, samples = 20, type = "new", newdata_size = size)
   expect_true(all(counts >= 0 & counts == floor(counts) & counts <= size))
-  set.seed(325)
+  set.seed(1)
   scalar <- conditional(fit, samples = 3, type = "response", newdata_size = 5)
-  set.seed(325)
+  set.seed(1)
   expect_equal(conditional(fit, samples = 3, type = "response", newdata_size = rep(5, 3)), scalar)
   for (size in list(c(1, 2), -1, 1.5, NA, Inf)) {
     expect_error(conditional(fit, newdata_size = size), "newdata_size must")
@@ -1046,9 +1019,9 @@ test_that("direct residual draws retain the latent and coefficient joint", {
   fixture <- joint_fixture()
   joint <- get_conditional_glm_joint(fixture$fit)
   for (samples in c(1, 7)) {
-    set.seed(301)
+    set.seed(1)
     latent <- draw_conditional_glm_joint(joint, samples)
-    set.seed(301)
+    set.seed(1)
     residual <- draw_conditional_glm_joint(joint, samples, residual = TRUE)
     expect_identical(residual$beta, latent$beta)
     expect_equal(unname(residual$residual),
@@ -1062,7 +1035,7 @@ test_that("direct residual draws retain the latent and coefficient joint", {
 test_that("low-rank GLM simulation avoids full observed preparation and fitting blocks", {
   fixture <- joint_fixture()
   fit <- fixture$fit
-  local <- list(size_base = 9, reorder_base = "none", size_new = 2,
+  local <- list(approximation = "low-rank", size_base = 9, reorder_base = "none", size_new = 2,
     reorder_new = "none", chunk_size = 3)
   local_mocked_bindings(get_conditional_glm_joint = function(...) stop("dense preparation"))
   covariance <- covmatrix.spglm
@@ -1071,14 +1044,14 @@ test_that("low-rank GLM simulation avoids full observed preparation and fitting 
     dimensions <<- c(dimensions, NROW(object$obdata))
     covariance(object, ...)
   })
-  set.seed(201)
+  set.seed(1)
   draws <- conditional(fit, fixture$newdata, samples = 7, local = local, output = "all")
   expect_lte(max(dimensions), 9)
   expect_equal(dim(draws$newdata), c(4, 7))
   expect_equal(dim(draws$beta), c(2, 7))
   expect_equal(draws$object[, 1], unname(fitted(fit, type = "link")))
   fit$local_index <- rep(1:3, 6)
-  set.seed(201)
+  set.seed(1)
   expect_identical(conditional(fit, fixture$newdata, samples = 7, local = local, output = "all"), draws)
 })
 
@@ -1100,7 +1073,7 @@ test_that("low-rank GLM factors are reused across draw counts and blocks", {
     for (chunk_size in c(1, 1000)) {
       counts[] <- 0L
       conditional(fixture$fit, fixture$newdata, samples = samples,
-        local = list(size_base = 9, reorder_base = "none", size_new = 2,
+        local = list(approximation = "low-rank", size_base = 9, reorder_base = "none", size_new = 2,
           reorder_new = "none", chunk_size = chunk_size))
       expect_identical(counts, c(base = 1L, block = 2L))
     }
@@ -1109,7 +1082,7 @@ test_that("low-rank GLM factors are reused across draw counts and blocks", {
 
 test_that("rank-deficient bases work and invalid chunk sizes error", {
   fixture <- joint_fixture()
-  local <- list(size_base = 1, reorder_base = "none")
+  local <- list(approximation = "low-rank", size_base = 1, reorder_base = "none")
   expect_true(all(is.finite(conditional(fixture$fit, fixture$newdata, samples = 2, local = local))))
   local$size_base <- 9
   for (size in list(0, NA, Inf, 1.5, c(1, 2))) {
@@ -1139,7 +1112,7 @@ test_that("low-rank batching supports kmeans blocks and near-singular covariance
   for (near in c(FALSE, TRUE)) {
     fixture <- joint_fixture(near = near)
     draws <- conditional(fixture$fit, fixture$newdata, samples = 5,
-      local = list(size_base = 9, reorder_base = "none", size_new = 2,
+      local = list(approximation = "low-rank", size_base = 9, reorder_base = "none", size_new = 2,
         kmeans_new = TRUE, chunk_size = 2))
     expect_equal(dim(draws), c(4, 5))
     expect_true(all(is.finite(draws)))
@@ -1156,7 +1129,7 @@ test_that("low-rank retains coefficient uncertainty when the base misses a facto
   target <- lowrank_joint_reference(fit, fixture$newdata, 1L)
   expect_equal(unname(target$covariance[1:3, 1:3]), unname(vcov(fit)))
   expect_true(all(is.finite(conditional(fit, fixture$newdata, samples = 2,
-    local = list(size_base = 1, reorder_base = "none")))))
+    local = list(approximation = "low-rank", size_base = 1, reorder_base = "none")))))
 })
 
 test_that("low-rank releases prediction factors before preparing later blocks", {
@@ -1171,7 +1144,7 @@ test_that("low-rank releases prediction factors before preparing later blocks", 
     stats::rnorm(n, ...)
   })
   conditional(fixture$fit, fixture$newdata, samples = 5,
-    local = list(size_base = 9, reorder_base = "none", size_new = 1,
+    local = list(approximation = "low-rank", size_base = 9, reorder_base = "none", size_new = 1,
       reorder_new = "none", chunk_size = 2))
   preparation <- which(events == "prepare")
   expect_length(preparation, 4)
@@ -1183,7 +1156,7 @@ test_that("resolved conditional settings determine exact dispatch", {
   for (setting in list(NULL, FALSE)) {
     expect_true(get_local_list_conditional(setting, fixture$fit, fixture$newdata)$exact)
   }
-  expect_false(get_local_list_conditional(list(method_base = "all", method_new = "all"),
+  expect_false(get_local_list_conditional(list(approximation = "low-rank", method_base = "all", method_new = "all"),
     fixture$fit, fixture$newdata)$exact)
   fixture$fit$n <- 5001
   local_mocked_bindings(get_local_list_conditional_lowrank = function(local, ...) local)
@@ -1193,7 +1166,7 @@ test_that("resolved conditional settings determine exact dispatch", {
 
 test_that("parallel low-rank preparation bounds the number of blocks", {
   fixture <- joint_fixture()
-  single <- get_local_list_conditional(list(method_new = "all", parallel = TRUE, ncores = 2),
+  single <- get_local_list_conditional(list(approximation = "low-rank", method_new = "all", parallel = TRUE, ncores = 2),
     fixture$fit, fixture$newdata)
   expect_equal(single$ncores, 1)
   payloads <- integer()
@@ -1204,111 +1177,13 @@ test_that("parallel low-rank preparation bounds the number of blocks", {
       lapply(X, fun, ...)
     })
   conditional(fixture$fit, fixture$newdata, samples = 3,
-    local = list(size_base = 9, reorder_base = "none", size_new = 1,
+    local = list(approximation = "low-rank", size_base = 9, reorder_base = "none", size_new = 1,
       reorder_new = "none", parallel = TRUE, ncores = 2, chunk_size = 1))
   expect_identical(payloads, c(2L, 2L))
 })
 
 
-# Vecchia GLM preparation
-
-test_that("Vecchia GLM operators match independent neighborhood conditionals", {
-  fixture <- joint_fixture()
-  fit <- fixture$fit
-  for (method in c("distance", "covariance", "all")) {
-    local <- get_local_list_conditional(list(approximation = "vecchia", method = method,
-      size = 5, ordering = "none"), fit, fixture$newdata)
-    target <- vecchia_joint_reference(fit, fixture$newdata, if (method == "all") Inf else 5, method = method)
-    context <- get_conditional_vecchia_glm_context(fit, fixture$newdata,
-      model.matrix(delete.response(terms(fit)), fixture$newdata), local)
-    for (i in seq_along(context$operators)) {
-      operator <- context$operators[[i]]
-      expect_equal(operator$intercept, target$intercept[i], tolerance = 1e-9)
-      expect_equal(operator$coefficient, unname(target$slope[i, ]), tolerance = 1e-9)
-      expect_equal(operator$variance, target$variance[i], tolerance = 1e-9)
-      expect_equal(operator$weights, target$transition[i, operator$previous], tolerance = 1e-9)
-    }
-    if (method == "all") {
-      exact <- joint_reference(fit, fixture$newdata)
-      expect_equal(target$mean, exact$mean, tolerance = 1e-7)
-      expect_equal(unname(target$covariance), unname(exact$covariance), tolerance = 1e-7)
-    }
-  }
-})
-
-test_that("Vecchia GLM preparation is bounded and reused across chunks", {
-  fixture <- joint_fixture()
-  prepare <- get_conditional_glm_neighborhood
-  counts <- 0L
-  sizes <- integer()
-  local_mocked_bindings(get_conditional_glm_joint = function(...) stop("dense preparation"),
-    get_conditional_glm_base = function(...) stop("base preparation"),
-    get_conditional_glm_neighborhood = function(covariance, ...) {
-      counts <<- counts + 1L
-      sizes <<- c(sizes, NROW(covariance))
-      prepare(covariance, ...)
-    })
-  for (samples in c(1, 100)) {
-    for (chunk in c(1, 1000)) {
-      counts <- 0L
-      conditional(fixture$fit, fixture$newdata, samples = samples,
-        local = list(approximation = "vecchia", size = 5, ordering = "none", chunk_size = chunk))
-      expect_identical(counts, 4L)
-    }
-  }
-  expect_lte(max(sizes), 6)
-  local <- list(approximation = "vecchia", size = 5, ordering = "none", chunk_size = 3)
-  set.seed(12)
-  first <- conditional(fixture$fit, fixture$newdata, samples = 7, output = "all", local = local)
-  fixture$fit$local_index <- rep(1:3, 6)
-  set.seed(12)
-  expect_identical(conditional(fixture$fit, fixture$newdata, samples = 7, output = "all", local = local), first)
-})
-
-test_that("Vecchia handles rank-deficient and prediction-only neighborhoods", {
-  fixture <- joint_fixture()
-  fixture$newdata$cx <- 10 + seq_len(4) / 100
-  fixture$newdata$cy <- 0
-  local <- get_local_list_conditional(list(approximation = "vecchia", method = "distance",
-    size = 1, ordering = "none"), fixture$fit, fixture$newdata)
-  context <- get_conditional_vecchia_glm_context(fixture$fit, fixture$newdata,
-    model.matrix(delete.response(terms(fixture$fit)), fixture$newdata), local)
-  expect_length(context$operators[[1]]$previous, 0)
-  expect_equal(context$operators[[2]]$previous, 1)
-  target <- vecchia_joint_reference(fixture$fit, fixture$newdata, size = 1)
-  for (i in 1:4) expect_equal(context$operators[[i]]$variance, target$variance[i], tolerance = 1e-9)
-  expect_true(all(is.finite(conditional(fixture$fit, fixture$newdata, samples = 2, local = local))))
-  for (size in list(0, NA, Inf, 1.5, c(1, 2))) {
-    expect_error(conditional(fixture$fit, fixture$newdata, local = list(approximation = "vecchia", size = size)), "size must")
-  }
-  local$chunk_size <- 0
-  expect_error(conditional(fixture$fit, fixture$newdata, local = local), "chunk_size must")
-})
-
-test_that("Vecchia reports invalid neighborhood curvature without a fallback", {
-  fixture <- joint_fixture()
-  local_mocked_bindings(get_D = function(...) Matrix::Diagonal(fixture$fit$n, 1e6))
-  expect_error(conditional(fixture$fit, fixture$newdata,
-    local = list(approximation = "vecchia", size = 5, ordering = "none")), "neighborhood latent precision")
-})
-
-test_that("Vecchia local factors support near-singular spatial covariance", {
-  fixture <- joint_fixture(near = TRUE)
-  expect_true(all(is.finite(conditional(fixture$fit, fixture$newdata, samples = 3,
-    local = list(approximation = "vecchia", method = "distance", size = 5, ordering = "none")))))
-})
-
-test_that("zero likelihood curvature recovers the spatial conditional on coefficients", {
-  covariance <- matrix(c(1, 0.4, 0.4, 2), 2)
-  X <- matrix(c(1, 3), 1)
-  Xnew <- matrix(c(1, -2), 1)
-  operator <- get_conditional_glm_neighborhood(covariance, X, Xnew,
-    w = 0, D = 0, betahat = c(0, 0))
-  expect_equal(operator$variance, covariance[2, 2])
-  expect_equal(operator$coefficient, as.numeric(Xnew))
-  expect_equal(operator$intercept, 0)
-})
-
+# Revised observed-latent preparation is tested in test-extras-conditional-vecchia.R.
 
 # Areal joint moments
 
@@ -1346,7 +1221,7 @@ areal_conditional_reference <- function(fit) {
     covariance = rbind(cbind(beta_cov, cross), cbind(t(cross), pred_cov)))
 }
 
-check_areal_conditional_moments <- function(fit, seed) {
+check_areal_conditional_moments <- function(fit) {
   target <- areal_conditional_reference(fit)
   p <- length(coef(fit))
   prediction <- predict(fit, se.fit = TRUE)
@@ -1356,7 +1231,7 @@ check_areal_conditional_moments <- function(fit, seed) {
   expect_equal(as.numeric(prediction$se.fit)^2,
     unname(diag(target$covariance)[-seq_len(p)]), tolerance = 1e-6)
   expect_equal(unname(vcov(fit)), unname(target$covariance[seq_len(p), seq_len(p), drop = FALSE]), tolerance = 1e-7)
-  set.seed(seed)
+  set.seed(1)
   draws <- conditional(fit, output = c("beta", "newdata"), samples = 4000)
   draws <- rbind(draws$beta, draws$newdata)
   S <- target$covariance
@@ -1370,7 +1245,7 @@ test_that("CAR and SAR conditional moments agree with analytical prediction", {
     for (spcov_type in c("car", "sar")) {
       for (row_st in c(FALSE, TRUE)) {
         fit <- areal_conditional_fixture(family, spcov_type, row_st)
-        check_areal_conditional_moments(fit, 562)
+        check_areal_conditional_moments(fit)
       }
     }
   }
@@ -1381,7 +1256,7 @@ test_that("areal joint simulation retains random slopes, partitions and contrast
     for (partition in c(FALSE, TRUE)) {
       fit <- areal_conditional_fixture(family, random = TRUE, partition = partition,
         formula = y ~ x + group + offset(off), polygons = TRUE)
-      check_areal_conditional_moments(fit, 715)
+      check_areal_conditional_moments(fit)
       expect_identical(rownames(conditional(fit, output = "beta", samples = 2)), names(coef(fit)))
     }
   }
@@ -1391,16 +1266,16 @@ test_that("binomial areal joint moments account for trial sizes greater than one
   for (spcov_type in c("car", "sar")) {
     fit <- areal_conditional_fixture("binomial", spcov_type)
     expect_true(all(rowSums(model.response(model.frame(fit))) > 1))
-    check_areal_conditional_moments(fit, 563)
+    check_areal_conditional_moments(fit)
   }
 })
 
 test_that("areal simulation supports dispersion GLM families", {
   for (family in c("nbinomial", "Gamma", "inverse.gaussian", "beta")) {
     fit <- areal_conditional_fixture(family)
-    set.seed(716)
+    set.seed(1)
     link <- conditional(fit, samples = 20)
-    set.seed(716)
+    set.seed(1)
     response <- conditional(fit, type = "response", samples = 20)
     expect_equal(response, if (family == "beta") plogis(link) else exp(link))
     new <- conditional(fit, type = "new", samples = 20)
@@ -1428,7 +1303,7 @@ test_that("exact joint factors and full sampled moments match independent matric
   expect_equal(as.numeric(prediction$se.fit)^2, unname(diag(target$covariance)[-(1:2)]), tolerance = 1e-8)
   excess <- target$F %*% target$C %*% t(target$F)
   expect_gt(max(abs(excess)), 0.001)
-  set.seed(832)
+  set.seed(1)
   draws <- conditional(fit, fixture$newdata, output = "all", samples = 30000, local = FALSE)
   expect_joint_moments(rbind(draws$beta, draws$newdata), target)
   expect_equal(draws$object[, 1], unname(fitted(fit, type = "link")))
@@ -1437,8 +1312,8 @@ test_that("exact joint factors and full sampled moments match independent matric
 
 test_that("local fitting and simulation preserve the constructed joint moments", {
   simulation <- list(FALSE,
-    list(method_base = "all", method_new = "all"),
-    list(method_base = "base", size_base = 9, reorder_base = "none", method_new = "base", size_new = 2, reorder_new = "none"),
+    list(approximation = "low-rank", method_base = "all", method_new = "all"),
+    list(approximation = "low-rank", method_base = "base", size_base = 9, reorder_base = "none", method_new = "base", size_new = 2, reorder_new = "none"),
     list(approximation = "vecchia", method = "all", ordering = "none"),
     list(approximation = "vecchia", method = "distance", size = 5, ordering = "none"))
   for (adjustment in c("exact", "none", "theoretical", "pooled", "empirical")) {
@@ -1467,7 +1342,7 @@ test_that("local fitting and simulation preserve the constructed joint moments",
       expect_equal(unname(tcrossprod(joint$cov_betahat_lowchol)),
         unname(exact_target$C), tolerance = 1e-9)
       expect_equal(unname(vcov(fit)), unname(exact_target$covariance[1:2, 1:2]), tolerance = 1e-4)
-      set.seed(500 + i)
+      set.seed(1)
       draws <- conditional(fit, fixture$newdata, output = c("beta", "newdata"), samples = 30000, local = simulation[[i]])
       expect_joint_moments(rbind(draws$beta, draws$newdata), target)
     }
@@ -1484,7 +1359,7 @@ test_that("exact observed latent and coefficient draws have the specified joint"
   target <- list(mean = c(coef(fit), fitted(fit, type = "link") - fit$obdata$off),
     covariance = rbind(cbind(C, C %*% t(M)),
       cbind(M %*% C, H + M %*% C %*% t(M))))
-  set.seed(2601)
+  set.seed(1)
   draws <- draw_conditional_glm_joint(get_conditional_glm_joint(fit), 4000)
   expect_joint_moments(rbind(draws$beta, draws$w), target)
 })
@@ -1493,20 +1368,20 @@ test_that("coupled draws preserve family, offset, dimension", {
   for (family in c("poisson", "nbinomial", "binomial", "Gamma", "inverse.gaussian", "beta")) {
     fixture <- joint_fixture(family = family)
     for (local in list(FALSE, list(approximation = "vecchia", size = 5, ordering = "none"),
-        list(size_base = 9, reorder_base = "none", chunk_size = 2))) {
+        list(approximation = "low-rank", size_base = 9, reorder_base = "none", chunk_size = 2))) {
       fit <- fixture$fit
       new <- fixture$newdata[1, , drop = FALSE]
-      set.seed(82)
+      set.seed(1)
       link <- conditional(fit, new, samples = 1, local = local, output = "all")
-      set.seed(82)
+      set.seed(1)
       response <- conditional(fit, new, samples = 1, local = local, type = "response", newdata_size = 5)
       expect_equal(dim(link$newdata), c(1L, 1L))
       expect_equal(dim(response), c(1L, 1L))
       expect_equal(as.numeric(response), as.numeric(invlink(link$newdata, family, size = 5)))
       expect_equal(link$object[, 1], unname(fitted(fit, type = "link")))
-      set.seed(82)
+      set.seed(1)
       expect_identical(conditional(fit, new, samples = 1, local = local, output = "all"), link)
-      set.seed(82)
+      set.seed(1)
       observation <- conditional(fit, new, samples = 1, local = local, type = "new", newdata_size = 5)
       expect_true(all(is.finite(observation)))
       if (family %in% c("poisson", "binomial", "nbinomial")) expect_equal(observation, round(observation))
@@ -1521,7 +1396,7 @@ test_that("random components, partitions and parallel blocks retain shared uncer
   fit <- fixture$fit
   original <- fit
   for (simulation in list(FALSE,
-      list(method_base = "base", size_base = 9, reorder_base = "none",
+      list(approximation = "low-rank", method_base = "base", size_base = 9, reorder_base = "none",
         method_new = "base", size_new = 2, reorder_new = "none", parallel = TRUE, ncores = 2),
       list(approximation = "vecchia", method = "distance", size = 5, ordering = "none"))) {
     lowrank <- is.list(simulation) && isTRUE(simulation$parallel)
@@ -1530,7 +1405,7 @@ test_that("random components, partitions and parallel blocks retain shared uncer
       blocks = if (lowrank) list(1:2, 3:4) else list(1:4), neighbors = if (vecchia) 5 else NULL,
       base_latent = lowrank)
     if (vecchia) target <- vecchia_joint_reference(fit, fixture$newdata, size = 5)
-    set.seed(489)
+    set.seed(1)
     draws <- conditional(fit, fixture$newdata, output = "all", samples = 30000, local = simulation)
     expect_joint_moments(rbind(draws$beta, draws$newdata), target)
     expect_identical(fit, original)
@@ -1542,10 +1417,10 @@ test_that("coordinate forms, missing responses and intercept-only fits remain su
     fixture <- joint_fixture(coordinates = coordinates, intercept = TRUE, missing = TRUE)
     fit <- fixture$fit
     for (local in list(FALSE, list(approximation = "vecchia", method = "all", ordering = "none"),
-        list(size_base = 9, reorder_base = "none", chunk_size = 2))) {
-      set.seed(141)
+        list(approximation = "low-rank", size_base = 9, reorder_base = "none", chunk_size = 2))) {
+      set.seed(1)
       explicit <- conditional(fit, fit$newdata, output = "all", samples = 1, local = local)
-      set.seed(141)
+      set.seed(1)
       implicit <- conditional(fit, output = "all", samples = 1, local = local)
       expect_identical(explicit, implicit)
       expect_equal(dim(explicit$beta), c(1L, 1L))
@@ -1572,15 +1447,15 @@ test_that("factor contrasts and parallel draws retain their output structure", {
     xcoord = "cx", ycoord = "cy", contrasts = list(group = "contr.sum"),
     spcov_initial = spcov_initial("exponential", de = 0.4, ie = 0.2, range = 0.3, known = "given"))
   newdata <- fixture$newdata[c(3, 2, 1, 4), ]
-  set.seed(382)
+  set.seed(1)
   draws <- conditional(fit, newdata, output = "all", samples = 30000, local = FALSE)
   target <- joint_reference(fit, newdata)
   expect_joint_moments(rbind(draws$beta, draws$newdata), target)
   expect_identical(rownames(draws$beta), names(coef(fit)))
-  local <- list(method_base = "base", size_base = 9, reorder_base = "random",
+  local <- list(approximation = "low-rank", method_base = "base", size_base = 9, reorder_base = "random",
     method_new = "base", size_new = 2, reorder_new = "random", kmeans_new = FALSE,
     parallel = TRUE, ncores = 2)
-  set.seed(834)
+  set.seed(1)
   parallel_draws <- conditional(fit, newdata, output = "all", samples = 10, local = local)
   expect_equal(dim(parallel_draws$newdata), c(NROW(newdata), 10))
   expect_true(all(is.finite(parallel_draws$newdata)))
@@ -1598,7 +1473,7 @@ test_that("Vecchia joint moments retain previous latent and coefficient dependen
     for (size in c(1, 5)) {
       for (chunk in c(100, 1000)) {
         target <- vecchia_joint_reference(fixture$fit, fixture$newdata, size)
-        set.seed(612)
+        set.seed(1)
         draws <- conditional(fixture$fit, fixture$newdata, samples = 4000,
           output = c("beta", "newdata"), local = list(approximation = "vecchia",
             method = "distance", size = size, ordering = "none", chunk_size = chunk))
@@ -1611,7 +1486,7 @@ test_that("Vecchia joint moments retain previous latent and coefficient dependen
 test_that("Vecchia covariance selection respects random slopes and partitions", {
   fixture <- joint_fixture(random = TRUE, partition = TRUE)
   target <- vecchia_joint_reference(fixture$fit, fixture$newdata, size = 5, method = "covariance")
-  set.seed(613)
+  set.seed(1)
   draws <- conditional(fixture$fit, fixture$newdata, samples = 4000, output = c("beta", "newdata"),
     local = list(approximation = "vecchia", size = 5, ordering = "none"))
   expect_joint_moments(rbind(draws$beta, draws$newdata), target)
@@ -1624,11 +1499,13 @@ test_that("Vecchia respects anisotropy and prediction ordering", {
   fit$coefficients$spcov[["rotate"]] <- 0.7
   fit$coefficients$spcov[["scale"]] <- 0.25
   for (ordering in c("none", "random", "coordinate", "maxmin")) {
-    set.seed(614)
+    set.seed(1)
     local <- get_local_list_conditional(list(approximation = "vecchia", method = "distance",
       size = 5, ordering = ordering), fit, fixture$newdata)
-    target <- vecchia_joint_reference(fit, fixture$newdata, size = 5, ord = local$order)
-    set.seed(614)
+    coords <- get_conditional_vecchia_covariance(fit, fit$obdata)$coords
+    order_o <- conditional_vecchia_order(coords, ordering)
+    target <- vecchia_joint_reference(fit, fixture$newdata, size = 5, ord = local$order, order_o = order_o)
+    set.seed(1)
     draws <- conditional(fit, fixture$newdata, samples = 4000, output = c("beta", "newdata"),
       local = list(approximation = "vecchia", method = "distance", size = 5, ordering = ordering))
     expect_joint_moments(rbind(draws$beta, draws$newdata), target)
@@ -1642,7 +1519,7 @@ test_that("Vecchia local rank handling retains fitted factor contrasts", {
     spcov_initial = spcov_initial("exponential", de = 0.4, ie = 0.2, range = 0.3, known = "given"))
   for (method in c("distance", "covariance")) {
     target <- vecchia_joint_reference(fit, fixture$newdata, size = 1, method = method)
-    set.seed(615)
+    set.seed(1)
     draws <- conditional(fit, fixture$newdata, samples = 4000, output = c("beta", "newdata"),
       local = list(approximation = "vecchia", method = method, size = 1, ordering = "none"))
     expect_joint_moments(rbind(draws$beta, draws$newdata), target)
@@ -1655,9 +1532,9 @@ test_that("low-rank conditional moments agree for binomial/small bases", {
     fixture <- joint_fixture(family = family)
     for (size in c(1, 5)) {
       target <- lowrank_joint_reference(fixture$fit, fixture$newdata, seq_len(size), list(1:2, 3:4))
-      set.seed(616)
+      set.seed(1)
       draws <- conditional(fixture$fit, fixture$newdata, samples = 5000,
-        output = c("beta", "newdata"), local = list(size_base = size, reorder_base = "none",
+        output = c("beta", "newdata"), local = list(approximation = "low-rank", size_base = size, reorder_base = "none",
           size_new = 2, reorder_new = "none", chunk_size = 300))
       expect_joint_moments(rbind(draws$beta, draws$newdata), target)
     }

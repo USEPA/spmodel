@@ -35,12 +35,13 @@ check_conditional_areal <- function(object, output, samples, dots) {
       samples < 1 || samples != floor(samples)) {
     stop("samples must be a positive integer.", call. = FALSE)
   }
-  if (!is.character(output) || !length(output) || anyNA(output) ||
-      any(!output %in% c("newdata", "beta", "object", "all"))) {
-    stop('output must be "newdata", "beta", "object", or "all".', call. = FALSE)
+  allowed <- c("newdata", "beta", "object", "all", if (inherits(object, "spgautor")) "latent")
+  if (!is.character(output) || !length(output) || anyNA(output) || any(!output %in% allowed)) {
+    stop(paste("output must be one of", paste(allowed, collapse = ", ")), call. = FALSE)
   }
-  if ("all" %in% output) output <- c("newdata", "beta", "object")
-  if (is.null(object$newdata) || !NROW(object$newdata) || !length(object$missing_index)) {
+  if ("all" %in% output) output <- c("newdata", "beta", "object", if ("latent" %in% output) "latent")
+  if (!("latent" %in% output && !"newdata" %in% output) &&
+      (is.null(object$newdata) || !NROW(object$newdata) || !length(object$missing_index))) {
     stop("No missing data to simulate. Fit the model with NA response values for the locations you want to simulate.", call. = FALSE)
   }
   output
@@ -86,10 +87,11 @@ conditional_areal_snapshot <- function(object, observed, samples) {
 
 #' Assemble areal simulation outputs
 #' @noRd
-conditional_areal_output <- function(object, new_val, new_betahat, observed, output, samples) {
+conditional_areal_output <- function(object, new_val, new_betahat, observed, output, samples, latent = NULL) {
   new_val <- matrix(new_val, nrow = length(object$missing_index), ncol = samples,
     dimnames = list(as.character(object$missing_index), NULL))
   val <- list(newdata = new_val, beta = new_betahat)
+  if ("latent" %in% output) val$latent <- latent
   if ("object" %in% output) val$object <- conditional_areal_snapshot(object, observed, samples)
   if (length(output) == 1L) val[[output]] else val[output]
 }

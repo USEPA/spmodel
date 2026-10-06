@@ -14,7 +14,7 @@ test_that("Poisson conditional simulation supports exact and local paths", {
     y = c(2, 1, 4, 3, 6, 2, 1, 4, 5, 2, 3, 6))
   fit <- spglm(y ~ x, data, family = "poisson", xcoord = cx,
     spcov_initial = spcov_initial("exponential", de = 0.4, ie = 0.2, range = 3, known = "given"))
-  for (local in list(FALSE, list(size_base = 6, reorder_base = "none"),
+  for (local in list(FALSE, list(approximation = "low-rank", size_base = 6, reorder_base = "none"),
     list(approximation = "vecchia", size = 3, ordering = "none"))) {
     draws <- conditional(fit, data[1:2, ], samples = 2, type = "new", local = local)
     expect_equal(dim(draws), c(2, 2))

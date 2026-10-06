@@ -11,8 +11,12 @@
 #'   from the geometry of \code{newdata}. If omitted, missing data from the
 #'   fitted model object are used.
 #' @param output  The output type, which can be any subset of
-#'   \code{c("newdata", "beta", "object")}. If \code{simulate_covparams = TRUE},
+#'   \code{c("newdata", "beta", "object")} (\code{"all"} is shorthand for this full vector).
+#'   If \code{simulate_covparams = TRUE},
 #'   the output type can also be any subset of \code{c("cov", "spcov", "randcov")}.
+#'   For generalized linear models, \code{"latent"} returns simulated observed-site
+#'   link values, including offsets. It is not available for the \code{"low-rank"} approximation
+#'   unless \code{method_base = "all"}.
 #'    The default is \code{"newdata"}. See Details for more.
 #' @param type For \code{spglm()} and \code{spgautor()} model objects, the scale of the conditional
 #'   simulations for \code{newdata}.
@@ -34,7 +38,7 @@
 #'   If \code{FALSE}, no big data approximation is implemented.
 #'   If a list is provided, \code{local$approximation} selects which big data
 #'   approximation is used and can take on the values
-#'   \code{"low-rank"} or \code{"vecchia"}:
+#'   \code{"low-rank"} or \code{"vecchia"} (the default):
 #'   \itemize{
 #'     \item \code{"low-rank"}: a base sample is drawn from the observed
 #'       data, \code{newdata} is split into blocks, and each block is
@@ -88,8 +92,7 @@
 #'         \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
 #'           parallelize over. The default is the number of available cores on your machine.
 #'       }
-#'       If \code{local$approximation} is \code{"low-rank"} (either explicitly or via
-#'       \code{local = TRUE}), defaults for the remaining \code{"low-rank"}
+#'       If \code{local$approximation} is \code{"low-rank"}, defaults for the remaining \code{"low-rank"}
 #'       settings are chosen such that \code{local} is transformed into
 #'       \code{list(approximation = "low-rank", method_base = "base", size_base = 5000,
 #'       reorder_base = "grts", method_new = "base", size_new = 1000,
@@ -111,32 +114,32 @@
 #'           location's conditioning set once it exceeds \code{size} candidates
 #'           (all observed data plus every already-simulated \code{newdata}
 #'           location). Values are \code{"all"}, \code{"distance"}
-#'           (the \code{size} nearest candidates), or \code{"covariance"} (the
-#'           \code{size} candidates with the highest covariance, in absolute
-#'           value, with the location being simulated). Same convention as
-#'           \code{predict()}'s own \code{local$method}. The default is
-#'           \code{"covariance"}. \code{method = "all"} is very computationally
-#'           intensive and \code{local = FALSE} should almost always be used instead.
-#'           (\code{method = "all"} primarily exists for numerical verification).
+#'           (the \code{size} nearest eligible candidates), or \code{"covariance"}
+#'           (the \code{size} candidates with the highest absolute model covariance,
+#'           including random effects and partition factors). Without
+#'           random effects or partition factors, distance and covariance give the
+#'           same ranking for covariance functions decreasing with distance.
+#'           The default is
+#'           \code{"covariance"}. For both linear and generalized linear models,
+#'           \code{method = "all"} uses the exact path, as with \code{local = FALSE}.
 #'         \item \code{size}: The number of neighbors used when \code{method}
-#'           is \code{"distance"} or \code{"covariance"}. The default is 30.
+#'           is \code{"distance"} or \code{"covariance"}. The default is 30 for
+#'           \code{splm()} and 60 for \code{spglm()}.
 #'         \item \code{ordering}: The order \code{newdata} locations are
 #'           simulated in -- \code{"maxmin"}, \code{"middleout"},
 #'           \code{"outsidein"}, \code{"coordinate"}, \code{"grts"},
 #'           \code{"random"}, or \code{"none"} (same options as
 #'           \code{decorrelate()}'s \code{ordering} argument). The default is
-#'           \code{"maxmin"}.
+#'           \code{"maxmin"}. For generalized linear models, the same ordering
+#'           method is applied separately to the observed latent sites and \code{newdata}.
 #'         \item \code{chunk_size}: For \code{spglm()} model objects, the
 #'           maximum number of \code{samples} columns processed simultaneously.
-#'           The default is 1,000. \code{chunk_size} is purely computational and does not affect corretness.
+#'           The default is 1,000. \code{chunk_size} is purely computational and does not affect correctness.
 #'       }
 #'   }
-#'       When \code{local = TRUE}, \code{local} is transformed into
-#'       \code{list(approximation = "low-rank", method_base = "base", size_base = 5000,
-#'       reorder_base = "grts", method_new = "base", size_new = 1000,
-#'       reorder_new = "random", kmeans_new = TRUE, parallel = FALSE)}.
-#'       When \code{local} is a list, at least one list element must be provided to
-#'       initialize default arguments for the other list elements. See Details for more.
+#'       With \code{local = TRUE} or \code{local = list()}, the default is
+#'       \code{list(approximation = "vecchia", method = "covariance", ordering = "maxmin")},
+#'       with \code{size = 30} for \code{splm()} and \code{size = 60} for \code{spglm()}.
 #' @param simulate_covparams For \code{splm()} model objects, whether to also
 #'   simulate new covariance parameters for each sample. \code{simulate_covparams}
 #'   requires \code{object$vcov$cov} to be specified during model fitting by
@@ -156,7 +159,10 @@
 #'   conditional simulations are returned for each fixed effect
 #'   (i.e., element of \code{coef(object)}. If \code{"object"} is in \code{output},
 #'   observed responses (\code{splm()} or \code{spautor()}) or fitted link values (including offsets)
-#'   (\code{spglm()} or \code{spgautor()}) are returned once for each row of \code{newdata}.
+#'   (\code{spglm()} or \code{spgautor()}) are returned in observed-row order,
+#'   repeated across simulation columns. If \code{"latent"} is requested, the
+#'   actual observed link-scale draws are returned, with offsets included.
+#'  \code{type} affects only \code{newdata}.
 #'   For example, \code{c("newdata", "beta")} returns
 #'   the conditional simulations both for \code{newdata} and for the
 #'   fixed effects. If \code{"cov"}/\code{"spcov"}/\code{"randcov"} is in
@@ -173,7 +179,10 @@
 #'   (given the base sample). Parallelization generally further speeds up
 #'   computations. When \code{local$approximation} is \code{"vecchia"}, no such
 #'   independence assumption is made -- see the \code{local} argument above
-#'   for details.
+#'   for details. For spatial generalized linear models, the latent values are
+#'   drawn sequentially, conditioning on local sites in the neighborhood and
+#'   previously drawn latent site locations. Thus the neighborhood is at most
+#'   \code{2 * size}.
 #'
 #' @return If \code{output = "newdata"}, an a x b matrix of conditional simulations
 #'   for each row in \code{newdata}, where a is the
@@ -182,8 +191,10 @@
 #'   element in \code{coef(object)}, where p is the
 #'   number of fixed effects and b is the number of samples.
 #'   If \code{output = "object"}, an n x b matrix of observed responses
-#'   (\code{splm()} and \code{spautor()}) or fitted link values including offsets
-#'   (\code{spglm()} and \code{spgautor()}), where n is the number of rows in \code{data} and b is the number of samples.
+#'   (\code{splm()} and \code{spautor()}) or fitted link values (including offsets)
+#'   (\code{spglm()} and \code{spgautor()}), where n is the number of observed rows and b is the number of samples.
+#'   \code{output = "latent"} returns an n x b matrix of simulated observed
+#'   link values (including offsets).
 #'   If \code{output = "cov"}/\code{"spcov"}/\code{"randcov"}
 #'   (\code{simulate_covparams = TRUE} only), a (covariance parameter) x b
 #'   matrix of the of conditoinal simulations for each covariance parameter, where b is the
@@ -334,10 +345,8 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
     new_resid <- sweep(-1 * new_fitted, 1, y, "+")
 
     if (local_list$approximation == "vecchia") {
-      # vecchia: every newdata location is simulated sequentially, conditional
-      # on ALL observed data (not subsampled, see get_conditional_vecchia())
-      # plus every earlier-simulated newdata location, so there is no base/block
-      # splitting step here at all
+      # Vecchia selects a neighborhood from observed and earlier prediction
+      # residuals at each site; there is no shared-base/block split.
       new_val <- get_conditional_vecchia(object, newdata, new_resid, local_list, samples)
     } else {
       # low-rank, part 1: restrict the "observed" data conditioned on to a
@@ -421,22 +430,29 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
 #' @export
 conditional.spglm <- function(object, newdata, output = "newdata", type = c("link", "response", "new"), samples = 1000, local, newdata_size, ...) {
 
+  if (!is.numeric(samples) || length(samples) != 1L || !is.finite(samples) || samples < 1 || samples != floor(samples)) {
+    stop("samples must be a positive integer.", call. = FALSE)
+  }
+
   if (missing(local)) {
     local <- NULL
   }
 
   if ("all" %in% output) {
-    output <- c("newdata", "beta", "object")
+    output <- c("newdata", "beta", "object", if ("latent" %in% output) "latent")
   }
-  if (any(!output %in% c("newdata", "beta", "object"))) {
-    stop("output must be \"newdata\", \"beta\", \"object\", or \"all\".", call. = FALSE)
+  if (!is.character(output) || !length(output) || anyNA(output) || any(!output %in% c("newdata", "beta", "object", "latent"))) {
+    stop("output must be \"newdata\", \"beta\", \"object\", \"latent\", or \"all\".", call. = FALSE)
   }
 
   type <- match.arg(type)
 
-  # error if newdata missing from arguments and object
+  # Latent-only calls need no prediction data; explicit prediction calls retain
+  # the existing missing-response/newdata behavior.
   if (missing(newdata)) {
-    if (is.null(object$newdata)) {
+    if (!"newdata" %in% output) {
+      newdata <- NULL
+    } else if (is.null(object$newdata)) {
       stop("No missing data to predict. newdata must be specified in the newdata argument or object$newdata must be non-NULL.", call. = FALSE)
     } else {
       newdata <- object$newdata
@@ -461,15 +477,18 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
     names(newdata)[names(newdata) == ".xcoord"] <- object$xcoord
     names(newdata)[names(newdata) == ".ycoord"] <- object$ycoord
   }
-  if (object$dim_coords == 1) newdata[[object$ycoord]] <- 0
-  check_newdata_coords(newdata, object$xcoord, object$ycoord)
+  if (NROW(newdata)) {
+    if (object$dim_coords == 1) newdata[[object$ycoord]] <- 0
+    check_newdata_coords(newdata, object$xcoord, object$ycoord)
+  }
   local_list <- get_local_list_conditional(local, object, newdata)
   exact <- local_list$exact
   lowrank <- !exact && local_list$approximation == "low-rank"
   if (exact && object$n > 10000) {
     message("Exact spatial generalized linear model conditional simulation requires a dense observed latent precision factorization. See Details.")
   }
-  newdata_model_list <- get_newdata_model_matrix(object, newdata)
+  newdata_model_list <- if (NROW(newdata)) get_newdata_model_matrix(object, newdata) else
+    list(newdata = object$obdata[FALSE, , drop = FALSE], newdata_model = model.matrix(object)[FALSE, , drop = FALSE], offset = NULL)
   newdata <- newdata_model_list$newdata
   newdata_model <- newdata_model_list$newdata_model
   offset <- newdata_model_list$offset
@@ -481,21 +500,32 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   attr(newdata_model, "contrasts") <- attr_contrasts
 
   if (lowrank) {
-    draws <- get_conditional_glm_lowrank(object, newdata, newdata_model, local_list, samples)
+    if ("latent" %in% output && length(local_list$index$base) != NROW(model.matrix(object))) {
+      stop("Full latent output is unavailable for a reduced low-rank base; only base latent values are drawn.", call. = FALSE)
+    }
+    draws <- get_conditional_glm_lowrank(object, newdata, newdata_model, local_list, samples, latent = "latent" %in% output)
     new_val <- draws$newdata
     new_betahat <- draws$beta
-  } else if (local_list$approximation == "vecchia") {
-    draws <- get_conditional_vecchia_glm(object, newdata, newdata_model, local_list, samples)
+  } else if (!exact && local_list$approximation == "vecchia") {
+    draws <- get_conditional_vecchia_glm(object, newdata, newdata_model, local_list, samples, latent = "latent" %in% output)
     new_val <- draws$newdata
     new_betahat <- draws$beta
   } else {
     joint <- get_conditional_glm_joint(object)
     draws <- draw_conditional_glm_joint(joint, samples, residual = TRUE)
     new_betahat <- draws$beta
-    new_val <- get_conditional_new_from_base_adjust_glm(list(newdata = newdata),
-      object, draws$residual, joint$cov_lowchol, samples)
-    new_val <- newdata_model %*% new_betahat + new_val
-    rm(draws, joint)
+    new_val <- if (NROW(newdata)) newdata_model %*% new_betahat +
+      get_conditional_new_from_base_adjust_glm(list(newdata = newdata), object, draws$residual, joint$cov_lowchol, samples) else matrix(numeric(), 0, samples)
+    if ("latent" %in% output) draws$latent <- draws$residual + model.matrix(object) %*% new_betahat
+    rm(joint)
+  }
+
+  # The latent output is on the link scale but needs offsets added back.
+  latent_val <- if ("latent" %in% output) draws$latent else NULL
+  if (!is.null(latent_val)) {
+    observed_offset <- model.offset(model.frame(object))
+    if (!is.null(observed_offset)) latent_val <- sweep(latent_val, 1L, observed_offset, "+")
+    rownames(latent_val) <- rownames(model.matrix(object))
   }
 
   if (!is.null(offset)) {
@@ -504,11 +534,11 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
 
   # new_val holds link-scale draws up to this point; back-transform to the
   # response scale, or simulate a genuinely new observation, only if asked
-  if (type != "link") {
+  if (type != "link" && NROW(new_val)) {
     new_val <- invlink_conditional(new_val, type, dispersion = as.vector(coef(object, type = "dispersion")), family = object$family, newdata_size)
   }
 
-  val <- list(newdata = new_val, beta = new_betahat, object = base_val_w)
+  val <- list(newdata = new_val, beta = new_betahat, object = base_val_w, latent = latent_val)
   if (length(output) == 1) {
     return(val[[output]])
   } else {

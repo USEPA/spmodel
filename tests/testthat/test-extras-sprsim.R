@@ -21,7 +21,7 @@ test_that("sprnorm() local$approximation = 'vecchia' works", {
   R <- 4000
   set.seed(1)
   sim_exact <- sprnorm(spcov_params_val, samples = R, data = exdata, xcoord = xcoord, ycoord = ycoord, local = FALSE)
-  set.seed(2)
+  set.seed(1)
   sim_vecchia_all <- sprnorm(spcov_params_val, samples = R, data = exdata, xcoord = xcoord, ycoord = ycoord, local = list(approximation = "vecchia", method = "all"))
   expect_equal(rowMeans(sim_exact), rowMeans(sim_vecchia_all), tolerance = 0.1)
   expect_equal(apply(sim_exact, 1, sd), apply(sim_vecchia_all, 1, sd), tolerance = 0.15)
@@ -38,9 +38,32 @@ test_that("sprnorm() local$approximation = 'vecchia' works", {
   expect_true(all(is.finite(sim_re)))
 
   # size_base/size_new/reorder_base/kmeans_new (renamed from reorder/kmeans)
-  # all still work under the default ("low-rank") approximation
-  expect_vector(sprnorm(spcov_params_val, samples = 20, data = exdata, xcoord = xcoord, ycoord = ycoord, local = list(size_base = 50, size_new = 20, reorder_base = "random", kmeans_new = FALSE))[, 1])
+  # all still work with an explicit low-rank approximation
+  expect_vector(sprnorm(spcov_params_val, samples = 20, data = exdata, xcoord = xcoord, ycoord = ycoord, local = list(approximation = "low-rank", size_base = 50, size_new = 20, reorder_base = "random", kmeans_new = FALSE))[, 1])
 
   # invalid local$approximation errors informatively
   expect_error(sprnorm(spcov_params_val, data = exdata, xcoord = xcoord, ycoord = ycoord, local = list(approximation = "bogus")), "local\\$approximation must be")
+})
+
+test_that("all spatial simulation families default to Vecchia for local simulation", {
+  data <- data.frame(cx = seq(0, 1, length.out = 12), cy = rep(c(0, .3, .1), 4))
+  params <- spcov_params("exponential", de = .4, ie = .2, range = .3)
+  internal <- data.frame(...xcoord... = data$cx, ...ycoord... = data$cy)
+  for (local in list(TRUE, list())) {
+    settings <- get_local_list_simulation(local, 12, internal)
+    expect_identical(settings$approximation, "vecchia")
+    expect_equal(settings$size, 30)
+    for (sim in list(sprnorm, sprpois, sprbinom, sprnbinom, sprbeta, sprgamma, sprinvgauss)) {
+      set.seed(1)
+      default <- sim(params, data = data, xcoord = cx, ycoord = cy, samples = 3, local = local)
+      set.seed(1)
+      explicit <- sim(params, data = data, xcoord = cx, ycoord = cy, samples = 3,
+        local = list(approximation = "vecchia"))
+      expect_identical(default, explicit)
+    }
+  }
+  expect_message(settings <- get_local_list_simulation(NULL, 5001, internal), "local = TRUE")
+  expect_identical(settings$approximation, "vecchia")
+  expect_identical(get_local_list_simulation(FALSE, 12, internal)$method_base, "all")
+  expect_error(get_local_list_simulation(list(size_base = 5), 12, internal), "approximation.*low-rank")
 })

@@ -63,10 +63,10 @@ factor_conditional_glm_block <- function(covariance, cov_lowchol_base) {
 #' @param samples Number of draws.
 #' @return Matrices of coefficients and offset-free prediction latent values.
 #' @noRd
-get_conditional_glm_lowrank <- function(object, newdata, Xnew, local_list, samples) {
+get_conditional_glm_lowrank <- function(object, newdata, Xnew, local_list, samples, latent = FALSE) {
   chunk_size <- get_conditional_glm_chunk_size(local_list)
   base <- get_conditional_glm_base(object, local_list$index$base)
-  index <- if (local_list$method_new == "all") list(seq_len(NROW(newdata))) else local_list$index$new
+  index <- if (!NROW(newdata)) list() else if (local_list$method_new == "all") list(seq_len(NROW(newdata))) else local_list$index$new
   if (local_list$parallel) {
     cl <- parallel::makeCluster(local_list$ncores)
     on.exit(parallel::stopCluster(cl), add = TRUE)
@@ -87,7 +87,7 @@ get_conditional_glm_lowrank <- function(object, newdata, Xnew, local_list, sampl
     residual[, columns] <- sweep(residual_weights %*% delta + z, 1L, residual_mean, "+")
   }
   width <- if (local_list$parallel) local_list$ncores else 1L
-  for (first in seq.int(1L, length(index), by = width)) {
+  for (first in if (length(index)) seq.int(1L, length(index), by = width) else integer()) {
     batch <- seq.int(first, min(length(index), first + width - 1L))
     if (local_list$parallel) {
       # Bound worker payloads and avoid serializing the fitted formula environment.
@@ -113,7 +113,14 @@ get_conditional_glm_lowrank <- function(object, newdata, Xnew, local_list, sampl
     }
     rm(blocks, block)
   }
-  list(beta = beta, newdata = new_val)
+  observed <- NULL
+  if (latent) {
+    # Recover the base draw from its whitened residual.
+    rows <- local_list$index$base
+    observed <- matrix(NA_real_, NROW(model.matrix(object)), samples)
+    observed[rows, ] <- base$cov_lowchol_base %*% residual + model.matrix(object)[rows, , drop = FALSE] %*% beta
+  }
+  list(beta = beta, newdata = new_val, latent = observed)
 }
 
 #' Resolve the draw chunk size for local GLM simulation

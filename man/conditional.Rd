@@ -58,8 +58,12 @@ from the geometry of \code{newdata}. If omitted, missing data from the
 fitted model object are used.}
 
 \item{output}{The output type, which can be any subset of
-\code{c("newdata", "beta", "object")}. If \code{simulate_covparams = TRUE},
+\code{c("newdata", "beta", "object")} (\code{"all"} is shorthand for this full vector).
+If \code{simulate_covparams = TRUE},
 the output type can also be any subset of \code{c("cov", "spcov", "randcov")}.
+For generalized linear models, \code{"latent"} returns simulated observed-site
+link values, including offsets. It is not available for the \code{"low-rank"} approximation
+unless \code{method_base = "all"}.
 The default is \code{"newdata"}. See Details for more.}
 
 \item{samples}{The number of conditional simulations. The default is
@@ -75,7 +79,7 @@ non-missing observations in \code{data} or \code{newdata}) exceeds 5,000,
 If \code{FALSE}, no big data approximation is implemented.
 If a list is provided, \code{local$approximation} selects which big data
 approximation is used and can take on the values
-\code{"low-rank"} or \code{"vecchia"}:
+\code{"low-rank"} or \code{"vecchia"} (the default):
 \itemize{
 \item \code{"low-rank"}: a base sample is drawn from the observed
 data, \code{newdata} is split into blocks, and each block is
@@ -129,8 +133,7 @@ parallel package is automatically used. The default is \code{FALSE}.
 \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
 parallelize over. The default is the number of available cores on your machine.
 }
-If \code{local$approximation} is \code{"low-rank"} (either explicitly or via
-\code{local = TRUE}), defaults for the remaining \code{"low-rank"}
+If \code{local$approximation} is \code{"low-rank"}, defaults for the remaining \code{"low-rank"}
 settings are chosen such that \code{local} is transformed into
 \code{list(approximation = "low-rank", method_base = "base", size_base = 5000,
       reorder_base = "grts", method_new = "base", size_new = 1000,
@@ -152,32 +155,32 @@ depends on previous ones.
 location's conditioning set once it exceeds \code{size} candidates
 (all observed data plus every already-simulated \code{newdata}
 location). Values are \code{"all"}, \code{"distance"}
-(the \code{size} nearest candidates), or \code{"covariance"} (the
-\code{size} candidates with the highest covariance, in absolute
-value, with the location being simulated). Same convention as
-\code{predict()}'s own \code{local$method}. The default is
-\code{"covariance"}. \code{method = "all"} is very computationally
-intensive and \code{local = FALSE} should almost always be used instead.
-(\code{method = "all"} primarily exists for numerical verification).
+(the \code{size} nearest eligible candidates), or \code{"covariance"}
+(the \code{size} candidates with the highest absolute model covariance,
+including random effects and partition factors). Without
+random effects or partition factors, distance and covariance give the
+same ranking for covariance functions decreasing with distance.
+The default is
+\code{"covariance"}. For both linear and generalized linear models,
+\code{method = "all"} uses the exact path, as with \code{local = FALSE}.
 \item \code{size}: The number of neighbors used when \code{method}
-is \code{"distance"} or \code{"covariance"}. The default is 30.
+is \code{"distance"} or \code{"covariance"}. The default is 30 for
+\code{splm()} and 60 for \code{spglm()}.
 \item \code{ordering}: The order \code{newdata} locations are
 simulated in -- \code{"maxmin"}, \code{"middleout"},
 \code{"outsidein"}, \code{"coordinate"}, \code{"grts"},
 \code{"random"}, or \code{"none"} (same options as
 \code{decorrelate()}'s \code{ordering} argument). The default is
-\code{"maxmin"}.
+\code{"maxmin"}. For generalized linear models, the same ordering
+method is applied separately to the observed latent sites and \code{newdata}.
 \item \code{chunk_size}: For \code{spglm()} model objects, the
 maximum number of \code{samples} columns processed simultaneously.
-The default is 1,000. \code{chunk_size} is purely computational and does not affect corretness.
+The default is 1,000. \code{chunk_size} is purely computational and does not affect correctness.
 }
 }
-When \code{local = TRUE}, \code{local} is transformed into
-\code{list(approximation = "low-rank", method_base = "base", size_base = 5000,
-      reorder_base = "grts", method_new = "base", size_new = 1000,
-      reorder_new = "random", kmeans_new = TRUE, parallel = FALSE)}.
-When \code{local} is a list, at least one list element must be provided to
-initialize default arguments for the other list elements. See Details for more.}
+With \code{local = TRUE} or \code{local = list()}, the default is
+\code{list(approximation = "vecchia", method = "covariance", ordering = "maxmin")},
+with \code{size = 30} for \code{splm()} and \code{size = 60} for \code{spglm()}.}
 
 \item{simulate_covparams}{For \code{splm()} model objects, whether to also
 simulate new covariance parameters for each sample. \code{simulate_covparams}
@@ -207,8 +210,10 @@ If \code{output = "beta"}, an p x b matrix of conditional simulations for each
 element in \code{coef(object)}, where p is the
 number of fixed effects and b is the number of samples.
 If \code{output = "object"}, an n x b matrix of observed responses
-(\code{splm()} and \code{spautor()}) or fitted link values including offsets
-(\code{spglm()} and \code{spgautor()}), where n is the number of rows in \code{data} and b is the number of samples.
+(\code{splm()} and \code{spautor()}) or fitted link values (including offsets)
+(\code{spglm()} and \code{spgautor()}), where n is the number of observed rows and b is the number of samples.
+\code{output = "latent"} returns an n x b matrix of simulated observed
+link values (including offsets).
 If \code{output = "cov"}/\code{"spcov"}/\code{"randcov"}
 (\code{simulate_covparams = TRUE} only), a (covariance parameter) x b
 matrix of the of conditoinal simulations for each covariance parameter, where b is the
@@ -232,7 +237,10 @@ If \code{"beta"} is in \code{output},
 conditional simulations are returned for each fixed effect
 (i.e., element of \code{coef(object)}. If \code{"object"} is in \code{output},
 observed responses (\code{splm()} or \code{spautor()}) or fitted link values (including offsets)
-(\code{spglm()} or \code{spgautor()}) are returned once for each row of \code{newdata}.
+(\code{spglm()} or \code{spgautor()}) are returned in observed-row order,
+repeated across simulation columns. If \code{"latent"} is requested, the
+actual observed link-scale draws are returned, with offsets included.
+\code{type} affects only \code{newdata}.
 For example, \code{c("newdata", "beta")} returns
 the conditional simulations both for \code{newdata} and for the
 fixed effects. If \code{"cov"}/\code{"spcov"}/\code{"randcov"} is in
@@ -249,7 +257,10 @@ observations from distinct blocks are assumed conditionally independent
 (given the base sample). Parallelization generally further speeds up
 computations. When \code{local$approximation} is \code{"vecchia"}, no such
 independence assumption is made -- see the \code{local} argument above
-for details.
+for details. For spatial generalized linear models, the latent values are
+drawn sequentially, conditioning on local sites in the neighborhood and
+previously drawn latent site locations. Thus the neighborhood is at most
+\code{2 * size}.
 }
 \examples{
 set.seed(0)

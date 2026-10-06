@@ -1309,6 +1309,8 @@ As previously mentioned, fitting big data spatial generalized linear models requ
 
 ## Simulation Functions (`sprpois()`, `sprnbinom()`, `sprbinom()`, `sprbeta()`, `sprgamma()`, `sprinvgauss()`) {#sec:sim-fns}
 
+For spatial simulation via `sprnorm()` and these family functions, `local = TRUE` defaults to Vecchia with 30 neighbors. The family functions apply the same spatial simulation to the latent mean, then generate responses conditionally independently given that latent mean. Low-rank simulation is selected explicitly with `approximation = "low-rank"`.
+
 Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian random variables can be simulated using `sprpois()`, `sprnbinom()`, `sprbinom()`, `sprbeta()`, `sprgamma()`, and `sprinvgauss()`, respectively. All of these functions work similarly. First, relevant arguments are passed to `sprnorm()` to simulate $\mathbf{w}$ on the link scale. Then using $\mathbf{w}$ and the dispersion parameter (when required), relevant generalized linear model random variables are simulated independently for each $w_i$. Note that the dispersion parameter is not required for `sprpois()` and `sprbinom()`.
 
 ## `varcomp()` {#sec:varcomp-glm}
@@ -1693,7 +1695,7 @@ Step 1 accounts for parameter uncertainty, while step 2 subtracts the sampled me
 
 By the law of total variance, this correctly propagates $\hat{\boldsymbol{\beta}}$'s own estimation uncertainty into the simulated draws without double-counting: step 2's conditional covariance ignores uncertainty about $\hat{\boldsymbol{\beta}}$ (no additive correction is made for $\hat{\boldsymbol{\beta}}$ uncertainty, omitting the $\dot{\boldsymbol{\Sigma}}_u$'s $\mathbf{Q}(\mathbf{X}_o^\top\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X}_o)^{-1}\mathbf{Q}^\top$ term from \eqref{eq:blup_cov}) because this uncertainty is already accommodated through resampling $\boldsymbol{\beta}_b$ in step 1.
 
-For both linear and generalized linear models, the covariance square roots below are implemented using Cholesky factors. For example, if $\hat{\boldsymbol{\Sigma}}_u^*=\mathbf{L}\mathbf{L}^\top$ (where $\mathbf{L} is lower triangular), use $\mathbf{L}\mathbf{e}_b$ for $\hat{\boldsymbol{\Sigma}}_u^{*1/2}\mathbf{e}_b$, whch implies the correct covariance but is more computationally efficient than computing the square root.
+For both linear and generalized linear models, the covariance square roots below are implemented using Cholesky factors. For example, if $\hat{\boldsymbol{\Sigma}}_u^*=\mathbf{L}\mathbf{L}^\top$ (where $\mathbf{L}$ is lower triangular), use $\mathbf{L}\mathbf{e}_b$ for $\hat{\boldsymbol{\Sigma}}_u^{*1/2}\mathbf{e}_b$, which implies the correct covariance but is more computationally efficient than computing the square root.
 
 ## `splm()` and `spautor()` {#sec:conditional-splm}
 
@@ -1707,10 +1709,12 @@ With offsets, replace $\mathbf{y}_o$ by $\mathbf{y}_o-\mathbf{o}_o$ in \eqref{eq
 
 ### Big Data: Low-Rank and Vecchia Approximations {#sec:conditional-bigdata-splm}
 
+For conditional simulation, `local = TRUE` selects Vecchia with 30 neighbors (`splm()`) or 60 neighbors (`spglm()`). Low-rank requires `approximation = "low-rank"`. For both linear and generalized linear models, Vecchia's `method = "all"` directly uses the exact path (`local = FALSE`) rather than sequentially factoring full neighborhoods.
+
 The `local` argument to `conditional()` approximates the residual simulation in step 2 (`splm()` only). The draw of $\boldsymbol{\beta}_b$ comes first and is shared across all prediction locations. Both methods simulate spatial residuals conditional on $\mathbf{y}_o-\mathbf{X}_o\boldsymbol{\beta}_b$, then add $\mathbf{X}_u\boldsymbol{\beta}_b$ to obtain $\mathbf{y}_{u,b}$:
 
 - Low-rank: evaluate \eqref{eq:cond_splm} using the base rows of $\mathbf{y}_o$ and $\mathbf{X}_o$ and the corresponding submatrices of $\hat{\boldsymbol{\Sigma}}_o$ and $\hat{\boldsymbol{\Sigma}}_{uo}$. The base is a size-`size_base` spatially representative subsample of the observed locations. `newdata` may also be split into blocks, each simulated conditional on the base residuals $\mathbf{y}_o-\mathbf{X}_o\boldsymbol{\beta}_b$. The blocks' additional spatial errors are independent given the observed data and shared coefficient draw.
-- Vecchia: simulate each new location conditional on the observed residuals $\mathbf{y}_o-\mathbf{X}_o\boldsymbol{\beta}_b$ and previously simulated new residuals $\mathbf{y}_{u,b}-\mathbf{X}_u\boldsymbol{\beta}_b$. The conditioning set can include all available locations (`method = "all"`) or be restricted to the `size` nearest or most correlated neighbors. With all locations, this gives the same joint distribution as `local = FALSE`.
+- Vecchia: simulate each new location conditional on the observed residuals $\mathbf{y}_o-\mathbf{X}_o\boldsymbol{\beta}_b$ and previously simulated new residuals $\mathbf{y}_{u,b}-\mathbf{X}_u\boldsymbol{\beta}_b$, restricted to the `size` nearest or most correlated neighbors. Without this restriction, the sequential construction gives the same joint distribution as `local = FALSE`; the software uses that exact path directly for `method = "all"`.
 
 Low-rank reduces the size of the observed covariance factorization by selecting a base. Vecchia instead conditions sequentially on small neighbor sets when truncated. The order of new locations is set by `ordering` (e.g., `"maxmin"`; see the Spatial Decorrelation Transformation section). Each new residual can depend on earlier draws, so Vecchia is not as easily parallelized as low-rank prediction blocks [@katzfuss2024GPvecchia].
 
@@ -1837,7 +1841,29 @@ With offsets, $\hat{\mathbf{w}}_o$ and $\mathbf{w}_{o,b}$ exclude observed offse
 
 ### Big Data: Low-Rank and Vecchia Approximations {#sec:conditional-bigdata-spglm}
 
-For large-data approximations (`spglm()` only), replace $\mathbf{D}_o,\hat{\boldsymbol{\Sigma}}_o,\mathbf{X}_o,\hat{\mathbf{w}}_o$ and $\hat{\boldsymbol{\Sigma}}_{uo}$ with the corresponding quantities computed from only observations in the respective local neighborhood (or base sample for low-rank), then recompute $\mathbf{G}_{o\mid\beta}$ and $\mathbf{M}_o$ from those reduced matrices. The quantities $\hat{\boldsymbol{\beta}}$ and $\mathbf{C}_{adj}$ are taken from the full fitted model (i.e., not recomputed for each local neighborhood). Once the residuals $\mathbf{r}_{o,b}$ are constructed, the low-rank and Vecchia approximations are applied in the same manner as for spatial linear models (`splm()`).
+For large-data approximations (`spglm()` only), the coefficient draw is shared across all sites, using $\hat{\boldsymbol{\beta}}$ and $\mathbf{C}_{adj}$ from the full fitted model. Low-rank replaces $\mathbf{D}_o,\hat{\boldsymbol{\Sigma}}_o,\mathbf{X}_o,\hat{\mathbf{w}}_o$ and $\hat{\boldsymbol{\Sigma}}_{uo}$ with their base-sample quantities, then recomputes $\mathbf{G}_{o\mid\beta}$ and $\mathbf{M}_o$. Draw the base latent values, form their residuals, and apply the low-rank residual simulation described for `splm()`. The base draw is shared across prediction blocks; the blocks' additional errors are conditionally independent.
+
+Vecchia first simulates every observed latent value sequentially, using the requested `ordering` method (default `"maxmin"`). The same method orders `newdata` separately, so `"grts"`, for example, applies to both sets of sites. For observed site $i$, let $N_i$ contain up to `size` previously simulated latent neighbors and $K_i$ contain up to `size` nearby response sites, including $i$. Set $A_i=N_i\cup K_i$. The response sites need not have been simulated, but the realized data can still inform latent predictions through the Hessian. For $A=A_i$, substitute the neighborhood quantities into the exact formulas to obtain
+$$
+(-\mathbf{G}_A)^{-1} = \mathbf{V}_A=(\hat{\boldsymbol{\Sigma}}_A^{-1}-\mathbf{D}_A)^{-1},\qquad
+\mathbf{M}_A=\mathbf{V}_A\hat{\boldsymbol{\Sigma}}_A^{-1}\mathbf{X}_A.
+$$
+For both observed neighborhoods and prediction residuals, `method = "covariance"` ranks absolute model covariances, including random effects; `method = "distance"` ranks distances.
+
+There are two preparation steps:
+
+1. Construct the local normal (i.e., Gaussian) distribution with mean $\mathbf{m}_A(\boldsymbol{\beta}_b)=\hat{\mathbf{w}}_A+\mathbf{M}_A(\boldsymbol{\beta}_b-\hat{\boldsymbol{\beta}})$ and covariance $\mathbf{V}_A$.
+2. Use the multivariate normal conditioning formula to condition this normal distribution on the previously realized $\mathbf{w}_{N_i,b}$. With $\mathbf{g}_i=(\mathbf{V}_A)_{iN_i}(\mathbf{V}_A)_{N_iN_i}^{-1}$, draw only
+
+$$
+w_{i,b}=(\mathbf{m}_A)_i+\mathbf{g}_i\{\mathbf{w}_{N_i,b}-(\mathbf{m}_A)_{N_i}\}
++\{(\mathbf{V}_A)_{ii}-\mathbf{g}_i(\mathbf{V}_A)_{N_i i}\}^{1/2}e_{i,b}.
+$$
+All blocks come from the same normal distrubition given the neighborhood $A$; sites without realized latent draws are marginalized over. These matrices can be prepared once and reused across draws.
+
+After drawing the observed field, form $\mathbf{r}_{o,b}=\mathbf{w}_{o,b}-\mathbf{X}_o\boldsymbol{\beta}_b$. Treat those residuals as known and apply the Vecchia prediction-residual step described for `splm()`, then add the sampled trend and offsets. The default `size` is 60 for `spglm()` (30 for `splm()`); the observed union contains at most $2\,\texttt{size}$ sites (if the nearest latent sites are disjoint from the nearest observed sites). With all conditioning sites at both stages, this recovers the exact path and hence, `method = "all"` directly uses the exact path (for computational efficiency, rather than iteratively conditioning).
+
+For exact and Vecchia conditional simulation, `output = "latent"` returns these observed latent draws with observed offsets added, on the link scale, and uses them for prediction. Latent-only output does not actually `newdata` (though note that `type` controls only the prediction output). Reduced low-rank bases cannot return a complete observed latent field because only a subset of the observed sites are used to generate conditional simulations. `spgautor()` uses the exact construction and supports the same latent output (i.e., it has no big data local path).
 
 # The Empirical Semivariogram and Autocovariance (`esv()` and `eacf()`) {#sec:esv}
 

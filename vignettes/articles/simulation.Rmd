@@ -71,7 +71,7 @@ ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
 
 # Big Data Approximations
 
-Simulating exact spatially correlated data requires factoring an $n \times n$ covariance matrix, which becomes computationally prohibitive for large $n$. `sprnorm()`'s `local` argument enables the same kind of big data approximation used by `conditional()` -- a low-rank approximation and a Vecchia approximation are available. The current default when `local = TRUE` is the low-rank approximation.
+Simulating exact spatially correlated data requires factoring an $n \times n$ covariance matrix, which becomes computationally prohibitive for large $n$. `sprnorm()`'s `local` argument enables the same kind of big data approximation used by `conditional()` -- a low-rank approximation and a Vecchia approximation are available. The current default when `local = TRUE` is the Vecchia approximation with 30 neighbors.
 
 First we generate coordinates for 10,000 locations at which we desire simulations:
 
@@ -108,7 +108,7 @@ Each block above is simulated independently (optionally in parallel) conditional
 
 Now we simulate at the 10,000 locations using the low-rank approximation and visualize the sample:
 ```{r}
-sim_dat$val <- sprnorm(params, data = sim_dat, xcoord = xc, ycoord = yc, local = TRUE)
+sim_dat$val <- sprnorm(params, data = sim_dat, xcoord = xc, ycoord = yc, local = list(approximation = "low-rank"))
 
 ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
   geom_point(size = 0.8) +
@@ -118,7 +118,7 @@ ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
 
 ## The Vecchia Approximation
 
-An alternative (`local$approximation = "vecchia"`) simulates one location at a time, each conditional on some number of previously-simulated locations (rather than a single, shared base sample). This makes no assumption of conditional independence across blocks. This is more accurate than the low-rank approximation, at the cost of being inherently sequential (and therefore not parallelizable). Because of this, the Vecchia approximation is generally slower than the low-rank approximation at large $n$. Now we simulate 10,000 locations using the Vecchia approximation and visualize the sample:
+The default (`local$approximation = "vecchia"`) simulates one location at a time, each conditional on selected previously simulated locations. This makes no assumption of conditional independence across blocks. Accuracy and runtime depend on the covariance, neighborhood size, and ordering. Now we simulate 10,000 locations using the Vecchia approximation and visualize the sample:
 ```{r}
 sim_dat$val <- sprnorm(
   params,

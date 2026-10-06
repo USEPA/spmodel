@@ -205,7 +205,7 @@ cond_vecchia <- conditional(bigmod, newdata = big_newdata, local = list(approxim
 dim(cond_vecchia)
 ```
 
-As with `predict()` and `sprnorm()`, `local = TRUE` is shorthand for the default implementation of the big data approach, which currently uses the low-rank approximation.
+For `conditional()`, `local = TRUE` is shorthand for the default implementation of the big data approach, which is Vecchia with 30 neighbors (`splm()`) or 60 neighbors (`spglm()`).
 
 # References {.unnumbered}
 

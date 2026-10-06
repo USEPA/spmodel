@@ -6,6 +6,18 @@ conditional.spgautor <- function(object, newdata, output = "newdata",
   output <- check_conditional_areal(object, output, samples, list(...))
   type <- match.arg(type)
   if (missing(newdata_size)) newdata_size <- NULL
+  # Observed-only latent output doesn't need newdata (covmatrix already conditions upon newdata's locations).
+  if ("latent" %in% output && !"newdata" %in% output) {
+    joint <- get_conditional_glm_joint(object, cov_lowchol = t(chol(covmatrix(object))))
+    draws <- draw_conditional_glm_joint(joint, samples)
+    latent <- draws$w
+    offset <- model.offset(model.frame(object))
+    if (!is.null(offset)) latent <- sweep(latent, 1L, offset, "+")
+    rownames(latent) <- as.character(object$observed_index)
+    val <- list(latent = latent, beta = draws$beta)
+    if ("object" %in% output) val$object <- conditional_areal_snapshot(object, fitted(object, type = "link"), samples)
+    return(if (length(output) == 1L) val[[output]] else val[output])
+  }
   context <- get_prediction_object_spgautor(object, newdata, dispersion = NULL,
     newdata_size = newdata_size, local = FALSE)
   newdata_size <- context$newdata_size
@@ -32,5 +44,13 @@ conditional.spgautor <- function(object, newdata, output = "newdata",
     new_val <- invlink_conditional(new_val, type, context$dispersion_params_val,
       object$family, newdata_size)
   }
-  conditional_areal_output(object, new_val, draws$beta, observed, output, samples)
+  # Recover the mean, add offsets for output.
+  latent <- NULL
+  if ("latent" %in% output) {
+    latent <- draws$residual + model.matrix(object) %*% draws$beta
+    offset <- model.offset(model.frame(object))
+    if (!is.null(offset)) latent <- sweep(latent, 1L, offset, "+")
+    rownames(latent) <- as.character(object$observed_index)
+  }
+  conditional_areal_output(object, new_val, draws$beta, observed, output, samples, latent)
 }

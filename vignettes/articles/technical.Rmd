@@ -1845,7 +1845,7 @@ For large-data approximations (`spglm()` only), the coefficient draw is shared a
 
 Vecchia first simulates every observed latent value sequentially, using the requested `ordering` method (default `"maxmin"`). The same method orders `newdata` separately, so `"grts"`, for example, applies to both sets of sites. For observed site $i$, let $N_i$ contain up to `size` previously simulated latent neighbors and $K_i$ contain up to `size` nearby response sites, including $i$. Set $A_i=N_i\cup K_i$. The response sites need not have been simulated, but the realized data can still inform latent predictions through the Hessian. For $A=A_i$, substitute the neighborhood quantities into the exact formulas to obtain
 $$
-(-\mathbf{G}_A)^{-1} = \mathbf{V}_A=(\hat{\boldsymbol{\Sigma}}_A^{-1}-\mathbf{D}_A)^{-1},\qquad
+(-\mathbf{G}_{A \mid \beta})^{-1} = \mathbf{V}_A=(\hat{\boldsymbol{\Sigma}}_A^{-1}-\mathbf{D}_A)^{-1},\qquad
 \mathbf{M}_A=\mathbf{V}_A\hat{\boldsymbol{\Sigma}}_A^{-1}\mathbf{X}_A.
 $$
 For both observed neighborhoods and prediction residuals, `method = "covariance"` ranks absolute model covariances, including random effects; `method = "distance"` ranks distances.
@@ -1863,7 +1863,7 @@ All blocks come from the same normal distrubition given the neighborhood $A$; si
 
 After drawing the observed field, form $\mathbf{r}_{o,b}=\mathbf{w}_{o,b}-\mathbf{X}_o\boldsymbol{\beta}_b$. Treat those residuals as known and apply the Vecchia prediction-residual step described for `splm()`, then add the sampled trend and offsets. The default `size` is 60 for `spglm()` (30 for `splm()`); the observed union contains at most $2\,\texttt{size}$ sites (if the nearest latent sites are disjoint from the nearest observed sites). With all conditioning sites at both stages, this recovers the exact path and hence, `method = "all"` directly uses the exact path (for computational efficiency, rather than iteratively conditioning).
 
-For exact and Vecchia conditional simulation, `output = "latent"` returns these observed latent draws with observed offsets added, on the link scale, and uses them for prediction. Latent-only output does not actually `newdata` (though note that `type` controls only the prediction output). Reduced low-rank bases cannot return a complete observed latent field because only a subset of the observed sites are used to generate conditional simulations. `spgautor()` uses the exact construction and supports the same latent output (i.e., it has no big data local path).
+For exact and Vecchia conditional simulation, `output = "latent"` returns these observed latent draws with observed offsets added, on the link scale, and uses them for prediction. Latent-only output does not actually require `newdata` (though note that `type` controls only the prediction output). Reduced low-rank bases cannot return a complete observed latent field because only a subset of the observed sites are used to generate conditional simulations. `spgautor()` uses the exact construction and supports the same latent output (i.e., it has no big data local path).
 
 # The Empirical Semivariogram and Autocovariance (`esv()` and `eacf()`) {#sec:esv}
 

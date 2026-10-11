@@ -531,7 +531,9 @@ get_local_list_simulation_vecchia <- function(local, n, data) {
   if (!local$method %in% c("all", "distance", "covariance")) {
     stop("local$method must be \"all\", \"distance\", or \"covariance\".", call. = FALSE)
   }
-  if (!"ordering" %in% names_local) local$ordering <- "maxmin"
+  if (!"ordering" %in% names_local) {
+    local$ordering <- default_vecchia_ordering(data[["...xcoord..."]], data[["...ycoord..."]])
+  }
   if (!local$ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
     stop("local$ordering must be \"maxmin\", \"middleout\", \"outsidein\", \"coordinate\", \"grts\", \"random\", or \"none\".", call. = FALSE)
   }
@@ -600,6 +602,24 @@ get_local_list_simulation_vecchia <- function(local, n, data) {
 #' @noRd
 get_local_list_conditional <- function(local, object, newdata) {
 
+  random_options <- c("size_random", "groups_random", "method_random")
+  random_settings <- if (is.list(local)) Filter(Negate(is.null), local[intersect(names(local), random_options)]) else list()
+  for (name in intersect(names(random_settings), c("size_random", "groups_random"))) {
+    value <- random_settings[[name]]
+    if (!is.numeric(value) || length(value) != 1L || !is.finite(value) ||
+        value < 1 || value != floor(value)) {
+      stop(paste0("local$", name, " must be a positive integer."), call. = FALSE)
+    }
+  }
+  if (!is.null(random_settings$groups_random) && random_settings$groups_random > object$n) {
+    stop("local$groups_random cannot exceed the number of observed sites.", call. = FALSE)
+  }
+  if (!is.null(random_settings$method_random) && (!is.character(random_settings$method_random) ||
+      length(random_settings$method_random) != 1L || is.na(random_settings$method_random) ||
+      !random_settings$method_random %in% c("kmeans", "random"))) {
+    stop('local$method_random must be "kmeans" or "random".', call. = FALSE)
+  }
+
   n <- object$n
   n_pred <- NROW(newdata)
 
@@ -627,11 +647,28 @@ get_local_list_conditional <- function(local, object, newdata) {
   if (!local$approximation %in% c("low-rank", "vecchia")) {
     stop("local$approximation must be \"low-rank\" or \"vecchia\".", call. = FALSE)
   }
+  if (length(random_settings) && (local$approximation != "vecchia" ||
+      is.null(object$random) || identical(local$method, "all"))) {
+    stop("local$size_random, local$groups_random, and local$method_random are only used for Vecchia simulation with random effects.", call. = FALSE)
+  }
 
   if (local$approximation == "vecchia") {
+    if (!is.null(object$random)) {
+      if (!is.null(local$size_random)) {
+        local$groups_random <- ceiling(n / local$size_random)
+      } else if (!is.null(local$groups_random)) {
+        local$size_random <- ceiling(n / local$groups_random)
+      } else {
+        local$size_random <- 1000L
+        local$groups_random <- ceiling(n / local$size_random)
+      }
+      if (is.null(local$method_random)) local$method_random <- "kmeans"
+    }
     local <- get_local_list_conditional_vecchia(local, object, newdata)
     # Full conditioning uses the same joint calculation as local = FALSE.
-    if (local$method == "all") return(get_local_list_conditional(FALSE, object, newdata))
+    if (local$method == "all") {
+      return(get_local_list_conditional(FALSE, object, newdata))
+    }
   } else {
     local <- get_local_list_conditional_lowrank(local, object, newdata, n, n_pred)
   }
@@ -656,7 +693,8 @@ get_local_list_conditional <- function(local, object, newdata) {
     }
   }
 
-  local$exact <- exact
+  local$exact <- exact || (local$approximation == "low-rank" && local$method_base == "all" && local$method_new == "all")
+  if (!local$exact) local$chunk_size <- get_conditional_chunk_size(local)
   local
 
 }
@@ -817,8 +855,7 @@ get_local_list_conditional_vecchia <- function(local, object, newdata) {
       !is.finite(local$size) || local$size < 1 || local$size != floor(local$size))) {
     stop("local$size must be a positive integer.", call. = FALSE)
   }
-  if (!"ordering" %in% names_local) local$ordering <- "maxmin"
-  if (!local$ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
+  if ("ordering" %in% names_local && !local$ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
     stop("local$ordering must be \"maxmin\", \"middleout\", \"outsidein\", \"coordinate\", \"grts\", \"random\", or \"none\".", call. = FALSE)
   }
 
@@ -826,8 +863,13 @@ get_local_list_conditional_vecchia <- function(local, object, newdata) {
     warning("local$parallel is not used when local$approximation = \"vecchia\". Ignoring.", call. = FALSE)
   }
 
-  # newdata coordinates for ordering only -- sf objects fall back to
-  # centroids, matching the "low-rank" path's kmeans_new handling
+  # Group observed sites before prediction ordering consumes any random numbers.
+  # Thus the same seed gives the same effect blocks for different newdata.
+  if (local$method != "all" && !is.null(object$random)) {
+    local$random_blocks <- conditional_random_blocks(object, local$size_random,
+      local$groups_random, local$method_random)
+  }
+  # newdata coordinates for ordering only; sf objects fall back to centroids.
   if (inherits(newdata, "sf")) {
     newdata <- suppressWarnings(sf::st_centroid(newdata))
     newdata <- sf_to_df(newdata)
@@ -837,6 +879,17 @@ get_local_list_conditional_vecchia <- function(local, object, newdata) {
   xcoord_new <- newdata[[object$xcoord]]
   ycoord_new <- newdata[[object$ycoord]]
 
+  if (!"ordering" %in% names_local) local$ordering <- default_vecchia_ordering(xcoord_new, ycoord_new)
+  if (local$method != "all" && inherits(object, "spglm")) {
+    coords <- as.matrix(object$obdata[, c(object$xcoord, object$ycoord), drop = FALSE])
+    if (object$anisotropy) {
+      spcov <- coef(object, type = "spcov")
+      transformed <- transform_anis(object$obdata, object$xcoord, object$ycoord, spcov[["rotate"]], spcov[["scale"]])
+      coords <- cbind(transformed$xcoord_val, transformed$ycoord_val)
+    }
+    local$ordering_observed <- if ("ordering" %in% names_local) local$ordering else
+      default_vecchia_ordering(coords[, 1L], coords[, 2L])
+  }
   local$order <- if (local$method == "all") seq_len(NROW(newdata)) else
     conditional_vecchia_order(cbind(xcoord_new, ycoord_new), local$ordering)
   local$inv_order <- order(local$order)

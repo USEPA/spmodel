@@ -90,12 +90,13 @@ get_conditional_new_from_base <- function(newdata, object, base_val, cov_lowchol
 #' @param cov_lowchol_base The lower triangular Cholesky factor of the base
 #'   locations' covariance matrix.
 #' @param samples The number of simulations.
+#' @param chunk_size Maximum number of simulation columns processed together.
 #'
 #' @return A matrix of simulated residuals at this block's \code{newdata}
 #'   rows, one column per simulation.
 #'
 #' @noRd
-get_conditional_new_from_base_adjust <- function(newdata_list, object, SqrtSigInv_y, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples) {
+get_conditional_new_from_base_adjust <- function(newdata_list, object, SqrtSigInv_y, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples, chunk_size = samples) {
 
   newdata <- newdata_list$newdata
 
@@ -121,15 +122,18 @@ get_conditional_new_from_base_adjust <- function(newdata_list, object, SqrtSigIn
     chol_cond_cov <- t(chol(cond_cov))
   }
 
-  new_val <- vapply(seq_len(samples), function(x) as.numeric(chol_cond_cov %*% rnorm(newdata_n)), numeric(newdata_n))
-
   # conditional mean: Sigma_{new,base} Sigma_base^-1 (y_base - X_base %*%
   # beta_b) == crossprod(SqrtSigInv_c0, SqrtSigInv_y) - crossprod(SqrtSigInv_c0,
   # SqrtSigInv_X) %*% beta_b
   cond_mu_y <- crossprod(SqrtSigInv_c0, SqrtSigInv_y)
   cond_mu_X <- crossprod(SqrtSigInv_c0, SqrtSigInv_X)
-  cond_mu <- as.numeric(cond_mu_y) - cond_mu_X %*% new_betahat
-  new_val <- new_val + cond_mu
+  new_val <- matrix(NA_real_, newdata_n, samples)
+  for (start in seq.int(1L, samples, by = chunk_size)) {
+    cols <- seq.int(start, min(samples, start + chunk_size - 1L))
+    cond_mu <- as.numeric(cond_mu_y) - cond_mu_X %*% new_betahat[, cols, drop = FALSE]
+    new_val[, cols] <- chol_cond_cov %*% matrix(rnorm(newdata_n * length(cols)), newdata_n, length(cols)) + cond_mu
+  }
+  new_val
 }
 
 #' Simulate spatial residuals conditional on coupled latent and beta draws

@@ -134,6 +134,24 @@ lowrank_joint_reference <- function(fit, newdata, base, blocks = list(seq_len(NR
   R <- matrix(0, NROW(newdata), NROW(newdata))
   for (rows in blocks) R[rows, rows] <- K[rows, rows, drop = FALSE] -
     A[rows, , drop = FALSE] %*% t(cross[rows, , drop = FALSE])
+  if (!is.null(fit$random)) {
+    design <- get_conditional_random_design(fit, newdata, base)
+    Z <- as.matrix(design$observed); Zu <- as.matrix(design$newdata)
+    Gamma <- diag(design$variance)
+    T <- Gamma %*% t(Z) %*% P
+    He <- Gamma - T %*% Z %*% Gamma
+    spatial <- conditional_spatial_object(fit)
+    S <- as.matrix(covmatrix(spatial))[base, base, drop = FALSE]
+    cross_s <- as.matrix(covmatrix(spatial, newdata))[, base, drop = FALSE]
+    Su <- as.matrix(covmatrix(spatial, newdata, cov_type = "pred.pred"))
+    Ks <- cross_s %*% solve(S)
+    E <- Zu - Ks %*% Z
+    for (rows in blocks) R[rows, rows] <- Su[rows, rows, drop = FALSE] -
+      Ks[rows, , drop = FALSE] %*% t(cross_s[rows, , drop = FALSE])
+    R <- R + E %*% He %*% t(E)
+    A <- Ks + E %*% T
+    F <- Xnew + A %*% (M - X)
+  }
   pred_cov <- R + A %*% H %*% t(A) + F %*% V %*% t(F)
   beta_cross <- V %*% t(F)
   offset_new <- model.offset(model.frame(delete.response(terms(fit)), newdata))
@@ -153,7 +171,7 @@ expect_joint_moments <- function(draws, target) {
 
 # Independent small dense reference for tests, copied into extras file.
 vecchia_joint_reference <- function(fit, newdata, size = Inf, ord = seq_len(NROW(newdata)), method = "distance",
-                                    order_o = seq_len(fit$n)) {
+                                    order_o = seq_len(fit$n), effect_blocks = NULL) {
   n <- fit$n; m <- NROW(newdata); p <- length(coef(fit))
   X <- model.matrix(fit)
   Xnew <- model.matrix(delete.response(terms(fit)), newdata, contrasts.arg = fit$contrasts)[, colnames(X), drop = FALSE]
@@ -191,6 +209,24 @@ vecchia_joint_reference <- function(fit, newdata, size = Inf, ord = seq_len(NROW
     Lo[i, ] <- colSums(g * Lo[N, , drop = FALSE])
     Lo[i, i] <- sqrt(V[1, 1] - sum(g * V[nn, 1]))
   }
+  if (!is.null(fit$random)) {
+    design <- get_conditional_random_design(fit, newdata)
+    Z <- as.matrix(design$observed); Zu <- as.matrix(design$newdata)
+    Gamma <- diag(design$variance)
+    T <- Gamma %*% t(Z) %*% solve(Sigma)
+    He <- Gamma - T %*% Z %*% Gamma
+    spatial <- conditional_spatial_object(fit)
+    if (!is.null(effect_blocks)) {
+      S <- as.matrix(covmatrix(spatial))
+      Q <- matrix(0, n, n)
+      for (rows in effect_blocks) Q[rows, rows] <- solve(S[rows, rows, drop = FALSE])
+      He <- solve(solve(Gamma) + t(Z) %*% Q %*% Z)
+      T <- He %*% t(Z) %*% Q
+    }
+    cross <- covmatrix(spatial, newdata)
+    full <- rbind(cbind(covmatrix(spatial), t(cross)),
+      cbind(cross, covmatrix(spatial, newdata, cov_type = "pred.pred")))
+  }
   A <- rbind(diag(n), matrix(0, m, n)); L <- matrix(0, n + m, m)
   for (k in seq_len(m)) {
     i <- n + ord[k]; N <- select(i, c(seq_len(n), n + ord[seq_len(k - 1L)]), size)
@@ -200,8 +236,14 @@ vecchia_joint_reference <- function(fit, newdata, size = Inf, ord = seq_len(NROW
     L[i, ord[k]] <- sqrt(full[i, i] - sum(g * full[N, i]))
   }
   A <- A[n + seq_len(m), , drop = FALSE]; L <- L[n + seq_len(m), , drop = FALSE]
+  effect_covariance <- matrix(0, m, m)
+  if (!is.null(fit$random)) {
+    E <- Zu - A %*% Z
+    effect_covariance <- E %*% He %*% t(E)
+    A <- A + E %*% T
+  }
   F <- Xnew + A %*% (Mo - X); C <- vcov(fit)
-  pred_cov <- F %*% C %*% t(F) + A %*% tcrossprod(Lo) %*% t(A) + tcrossprod(L)
+  pred_cov <- F %*% C %*% t(F) + A %*% tcrossprod(Lo) %*% t(A) + tcrossprod(L) + effect_covariance
   mu <- as.numeric(Xnew %*% coef(fit) + A %*% (w - X %*% coef(fit)))
   offset <- model.offset(model.frame(delete.response(terms(fit)), newdata))
   if (!is.null(offset)) mu <- mu + offset
@@ -1156,7 +1198,7 @@ test_that("resolved conditional settings determine exact dispatch", {
   for (setting in list(NULL, FALSE)) {
     expect_true(get_local_list_conditional(setting, fixture$fit, fixture$newdata)$exact)
   }
-  expect_false(get_local_list_conditional(list(approximation = "low-rank", method_base = "all", method_new = "all"),
+  expect_true(get_local_list_conditional(list(approximation = "low-rank", method_base = "all", method_new = "all"),
     fixture$fit, fixture$newdata)$exact)
   fixture$fit$n <- 5001
   local_mocked_bindings(get_local_list_conditional_lowrank = function(local, ...) local)

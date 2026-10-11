@@ -165,14 +165,18 @@ is \code{"distance"} or \code{"covariance"}. The default is 30.
 \code{"maxmin"}, \code{"middleout"}, \code{"outsidein"},
 \code{"coordinate"}, \code{"grts"}, \code{"random"}, or
 \code{"none"} (same options as \code{decorrelate()}'s
-\code{ordering} argument). The default is \code{"maxmin"}.
+\code{ordering} argument). The default is \code{"maxmin"} unless
+locations are coincident, in which case it is \code{"grts"}.
+Explicit \code{"maxmin"} errors for coincident locations.
 }
 \code{parallel}/\code{ncores} are not used when \code{local$approximation} is
 \code{"vecchia"}.
 }
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{  With \code{local = TRUE} or \code{local = list()}, the default is
-  \code{list(approximation = "vecchia", method = "covariance", size = 30, ordering = "maxmin")}.
+  \code{list(approximation = "vecchia", method = "covariance", size = 30)},
+  with \code{ordering = "maxmin"} for distinct locations and
+  \code{ordering = "grts"} for coincident locations.
 }\if{html}{\out{</div>}}}
 
 \item{W}{Weight matrix specifying the neighboring structure used for car and

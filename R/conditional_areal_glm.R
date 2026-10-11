@@ -6,6 +6,10 @@ conditional.spgautor <- function(object, newdata, output = "newdata",
   output <- check_conditional_areal(object, output, samples, list(...))
   type <- match.arg(type)
   if (missing(newdata_size)) newdata_size <- NULL
+  if (!is.null(object$random)) {
+    return(conditional_random_areal(object, if (missing(newdata)) NULL else newdata,
+      !missing(newdata), output, samples, type, newdata_size))
+  }
   # Observed-only latent output doesn't need newdata (covmatrix already conditions upon newdata's locations).
   if ("latent" %in% output && !"newdata" %in% output) {
     joint <- get_conditional_glm_joint(object, cov_lowchol = t(chol(covmatrix(object))))

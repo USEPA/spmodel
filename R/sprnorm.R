@@ -94,14 +94,15 @@
 #'           \code{"maxmin"}, \code{"middleout"}, \code{"outsidein"},
 #'           \code{"coordinate"}, \code{"grts"}, \code{"random"}, or
 #'           \code{"none"} (same options as \code{decorrelate()}'s
-#'           \code{ordering} argument). The default is \code{"maxmin"}.
+#'           \code{ordering} argument). The default is \code{"maxmin"} unless
+#'           locations are coincident, in which case it is \code{"grts"}.
 #'       }
 #'       \code{parallel}/\code{ncores} are not used when \code{local$approximation} is
 #'       \code{"vecchia"}.
 #'   }
 #' 
 #'       With \code{local = TRUE} or \code{local = list()}, the default is
-#'       \code{list(approximation = "vecchia", method = "covariance", size = 30, ordering = "maxmin")}.
+#'       \code{list(approximation = "vecchia", method = "covariance", size = 30)}.
 #' @param W Weight matrix specifying the neighboring structure used for car and
 #'   sar models. Not required if \code{data} are an \code{sf}
 #'   polygon object and \code{W} should be calculated internally (using queen contiguity).

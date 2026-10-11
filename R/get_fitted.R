@@ -48,37 +48,7 @@ get_fitted_splm <- function(betahat, spcov_params, data_object, eigenprods_list,
   fitted_ie <- as.numeric(spcov_params[["ie"]] * do.call("rbind", SigInv_r_list))
 
   ## fitted random effects
-  if (is.null(names(randcov_params))) {
-    fitted_randcov <- NULL
-  } else {
-    # BLUP of each random effect's level-specific value: crossprod(Z, SigInv_r)
-    # projects the whitened residual onto each level's indicator column, then
-    # scales by that random effect's variance component
-    fitted_randcov <- lapply(names(randcov_params), function(x) {
-      fitted_val <- randcov_params[[x]] * do.call("rbind", mapply(
-        z = data_object$randcov_list,
-        r = SigInv_r_list,
-        function(z, r) {
-          crossprod(z[[x]][["Z"]], r)
-        }
-      ))
-      # a level's true contribution can appear in several partitions/rows; average
-      # only the nonzero entries per level name and treat an all-zero level as 0
-      fitted_val <- tapply(fitted_val, rownames(fitted_val), function(x) {
-        if (any(x != 0)) {
-          val <- mean(x[x != 0])
-        } else {
-          val <- 0
-        }
-      })
-      # all combinations yields values with many zeros -- don't want to include these in the mean
-      names_fitted_val <- rownames(fitted_val)
-      fitted_val <- as.numeric(fitted_val)
-      names(fitted_val) <- names_fitted_val
-      fitted_val
-    })
-    names(fitted_randcov) <- names(randcov_params)
-  }
+  fitted_randcov <- get_fitted_randcov(data_object, randcov_params, SigInv_r_list)
 
   fitted_values <- list(
     response = fitted_response,
@@ -136,55 +106,7 @@ get_fitted_spautor <- function(betahat, spcov_params, data_object, eigenprods,
   fitted_ie <- spcov_params[["ie"]] * SigInv_r
 
   ## fitted random effects
-  if (is.null(names(randcov_params))) {
-    fitted_randcov <- NULL
-  } else {
-    if (is.null(data_object$partition_factor)) {
-      # no partitioning: one BLUP calculation using all observations at once
-      ob_randcov_Zs <- get_randcov_Zs(data_object$obdata, names(randcov_params), ZZt = FALSE)
-      fitted_randcov <- lapply(names(randcov_params), function(x) {
-        fitted_val <- randcov_params[[x]] * crossprod(ob_randcov_Zs[[x]][["Z"]], SigInv_r)
-        names_fitted_val <- rownames(fitted_val)
-        fitted_val <- as.vector(fitted_val)
-        names(fitted_val) <- names_fitted_val
-        fitted_val
-      })
-      names(fitted_randcov) <- names(randcov_params)
-    } else {
-      # with partitioning, random effect levels are estimated separately within
-      # each partition (rows outside the current partition are excluded via
-      # row_val), then results across partitions are combined below
-      index <- unname(model.response(model.frame(reformulate("1", response = labels(terms(data_object$partition_factor))),
-        data = data_object$obdata
-      )))
-      index_val <- unique(index)
-      ob_randcov_Zs <- get_randcov_Zs(data_object$obdata, names(randcov_params), ZZt = FALSE)
-      fitted_randcov <- lapply(names(randcov_params), function(x) {
-        fitted_val <- lapply(index_val, function(y) {
-          row_val <- y == index
-          fitted_vals <- randcov_params[[x]] *
-            crossprod(ob_randcov_Zs[[x]][["Z"]][row_val, , drop = FALSE], SigInv_r[row_val, , drop = FALSE])
-        })
-        fitted_val <- do.call("rbind", fitted_val)
-        # average nonzero contributions per level (a level can appear in
-        # multiple partitions' outputs, with zeros elsewhere)
-        fitted_val <- tapply(fitted_val, rownames(fitted_val), function(x) {
-          val <- mean(x[x != 0])
-          if (length(val) == 0) { # replace if all zeros somehow
-            val <- rep(0, length(x))
-            names(val) <- names(x)
-          }
-          val
-        })
-        names_fitted_val <- rownames(fitted_val)
-        fitted_val <- as.vector(fitted_val)
-        names(fitted_val) <- names_fitted_val
-        fitted_val
-      })
-      names(fitted_randcov) <- names(randcov_params)
-    }
-  }
-
+  fitted_randcov <- get_fitted_randcov(data_object, randcov_params, list(SigInv_r))
 
   fitted_values <- list(
     response = as.numeric(fitted_response),

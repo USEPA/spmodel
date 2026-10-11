@@ -277,7 +277,8 @@ argument of \code{\link{sprnorm}()}/\code{\link{conditional}()} under
 \code{approximation = "vecchia"} (\code{"maxmin"}, \code{"grts"},
 \code{"random"}, \code{"none"}, \code{"middleout"},
 \code{"outsidein"}, \code{"coordinate"}). The default is
-\code{"grts"}.
+\code{"grts"}. Explicit \code{"maxmin"} errors when the grid being
+ordered contains coincident locations.
 \item \code{parallel} and \code{ncores} parallelize
 the variance calculation when \code{method_new = "basis"}.
 }

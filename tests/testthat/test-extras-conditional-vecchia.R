@@ -248,10 +248,13 @@ test_that("latent output offsets and low-rank limitations are explicit", {
 })
 
 test_that("coincident observed sites remain separate latent draws", {
+  skip_if_not_installed("spsurvey")
+  set.seed(1)
   xy <- rbind(c(0,0),c(0,0),c(1,1),c(1,1),c(2,1))
   ord <- conditional_vecchia_order(xy)
   expect_equal(sort(ord),1:5)
-  expect_equal(conditional_vecchia_order(matrix(0,3,2)),1:3)
+  expect_equal(sort(conditional_vecchia_order(matrix(0,3,2))),1:3)
+  expect_error(conditional_vecchia_order(xy, "maxmin"), "coincident")
 })
 
 test_that("areal latent output includes offsets without changing prediction draws", {

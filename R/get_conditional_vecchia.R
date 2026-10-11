@@ -1,9 +1,9 @@
 # Prepare spatial conditionals once. Every observed site and earlier prediction
 # is a candidate; only the selected neighborhood covariance is factored.
 # The weights and variances depend on the fitted covariance and locations, not on
-# simulated residual values, so all samples and GLM chunks share these operators.
-# Covariance ranking includes random effects and partition eligibility; finite
-# neighborhoods still approximate the information carried by global random effects.
+# simulated residual values, so all simulation chunks share these operators.
+# Ranking uses the supplied covariance context and partition eligibility.
+# After realized effects are removed, prediction uses the spatial-only context.
 prepare_conditional_vecchia <- function(object, newdata, local_list) {
   n <- NROW(object$obdata)
   m <- NROW(newdata)
@@ -43,7 +43,7 @@ draw_conditional_vecchia <- function(context, base_val, samples) {
   value
 }
 
-# Linear models prepare once per call; GLMs reuse the preparation across chunks.
+# Apply the spatial conditional directly when the residuals are already supplied.
 get_conditional_vecchia <- function(object, newdata, base_val, local_list, samples) {
   draw_conditional_vecchia(prepare_conditional_vecchia(object, newdata, local_list), base_val, samples)
 }

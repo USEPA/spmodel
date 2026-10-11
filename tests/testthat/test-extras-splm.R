@@ -1332,8 +1332,10 @@ test_that("the model runs for partition and random effect group if there is an e
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2), NA)
   spmod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2)
   expect_equal(0, unname(fitted(spmod, type = "randcov")[["1 | group2"]]["group2.new_group_level"]))
-  expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2,
-                    partition_factor = ~group2), NA)
+  partitioned <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2,
+                    partition_factor = ~group2)
+  labels <- paste0("group2", levels(droplevels(exdata$group2)))
+  expect_identical(names(fitted(partitioned, type = "randcov")[[1L]]), paste(labels, labels, sep = ":"))
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", partition_factor = ~group2, local = TRUE), NA)
   expect_error(splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2, local = TRUE), NA)
   spmod <- splm(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", random = ~group2, local = TRUE)

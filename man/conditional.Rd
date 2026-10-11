@@ -64,6 +64,8 @@ the output type can also be any subset of \code{c("cov", "spcov", "randcov")}.
 For generalized linear models, \code{"latent"} returns simulated observed-site
 link values, including offsets. It is not available for the \code{"low-rank"} approximation
 unless \code{method_base = "all"}.
+\code{"random"} returns realized random effects. It is unavailable when local$approximation
+is \code{"low-rank"}.
 The default is \code{"newdata"}. See Details for more.}
 
 \item{samples}{The number of conditional simulations. The default is
@@ -85,7 +87,7 @@ approximation is used and can take on the values
 data, \code{newdata} is split into blocks, and each block is
 simulated conditional on the base sample alone  (blocks are
 assumed conditionally independent of one another given the base
-sample). The base-sample settings (\code{method_base}/\code{size_base}/
+sample, coefficients and realized random effects). The base-sample settings (\code{method_base}/\code{size_base}/
 \code{reorder_base}) and the \code{newdata}-blocking settings
 (\code{method_new}/\code{size_new}/\code{reorder_new}/\code{kmeans_new})
 are separate from one another.
@@ -125,9 +127,13 @@ on the coordinates, with clusters of size approximately equal to
 and \code{TRUE} otherwise.
 \item \code{size_new}: The (approximate) number of observations used
 for each block. The default is 1,000. See Details for more.
-\item \code{chunk_size}: For \code{spglm()} model objects, the
+\item \code{chunk_size}: For local \code{splm()} and \code{spglm()}
+simulation, with or without random effects, the
 maximum number of \code{samples} columns processed simultaneously.
-The default is 1,000. \code{chunk_size} is purely computational and does not affect corretness.
+The default is 1,000. Factors are reused across chunks; chunking limits
+temporary calculations, not storage of the returned draws. It does not
+change the simulation distribution, but can change draws for a fixed seed.
+Exact simulation does not use chunking.
 \item \code{parallel}: If \code{TRUE}, parallel processing via the
 parallel package is automatically used. The default is \code{FALSE}.
 \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
@@ -171,15 +177,33 @@ simulated in -- \code{"maxmin"}, \code{"middleout"},
 \code{"outsidein"}, \code{"coordinate"}, \code{"grts"},
 \code{"random"}, or \code{"none"} (same options as
 \code{decorrelate()}'s \code{ordering} argument). The default is
-\code{"maxmin"}. For generalized linear models, the same ordering
-method is applied separately to the observed latent sites and \code{newdata}.
-\item \code{chunk_size}: For \code{spglm()} model objects, the
+\code{"maxmin"} unless locations are coincident, in which case it
+is \code{"grts"}.
+\item \code{size_random}: For models with random effects, the approximate
+number of observed sites per block for drawing realized random effects,
+implying \code{ceiling(n / size_random)} groups. The default is 1,000
+when neither \code{size_random} nor \code{groups_random} is supplied.
+If both are supplied, \code{size_random} takes precedence, as in local fitting.
+\item \code{groups_random}: The number of blocks (k-means centers when
+\code{method_random = "kmeans"}), as an alternative to \code{size_random}.
+Must be a positive integer no larger than the number of observed sites.
+\item \code{method_random}: How to form the observed blocks used only for
+drawing realized random effects: \code{"kmeans"} (the default) or
+\code{"random"} for random assignment to approximately equal-sized blocks,
+matching local fitting. K-means block sizes vary. These three settings
+require Vecchia simulation with random effects; they do not change latent
+or prediction neighborhoods. One block makes the effect step exact.
+\item \code{chunk_size}: For local \code{splm()} and \code{spglm()}
+simulation, with or without random effects, the
 maximum number of \code{samples} columns processed simultaneously.
-The default is 1,000. \code{chunk_size} is purely computational and does not affect correctness.
+The default is 1,000. Factors are reused across chunks; chunking limits
+temporary calculations, not storage of the returned draws. It does not
+change the simulation distribution, but can change draws for a fixed seed.
+Exact simulation does not use chunking.
 }
 }
 With \code{local = TRUE} or \code{local = list()}, the default is
-\code{list(approximation = "vecchia", method = "covariance", ordering = "maxmin")},
+\code{list(approximation = "vecchia", method = "covariance")},
 with \code{size = 30} for \code{splm()} and \code{size = 60} for \code{spglm()}.}
 
 \item{simulate_covparams}{For \code{splm()} model objects, whether to also
@@ -214,6 +238,8 @@ If \code{output = "object"}, an n x b matrix of observed responses
 (\code{spglm()} and \code{spgautor()}), where n is the number of observed rows and b is the number of samples.
 \code{output = "latent"} returns an n x b matrix of simulated observed
 link values (including offsets).
+\code{output = "random"} returns a q x b matrix of realized random effects coefficients,
+separated by partition factor (when relevant).
 If \code{output = "cov"}/\code{"spcov"}/\code{"randcov"}
 (\code{simulate_covparams = TRUE} only), a (covariance parameter) x b
 matrix of the of conditoinal simulations for each covariance parameter, where b is the
@@ -254,7 +280,7 @@ The remaining observations are assigned to blocks. For each block, data
 are simulated from the conditional distribution given the base sample.
 Observations from the same block share conditional covariance while
 observations from distinct blocks are assumed conditionally independent
-(given the base sample). Parallelization generally further speeds up
+(given the base sample, coefficients and realized random effects). Parallelization generally further speeds up
 computations. When \code{local$approximation} is \code{"vecchia"}, no such
 independence assumption is made -- see the \code{local} argument above
 for details. For spatial generalized linear models, the latent values are

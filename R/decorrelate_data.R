@@ -168,12 +168,7 @@ decorrelate_data_internal_part1 <- function(formula, data, spcov_type, xcoord, y
 
   # do ordering here
   if (is.null(ordering)) {
-    any_dup <- any(duplicated(cbind(xcoord_val, ycoord_val)))
-    if (any_dup) {
-      ordering <- "grts"
-    } else {
-      ordering <- "maxmin"
-    }
+    ordering <- default_vecchia_ordering(xcoord_val, ycoord_val)
   }
 
   if (!ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
@@ -420,12 +415,7 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
 
   # do ordering here
   if (is.null(ordering)) {
-    any_dup <- any(duplicated(cbind(xcoord_val, ycoord_val)))
-    if (any_dup) {
-      ordering <- "grts"
-    } else {
-      ordering <- "maxmin"
-    }
+    ordering <- default_vecchia_ordering(xcoord_val, ycoord_val)
   }
 
   if (!ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
@@ -773,6 +763,10 @@ get_local_list_decorrelate <- function(local) {
 get_decorrelate_order <- function(ordering, xcoord_val, ycoord_val) {
 
   n <- length(xcoord_val)
+  if (n == 0L) return(list(order = integer(), inv_order = integer()))
+  if (ordering == "maxmin" && anyDuplicated(cbind(xcoord_val, ycoord_val))) {
+    stop('ordering = "maxmin" cannot be used with coincident locations (multiple rows share coordinates). Use "grts", "random", or another ordering.', call. = FALSE)
+  }
 
   if (ordering == "none") {
     ord <- seq(1, n)
@@ -826,5 +820,12 @@ get_decorrelate_order <- function(ordering, xcoord_val, ycoord_val) {
     }
   }
 
+  if (!is.numeric(ord) || length(ord) != n || anyNA(ord) || !all(sort(ord) == seq_len(n))) {
+    stop("Ordering did not return a permutation of the row indices.", call. = FALSE)
+  }
   list(order = ord, inv_order = order(ord))
+}
+
+default_vecchia_ordering <- function(xcoord_val, ycoord_val) {
+  if (anyDuplicated(cbind(xcoord_val, ycoord_val))) "grts" else "maxmin"
 }

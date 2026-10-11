@@ -1,6 +1,6 @@
 # Prepare the complete observed latent sequence. Response neighbors K may be
 # undrawn; latent neighbors N must precede i. Two separate steps
-get_conditional_vecchia_glm_context <- function(object, newdata, Xnew, local_list) {
+get_conditional_vecchia_glm_context <- function(object, newdata, Xnew, local_list, prediction_object = object) {
   X <- model.matrix(object)
   n <- NROW(X)
   eta <- fitted(object, type = "link")
@@ -8,7 +8,7 @@ get_conditional_vecchia_glm_context <- function(object, newdata, Xnew, local_lis
   D <- diag(get_D(object$family, eta, object$y, object$size, as.vector(coef(object, type = "dispersion"))))
   if (any(!is.finite(w)) || any(!is.finite(D))) stop("Observed latent values and response curvature must be finite.", call. = FALSE)
   covariance <- get_conditional_vecchia_covariance(object, object$obdata)
-  ord <- conditional_vecchia_order(covariance$coords, local_list$ordering)
+  ord <- conditional_vecchia_order(covariance$coords, local_list$ordering_observed)
   operators <- vector("list", n)
   all_sites <- seq_len(n)
   for (k in seq_len(n)) {
@@ -30,22 +30,26 @@ get_conditional_vecchia_glm_context <- function(object, newdata, Xnew, local_lis
     op$neighbors <- N
     operators[[k]] <- op
   }
-  prediction <- if (NROW(newdata)) prepare_conditional_vecchia(object, newdata, local_list) else NULL
+  prediction <- if (NROW(newdata)) prepare_conditional_vecchia(prediction_object, newdata, local_list) else NULL
   list(operators = operators, order = ord, prediction = prediction, X = X,
     betahat = coef(object), coefficient_factor = t(chol(vcov(object))))
 }
 
 # Draw shared coefficients, observed latent values, and prediction residuals.
 # Optional latent output retains the field used for prediction.
-get_conditional_vecchia_glm <- function(object, newdata, Xnew, local_list, samples, latent = FALSE) {
-  chunk_size <- get_conditional_glm_chunk_size(local_list)
-  context <- get_conditional_vecchia_glm_context(object, newdata, Xnew, local_list)
+get_conditional_vecchia_glm <- function(object, newdata, Xnew, local_list, samples, latent = FALSE, random_design = NULL, random = FALSE) {
+  if (!is.null(object$random) && is.null(random_design)) random_design <- get_conditional_random_design(object, newdata)
+  chunk_size <- get_conditional_chunk_size(local_list)
+  effect <- if (!is.null(object$random)) prepare_conditional_random(object, random_design, local_list) else NULL
+  context <- get_conditional_vecchia_glm_context(object, newdata, Xnew, local_list,
+    if (is.null(effect)) object else effect$spatial)
   n <- NROW(context$X)
   m <- NROW(Xnew)
   p <- length(context$betahat)
   beta <- matrix(NA_real_, p, samples, dimnames = list(names(context$betahat), NULL))
   new_val <- matrix(NA_real_, m, samples, dimnames = list(rownames(Xnew), NULL))
   observed <- if (latent) matrix(NA_real_, n, samples, dimnames = list(rownames(context$X), NULL)) else NULL
+  effects <- if (random && !is.null(effect)) matrix(NA_real_, length(random_design$variance), samples) else NULL
   # Matrix preparation is outside this loop. Chunking bounds working storage;
   # every column gets one shared coefficient draw for all observed/prediction sites.
   for (start in seq.int(1L, samples, by = chunk_size)) {
@@ -63,12 +67,20 @@ get_conditional_vecchia_glm <- function(object, newdata, Xnew, local_list, sampl
       w[op$i, ] <- mu + sqrt(op$variance) * rnorm(count)
     }
     if (latent) observed[, columns] <- w
+    residual <- w - context$X %*% beta[, columns, drop = FALSE]
+    if (!is.null(effect)) {
+      a <- draw_conditional_random(effect, residual)
+      if (random) effects[, columns] <- a
+      residual <- residual - as.matrix(random_design$observed %*% a)
+    }
     if (m) {
       # Once w is drawn, w - X beta is known within each simulation. Reuse the
       # spatial residual conditionals, then restore the same coefficient trend.
-      residual <- draw_conditional_vecchia(context$prediction, w - context$X %*% beta[, columns, drop = FALSE], count)
+      residual <- draw_conditional_vecchia(context$prediction, residual, count)
+      if (!is.null(effect)) residual <- residual + as.matrix(random_design$newdata %*% a)
       new_val[, columns] <- Xnew %*% beta[, columns, drop = FALSE] + residual
     }
   }
-  list(beta = beta, newdata = new_val, latent = observed)
+  list(beta = beta, newdata = new_val, latent = observed,
+    random = if (!is.null(effects)) conditional_random_output(effects, random_design) else NULL)
 }

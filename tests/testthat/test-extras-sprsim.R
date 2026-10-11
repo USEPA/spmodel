@@ -67,3 +67,23 @@ test_that("all spatial simulation families default to Vecchia for local simulati
   expect_identical(get_local_list_simulation(FALSE, 12, internal)$method_base, "all")
   expect_error(get_local_list_simulation(list(size_base = 5), 12, internal), "approximation.*low-rank")
 })
+
+test_that("Vecchia ordering handles coincident and empty coordinate sets", {
+  expect_identical(default_vecchia_ordering(c(0, 0), c(1, 1)), "grts")
+  expect_identical(default_vecchia_ordering(c(0, 0), c(1, 2)), "maxmin")
+  expect_error(get_decorrelate_order("maxmin", c(0, 0), c(1, 1)), "coincident")
+  for (ordering in c("maxmin", "grts", "none", "random")) {
+    expect_identical(conditional_vecchia_order(matrix(numeric(), 0, 2), ordering), integer())
+    expect_identical(conditional_vecchia_order(matrix(0, 1, 2), ordering), 1L)
+  }
+})
+
+test_that("Vecchia ordering rejects incorrect orders", {
+  skip_if_not_installed("GPvecchia")
+  bad_order <- c(1, 1)
+  local_mocked_bindings(order_maxmin_exact = function(...) bad_order, .package = "GPvecchia")
+  for (bad in list(c(1, 1), c(1, 2.5), c(1, NA), c(1, Inf), 1, c("1", "2"))) {
+    bad_order <- bad
+    expect_error(get_decorrelate_order("maxmin", c(0, 1), c(0, 1)), "permutation")
+  }
+})

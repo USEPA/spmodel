@@ -42,6 +42,10 @@ get_conditional_glm_block <- function(newdata, object, cov_lowchol_base) {
 #' @rdname get_conditional_glm_block
 #' @noRd
 get_conditional_glm_block_cov <- function(newdata, object) {
+  # Preserve new partition labels in covmatrix's prediction-prediction path.
+  for (name in all.vars(object$partition_factor)) {
+    if (is.character(newdata[[name]])) newdata[[name]] <- factor(newdata[[name]])
+  }
   list(cross = covmatrix(object, newdata, cov_type = "obs.pred"),
     new = covmatrix(object, newdata, cov_type = "pred.pred"))
 }
@@ -63,21 +67,23 @@ factor_conditional_glm_block <- function(covariance, cov_lowchol_base) {
 #' @param samples Number of draws.
 #' @return Matrices of coefficients and offset-free prediction latent values.
 #' @noRd
-get_conditional_glm_lowrank <- function(object, newdata, Xnew, local_list, samples, latent = FALSE) {
-  chunk_size <- get_conditional_glm_chunk_size(local_list)
+get_conditional_glm_lowrank <- function(object, newdata, Xnew, local_list, samples, latent = FALSE, random_design = NULL) {
+  if (!is.null(object$random) && is.null(random_design)) random_design <- get_conditional_random_design(object, newdata, local_list$index$base)
+  chunk_size <- get_conditional_chunk_size(local_list)
   base <- get_conditional_glm_base(object, local_list$index$base)
-  index <- if (!NROW(newdata)) list() else if (local_list$method_new == "all") list(seq_len(NROW(newdata))) else local_list$index$new
-  if (local_list$parallel) {
-    cl <- parallel::makeCluster(local_list$ncores)
-    on.exit(parallel::stopCluster(cl), add = TRUE)
-  }
+  effect <- if (!is.null(object$random)) {
+    sub <- object
+    sub$obdata <- object$obdata[local_list$index$base, , drop = FALSE]
+    prepare_conditional_random(sub, random_design)
+  } else NULL
   n_base <- NROW(base$cov_lowchol_base)
   p <- length(base$betahat)
   beta <- matrix(NA_real_, p, samples, dimnames = list(names(base$betahat), NULL))
-  new_val <- matrix(NA_real_, NROW(newdata), samples, dimnames = list(rownames(Xnew), NULL))
   residual <- matrix(NA_real_, n_base, samples)
   residual_mean <- base$SqrtSigInv_w - as.numeric(base$SqrtSigInv_X %*% base$betahat)
   residual_weights <- base$wts_latent - base$SqrtSigInv_X
+  observed <- if (latent) matrix(NA_real_, NROW(model.matrix(object)), samples) else NULL
+  effects <- if (!is.null(effect)) matrix(NA_real_, length(random_design$variance), samples) else NULL
   for (start in seq.int(1L, samples, by = chunk_size)) {
     columns <- seq.int(start, min(samples, start + chunk_size - 1L))
     n_draw <- length(columns)
@@ -85,54 +91,20 @@ get_conditional_glm_lowrank <- function(object, newdata, Xnew, local_list, sampl
     beta[, columns] <- sweep(delta, 1L, base$betahat, "+")
     z <- backsolve(t(base$cov_lowchol_mH), matrix(rnorm(n_base * n_draw), n_base, n_draw))
     residual[, columns] <- sweep(residual_weights %*% delta + z, 1L, residual_mean, "+")
-  }
-  width <- if (local_list$parallel) local_list$ncores else 1L
-  for (first in if (length(index)) seq.int(1L, length(index), by = width) else integer()) {
-    batch <- seq.int(first, min(length(index), first + width - 1L))
-    if (local_list$parallel) {
-      # Bound worker payloads and avoid serializing the fitted formula environment.
-      covariance <- lapply(index[batch], function(rows) {
-        get_conditional_glm_block_cov(newdata[rows, , drop = FALSE], base$covariance)
-      })
-      blocks <- parallel::parLapply(cl, covariance, factor_conditional_glm_block,
-        base$cov_lowchol_base)
-      rm(covariance)
-    } else {
-      blocks <- list(get_conditional_glm_block(newdata[index[[first]], , drop = FALSE],
-        base$covariance, base$cov_lowchol_base))
+    if (latent) observed[local_list$index$base, columns] <- base$cov_lowchol_base %*% residual[, columns, drop = FALSE] +
+      model.matrix(object)[local_list$index$base, , drop = FALSE] %*% beta[, columns, drop = FALSE]
+    if (!is.null(effect)) {
+      natural <- base$cov_lowchol_base %*% residual[, columns, drop = FALSE]
+      a <- draw_conditional_random(effect, natural)
+      effects[, columns] <- a
+      residual[, columns] <- forwardsolve(t(effect$blocks[[1L]]$factor), natural - as.matrix(random_design$observed %*% a))
     }
-    for (j in seq_along(batch)) {
-      rows <- index[[batch[j]]]
-      block <- blocks[[j]]
-      for (start in seq.int(1L, samples, by = chunk_size)) {
-        columns <- seq.int(start, min(samples, start + chunk_size - 1L))
-        new_val[rows, columns] <- Xnew[rows, , drop = FALSE] %*% beta[, columns, drop = FALSE] +
-          crossprod(block$SqrtSigInv_c0, residual[, columns, drop = FALSE]) + block$chol_cond_cov %*%
-          matrix(rnorm(length(rows) * length(columns)), length(rows), length(columns))
-      }
-    }
-    rm(blocks, block)
   }
-  observed <- NULL
-  if (latent) {
-    # Recover the base draw from its whitened residual.
-    rows <- local_list$index$base
-    observed <- matrix(NA_real_, NROW(model.matrix(object)), samples)
-    observed[rows, ] <- base$cov_lowchol_base %*% residual + model.matrix(object)[rows, , drop = FALSE] %*% beta
+  if (!is.null(effect)) {
+    base$covariance <- effect$spatial
+    base$cov_lowchol_base <- t(effect$blocks[[1L]]$factor)
   }
+  new_val <- draw_conditional_lowrank_blocks(base$covariance, newdata, Xnew, beta, residual,
+    base$cov_lowchol_base, local_list, effects, if (!is.null(effect)) random_design$newdata else NULL)
   list(beta = beta, newdata = new_val, latent = observed)
-}
-
-#' Resolve the draw chunk size for local GLM simulation
-#' @param local_list Resolved local simulation settings.
-#' @return A positive integer chunk size.
-#' @noRd
-get_conditional_glm_chunk_size <- function(local_list) {
-  chunk_size <- local_list$chunk_size
-  if (is.null(chunk_size)) chunk_size <- 1000L
-  if (!is.numeric(chunk_size) || length(chunk_size) != 1L || is.na(chunk_size) ||
-      !is.finite(chunk_size) || chunk_size < 1 || chunk_size != floor(chunk_size)) {
-    stop("local$chunk_size must be a positive integer.", call. = FALSE)
-  }
-  chunk_size
 }

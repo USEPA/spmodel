@@ -223,7 +223,8 @@ simulate_theta_draw <- function(theta_hat_free, vcov_theta_lowchol, spcov_type,
 #'   -- each a (parameter) x \code{samples} matrix.
 #'
 #' @noRd
-get_conditional_covparams <- function(object, newdata, y, X, betahat_hat, vcov_theta, samples) {
+get_conditional_covparams <- function(object, newdata, y, X, betahat_hat, vcov_theta, samples, random_design = NULL, keep_random = FALSE) {
+  if (!is.null(object$random) && is.null(random_design)) random_design <- get_conditional_random_design(object, newdata)
 
   spcov_params_full <- coef(object, type = "spcov")
   spcov_type <- class(spcov_params_full)
@@ -253,6 +254,7 @@ get_conditional_covparams <- function(object, newdata, y, X, betahat_hat, vcov_t
   newdata_n <- NROW(newdata)
   p <- length(betahat_hat)
   new_betahat <- matrix(NA_real_, p, samples)
+  random <- if (keep_random) matrix(0, if (is.null(random_design)) 0L else length(random_design$variance), samples) else NULL
   new_val <- matrix(NA_real_, newdata_n, samples)
   new_spcov <- matrix(NA_real_, length(spcov_params_full), samples, dimnames = list(names(spcov_params_full), NULL))
   new_randcov <- if (has_randcov) {
@@ -290,6 +292,25 @@ get_conditional_covparams <- function(object, newdata, y, X, betahat_hat, vcov_t
     betahat_b <- betahat_hat + as.numeric(t(chol(cov_betahat_b)) %*% rnorm(p))
     resid_b <- y - X %*% betahat_b
 
+    if (has_randcov) {
+      design_b <- random_design
+      design_b$variance <- as.numeric(theta_b$randcov_params_b[design_b$info$term])
+      effect <- prepare_conditional_random(object_b, design_b)
+      prediction <- prepare_conditional_random_prediction(effect, newdata)
+      a <- draw_conditional_random(effect, resid_b)
+      new_val[, b] <- draw_conditional_random_prediction(effect, prediction, resid_b, a)
+      if (keep_random) random[, b] <- a
+      new_betahat[, b] <- betahat_b
+      new_spcov[, b] <- as.numeric(theta_b$spcov_params_b)
+      new_randcov[, b] <- as.numeric(theta_b$randcov_params_b)
+      next
+    }
+
+    if (!newdata_n) {
+      new_betahat[, b] <- betahat_b
+      new_spcov[, b] <- as.numeric(theta_b$spcov_params_b)
+      next
+    }
     # conditional draw under theta_b for this one sample
     cov_base_new_b <- covmatrix(object_b, newdata, cov_type = "obs.pred")
     cov_new_b <- covmatrix(object_b, newdata, cov_type = "pred.pred")
@@ -311,5 +332,5 @@ get_conditional_covparams <- function(object, newdata, y, X, betahat_hat, vcov_t
   # (spcov names, then randcov names)
   new_cov <- rbind(new_spcov, new_randcov)
 
-  list(new_betahat = new_betahat, new_val = new_val, new_cov = new_cov, new_spcov = new_spcov, new_randcov = new_randcov)
+  list(new_betahat = new_betahat, new_val = new_val, new_cov = new_cov, new_spcov = new_spcov, new_randcov = new_randcov, random = random)
 }

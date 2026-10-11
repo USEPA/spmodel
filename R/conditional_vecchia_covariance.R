@@ -74,16 +74,10 @@ conditional_vecchia_neighbors <- function(context, i, pool, size, method, scores
   pool[candidates[order(score[candidates], pool[candidates])][seq_len(size)]]
 }
 
-# Order unique locations, then restore coincident observations as separate rows.
 # Apply the requested method separately to observed and prediction sites.
-conditional_vecchia_order <- function(coords, ordering = "maxmin") {
+conditional_vecchia_order <- function(coords, ordering = NULL) {
   n <- NROW(coords)
   if (n <= 1L) return(seq_len(n))
-  if (!ordering %in% c("maxmin", "grts")) return(get_decorrelate_order(ordering, coords[, 1L], coords[, 2L])$order)
-  key <- paste(format(coords[, 1L], digits = 17), format(coords[, 2L], digits = 17), sep = ":")
-  unique_rows <- which(!duplicated(key))
-  group <- match(key, key[unique_rows])
-  order_unique <- if (length(unique_rows) == 1L) 1L else
-    get_decorrelate_order(ordering, coords[unique_rows, 1L], coords[unique_rows, 2L])$order
-  order(match(group, order_unique), seq_len(n))
+  if (is.null(ordering)) ordering <- default_vecchia_ordering(coords[, 1L], coords[, 2L])
+  get_decorrelate_order(ordering, coords[, 1L], coords[, 2L])$order
 }

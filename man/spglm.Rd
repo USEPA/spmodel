@@ -294,6 +294,12 @@ should not be made to compare an \code{spglm()} model to a \code{glm()} one
 (though deviance can be used). \code{ie} allows the \code{"ie"} covariance
 parameter to vary. If the \code{"ie"} covariance parameter is estimated near
 zero, then \code{none} and \code{ie} yield similar models.
+Neither covariance type requires coordinates for fitting, point prediction,
+covariance extraction, or exact conditional simulation. Covariance construction
+retains the numerical independent-variance floor of \code{1e-4}, including
+when the stored \code{"ie"} parameter is zero. This effective variance is
+also retained in prediction uncertainties and conditional draws; it is not
+an estimated positive \code{"ie"} parameter.
 
 All spatial covariance functions are valid in one spatial dimension. All
 spatial covariance functions except \code{triangular} and \code{cosine} are

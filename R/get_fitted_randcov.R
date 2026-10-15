@@ -16,16 +16,16 @@ get_fitted_randcov <- function(data_object, randcov_params, SigInv_r_list) {
   value <- total / pmax(count, 1L)
   out <- lapply(names(randcov_params), function(term) {
     rows <- which(design$info$term == term)
-    ans <- setNames(value[rows], design$info$level[rows])
+    ans <- stats::setNames(value[rows], design$info$level[rows])
     if (is.null(partition)) {
       # Preserve the existing zero entries for declared but unobserved levels.
       Z <- if (!is.null(data_object$randcov_list)) data_object$randcov_list[[1L]][[term]]$Z else
         get_randcov_Z(term, data_object$obdata, ZZt = FALSE)$Z
-      full <- setNames(numeric(NCOL(Z)), colnames(Z))
+      full <- stats::setNames(numeric(NCOL(Z)), colnames(Z))
       full[names(ans)] <- ans
       ans <- full
     }
     ans
   })
-  setNames(out, names(randcov_params))
+  stats::setNames(out, names(randcov_params))
 }

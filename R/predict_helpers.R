@@ -176,7 +176,8 @@ get_medium_precompute <- function(object, newdata, obdata, xcoord, ycoord, npred
                                    reform_bar2, partition_index_obdata) {
   if (local_list$method != "all" && (!is.null(object$random) || !is.null(object$partition_factor)) &&
     as.double(object$n) * npred < local_list$byrow_threshold) {
-    dist_matrix_full <- spdist_vectors(newdata, obdata, xcoord, ycoord, object$dim_coords, sparse = FALSE)
+    dist_matrix_full <- if (inherits(spcov_params_val, c("none", "ie"))) matrix(Inf, NROW(newdata), NROW(obdata)) else
+      spdist_vectors(newdata, obdata, xcoord, ycoord, object$dim_coords, sparse = FALSE)
     randcov_vector_full <- if (is.null(randcov_params_val)) {
       NULL
     } else {
@@ -418,7 +419,8 @@ get_pred_local_setup <- function(newdata_list, obdata, xcoord, ycoord, dim_coord
   if (!medium_mode) {
     # dense: a distance vector/matrix has essentially no exact zeros, so sparse
     # storage buys nothing but S4 dispatch overhead on every prediction row
-    dist_vector <- spdist_vectors(newdata_list$row, obdata, xcoord, ycoord, dim_coords, sparse = FALSE)
+    dist_vector <- if (inherits(spcov_params_val, c("none", "ie"))) matrix(Inf, NROW(newdata_list$row), NROW(obdata)) else
+      spdist_vectors(newdata_list$row, obdata, xcoord, ycoord, dim_coords, sparse = FALSE)
 
     # making random vector if necessary
     if (!is.null(randcov_params_val)) {

@@ -61,7 +61,9 @@ known values for the spatial covariance parameters. Multiple \code{\link[=spcov_
 objects can be provided in a list. Then \code{splm()} is called iteratively
 for each element and a list is returned for each model fit.}
 
-\item{estmethod}{The estimation method. Available options include
+\item{estmethod}{The estimation method. Coordinate-free fitting with covariance
+type \code{"none"} or \code{"ie"} requires \code{"reml"} or \code{"ml"};
+semivariogram estimation requires coordinates. Available options include
 \code{"reml"} for restricted maximum likelihood, \code{"ml"} for maximum
 likelihood, \code{"sv-wls"} for semivariogram weighted least squares,
 and \code{"sv-cl"} for semivariogram composite likelihood. The default is

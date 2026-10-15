@@ -31,7 +31,10 @@ prepare_conditional_random <- function(object, design, local_list = NULL, covari
   n <- NROW(Z)
   active <- which(design$variance > 0 & design$info$conditioned)
   if (any(!is.finite(design$variance) | design$variance < 0)) stop("Invalid random-effect variances.", call. = FALSE)
-  if (length(active)^2 > 1e8) stop("The random-effect effects covariance is too large; specify 'local' instead.", call. = FALSE)
+  if (length(active)^2 > 1e8) warning(sprintf(
+    "Conditional simulation requires factoring a covariance matrix for %s random-effect coefficients. This may result in exceedingly long computational times.",
+    format(length(active), big.mark = ",", scientific = FALSE)
+  ), call. = FALSE, immediate. = TRUE)
   spatial <- conditional_spatial_object(object)
   blocks <- list(seq_len(n))
   if (!is.null(local_list) && local_list$approximation == "vecchia") {

@@ -13,11 +13,14 @@
 * When `local` is specified, `loocv()` prediction standard errors for `splm()` objects with `spcov_type` equal to `"none"` or `"ie"` now return predictions and standard errors based on the reestimated fixed effects, rather than via the full-data approximations used by other `spcov_type`s.
 * For `splm()` and `spglm()` model objects fit with with `local`, `kcv(object, local, ...)` now reuses the covariance matrix from `object` across folds rather than refitting it for each fold (for computational efficiency).
 * Updated the `conditional()` sampling for `spglm()` model objects to first simulate fixed effects and then the latent means given the fixed effects.
+* Minor error message updates.
 * Minor documentation updates.
 * Minor internal consistency updates.
 
 ## Bug Fixes
 
+* Fixed a bug that could cause `conditional()` to error for `"none"` and `"ie"` spatial covariance types.
+* Fixed a bug that could cause `covmatrix(..., cov_type = "pred.pred")` to error for random effect or partition levels in `newdata` missing from `data`.
 * Fixed a bug with `splm()` and `spglm()` model objects that summed random effect BLUPs over partition factor levels instead of averaging (now superseded by `fitted(type = "randcov"`) returning BLUPs by partition factor level).
 * Fixed a bug that could falsely flag separation warnings in `spglm()` and `spgautor()` for  binomial responses when `size > 1`.
 * Fixed a bug that could transform anisotropic coordinates twice for block prediction and `spglm()` prediction standard errors.

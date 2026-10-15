@@ -64,6 +64,8 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
     }
   }
 
+  nonspatial <- inherits(object$coefficients$spcov, c("none", "ie"))
+  if (!missing(newdata) && nonspatial && inherits(newdata, "sf")) newdata <- sf::st_drop_geometry(newdata)
   if (cov_type == "pred.pred") {
     # There's no separate code path for the prediction-vs-prediction covariance;
     # instead newdata is substituted in as the "observed" data and the function
@@ -74,7 +76,7 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
       randcov_vars <- all.vars(object$random)
       for (x in randcov_vars) {
         if (is.character(newdata[[x]])) {
-          newdata[[x]] <- factor(newdata[[x]], levels = levels(as.factor(object$obdata[[x]])))
+          newdata[[x]] <- factor(newdata[[x]], levels = union(levels(as.factor(object$obdata[[x]])), newdata[[x]]))
         }
       }
     }
@@ -83,7 +85,7 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
       partition_vars <- all.vars(object$partition_factor)
       for (x in partition_vars) {
         if (is.character(newdata[[x]])) {
-          newdata[[x]] <- factor(newdata[[x]], levels = levels(as.factor(object$obdata[[x]])))
+          newdata[[x]] <- factor(newdata[[x]], levels = union(levels(as.factor(object$obdata[[x]])), newdata[[x]]))
         }
       }
     }
@@ -107,7 +109,9 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
 
   if (cov_type == "obs.obs") {
     # coordinate stuff
-    if (object$anisotropy) {
+    if (nonspatial) {
+      dist_matrix <- matrix(0, NROW(object$obdata), NROW(object$obdata))
+    } else if (object$anisotropy) {
       new_coords <- transform_anis(
         object$obdata, object$xcoord, object$ycoord,
         spcov_params_val[["rotate"]], spcov_params_val[["scale"]]
@@ -163,7 +167,8 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
     }
 
     # coordinate stuff
-    dist_vector <- spdist_vectors(newdata, obdata, xcoord, ycoord, object$dim_coords)
+    dist_vector <- if (nonspatial) matrix(0, NROW(newdata), NROW(obdata)) else
+      spdist_vectors(newdata, obdata, xcoord, ycoord, object$dim_coords)
 
     # random effects
     randcov_vector_val <- randcov_vector(randcov_params_val, obdata, newdata)

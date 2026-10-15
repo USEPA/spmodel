@@ -110,6 +110,10 @@ expand_formula_dot <- function(formula, data, reserved_cols = character(0)) {
 #'
 #' @noRd
 get_point_ref_coords <- function(data, spcov_initial, estmethod, xcoord, ycoord) {
+  if (!inherits(data, "sf") && is.null(xcoord) &&
+      inherits(spcov_initial, c("none", "ie")) && estmethod %in% c("sv-wls", "sv-cl")) {
+    stop("Fitting without coordinates requires estmethod = \"reml\" or \"ml\"; semivariogram estimation requires coordinates.", call. = FALSE)
+  }
   # convert sf to data frame (point geometry) (1d objects obsolete)
   ## see if data has sf class
   if (inherits(data, "sf")) {

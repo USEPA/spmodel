@@ -755,6 +755,13 @@ get_local_list_conditional_lowrank <- function(local, object, newdata, n, n_pred
     local$method_new <- "all"
   }
 
+  if (inherits(object$coefficients$spcov, c("none", "ie")) && n_pred > 0 && !inherits(newdata, "sf") &&
+      length(setdiff(c(object$xcoord, object$ycoord), names(newdata))) &&
+      ((local$method_base != "all" && local$reorder_base == "grts") ||
+       (local$method_new != "all" && local$kmeans_new))) {
+    stop('low-rank simulation without coordinates requires reorder_base = "none" or "random" and kmeans_new = FALSE; alternatively use local = FALSE.', call. = FALSE)
+  }
+
   # default to the full index for whichever side (base/new) ends up not
   # needing subsetting, so local$index below is always well-formed regardless
   # of which of method_base/method_new (independently) is "all"
@@ -848,6 +855,11 @@ get_local_list_conditional_vecchia <- function(local, object, newdata) {
   if (!"size" %in% names_local) local$size <- if (inherits(object, "spglm")) 60L else 30L
   if ("size_response" %in% names_local) stop("local$size_response is not supported; local$size controls both observed neighborhoods.", call. = FALSE)
   if (!"method" %in% names_local) local$method <- "covariance"
+  if (local$method != "all" && NROW(newdata) && !inherits(newdata, "sf") &&
+      inherits(object$coefficients$spcov, c("none", "ie")) &&
+      length(setdiff(c(object$xcoord, object$ycoord), names(newdata)))) {
+    stop('Vecchia simulation without coordinates is not supported; use local = FALSE or low-rank simulation without spatial ordering or k-means.', call. = FALSE)
+  }
   if (!local$method %in% c("all", "distance", "covariance")) {
     stop("local$method must be \"all\", \"distance\", or \"covariance\".", call. = FALSE)
   }

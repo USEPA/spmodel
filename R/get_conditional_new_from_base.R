@@ -112,15 +112,7 @@ get_conditional_new_from_base_adjust <- function(newdata_list, object, SqrtSigIn
   # supplied by the caller's simulated beta draws, so it is not added here
   cond_cov <- cov_new - crossprod(SqrtSigInv_c0, SqrtSigInv_c0)
 
-  spcov_val <- coef(object, type = "spcov")
-  # pure nugget: cond_cov is already diagonal (no spatial dependence to
-  # condition on), so take element-wise sqrt() instead of a full chol()
-  if (spcov_val[["de"]] == 0 && is.null(coef(object, type = "randcov"))) {
-    chol_cond_cov <- Matrix::Diagonal(NROW(cond_cov))
-    diag(chol_cond_cov) <- sqrt(diag(chol_cond_cov))
-  } else {
-    chol_cond_cov <- t(chol(cond_cov))
-  }
+  chol_cond_cov <- t(chol(cond_cov))
 
   # conditional mean: Sigma_{new,base} Sigma_base^-1 (y_base - X_base %*%
   # beta_b) == crossprod(SqrtSigInv_c0, SqrtSigInv_y) - crossprod(SqrtSigInv_c0,

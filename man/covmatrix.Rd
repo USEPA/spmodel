@@ -28,7 +28,9 @@ required to construct the covariance between \code{newdata} and
 the observed data. If a data frame, \code{newdata}
 must contain variables that represent coordinates having the same name as
 the coordinates from the observed data used to fit \code{object}. If an
-\code{sf} object, coordinates are obtained from the geometry of \code{newdata}.}
+\code{sf} object, coordinates are obtained from the geometry of \code{newdata}.
+Coordinates are not required for covariance types \code{"none"} and \code{"ie"}.
+Distinct records have independent nugget errors, even at identical coordinates.}
 
 \item{...}{Other arguments. Not used (needed for generic consistency).}
 

@@ -86,7 +86,7 @@
 #'           and \code{TRUE} otherwise.
 #'         \item \code{size_new}: The (approximate) number of observations used
 #'           for each block. The default is 1,000. See Details for more.
-#'         \item \code{chunk_size}: For big data \code{splm()} and \code{spglm()}
+#'         \item \code{chunk_size}: For big data (local) \code{splm()} and \code{spglm()}
 #'           simulation the
 #'           maximum number of \code{samples} columns processed simultaneously.
 #'           The default is 1,000. \code{chunk_size} is purely computational
@@ -136,23 +136,13 @@
 #'           \code{decorrelate()}'s \code{ordering} argument). The default is
 #'           \code{"maxmin"} unless locations are coincident, in which case it
 #'           is \code{"grts"}.
-#'         \item \code{method_random}: The big data approximation method used to determine \code{index}. Ignored
-#'           if \code{index} is provided. If \code{method = "random"},
-#'           observations are randomly assigned to \code{index} based on \code{size}.
-#'           If \code{method = "kmeans"}, observations assigned to \code{index}
-#'           based on k-means clustering on the coordinates with \code{groups} clusters. The default
-#'           is \code{"kmeans"}. Note that both methods have a random component, which
-#'           means that you may get different results from separate model fitting calls.
-#'           To ensure consistent results, specify \code{index} or set a seed via
-#'           \code{base::set.seed()}.
-#'         \item \code{size_random}: The number of observations in each random effect
-#'           block. If the number of observations is not divisible by \code{size},
-#'           some groups get \code{size - 1} observations. The default is 1,000.
-#'           \item \code{groups_random}: The number of random effect groups. If 
-#'           \code{method_random} is \code{"random"}, \code{size} is \code{ceiling(n/groups)},
-#'           where \code{n} is the sample size. Automatically determined if \code{size}
-#'           is specified. If \code{method_random} is \code{"kmeans"}, \code{groups_random} 
-#'           is the number of clusters.
+#'         \item \code{size_random}: For models with random effects, the approximate
+#'           number of observed sites per block for drawing realized random effects,
+#'           implying \code{ceiling(n / size_random)} groups. The default is 1,000.
+#'           If specified, \code{groups_random} is ignored.
+#'         \item \code{groups_random}: The number of random effect blocks.
+#'         \item \code{method_random}: How to form the random effect blocks:
+#'           \code{"kmeans"} (the default) or \code{"random"}.
 #'         \item \code{chunk_size}: For local \code{splm()} and \code{spglm()}
 #'           simulation, with or without random effects, the
 #'           maximum number of \code{samples} columns processed simultaneously.
@@ -425,16 +415,7 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
         newdata_split <- list(newdata)
       }
       newdata_list <- mapply(x = x0, y = newdata_split, FUN = function(x, y) list(x0 = x, newdata = y), SIMPLIFY = FALSE)
-      spcov_val <- coef(object, type = "spcov")
-      # pure nugget (independent error, no spatial dependence or random effects):
-      # the base covariance matrix is diagonal, so a plain sqrt() gives its
-      # (lower triangular) Cholesky factor without paying for a full chol()
-      if (spcov_val[["de"]] == 0 && is.null(coef(object, type = "randcov"))) {
-        # object$n is the full sample size not the base sample size
-        cov_lowchol_base <- Matrix::Diagonal(n = NROW(object$obdata), x = sqrt(spcov_val[["ie"]]))
-      } else {
-        cov_lowchol_base <- t(chol(covmatrix(object)))
-      }
+      cov_lowchol_base <- t(chol(covmatrix(object)))
       # solved once and shared across every block instead of re-solving a
       # full n_base x samples residual matrix inside each block's call (see
       # get_conditional_new_from_base_adjust())
@@ -534,12 +515,13 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   if (length(output) == 1 && output == "object") {
     return(base_val_w)
   }
+  nonspatial <- inherits(coef(object, type = "spcov"), c("none", "ie"))
   if (inherits(newdata, "sf")) {
     newdata <- sf_to_df(suppressWarnings(sf::st_centroid(newdata)))
     names(newdata)[names(newdata) == ".xcoord"] <- object$xcoord
     names(newdata)[names(newdata) == ".ycoord"] <- object$ycoord
   }
-  if (NROW(newdata)) {
+  if (NROW(newdata) && !nonspatial) {
     if (object$dim_coords == 1) newdata[[object$ycoord]] <- 0
     check_newdata_coords(newdata, object$xcoord, object$ycoord)
   }

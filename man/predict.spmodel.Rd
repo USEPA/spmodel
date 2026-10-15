@@ -167,7 +167,9 @@ must contain all variables used by \code{formula(object)} and all variables
 representing coordinates. If an \code{sf} object, \code{newdata} must contain
 all variables used by \code{formula(object)} and coordinates are obtained
 from the geometry of \code{newdata}. If omitted, missing data from the
-fitted model object are used.}
+fitted model object are used.
+Coordinates are not required for point prediction from \code{splm()} and
+\code{spglm()} models with covariance type \code{"none"} or \code{"ie"}.}
 
 \item{se.fit}{A logical indicating if standard errors are returned.
 The default is \code{FALSE}.}

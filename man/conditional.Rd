@@ -55,7 +55,12 @@ must contain all variables used by \code{formula(object)} and all variables
 representing coordinates. If an \code{sf} object, \code{newdata} must contain
 all variables used by \code{formula(object)} and coordinates are obtained
 from the geometry of \code{newdata}. If omitted, missing data from the
-fitted model object are used.}
+fitted model object are used.
+Coordinates are unnecessary for exact simulation from \code{splm()} and
+\code{spglm()} models with covariance type \code{"none"} or \code{"ie"}.
+Coordinate-free low-rank simulation requires nonspatial ordering
+(\code{reorder_base = "none"} or \code{"random"}) and \code{kmeans_new = FALSE}.
+Coordinate-free Vecchia simulation is not supported.}
 
 \item{output}{The output type, which can be any subset of
 \code{c("newdata", "beta", "object")} (\code{"all"} is shorthand for this full vector).

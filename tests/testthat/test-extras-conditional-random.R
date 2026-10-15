@@ -16,6 +16,26 @@ random_conditional_fixture <- function(glm = FALSE, partition = FALSE) {
   list(fit = do.call(if (glm) spglm else splm, args), new = d[31:36, ], data = d)
 }
 
+test_that("spatial prediction covariance retains new character grouping levels", {
+  for (partition in c(FALSE, TRUE)) {
+    f <- random_conditional_fixture(partition = partition)
+    new <- f$new
+    new$g <- as.character(new$g)
+    new$g[1:4] <- "unseen"
+    new$part <- as.character(new$part)
+    new$part[1:2] <- "new partition"
+    distance <- unname(as.matrix(dist(new[c("cx", "cy")])))
+    spatial <- .3 * exp(-distance / .3)
+    expected <- spatial + .2 * diag(NROW(new)) + .3 * outer(new$g, new$g, "==")
+    if (partition) expected <- expected * outer(new$part, new$part, "==")
+    actual <- unname(covmatrix(f$fit, new, cov_type = "pred.pred"))
+    expect_equal(actual, expected, tolerance = 1e-12)
+    expect_equal(diag(actual), rep(.8, NROW(new)))
+    expect_equal(actual[1, 2], spatial[1, 2] + .3)
+    if (partition) expect_equal(actual[1, 3], 0)
+  }
+})
+
 test_that("effect designs preserve covariance, partitions and new levels", {
   for (partition in c(FALSE, TRUE)) {
     fixture <- random_conditional_fixture(partition = partition)

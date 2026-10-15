@@ -4,6 +4,37 @@ skip_if_not(
   "set Sys.setenv(SPMODEL_RUN_EXTRAS = 'true') before devtools::test() to run the extras suite"
 )
 
+test_that("prediction-grid methods do not partially match the observed method", {
+  set.seed(2)
+  d <- data.frame(x = runif(24), y = runif(24), z = rnorm(24))
+  fit <- splm(z ~ x, d, xcoord = x, ycoord = y, ddf = "asymptotic",
+    spcov_initial = spcov_initial("exponential", de = 0.8, ie = 0.2, range = 0.15, known = "given"))
+  nd <- data.frame(x = runif(9), y = runif(9))
+  quantities <- get_block_quantities
+  calls <- list()
+  testthat::local_mocked_bindings(get_block_quantities = function(object, newdata, nodes, ...) {
+    calls[[length(calls) + 1L]] <<- list(rows = rownames(newdata), nodes = nodes)
+    quantities(object, newdata, nodes, ...)
+  }, .package = "spmodel")
+  old <- options(warnPartialMatchDollar = TRUE)
+  on.exit(options(old), add = TRUE)
+  for (method in c("subset", "basis")) {
+    settings <- list(method_new = method, size_new = 3, size = 6, ordering = "none")
+    calls <- list()
+    set.seed(2)
+    expect_warning(a <- predict(fit, nd, block = TRUE, se.fit = TRUE, local = settings), NA)
+    selected <- calls
+    calls <- list()
+    settings$method <- "covariance"
+    set.seed(2)
+    expect_warning(b <- predict(fit, nd, block = TRUE, se.fit = TRUE, local = settings), NA)
+    expect_equal(a, b, tolerance = 0)
+    expect_identical(selected, calls)
+    expect_identical(selected[[1L]]$nodes, 1:3)
+    expect_length(selected[[1L]]$rows, if (method == "subset") 3L else 9L)
+  }
+})
+
 # Scaling predict(block = TRUE) to large prediction grids. The block point
 # prediction stays exact on every path; only the block standard error is
 # approximated when method_new = "basis" (default) with size_new < nrow(newdata),

@@ -13,17 +13,14 @@
 #'
 #' @noRd
 get_minustwolaploglik <- function(laploglik_products, estmethod, n, p, spcov_profiled = FALSE, randcov_profiled = FALSE) {
+# On the -2log-likelihood scale, the Laplace constant cancels the Gaussian n log(2 pi)
   if (estmethod == "reml") {
-    # REML includes the extra l3 term (log determinant of Xt SigInv X, from
-    # integrating out the fixed effects) and normalizes by n - p degrees of
-    # freedom rather than n
     minustwolaploglik <- as.numeric(laploglik_products$l00 + laploglik_products$l01 + laploglik_products$l1 +
       laploglik_products$l2 + laploglik_products$l3 +
-      (n - p) * log(2 * pi))
+      -p * log(2 * pi))
   } else if (estmethod == "ml") {
     minustwolaploglik <- as.numeric(laploglik_products$l00 + laploglik_products$l01 + laploglik_products$l1 +
-      laploglik_products$l2 +
-      n * log(2 * pi))
+      laploglik_products$l2)
   }
 
   minustwolaploglik

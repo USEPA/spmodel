@@ -173,7 +173,7 @@ test_that("supplied coordinates remain available for independent random-effect s
     }
     ctl <- list(approximation = "low-rank", method_base = "all", size_new = 2, kmeans_new = TRUE)
     if (geometry == "coincident") {
-      expect_error(conditional(fit, samples = 1, local = ctl), "Too few distinct prediction locations.*kmeans_new = FALSE")
+      expect_error(conditional(fit, samples = 1, local = ctl), "not enough distinct prediction locations.*kmeans_new = FALSE")
     } else {
       expect_identical(dim(conditional(fit, samples = 1, local = ctl)), c(4L, 1L))
     }

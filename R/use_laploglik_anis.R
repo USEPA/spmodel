@@ -49,7 +49,7 @@ use_laploglik_anis <- function(spcov_initial, dispersion_initial, data_object, e
   optim_dotlist <- check_optim_method(optim_par, optim_dotlist)
 
   # performing optimization
-  optim_output <- do.call("optim", c(
+  optim_output <- optim_with_ie_bound(
     list(
       par = optim_par,
       fn = laploglik_anis,
@@ -61,8 +61,8 @@ use_laploglik_anis <- function(spcov_initial, dispersion_initial, data_object, e
       randcov_orig2optim = randcov_orig2optim_val,
       randcov_profiled = randcov_profiled
     ),
-    optim_dotlist
-  ))
+    optim_dotlist, ie_only_lower(optim_par, spcov_initial, data_object$diagtol, spcov_profiled)
+  )
 
   # dispersion first then remove
   # the optimized par vector is packed as [spcov | randcov | dispersion] (see

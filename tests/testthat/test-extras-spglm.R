@@ -70,7 +70,7 @@ test_that("the model runs for binomial data", {
   expect_s3_class(spgmod, "spglm")
   expect_vector(AUROC(spgmod))
   expect_error(spglm(bernfac ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml"), NA)
-  spgmod <- suppressWarnings(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml")) # ml boundary warning
+  spgmod <- suppressWarnings(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml"))
   expect_s3_class(spgmod, "spglm")
   expect_error(AUROC(spgmod))
   spgmod <- spglm(y > 0 ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml")
@@ -84,7 +84,7 @@ test_that("the model runs for binomial data", {
   # check when data have an unequal number of local observations
   expect_error(spglm(bern ~ x + offset(offset), family = binomial, data = exdata[-1, , drop = FALSE], xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~group, anisotropy = TRUE, local = TRUE), NA)
   expect_error(suppressWarnings(spglm(bernfac ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~group, anisotropy = TRUE, local = TRUE)), NA)
-  expect_error(suppressWarnings(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml", partition_factor = ~group)), NA) # ml boundary warning
+  expect_error(suppressWarnings(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml", partition_factor = ~group)), NA)
 
   # check glm
   spgmod1 <- spglm(bern ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none")
@@ -110,14 +110,14 @@ test_that("the model runs for count data", {
   spgmod <- spglm(count ~ x, family = poisson, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "reml")
   expect_s3_class(spgmod, "spglm")
   expect_error(AUROC(spgmod))
-  expect_error(suppressWarnings(spglm(count ~ x, family = "nbinomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml")), NA) # ml boundary warning
+  expect_error(suppressWarnings(spglm(count ~ x, family = "nbinomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml")), NA)
 
   # complicated models
   expect_error(spglm(count ~ x + offset(offset),
     family = poisson, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "reml",
     partition_factor = ~group, local = TRUE
   ), NA)
-  expect_error(suppressWarnings(spglm(count ~ x, family = "nbinomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml", random = ~group)), NA) # ml boundary warning
+  expect_error(suppressWarnings(spglm(count ~ x, family = "nbinomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml", random = ~group)), NA)
 })
 
 test_that("the model runs for continuous data", {
@@ -172,13 +172,10 @@ test_that("emmeans works missing", {
 test_that("range_constrain works", {
   spcov_type <- "exponential"
   expect_error(spglm(abs(y) ~ x * group, family = "Gamma", exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", range_constrain = TRUE), NA)
-  expect_error(suppressWarnings(spglm(abs(y) ~ x * group, family = "Gamma", exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", range_constrain = TRUE)), NA) # ml boundary warning
+  expect_error(spglm(abs(y) ~ x * group, family = "Gamma", exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", range_constrain = TRUE), NA)
 })
 
-test_that("ml boundary regression: an optimizer that wanders to the floor is reconciled and flagged", {
-  # reproduces the scenario documented in the ml-boundary write-up: data simulated
-  # with genuine spatial structure, whose exponential ml fit still converges to a
-  # tiny ie chasing the boundary artifact
+test_that("estimated ie respects its floor without a boundary warning", {
   set.seed(42)
   n_side <- 12
   coords <- expand.grid(xcoord = seq_len(n_side), ycoord = seq_len(n_side))
@@ -189,16 +186,15 @@ test_that("ml boundary regression: an optimizer that wanders to the floor is rec
 
   expect_warning(
     mod_exp <- spglm(y ~ x, family = "poisson", data = coords, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml"),
-    NA # de stays substantial (see the write-up), so this specific fit should not trip the boundary warning
+    NA
   )
   # the optimizer wanders below the floor for ie; the reported value must be reconciled to it
   expect_true(coef(mod_exp, type = "spcov")[["ie"]] >= 1e-4)
 
   expect_warning(
     mod_none <- spglm(y ~ x, family = "poisson", data = coords, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "ml"),
-    "numerical boundary"
+    NA
   )
-  # reml should not show the same AIC preference for "none" over "exponential"
   mod_exp_reml <- spglm(y ~ x, family = "poisson", data = coords, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml")
   mod_none_reml <- spglm(y ~ x, family = "poisson", data = coords, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "reml")
   expect_true(AIC(mod_exp_reml) < AIC(mod_none_reml))
@@ -448,13 +444,13 @@ test_that("fitted-probability saturation warning fires under spatial separation 
   )
 })
 
-test_that("ml boundary warning fires for spcov_type = none but not reml", {
+test_that("none covariance fits do not warn under ML or REML", {
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   exdata$y_pois <- round(abs(exdata$y) * 3)
 
   expect_warning(
     spglm(y_pois ~ x, family = "poisson", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "ml"),
-    "numerical boundary"
+    NA
   )
   expect_warning(
     spglm(y_pois ~ x, family = "poisson", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "reml"),
@@ -462,20 +458,20 @@ test_that("ml boundary warning fires for spcov_type = none but not reml", {
   )
 })
 
-test_that("ml boundary warning uses the actual fitted value and does not override a known ie", {
+test_that("known small variances are preserved without a boundary warning", {
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   exdata$y_pois <- round(abs(exdata$y) * 3)
 
   spinit <- spcov_initial("exponential", de = 1e-8, ie = 1e-8, range = 1, known = c("de", "ie", "range"))
   expect_warning(
     spmod <- spglm(y_pois ~ x, family = "poisson", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spinit, estmethod = "ml"),
-    "numerical boundary"
+    NA
   )
   # a known (fixed) ie must never be reconciled to the diagtol floor
   expect_equal(coef(spmod, type = "spcov")[["ie"]], 1e-8)
 })
 
-test_that("no ml boundary warning for a well-identified spatial covariance", {
+test_that("a well-identified spatial covariance fits without warnings", {
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   exdata$y_pois <- round(abs(exdata$y) * 3)
 

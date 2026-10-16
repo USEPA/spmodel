@@ -13,12 +13,16 @@
 * When `local` is specified, `loocv()` prediction standard errors for `splm()` objects with `spcov_type` equal to `"none"` or `"ie"` now return predictions and standard errors based on the reestimated fixed effects, rather than via the full-data approximations used by other `spcov_type`s.
 * For `splm()` and `spglm()` model objects fit with with `local`, `kcv(object, local, ...)` now reuses the covariance matrix from `object` across folds rather than refitting it for each fold (for computational efficiency).
 * Updated the `conditional()` sampling for `spglm()` model objects to first simulate fixed effects and then the latent means given the fixed effects.
+* Updated the Laplace log-likelihood evaluation to use the determinant of the unprojected Hessian for maximum likelihood estimation. This is a breaking change that affects backwards compatibility.
+* Restored the Laplace log-likelihood constant `n / 2 * log(2 * pi)` so likelihood-based statistics are comparable on the standard scale. This is a breaking change that affects backwards compatibility.
 * Minor error message updates.
 * Minor documentation updates.
+* Minor warning message updates.
 * Minor internal consistency and efficiency updates.
 
 ## Bug Fixes
 
+* Fixed a bug in `splm()` and `spglm()` that could affect estimation of `ie` when it was the only unknown parameter being optimized.
 * Fixed a bug that could cause `conditional()` to error for `"none"` and `"ie"` spatial covariance types.
 * Fixed a bug that could cause `covmatrix(..., cov_type = "pred.pred")` to error for random effect or partition levels in `newdata` missing from `data`.
 * Fixed a bug with `splm()` and `spglm()` model objects that summed random effect BLUPs over partition factor levels instead of averaging (now superseded by `fitted(type = "randcov"`) returning BLUPs by partition factor level).

@@ -714,7 +714,7 @@ An advantage of the composite likelihood approach to semivariogram estimation is
 
 Parameter estimation is performed using `stats::optim()`. The default estimation method is Nelder-Mead [@nelder1965simplex] and the stopping criterion is a relative convergence tolerance (`reltol`) of 1e-6 (1e-4 prior to version 0.13.0). If only one parameter requires estimation (on the profiled scale if relevant), the Brent algorithm is used [@brent1971algorithm] instead. Arguments to `optim()` are passed via `...` to `splm()` and `spautor()`. For example, the default estimation method and convergence criteria are overridden by passing `method` and `control`, respectively, to `splm()` and `spautor()`.
 
-If the `lower` and `upper` arguments to `optim()` are specified in `splm()` and `spautor()` to be passed to `optim()`, they are ignored, as optimization for all parameters is unconstrained. This is because covariance parameters are not optimized on their original scale but on a transformed one that maps their constrained ranges (e.g., a variance must be non-negative, and a correlation must lie in $[-1, 1]$) onto the whole real line. The optimizer therefore never has to be told about the constraints, and it can never propose an invalid parameter value. The one exception is Brent, which requires finite bounds by construction; `spmodel` supplies $\pm 50$ on the transformed scale, which is far wider than any practically relevant parameter value. Initial values for `optim()` are found using the grid search described next.
+If the `lower` and `upper` arguments to `optim()` are specified in `splm()` and `spautor()` to be passed to `optim()`, they are ignored, as optimization for all parameters is unconstrained. This is because covariance parameters are not optimized on their original scale but on a transformed one that maps their constrained ranges (e.g., a variance must be non-negative, and a correlation must lie in $[-1, 1]$) onto the whole real line. The optimizer therefore never has to be told about the constraints, and it can never propose an invalid parameter value. The one exception is Brent, which requires finite bounds; `spmodel` normally supplies $\pm 50$ on the transformed scale. When only the independent-error variance in `splm()` or `spglm()` is unknown and a positive variance floor is used, this floor instead determines the lower bound, avoiding the flat likelihood below it. Initial values for `optim()` are found using the grid search described next.
 
 #### Grid Search {#sec:grid-lm}
 
@@ -1046,7 +1046,8 @@ For spatial linear models, one can marginalize over $\boldsymbol{\beta}$ and the
 
 The marginal distribution of interest can be written hierarchically as \begin{equation*}
   [\mathbf{y}|\mathbf{X}, \varphi, \boldsymbol{\theta}] = \int_\mathbf{w} [\mathbf{y} | g^{-1}(\mathbf{w}), \varphi] [\mathbf{w} | \mathbf{X}, \boldsymbol{\theta}] d\mathbf{w} .
-\end{equation*} The term $[\mathbf{y}|g^{-1}(\mathbf{w}), \varphi]$ is the likelihood of the generalized linear model with mean function $g^{-1}(\mathbf{w})$, and the term $[\mathbf{w}|\mathbf{X}, \boldsymbol{\theta}]$ is the (restricted) density of $\mathbf{w}$ given the covariance parameters (that is, the spatial linear model of the first part of this vignette, applied to $\mathbf{w}$ rather than to $\mathbf{y}$_. The integral is what makes this hard: there is one latent $w_i$ per observation, so it is an $n$-dimensional integral with no closed form.
+\end{equation*}
+The term $[\mathbf{y}|g^{-1}(\mathbf{w}), \varphi]$ is the likelihood of the generalized linear model with mean function $g^{-1}(\mathbf{w})$, and the term $[\mathbf{w}|\mathbf{X}, \boldsymbol{\theta}]$ is the (restricted) density of $\mathbf{w}$ given the covariance parameters (that is, the spatial linear model of the first part of this vignette, applied to $\mathbf{w}$ rather than to $\mathbf{y}$). The integral is what makes this hard: there is one latent $w_i$ per observation, so it is an $n$-dimensional integral with no closed form.
 
 Next define $\ell_\mathbf{w} = \ln([\mathbf{y} | g^{-1}(\mathbf{w}), \varphi] [\mathbf{w} | \mathbf{X}, \boldsymbol{\theta}])$. Let $\mathbf{g}$ be the gradient vector where $g_i = \frac{\partial \ell_\mathbf{w}}{\partial w_i}$ and $\mathbf{G}$ be the Hessian matrix with $ij$th element $G_{i, j} = \frac{\partial^2 \ell_\mathbf{w}}{\partial w_i \partial w_j}$. Using a multivariate Taylor series expansion around some point $\mathbf{a}$, \begin{equation*}
   \int_\mathbf{w} \exp(\ell_\mathbf{w}) d\mathbf{w} \approx \int_\mathbf{w} \exp(\ell_\mathbf{a} + \mathbf{g}^\top(\mathbf{w} - \mathbf{a}) + \frac{1}{2}(\mathbf{w} - \mathbf{a})^\top \mathbf{G} (\mathbf{w} - \mathbf{a})) d\mathbf{w}.
@@ -1227,14 +1228,14 @@ Covariance functions for `spglm()` are defined the same as covariance functions 
 
 ### Model-fitting {#sec:estimation-glm}
 
-Recall that the likelihood of interest is 
+Recall that the likelihood of interest is
 \begin{equation*}
   \int_\mathbf{w} \exp(\ell_\mathbf{w}) d\mathbf{w} \approx [\mathbf{y} | g^{-1}(\mathbf{a}), \varphi] [\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}] (2 \pi)^{n/2} |-\mathbf{G}_a|^{-1/2},
 \end{equation*} 
-and that $\mathbf{a}$ is the value at which the gradient, $\mathbf{g}$, equals zero. Given $\mathbf{a}$, minus twice a profiled (by $\boldsymbol{\beta}$) marginal Laplace log-likelihood is given by \begin{equation*}
-  -2\ell_p(\varphi, \boldsymbol{\theta}) = -2\ln([\mathbf{y} | g^{-1}(\mathbf{a}), \varphi]) -2\ln([\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}]) + \ln(|- \mathbf{G}_{\mathbf{a}}|).
+and that $\mathbf{a}$ is the value at which the gradient, $\mathbf{g}$, equals zero. Given $\mathbf{a}$, minus twice the restricted Laplace log-likelihood is given by \begin{equation*}
+  -2\ell_R(\varphi, \boldsymbol{\theta}) = -2\ln([\mathbf{y} | g^{-1}(\mathbf{a}), \varphi]) -2\ln([\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}]) + \ln(|- \mathbf{G}_{\mathbf{a}}|) - n\ln(2\pi).
 \end{equation*}
-Note that $-2\ln[\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}]$ is exactly \eqref{eq:ml-lik} (for maximum likelihood) or \eqref{eq:reml-lik} (for restricted maximum likelihood), the spatial linear model log-likelihood equations, evaluated with $\mathbf{a}$ in place of $\mathbf{y}$, where now $\tilde{\boldsymbol{\beta}} = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{a}$. The $(2\pi)^{n/2}$ term from the Laplace approximation is a constant that may be ignored during optimization.
+Here $-2\ln[\mathbf{a} | \mathbf{X}, \boldsymbol{\theta}]$ is exactly \eqref{eq:reml-lik}, the restricted spatial linear model log-likelihood, evaluated with $\mathbf{a}$ in place of $\mathbf{y}$, where now $\tilde{\boldsymbol{\beta}} = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{a}$.
 
 Assuming $\mathbf{y}$ and $g^{-1}(\mathbf{w})$ are conditionally independent and $\varphi$ and $\boldsymbol{\theta}$ are known, it can be shown that maximizing $\ell_{\mathbf{w}}$ (with respect to $\mathbf{w}$) amounts to maximizing (up to a constant) \begin{equation*}
   \sum_{i = 1}^n \ln[y_i | w_i, \varphi] - \frac{1}{2}(\mathbf{w} - \mathbf{X} \hat{\boldsymbol{\beta}})^\top \boldsymbol{\Sigma}^{-1}(\mathbf{w} - \mathbf{X}\hat{\boldsymbol{\beta}}).
@@ -1245,7 +1246,7 @@ and the Hessian of $\ell_{\mathbf{w}}$ is $\mathbf{G} = \mathbf{D} - \mathbf{P}$
 \begin{equation*}
   d_i = \frac{\partial \ln[y_i | g^{-1}(w_i), \varphi]}{\partial w_i}, \qquad D_{i, i} = \frac{\partial^2 \ln[y_i | g^{-1}(w_i), \varphi]}{\partial w_i^2},
 \end{equation*}
-while $\mathbf{P}$ collects derivitaves of the spatial term,
+while $\mathbf{P}$ collects derivatives of the spatial term,
 \begin{equation*}
 \mathbf{P} = \boldsymbol{\Sigma}^{-1} - \boldsymbol{\Sigma}^{-1} \mathbf{X} (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \boldsymbol{\Sigma}^{-1}.\end{equation*}
 
@@ -1256,6 +1257,17 @@ The Newton-Raphson algorithm can be used to update $\mathbf{w}$: \begin{equation
 It follows that finding $\varphi$ and $\boldsymbol{\theta}$ for unknown $\mathbf{a}$ requires a doubly-iterative algorithm. First, a value of $\mathbf{a}$ is proposed (e.g., $\mathbf{a} = \mathbf{0}$). Then given $\mathbf{a}_0$, the Laplace log-likelihood is maximized, yielding $\hat{\varphi}_0$ and $\hat{\boldsymbol{\theta}}_0$. Then given $\hat{\varphi}_0$ and $\hat{\boldsymbol{\theta}}_0$, $\ell_{\mathbf{w}}$ is maximized, yielding $\mathbf{a}_1$. Then given $\mathbf{a}_1$, the Laplace log-likelihood is maximized, yielding $\hat{\varphi}_1$ and $\hat{\boldsymbol{\theta}}_1$. Then given $\hat{\varphi}_1$ and $\hat{\boldsymbol{\theta}}_1$, $\ell_{\mathbf{w}}$ is maximized, yielding $\mathbf{a}_2$. This process continues until convergence, yielding optimized values for $\varphi$ and $\boldsymbol{\theta}$ and, using these optimized values, a value of $\mathbf{a}$.
 
 Note that the Laplace approximation incorporates a likelihood, and as a result, the only estimation methods available via the `estmethod` argument are `"reml"` (the default) and `"ml"`. The doubly-iterative algorithm used to fit spatial generalized linear models is far more computationally expensive than fitting spatial linear models.
+
+There is an additional nuance for maximum likelihood estimation. For maximum likelihood estimation, $\boldsymbol{\beta}$ is not integrated out of the likelihood; it is instead held fixed while integrating out $\mathbf{w}$:
+\begin{equation*}
+  [\mathbf{y}|\mathbf{X}, \boldsymbol{\beta}, \varphi, \boldsymbol{\theta}] = \int_\mathbf{w} [\mathbf{y} | g^{-1}(\mathbf{w}), \varphi] [\mathbf{w} | \mathbf{X}, \boldsymbol{\beta}, \boldsymbol{\theta}] d\mathbf{w} .
+\end{equation*}
+We can profile $\boldsymbol{\beta}$ out of the Gaussian component of the log-likelihood using the GLS expression, $\tilde{\boldsymbol{\beta}}(\mathbf{w}) = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1}\mathbf{X})^{-1}\mathbf{X}^\top \boldsymbol{\Sigma}^{-1}\mathbf{w}$. Using this profiled expression, the Newton-Raphson updates retain $\mathbf{g} = \mathbf{d} - \mathbf{P}\mathbf{w}$ and $\mathbf{G} = \mathbf{D} - \mathbf{P}$, as for REML. For the ML likelihood evaluation, define $\mathbf{G}_{\mathbf{a}}^* = \mathbf{D}_{\mathbf{a}} - \boldsymbol{\Sigma}^{-1}$, where $\mathbf{D}_{\mathbf{a}}$ is $\mathbf{D}$ evaluated at $\mathbf{a}$. Minus twice the ML Laplace log-likelihood is then
+\begin{equation*}
+  -2\ell_p(\varphi, \boldsymbol{\theta}) = -2\ln([\mathbf{y} | g^{-1}(\mathbf{a}), \varphi]) -2\ln([\mathbf{a} | \mathbf{X}, \tilde{\boldsymbol{\beta}}, \boldsymbol{\theta}]) + \ln(|-\mathbf{G}_{\mathbf{a}}^*|) - n\ln(2\pi).
+\end{equation*}
+This form of $\mathbf{G}_{\mathbf{a}}^*$ follows directly from integration over $\mathbf{w}$ while holding $\boldsymbol{\beta}$ fixed.
+Note that $-2\ln[\mathbf{a} | \mathbf{X}, \tilde{\boldsymbol{\beta}}, \boldsymbol{\theta}]$ is exactly \eqref{eq:ml-lik} (for maximum likelihood).
 
 ### Optimization {#sec:optim-glm}
 

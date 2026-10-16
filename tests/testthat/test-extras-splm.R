@@ -1529,7 +1529,10 @@ test_that("predict() errors informatively when newdata is missing coordinate col
 
   # a 1D covariance (e.g. triangular) only truly needs xcoord in newdata --
   # ycoord is auto-filled with 0 and should not be flagged as missing
-  spmod1d <- splm(y ~ x, exdata, spcov_type = "triangular", xcoord = xcoord, ycoord = ycoord, estmethod = "reml")
+  expect_warning(
+    spmod1d <- splm(y ~ x, exdata, spcov_type = "triangular", xcoord = xcoord, ycoord = ycoord, estmethod = "reml"),
+    "triangular covariance can only be used in one dimension"
+  )
   expect_vector(predict(spmod1d, newdata = newexdata_noycoord))
   expect_error(predict(spmod1d, newdata = newexdata_noxcoord), "coordinate column")
 

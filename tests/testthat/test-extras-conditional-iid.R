@@ -177,7 +177,7 @@ test_that("iid latent precision checks cover positive beta curvature", {
           variance = 2, samples = 3, latent = TRUE)$latent)))
       } else {
         expect_error(get_conditional_iid_glm(f$fit, matrix(numeric(), 0, 2),
-          variance = 2, samples = 3, latent = TRUE), "latent precision is not positive definite")
+          variance = 2, samples = 3, latent = TRUE), "latent covariance is not positive definite")
       }
     }, get_D = function(...) Matrix::Diagonal(f$fit$n, d), .package = "spmodel")
   }

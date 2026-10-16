@@ -432,13 +432,6 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
 
   warn_optim_convergence(cov_est_object$optim_output$convergence)
 
-  # de and ie collapsing toward zero together makes the ml Laplace likelihood
-  # unbounded (Sigma approaching singular); warn so the user knows likelihood-based
-  # comparisons may not be trustworthy near this boundary (see warn_spcov_boundary())
-  if (identical(estmethod, "ml")) {
-    warn_spcov_boundary(cov_est_object$spcov_params_val, data_object$diagtol)
-  }
-
   model_stats <- get_model_stats_spglm(cov_est_object, data_object, estmethod)
 
   # spatial structure can make binomial fits separate far more readily than an

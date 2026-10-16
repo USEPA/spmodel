@@ -55,12 +55,7 @@ must contain all variables used by \code{formula(object)} and all variables
 representing coordinates. If an \code{sf} object, \code{newdata} must contain
 all variables used by \code{formula(object)} and coordinates are obtained
 from the geometry of \code{newdata}. If omitted, missing data from the
-fitted model object are used.
-Coordinates are unnecessary for exact simulation from \code{splm()} and
-\code{spglm()} models with covariance type \code{"none"} or \code{"ie"}.
-Coordinate-free low-rank simulation requires nonspatial ordering
-(\code{reorder_base = "none"} or \code{"random"}) and \code{kmeans_new = FALSE}.
-Coordinate-free Vecchia simulation is not supported.}
+fitted model object are used.}
 
 \item{output}{The output type, which can be any subset of
 \code{c("newdata", "beta", "object")} (\code{"all"} is shorthand for this full vector).
@@ -132,13 +127,11 @@ on the coordinates, with clusters of size approximately equal to
 and \code{TRUE} otherwise.
 \item \code{size_new}: The (approximate) number of observations used
 for each block. The default is 1,000. See Details for more.
-\item \code{chunk_size}: For local \code{splm()} and \code{spglm()}
-simulation, with or without random effects, the
+\item \code{chunk_size}: For big data (local) \code{splm()} and \code{spglm()}
+simulation the
 maximum number of \code{samples} columns processed simultaneously.
-The default is 1,000. Factors are reused across chunks; chunking limits
-temporary calculations, not storage of the returned draws. It does not
-change the simulation distribution, but can change draws for a fixed seed.
-Exact simulation does not use chunking.
+The default is 1,000. \code{chunk_size} is purely computational
+and does not affect corretness.
 \item \code{parallel}: If \code{TRUE}, parallel processing via the
 parallel package is automatically used. The default is \code{FALSE}.
 \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
@@ -186,25 +179,16 @@ simulated in -- \code{"maxmin"}, \code{"middleout"},
 is \code{"grts"}.
 \item \code{size_random}: For models with random effects, the approximate
 number of observed sites per block for drawing realized random effects,
-implying \code{ceiling(n / size_random)} groups. The default is 1,000
-when neither \code{size_random} nor \code{groups_random} is supplied.
-If both are supplied, \code{size_random} takes precedence, as in local fitting.
-\item \code{groups_random}: The number of blocks (k-means centers when
-\code{method_random = "kmeans"}), as an alternative to \code{size_random}.
-Must be a positive integer no larger than the number of observed sites.
-\item \code{method_random}: How to form the observed blocks used only for
-drawing realized random effects: \code{"kmeans"} (the default) or
-\code{"random"} for random assignment to approximately equal-sized blocks,
-matching local fitting. K-means block sizes vary. These three settings
-require Vecchia simulation with random effects; they do not change latent
-or prediction neighborhoods. One block makes the effect step exact.
+implying \code{ceiling(n / size_random)} groups. The default is 1,000.
+If specified, \code{groups_random} is ignored.
+\item \code{groups_random}: The number of random effect blocks.
+\item \code{method_random}: How to form the random effect blocks:
+\code{"kmeans"} (the default) or \code{"random"}.
 \item \code{chunk_size}: For local \code{splm()} and \code{spglm()}
 simulation, with or without random effects, the
 maximum number of \code{samples} columns processed simultaneously.
-The default is 1,000. Factors are reused across chunks; chunking limits
-temporary calculations, not storage of the returned draws. It does not
-change the simulation distribution, but can change draws for a fixed seed.
-Exact simulation does not use chunking.
+The default is 1,000. \code{chunk_size} is purely computational and does
+not affect correctness.
 }
 }
 With \code{local = TRUE} or \code{local = list()}, the default is

@@ -117,9 +117,9 @@ test_that("nonspatial covariance and simulation do not need geometric distances"
         local = list(approximation = "low-rank", size_base = base, size_new = 2,
           reorder_base = "none", reorder_new = "none", chunk_size = 4))), c(3L, 11L))
     }
-    expect_error(conditional(f$fit, f$newdata, local = TRUE), "Vecchia simulation without coordinates is not supported")
-    expect_error(conditional(f$fit, f$newdata,
-      local = list(approximation = "low-rank", size_base = 8)), "low-rank simulation without coordinates requires")
+    expect_identical(dim(conditional(f$fit, f$newdata, samples = 1, local = TRUE)), c(3L, 1L))
+    expect_identical(dim(conditional(f$fit, f$newdata, samples = 1,
+      local = list(approximation = "low-rank", size_base = 8))), c(3L, 1L))
     expect_equal(dim(conditional(f$fit, f$newdata, samples = 1, local = list(method = "all"))), c(3L, 1L))
   }
 })

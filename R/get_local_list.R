@@ -6,6 +6,7 @@
 #' @param ycoord The y-coordinate name
 #' @param n The sample size
 #' @param partition_factor A partition factor formula (or \code{NULL})
+#' @param coordinates_supplied Whether coordinates were supplied before adding placeholders
 #'
 #' @return A fully-specified \code{local} list, with defaults filled in for
 #'   \code{index} (the partition assignment for each observation), \code{method},
@@ -15,7 +16,7 @@
 #'   overrides both.
 #'
 #' @noRd
-get_local_list_estimation <- function(local, data, xcoord, ycoord, n, partition_factor) {
+get_local_list_estimation <- function(local, data, xcoord, ycoord, n, partition_factor, coordinates_supplied = TRUE) {
   if (is.logical(local)) {
     if (local) {
       local <- list()
@@ -74,7 +75,10 @@ get_local_list_estimation <- function(local, data, xcoord, ycoord, n, partition_
       local$groups <- ceiling(n / local$size)
     }
     if (!"method" %in% names_local) {
-      local$method <- "kmeans"
+      local$method <- if (coordinates_supplied) "kmeans" else "random"
+    }
+    if (local$method == "kmeans" && !coordinates_supplied) {
+      stop('local$method = "kmeans" requires coordinates. Use local$method = "random", or supply xcoord/ycoord or an sf object as data.', call. = FALSE)
     }
     local$index <- get_local_estimation_index(local, data, xcoord, ycoord, n)
   }
@@ -380,6 +384,14 @@ get_local_list_simulation <- function(local, n, data) {
   }
 
   local
+}
+
+conditional_has_coordinates <- function(object, newdata) {
+  # The fitting call distinguishes supplied coordinates from stored placeholders.
+  supplied <- isTRUE(object$is_sf) ||
+    any(c("xcoord", "ycoord") %in% names(object$call))
+  supplied && (inherits(newdata, "sf") ||
+    all(c(object$xcoord, object$ycoord) %in% names(newdata)))
 }
 
 #' Build the \code{"low-rank"} (base+block) big data approximation settings
@@ -755,8 +767,8 @@ get_local_list_conditional_lowrank <- function(local, object, newdata, n, n_pred
     local$method_new <- "all"
   }
 
-  if (inherits(object$coefficients$spcov, c("none", "ie")) && n_pred > 0 && !inherits(newdata, "sf") &&
-      length(setdiff(c(object$xcoord, object$ycoord), names(newdata))) &&
+  if (inherits(object$coefficients$spcov, c("none", "ie")) && n_pred > 0 &&
+      !conditional_has_coordinates(object, newdata) &&
       ((local$method_base != "all" && local$reorder_base == "grts") ||
        (local$method_new != "all" && local$kmeans_new))) {
     stop('low-rank simulation without coordinates requires reorder_base = "none" or "random" and kmeans_new = FALSE; alternatively use local = FALSE.', call. = FALSE)
@@ -808,6 +820,9 @@ get_local_list_conditional_lowrank <- function(local, object, newdata, n, n_pred
         names(newdata)[[which(names(newdata) == ".ycoord")]] <- as.character(object$ycoord) # only relevant if newdata is sf data is not
       }
       x <- cbind(newdata[[object$xcoord]], newdata[[object$ycoord]])[index_new, ]
+      if (NROW(unique(x)) < groups) {
+        stop('There are not enough distinct prediction locations for the requested blocks; increase local$size_new or use local$kmeans_new = FALSE.', call. = FALSE)
+      }
       index_new <- split(index_new, do.call("kmeans", c(list(x = x, centers = groups, iter.max = 30), kmeans_args))$cluster)
     } else {
       index_new <- split(index_new, rep(seq(1, groups), times = c(rep(n_pred %/% groups + 1, n_pred %% groups), rep(n_pred %/% groups, groups - n_pred %% groups))))
@@ -855,9 +870,9 @@ get_local_list_conditional_vecchia <- function(local, object, newdata) {
   if (!"size" %in% names_local) local$size <- if (inherits(object, "spglm")) 60L else 30L
   if ("size_response" %in% names_local) stop("local$size_response is not supported; local$size controls both observed neighborhoods.", call. = FALSE)
   if (!"method" %in% names_local) local$method <- "covariance"
-  if (local$method != "all" && NROW(newdata) && !inherits(newdata, "sf") &&
+  if (local$method != "all" && NROW(newdata) &&
       inherits(object$coefficients$spcov, c("none", "ie")) &&
-      length(setdiff(c(object$xcoord, object$ycoord), names(newdata)))) {
+      !conditional_has_coordinates(object, newdata)) {
     stop('Vecchia simulation without coordinates is not supported; use local = FALSE or low-rank simulation without spatial ordering or k-means.', call. = FALSE)
   }
   if (!local$method %in% c("all", "distance", "covariance")) {

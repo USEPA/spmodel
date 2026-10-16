@@ -104,12 +104,13 @@ expand_formula_dot <- function(formula, data, reserved_cols = character(0)) {
 #'
 #' @return A list with elements \code{data} (possibly converted from sf to a
 #'   data frame, and/or with dummy coordinate columns added), \code{xcoord},
-#'   \code{ycoord}, \code{dim_coords}, \code{ycoord_orig_name},
+#'   \code{ycoord}, \code{dim_coords}, \code{coordinates_supplied}, \code{ycoord_orig_name},
 #'   \code{ycoord_orig_val}, \code{is_sf}, \code{sf_column_name}, \code{crs},
 #'   and \code{data_sf}
 #'
 #' @noRd
 get_point_ref_coords <- function(data, spcov_initial, estmethod, xcoord, ycoord) {
+  coordinates_supplied <- inherits(data, "sf") || !is.null(xcoord) || !is.null(ycoord)
   if (!inherits(data, "sf") && is.null(xcoord) &&
       inherits(spcov_initial, c("none", "ie")) && estmethod %in% c("sv-wls", "sv-cl")) {
     stop("Fitting without coordinates requires estmethod = \"reml\" or \"ml\"; semivariogram estimation requires coordinates.", call. = FALSE)
@@ -218,6 +219,7 @@ get_point_ref_coords <- function(data, spcov_initial, estmethod, xcoord, ycoord)
 
   list(
     data = data, xcoord = xcoord, ycoord = ycoord, dim_coords = dim_coords,
+    coordinates_supplied = coordinates_supplied,
     ycoord_orig_name = ycoord_orig_name, ycoord_orig_val = ycoord_orig_val,
     is_sf = is_sf, sf_column_name = sf_column_name, crs = crs, data_sf = data_sf
   )
@@ -429,13 +431,15 @@ check_local_index_length <- function(local, n_obdata) {
 #' @param y The response vector
 #' @param offset The offset (or \code{NULL})
 #' @param size Binomial trial counts (or \code{NULL}, GLM constructors only)
+#' @param coordinates_supplied Whether coordinates were supplied before adding placeholders
 #'
 #' @return A list with elements \code{local}, \code{obdata_list}, \code{X_list},
 #'   \code{y_list}, \code{ones_list}, \code{offset}, and \code{size}
 #'
 #' @noRd
 build_local_partition_lists <- function(local, obdata, xcoord, ycoord, n, partition_factor,
-                                         n_threshold, local_message, X, y, offset = NULL, size = NULL) {
+                                         n_threshold, local_message, X, y, offset = NULL, size = NULL,
+                                         coordinates_supplied = TRUE) {
   # exact likelihood evaluation requires an n x n covariance matrix, which is
   # infeasible for large n; above this threshold, default to partitioning the
   # data into local neighborhoods for a computationally cheaper approximation
@@ -447,7 +451,7 @@ build_local_partition_lists <- function(local, obdata, xcoord, ycoord, n, partit
       local <- FALSE
     }
   }
-  local <- get_local_list_estimation(local, obdata, xcoord, ycoord, n, partition_factor)
+  local <- get_local_list_estimation(local, obdata, xcoord, ycoord, n, partition_factor, coordinates_supplied)
 
   # store data list
   obdata_list <- split.data.frame(obdata, local$index)

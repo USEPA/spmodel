@@ -61,9 +61,7 @@ known values for the spatial covariance parameters. Multiple \code{\link[=spcov_
 objects can be provided in a list. Then \code{splm()} is called iteratively
 for each element and a list is returned for each model fit.}
 
-\item{estmethod}{The estimation method. Coordinate-free fitting with covariance
-type \code{"none"} or \code{"ie"} requires \code{"reml"} or \code{"ml"};
-semivariogram estimation requires coordinates. Available options include
+\item{estmethod}{The estimation method. Available options include
 \code{"reml"} for restricted maximum likelihood, \code{"ml"} for maximum
 likelihood, \code{"sv-wls"} for semivariogram weighted least squares,
 and \code{"sv-cl"} for semivariogram composite likelihood. The default is
@@ -122,7 +120,8 @@ if \code{index} is provided. If \code{method = "random"},
 observations are randomly assigned to \code{index} based on \code{size}.
 If \code{method = "kmeans"}, observations assigned to \code{index}
 based on k-means clustering on the coordinates with \code{groups} clusters. The default
-is \code{"kmeans"}. Note that both methods have a random component, which
+is \code{"kmeans"} when coordinates are supplied, and \code{"random"} otherwise.
+Both methods have a random component, which
 means that you may get different results from separate model fitting calls.
 To ensure consistent results, specify \code{index} or set a seed via
 \code{base::set.seed()}.

@@ -15,7 +15,7 @@
 * Updated the `conditional()` sampling for `spglm()` model objects to first simulate fixed effects and then the latent means given the fixed effects.
 * Minor error message updates.
 * Minor documentation updates.
-* Minor internal consistency updates.
+* Minor internal consistency and efficiency updates.
 
 ## Bug Fixes
 

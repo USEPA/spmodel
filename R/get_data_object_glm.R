@@ -179,7 +179,7 @@ get_data_object_spglm <- function(formula, family, data, spcov_initial, xcoord, 
     local, obdata, xcoord, ycoord, n, partition_factor,
     n_threshold = 3000,
     local_message = "Because the sample size exceeds 3,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.",
-    X = X, y = y, offset = offset, size = size
+    X = X, y = y, offset = offset, size = size, coordinates_supplied = point_ref$coordinates_supplied
   )
   local <- local_setup$local
   obdata_list <- local_setup$obdata_list

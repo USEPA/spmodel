@@ -5,6 +5,11 @@
 # Ranking uses the supplied covariance context and partition eligibility.
 # After realized effects are removed, prediction uses the spatial-only context.
 prepare_conditional_vecchia <- function(object, newdata, local_list) {
+  if (inherits(newdata, "sf")) {
+    newdata <- sf_to_df(suppressWarnings(sf::st_centroid(newdata)))
+    names(newdata)[names(newdata) == ".xcoord"] <- object$xcoord
+    names(newdata)[names(newdata) == ".ycoord"] <- object$ycoord
+  }
   n <- NROW(object$obdata)
   m <- NROW(newdata)
   columns <- unique(c(object$xcoord, object$ycoord, all.vars(object$random), all.vars(object$partition_factor)))

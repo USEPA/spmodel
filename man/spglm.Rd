@@ -124,7 +124,8 @@ if \code{index} is provided. If \code{method = "random"},
 observations are randomly assigned to \code{index} based on \code{size}.
 If \code{method = "kmeans"}, observations assigned to \code{index}
 based on k-means clustering on the coordinates with \code{groups} clusters. The default
-is \code{"kmeans"}. Note that both methods have a random component, which
+is \code{"kmeans"} when coordinates are supplied, and \code{"random"} otherwise.
+Both methods have a random component, which
 means that you may get different results from separate model fitting calls.
 To ensure consistent results, specify \code{index} or set a seed via
 \code{base::set.seed()}.
@@ -294,12 +295,6 @@ should not be made to compare an \code{spglm()} model to a \code{glm()} one
 (though deviance can be used). \code{ie} allows the \code{"ie"} covariance
 parameter to vary. If the \code{"ie"} covariance parameter is estimated near
 zero, then \code{none} and \code{ie} yield similar models.
-Neither covariance type requires coordinates for fitting, point prediction,
-covariance extraction, or exact conditional simulation. Covariance construction
-retains the numerical independent-variance floor of \code{1e-4}, including
-when the stored \code{"ie"} parameter is zero. This effective variance is
-also retained in prediction uncertainties and conditional draws; it is not
-an estimated positive \code{"ie"} parameter.
 
 All spatial covariance functions are valid in one spatial dimension. All
 spatial covariance functions except \code{triangular} and \code{cosine} are

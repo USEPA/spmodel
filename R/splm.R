@@ -89,7 +89,8 @@
 #'       observations are randomly assigned to \code{index} based on \code{size}.
 #'       If \code{method = "kmeans"}, observations assigned to \code{index}
 #'       based on k-means clustering on the coordinates with \code{groups} clusters. The default
-#'       is \code{"kmeans"}. Note that both methods have a random component, which
+#'       is \code{"kmeans"} when coordinates are supplied, and \code{"random"} otherwise.
+#'       Both methods have a random component, which
 #'       means that you may get different results from separate model fitting calls.
 #'       To ensure consistent results, specify \code{index} or set a seed via
 #'       \code{base::set.seed()}.

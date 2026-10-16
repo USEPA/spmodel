@@ -53,7 +53,7 @@ are (generally) the best linear unbiased predictors of the spatial dependent and
 independent random error. When \code{type} is \code{"randcov"}, the fitted
 values for each level of each random effect are (generally) the best linear unbiased
 predictors of the corresponding random effect, separated by partition
-factor levels when relevant (e.g., \code{ga:partition_level_x}). For local fits, fitted
+factor levels when relevant (e.g., \code{ga:partition_level}). For local fits, fitted
 random effect are averaged over fitting blocks.
 The fitted values for \code{type}
 \code{"spcov"} and \code{"randcov"} can generally be used to check assumptions

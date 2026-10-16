@@ -240,6 +240,7 @@ conditional <- function(object, ...) {
 #' @method conditional splm
 #' @export
 conditional.splm <- function(object, newdata, output = "newdata", samples = 1000, local, simulate_covparams = FALSE, ...) {
+  if (inherits(coef(object, type = "spcov"), c("none", "ie")) && is.null(object$random)) local <- FALSE
 
   if (!is.numeric(samples) || length(samples) != 1L || !is.finite(samples) || samples < 1 || samples != floor(samples)) {
     stop("samples must be a positive integer.", call. = FALSE)
@@ -276,6 +277,7 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   # local_list/simulate_covparams/samples must all be specified before samples is
   # first used below (the output = "object" shortcut)
   # get_local_list_conditional() only needs object/newdata
+  iid_variance <- get_conditional_iid_variance(object, simulate_covparams)
   local_list <- get_local_list_conditional(local, object, newdata)
   if (!local_list$exact && local_list$approximation == "low-rank" && "random" %in% output) {
     stop("Random-effect output is unavailable on low-rank paths; effects are conditioned only on the sampled base and used internally for prediction.", call. = FALSE)
@@ -340,6 +342,9 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
+  if (!is.null(iid_variance) && !is.null(object$partition_factor) && NROW(newdata)) {
+    model.frame(object$partition_factor, newdata)
+  }
 
   if (isTRUE(simulate_covparams)) {
     # covariance parameters resimulated per draw -- see get_conditional_covparams()
@@ -380,6 +385,8 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
 
     if (!NROW(newdata)) {
       new_val <- matrix(numeric(), 0, samples)
+    } else if (!is.null(iid_variance)) {
+      new_val <- draw_conditional_iid_error(NROW(newdata), samples, iid_variance)
     } else if (local_list$approximation == "vecchia") {
       # Vecchia selects a neighborhood from observed and earlier prediction
       # residuals at each site; there is no shared-base/block split.
@@ -445,7 +452,7 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   # (mean-zero) conditional spatial residual draws -- completes the
   # composition sampling described previously
   if (isTRUE(simulate_covparams) || is.null(object$random)) {
-    chunk_size <- if (local_list$exact) samples else get_conditional_chunk_size(local_list)
+    chunk_size <- if (!is.null(iid_variance)) 1000L else if (local_list$exact) samples else get_conditional_chunk_size(local_list)
     for (start in seq.int(1L, samples, by = chunk_size)) {
       cols <- seq.int(start, min(samples, start + chunk_size - 1L))
       new_val[, cols] <- newdata_model %*% new_betahat[, cols, drop = FALSE] + new_val[, cols, drop = FALSE]
@@ -469,6 +476,7 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
 #' @method conditional spglm
 #' @export
 conditional.spglm <- function(object, newdata, output = "newdata", type = c("link", "response", "new"), samples = 1000, local, newdata_size, ...) {
+  if (inherits(coef(object, type = "spcov"), c("none", "ie")) && is.null(object$random)) local <- FALSE
 
   if (!is.numeric(samples) || length(samples) != 1L || !is.finite(samples) || samples < 1 || samples != floor(samples)) {
     stop("samples must be a positive integer.", call. = FALSE)
@@ -516,6 +524,7 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
     return(base_val_w)
   }
   nonspatial <- inherits(coef(object, type = "spcov"), c("none", "ie"))
+  iid_variance <- get_conditional_iid_variance(object)
   if (inherits(newdata, "sf")) {
     newdata <- sf_to_df(suppressWarnings(sf::st_centroid(newdata)))
     names(newdata)[names(newdata) == ".xcoord"] <- object$xcoord
@@ -532,7 +541,7 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   effect_index <- if (lowrank) local_list$index$base else seq_len(object$n)
   design <- if (!is.null(object$random)) get_conditional_random_design(object, newdata, effect_index) else NULL
   random_val <- NULL
-  if (exact && object$n > 10000) {
+  if (exact && is.null(iid_variance) && object$n > 10000) {
     message("Exact spatial generalized linear model conditional simulation requires a dense observed latent precision factorization. See Details.")
   }
   newdata_model_list <- if (NROW(newdata)) get_newdata_model_matrix(object, newdata) else
@@ -546,8 +555,15 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
+  if (!is.null(iid_variance) && !is.null(object$partition_factor) && NROW(newdata)) {
+    model.frame(object$partition_factor, newdata)
+  }
 
-  if (lowrank) {
+  if (!is.null(iid_variance)) {
+    draws <- get_conditional_iid_glm(object, newdata_model, iid_variance, samples, latent = "latent" %in% output)
+    new_val <- draws$newdata
+    new_betahat <- draws$beta
+  } else if (lowrank) {
     if ("latent" %in% output && length(local_list$index$base) != NROW(model.matrix(object))) {
       stop("Full latent output is unavailable for a reduced low-rank base; only base latent values are drawn.", call. = FALSE)
     }

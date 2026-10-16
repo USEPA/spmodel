@@ -80,7 +80,8 @@ loocv.splm <- function(object, cv_predict = FALSE, se.fit = FALSE, local, interv
   # over rows, so take that fast path whenever it applies
   # iid if relevant otherwise pass
   if (inherits(coef(object, type = "spcov"), c("none", "ie")) && is.null(object$random)) {
-    return(loocv_iid(object, cv_predict, se.fit, local, interval, level))
+    local <- FALSE
+    return(loocv_iid(object, cv_predict, se.fit, interval, level))
   }
 
   # local prediction list
@@ -430,9 +431,6 @@ loocv_local <- function(row, context, se.fit, local_list) {
 #' @param object A fitted model object from [splm()]
 #' @param cv_predict Whether to return the leave-one-out fitted values
 #' @param se.fit Whether to return the leave-one-out prediction standard errors
-#' @param local A list or logical, validated for consistency with other methods;
-#'   the vectorized iid shortcut does not require local approximation or parallelization
-#'   given it is a single vectorized operation
 #' @param interval See \code{loocv.splm()}'s \code{interval} argument
 #' @param level See \code{loocv.splm()}'s \code{level} argument
 #'
@@ -443,10 +441,7 @@ loocv_local <- function(row, context, se.fit, local_list) {
 #'   leverage rather than requiring a full covariance-matrix update
 #'
 #' @noRd
-loocv_iid <- function(object, cv_predict, se.fit, local, interval = "none", level = 0.95) {
-  # Validate supplied settings even though the IID calculation is vectorized.
-  if (is.null(local) || is.logical(local)) local <- FALSE
-  get_local_list_prediction(local)
+loocv_iid <- function(object, cv_predict, se.fit, interval = "none", level = 0.95) {
   # interval = "prediction" needs se.fit internally to build the interval even
   # when the caller didn't request se.fit in the return value
   se_needed <- se.fit || interval == "prediction"

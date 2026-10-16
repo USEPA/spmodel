@@ -167,9 +167,7 @@ must contain all variables used by \code{formula(object)} and all variables
 representing coordinates. If an \code{sf} object, \code{newdata} must contain
 all variables used by \code{formula(object)} and coordinates are obtained
 from the geometry of \code{newdata}. If omitted, missing data from the
-fitted model object are used.
-Coordinates are not required for point prediction from \code{splm()} and
-\code{spglm()} models with covariance type \code{"none"} or \code{"ie"}.}
+fitted model object are used.}
 
 \item{se.fit}{A logical indicating if standard errors are returned.
 The default is \code{FALSE}.}
@@ -279,8 +277,7 @@ argument of \code{\link{sprnorm}()}/\code{\link{conditional}()} under
 \code{approximation = "vecchia"} (\code{"maxmin"}, \code{"grts"},
 \code{"random"}, \code{"none"}, \code{"middleout"},
 \code{"outsidein"}, \code{"coordinate"}). The default is
-\code{"grts"}. Explicit \code{"maxmin"} errors when the grid being
-ordered contains coincident locations.
+\code{"grts"}.
 \item \code{parallel} and \code{ncores} parallelize
 the variance calculation when \code{method_new = "basis"}.
 }

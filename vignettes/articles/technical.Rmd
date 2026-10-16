@@ -1699,6 +1699,8 @@ For both linear and generalized linear models, the covariance square roots below
 
 For low-rank and Vecchia conditional simulation, `local$chunk_size` (default 1,000) specifies the maximum number of simulation columns processed simultaneously, saving computational memory.
 
+For `splm()` and `spglm()` models with covariance type `"none"` or `"ie"` and no random effects (described below), `conditional()` sets `local = FALSE`, ignoring any supplied value of `local` (i.e., `local = TRUE`) and instead implementing the exact method, which bypasses explicit spatial conditioning (as off-diagonal covariance terms equal zero under independence). Simulated values are the sum of the mean component and a random error with variance equal to the respective variance component.
+
 ## Models with Random Effects {#sec:conditional-random}
 
 As elsewhere, $\mathbf{u}$ denotes random effects, $\boldsymbol{\tau}$ denotes spatially dependent error, and $\boldsymbol{\epsilon}$ denotes independent error. The random-effect vector $\mathbf{u}$ is distinct from the subscript $u$ indexing prediction sites. The spatial residual used below is the sum $\boldsymbol{\tau}+\boldsymbol{\epsilon}$, with covariance $\mathbf{S}$; conditional simulation generates their sum rather than each individually.

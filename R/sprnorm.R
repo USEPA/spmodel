@@ -194,10 +194,13 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
     # non standard evaluation for the x and y coordinates -- as.character()
     # right at capture normalizes both quoted ("x") and unquoted (x)
     # column-name references into a plain string
-    xcoord <- as.character(substitute(xcoord))
+    xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
+    if (!length(xcoord)) {
+      stop("The xcoord argument must be specified.", call. = FALSE)
+    }
     # replace null if necessary -- this missing() check runs before ycoord's
     # own capture below, so it still reflects the original argument correctly
-    if (missing(ycoord)) {
+    if (missing(ycoord) || is.null(substitute(ycoord))) {
       # 1-D data: fabricate a constant y-coordinate so the same 2-D distance
       # machinery below can be reused without a separate 1-D code path
       ycoord <- ".ycoord"

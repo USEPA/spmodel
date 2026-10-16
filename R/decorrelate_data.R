@@ -42,6 +42,8 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
   # already-substituted value and must not re-substitute)
   xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
   ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
+  if (!length(xcoord)) xcoord <- NULL
+  if (!length(ycoord)) ycoord <- NULL
 
   # set randcov_initial NULL if necessary. Unlike decorrelate_data_internal()
   # (which always receives an already-resolved `random` from its caller),

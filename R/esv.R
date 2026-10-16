@@ -84,6 +84,8 @@ esv <- function(formula, data, xcoord, ycoord, cloud = FALSE, robust = FALSE, bi
   # argument was supplied.
   xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
   ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
+  if (!length(xcoord)) xcoord <- NULL
+  if (!length(ycoord)) ycoord <- NULL
 
   ## convert sf to data frame (point geometry) (1d objects obsolete)
   ### see if data has sf class

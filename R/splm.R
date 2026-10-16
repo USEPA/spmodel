@@ -331,6 +331,8 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
   # (not missing()) to see whether the argument was supplied.
   xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
   ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
+  if (!length(xcoord)) xcoord <- NULL
+  if (!length(ycoord)) ycoord <- NULL
 
   # get data object
   data_object <- get_data_object_splm(

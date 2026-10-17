@@ -197,6 +197,307 @@ test_that("explicit NULL coordinates preserve decorrelation fits and predictions
   }
 })
 
+test_that("one-dimensional conditional simulation matches constant-y spatial fits", {
+  for (glm in c(FALSE, TRUE)) for (xname in c("cx", ".ycoord")) for (null_y in c(FALSE, TRUE)) {
+    d <- local_coordinate_fixture(30)
+    d$cy <- 0
+    d[[xname]] <- d$cx
+    d$y[25:30] <- NA
+    nd <- d[25:30, ]
+    args <- list(formula = y ~ x + offset(off), data = d, xcoord = xname,
+      spcov_initial = spcov_initial("exponential", de = .3, ie = .5, range = .4, known = "given"))
+    if (glm) args$family <- "poisson" else args$ddf <- "asymptotic"
+    fun <- if (glm) spglm else splm
+    fit <- do.call(fun, c(args, if (null_y) list(ycoord = NULL)))
+    reference <- do.call(fun, c(args, list(ycoord = "cy")))
+    expect_true(conditional_has_coordinates(fit, nd))
+    expect_false(conditional_has_coordinates(fit, nd[setdiff(names(nd), xname)]))
+    for (ctl in list(FALSE, TRUE, list(approximation = "vecchia", size = 7, ordering = "none"),
+      list(approximation = "low-rank", size_base = 15, size_new = 3,
+        reorder_base = "none", kmeans_new = TRUE),
+      list(approximation = "low-rank", size_base = 15, size_new = 3,
+        reorder_base = "none", kmeans_new = FALSE))) {
+      set.seed(2)
+      expected <- conditional(reference, nd, samples = 3, local = ctl)
+      set.seed(2)
+      actual <- conditional(fit, nd, samples = 3, local = ctl)
+      expect_equal(actual, expected, tolerance = 1e-12)
+      expect_identical(dim(actual), c(6L, 3L))
+      set.seed(2)
+      expect_identical(conditional(fit, samples = 3, local = ctl), actual)
+    }
+  }
+})
+
+test_that("one-dimensional conditional simulation ignores unused y coordinates", {
+  d <- local_coordinate_fixture(24)
+  nd <- d[1:6, ]
+  nd$cx <- nd$cx + .01
+  for (type in c("triangular", "cosine")) {
+    params <- spcov_initial(type, de = .3, ie = .5, range = .4, known = "given")
+    fit <- splm(y ~ x, d, xcoord = cx, spcov_initial = params, ddf = "asymptotic")
+    expect_warning(with_y <- splm(y ~ x, d, xcoord = cx, ycoord = cy,
+      spcov_initial = params, ddf = "asymptotic"), "Ignoring y-coordinate")
+    for (ctl in list(FALSE, TRUE, list(approximation = "low-rank", size_base = 15,
+      size_new = 3, reorder_base = "none", kmeans_new = TRUE))) {
+      set.seed(2)
+      expected <- conditional(fit, nd, samples = 3, local = ctl)
+      set.seed(2)
+      expect_identical(conditional(with_y, nd, samples = 3, local = ctl), expected)
+      polluted <- nd
+      polluted[[fit$ycoord]] <- seq_len(nrow(nd))
+      set.seed(2)
+      expect_identical(conditional(fit, polluted, samples = 3, local = ctl), expected)
+    }
+  }
+})
+
+test_that("one-dimensional conditional coordinates support geometry and random effects", {
+  d <- local_coordinate_fixture(24)
+  d$cy <- 0
+  nd <- d[1:6, ]
+  nd$cx <- nd$cx + .01
+  params <- spcov_initial("exponential", de = .3, ie = .5, range = .4, known = "given")
+  for (glm in c(FALSE, TRUE)) {
+    args <- list(formula = y ~ x + offset(off), data = d, xcoord = "cx", random = ~g,
+      spcov_initial = params, randcov_initial = randcov_initial(g = .2, known = "given"))
+    if (glm) args$family <- "poisson" else args$ddf <- "asymptotic"
+    fit <- do.call(if (glm) spglm else splm, args)
+    for (ctl in list(FALSE, TRUE, list(approximation = "low-rank", size_base = 15,
+      size_new = 3, reorder_base = "none", kmeans_new = TRUE))) {
+      set.seed(2)
+      expected <- conditional(fit, nd, samples = 3, local = ctl)
+      set.seed(2)
+      expect_equal(conditional(fit, sf::st_as_sf(nd, coords = c("cx", "cy")),
+        samples = 3, local = ctl), expected, tolerance = 1e-12)
+    }
+    expect_error(conditional(fit, nd[setdiff(names(nd), "cx")], local = TRUE), "cx")
+  }
+})
+
+test_that("one-dimensional conditional coordinates preserve coordinate predictors", {
+  d <- local_coordinate_fixture(24)
+  d$.conditional_ycoord <- cos(seq_len(nrow(d)))
+  nd <- d[1:6, ]
+  nd$cx <- nd$cx + .01
+  for (glm in c(FALSE, TRUE)) for (type in c("triangular", "cosine")) {
+    args <- list(formula = y ~ x + cy + .conditional_ycoord + offset(off), data = d, xcoord = "cx",
+      spcov_initial = spcov_initial(type, de = .3, ie = .5, range = .4, known = "given"))
+    if (glm) args$family <- "poisson" else args$ddf <- "asymptotic"
+    fun <- if (glm) spglm else splm
+    reference <- do.call(fun, args)
+    expect_warning(fit <- do.call(fun, c(args, list(ycoord = "cy"))), "Ignoring y-coordinate")
+    observed <- fit$obdata
+    for (ctl in list(FALSE, TRUE, list(approximation = "low-rank", size_base = 15,
+      size_new = 3, reorder_base = "none", kmeans_new = TRUE))) {
+      set.seed(2)
+      expected <- conditional(reference, nd, samples = 3, local = ctl)
+      set.seed(2)
+      expect_equal(conditional(fit, nd, samples = 3, local = ctl), expected, tolerance = 1e-12)
+    }
+    expect_identical(fit$obdata, observed)
+  }
+})
+
+test_that("one-dimensional covariance fits retain ignored coordinates as data", {
+  d <- local_coordinate_fixture(24)
+  d$y[21:24] <- NA
+  for (glm in c(FALSE, TRUE)) for (type in c("triangular", "cosine")) {
+    args <- list(formula = y ~ x + offset(off), data = d, xcoord = "cx",
+      spcov_initial = spcov_initial(type, de = .3, ie = .5, range = .4, known = "given"))
+    if (glm) args$family <- "poisson" else args$ddf <- "asymptotic"
+    fun <- if (glm) spglm else splm
+    reference <- do.call(fun, args)
+    expect_warning(fit <- do.call(fun, c(args, list(ycoord = "cy"))), "Ignoring y-coordinate")
+    expect_identical(fit$ycoord, reference$ycoord)
+    expect_equal(fit$obdata[[fit$ycoord]], rep(0, 20))
+    expect_equal(fit$newdata[[fit$ycoord]], rep(0, 4))
+    expect_identical(fit$obdata$cy, d$cy[1:20])
+    expect_identical(fit$newdata$cy, d$cy[21:24])
+    expect_identical(anyDuplicated(names(fit$obdata)), 0L)
+    expect_identical(anyDuplicated(names(fit$newdata)), 0L)
+    expect_equal(coef(fit), coef(reference))
+    expect_equal(coef(fit, type = "spcov"), coef(reference, type = "spcov"))
+    expect_equal(logLik(fit), logLik(reference))
+    expect_equal(model.matrix(fit), model.matrix(reference))
+    expect_equal(fitted(fit), fitted(reference))
+    distance <- abs(outer(d$cx[1:20], d$cx[1:20], "-"))
+    correlation <- if (type == "triangular") pmax(1 - distance / .4, 0) else cos(distance / .4)
+    expect_equal(unname(as.matrix(covmatrix(fit))), .3 * correlation + diag(.5, 20))
+    expect_equal(covmatrix(fit), covmatrix(reference))
+    for (cov_type in c("obs.pred", "pred.pred")) {
+      expect_equal(covmatrix(fit, d[21:24, ], cov_type = cov_type),
+        covmatrix(reference, d[21:24, ], cov_type = cov_type))
+      expect_equal(covmatrix(fit, fit$newdata, cov_type = cov_type),
+        covmatrix(reference, reference$newdata, cov_type = cov_type))
+    }
+  }
+})
+
+test_that("prediction covariance preserves one-dimensional coordinates in newdata", {
+  d <- local_coordinate_fixture(24)
+  d$part <- factor(rep(1:2, each = 12))
+  nd <- d[seq(1, 24, by = 3), ]
+  nd$cx <- nd$cx + .01
+  for (glm in c(FALSE, TRUE)) for (type in c("triangular", "cosine", "exponential")) {
+    args <- list(formula = y ~ x + cy + offset(off), data = d, xcoord = "cx",
+      spcov_initial = spcov_initial(type, de = .3, ie = .5, range = .4, known = "given"),
+      random = ~g, randcov_initial = randcov_initial(g = .2, known = "given"),
+      partition_factor = ~part)
+    if (glm) args$family <- "poisson" else args$ddf <- "asymptotic"
+    fun <- if (glm) spglm else splm
+    fit <- do.call(fun, args)
+    expected <- covmatrix(fit, nd, cov_type = "pred.pred")
+    original <- fit$obdata
+    collision <- nd
+    collision$.ycoord <- nd$cy
+    expect_equal(covmatrix(fit, collision, cov_type = "pred.pred"), expected)
+    expect_identical(fit$obdata, original)
+    expect_identical(collision$.ycoord, nd$cy)
+    expect_gt(min(eigen(as.matrix(expected), symmetric = TRUE, only.values = TRUE)$values), 0)
+
+    if (type != "exponential") {
+      args$data <- sf::st_as_sf(d, coords = c("cx", "cy"), remove = FALSE)
+      args$xcoord <- NULL
+      expect_warning(sf_fit <- do.call(fun, args), NA)
+      sf_nd <- sf::st_as_sf(nd, coords = c("cx", "cy"), remove = FALSE)
+      original <- sf_nd
+      expect_equal(unname(as.matrix(covmatrix(sf_fit, sf_nd, cov_type = "pred.pred"))),
+        unname(as.matrix(expected)))
+      expect_equal(unname(as.matrix(covmatrix(sf_fit, sf_nd, cov_type = "obs.pred"))),
+        unname(as.matrix(covmatrix(fit, nd, cov_type = "obs.pred"))))
+      expect_identical(sf_nd, original)
+    }
+
+    args$data <- d
+    names(args$data)[names(args$data) == "cx"] <- ".ycoord"
+    args$xcoord <- ".ycoord"
+    renamed_fit <- do.call(fun, args)
+    renamed <- nd
+    names(renamed)[names(renamed) == "cx"] <- ".ycoord"
+    renamed$.ycoord2 <- nd$cy
+    expect_equal(covmatrix(renamed_fit, renamed, cov_type = "pred.pred"), expected)
+    expect_identical(renamed$.ycoord, nd$cx)
+    expect_identical(renamed$.ycoord2, nd$cy)
+  }
+})
+
+test_that("one-dimensional covariance fits agree in prediction and cross validation", {
+  d <- local_coordinate_fixture(24)
+  d$y[21:24] <- NA
+  nd <- d[21:24, setdiff(names(d), "cy")]
+  for (glm in c(FALSE, TRUE)) for (type in c("triangular", "cosine")) {
+    args <- list(formula = y ~ x + offset(off), data = d, xcoord = "cx",
+      spcov_initial = spcov_initial(type, de = .3, ie = .5, range = .4, known = "given"))
+    if (glm) args$family <- "poisson" else args$ddf <- "asymptotic"
+    fun <- if (glm) spglm else splm
+    reference <- do.call(fun, args)
+    expect_warning(fit <- do.call(fun, c(args, list(ycoord = "cy"))), "Ignoring y-coordinate")
+    for (ctl in list(FALSE, list(method = "covariance", size = 8),
+      list(method = "distance", size = 8))) {
+      expect_warning(actual <- predict(fit, nd, se.fit = TRUE,
+        interval = "prediction", local = ctl), NA)
+      expect_equal(actual, predict(reference, nd, se.fit = TRUE,
+        interval = "prediction", local = ctl))
+      expect_true(all(is.finite(actual$se.fit)))
+      stored <- predict(fit, se.fit = TRUE, interval = "prediction", local = ctl)
+      expect_equal(stored, predict(reference, se.fit = TRUE, interval = "prediction", local = ctl))
+      expect_equal(lapply(stored, unname), lapply(actual, unname))
+      expect_equal(augment(fit, newdata = nd, se_fit = TRUE, local = ctl),
+        augment(reference, newdata = nd, se_fit = TRUE, local = ctl))
+      expect_equal(loocv(fit, cv_predict = TRUE, se.fit = TRUE, local = ctl),
+        loocv(reference, cv_predict = TRUE, se.fit = TRUE, local = ctl))
+      set.seed(2)
+      expect_warning(expected <- kcv(reference, folds_index = rep(1:4, 5), cv_predict = TRUE,
+        se.fit = TRUE, local = ctl), NA)
+      set.seed(2)
+      expect_warning(actual <- kcv(fit, folds_index = rep(1:4, 5), cv_predict = TRUE,
+        se.fit = TRUE, local = ctl), NA)
+      expect_equal(actual, expected)
+    }
+    for (ctl in list(FALSE, TRUE, list(approximation = "low-rank", size_base = 12,
+      size_new = 2, reorder_base = "none", kmeans_new = FALSE))) {
+      set.seed(2)
+      expected <- conditional(reference, nd, samples = 3, local = ctl)
+      set.seed(2)
+      expect_equal(conditional(fit, nd, samples = 3, local = ctl), expected)
+      set.seed(2)
+      expect_equal(conditional(fit, samples = 3, local = ctl), expected)
+    }
+  }
+})
+
+test_that("one-dimensional covariance fits preserve coordinate predictors and dot formulas", {
+  d <- local_coordinate_fixture(24)
+  nd <- d[1:4, ]
+  nd$cx <- nd$cx + .01
+  for (glm in c(FALSE, TRUE)) for (type in c("triangular", "cosine")) {
+    args <- list(formula = y ~ x + cy + offset(off), data = d, xcoord = "cx",
+      spcov_initial = spcov_initial(type, de = .3, ie = .5, range = .4, known = "given"))
+    if (glm) args$family <- "poisson" else args$ddf <- "asymptotic"
+    fun <- if (glm) spglm else splm
+    reference <- do.call(fun, args)
+    expect_warning(fit <- do.call(fun, c(args, list(ycoord = "cy"))), "Ignoring y-coordinate")
+    expect_identical(fit$obdata$cy, d$cy)
+    expect_equal(model.matrix(fit), model.matrix(reference))
+    expect_equal(predict(fit, nd, se.fit = TRUE, local = FALSE),
+      predict(reference, nd, se.fit = TRUE, local = FALSE))
+    args$data <- d[c("y", "x", "cx", "cy")]
+    args$formula <- y ~ x
+    reference <- do.call(fun, args)
+    args$formula <- y ~ .
+    expect_warning(fit <- do.call(fun, c(args, list(ycoord = "cy"))), "Ignoring y-coordinate")
+    expect_identical(colnames(model.matrix(fit)), c("(Intercept)", "x"))
+    expect_equal(coef(fit), coef(reference))
+    expect_equal(predict(fit, nd, se.fit = TRUE, local = FALSE),
+      predict(reference, nd, se.fit = TRUE, local = FALSE))
+  }
+})
+
+test_that("local kcv omits unused coordinates without changing fold results", {
+  d <- local_coordinate_fixture(24)
+  for (glm in c(FALSE, TRUE)) for (type in c("triangular", "cosine", "exponential", "none", "ie")) {
+    for (supplied in c(FALSE, TRUE)) {
+      spatial <- !type %in% c("none", "ie")
+      params <- if (spatial) spcov_initial(type, de = .3, ie = .5, range = .4, known = "given") else
+        spcov_initial(type, ie = .5, known = "given")
+      args <- list(formula = y ~ x + offset(off), data = d, spcov_initial = params,
+        local = list(index = rep(1:3, each = 8)))
+      if (type %in% c("triangular", "cosine")) args$formula <- y ~ x + cy + offset(off)
+      if (!spatial) {
+        args$random <- ~g
+        args$randcov_initial <- randcov_initial(g = .2, known = "given")
+      }
+      if (glm) args$family <- "poisson" else args$ddf <- "asymptotic"
+      if (spatial || supplied) args$xcoord <- "cx"
+      if (supplied) args$ycoord <- "cy"
+      fun <- if (glm) spglm else splm
+      if (supplied && type %in% c("triangular", "cosine")) {
+        expect_warning(fit <- do.call(fun, args), "Ignoring y-coordinate")
+      } else {
+        expect_warning(fit <- do.call(fun, args), NA)
+      }
+      legacy_refit <- function(...) {
+        refit_args <- list(...)
+        refit_args$ycoord <- fit$ycoord
+        do.call(fun, refit_args)
+      }
+      run <- function() kcv(fit, folds_index = rep(1:4, 6), local = TRUE,
+        cv_predict = TRUE, se.fit = TRUE)
+      set.seed(2)
+      expected <- if (glm) {
+        with_mocked_bindings(suppressWarnings(run()), spglm = legacy_refit, .package = "spmodel")
+      } else {
+        with_mocked_bindings(suppressWarnings(run()), splm = legacy_refit, .package = "spmodel")
+      }
+      set.seed(2)
+      expect_warning(actual <- run(), NA)
+      expect_identical(actual, expected)
+      expect_true(all(is.finite(actual$cv_predict)) && all(is.finite(actual$se.fit)))
+    }
+  }
+})
+
 test_that("coordinate availability is independent of covariance dimension", {
   d <- data.frame(y = 1:12, cx = 1:12, cy = rep(0:1, 6))
   for (type in c("none", "ie")) {

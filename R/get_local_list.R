@@ -390,8 +390,9 @@ conditional_has_coordinates <- function(object, newdata) {
   # The fitting call distinguishes supplied coordinates from stored placeholders.
   supplied <- isTRUE(object$is_sf) ||
     !is.null(object$call$xcoord) || !is.null(object$call$ycoord)
+  required <- if (isTRUE(object$dim_coords == 1)) object$xcoord else c(object$xcoord, object$ycoord)
   supplied && (inherits(newdata, "sf") ||
-    all(c(object$xcoord, object$ycoord) %in% names(newdata)))
+    all(required %in% names(newdata)))
 }
 
 #' Build the \code{"low-rank"} (base+block) big data approximation settings

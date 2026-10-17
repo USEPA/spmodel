@@ -227,7 +227,8 @@ test_that("coordinate-free fitting has an explicit estimation-method boundary", 
     for (method in c("sv-wls", "sv-cl")) expect_error(nonspatial_fixture(type = type, estmethod = method), "semivariogram estimation requires coordinates")
   }
   f <- nonspatial_fixture(type = "exponential", coordinates = TRUE)
-  expect_error(conditional(f$fit, f$newdata[c("x", "off")], local = FALSE), "Coordinate column")
+  expect_error(conditional(f$fit, f$newdata[c("x", "off")], local = FALSE),
+    'newdata is missing.*"cx".*"cy"')
 })
 
 test_that("large random-effect designs warn and continue with/without observation blocking", {

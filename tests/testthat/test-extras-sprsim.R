@@ -6,6 +6,54 @@ skip_if_not(
 
 set.seed(1)
 
+test_that("one-dimensional simulation warns only for supplied y-coordinates", {
+  d <- data.frame(cx = seq(0, 1, length.out = 12), cy = 0)
+  settings <- list(FALSE, list(approximation = "vecchia", size = 4, ordering = "none"),
+    list(approximation = "low-rank", size_base = 6, size_new = 3,
+      reorder_base = "random", kmeans_new = FALSE))
+  for (type in c("triangular", "cosine", "exponential")) {
+    params <- spcov_params(type, de = .4, ie = .2, range = .3)
+    for (local in settings) for (sim in list(sprnorm, sprpois, sprbinom, sprnbinom,
+      sprbeta, sprgamma, sprinvgauss)) {
+      set.seed(2)
+      expect_warning(omitted <- sim(params, data = d, xcoord = cx,
+        samples = 3, local = local), NA)
+      set.seed(2)
+      expect_warning(null <- sim(params, data = d, xcoord = cx, ycoord = NULL,
+        samples = 3, local = local), NA)
+      expect_identical(null, omitted)
+      set.seed(2)
+      warning <- if (type == "exponential") NA else "Ignoring y-coordinate"
+      expect_warning(supplied <- sim(params, data = d, xcoord = cx, ycoord = cy,
+        samples = 3, local = local), warning)
+      expect_identical(supplied, omitted)
+      expect_true(all(is.finite(omitted)))
+    }
+  }
+})
+
+test_that("low-rank sf simulation preserves one-dimensional covariance", {
+  set.seed(3)
+  d <- data.frame(cx = runif(40), cy = runif(40))
+  dsf <- sf::st_as_sf(d, coords = c("cx", "cy"))
+  for (type in c("triangular", "cosine")) for (seed in 1:3) {
+    params <- spcov_params(type, de = 1, ie = .3, range = .3)
+    for (sim in list(sprnorm, sprpois)) for (kmeans in c(FALSE, TRUE)) {
+      local <- list(approximation = "low-rank", size_base = 10, size_new = 5,
+        reorder_base = "random", kmeans_new = kmeans)
+      set.seed(seed)
+      expect_warning(actual <- sim(params, data = dsf, samples = 3, local = local),
+        "Ignoring y-coordinate")
+      expect_true(all(is.finite(actual)))
+      if (!kmeans) {
+        set.seed(seed)
+        expected <- sim(params, data = d, xcoord = cx, samples = 3, local = local)
+        expect_equal(actual, expected, tolerance = 1e-12)
+      }
+    }
+  }
+})
+
 test_that("sprnorm() local$approximation = 'vecchia' works", {
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
 

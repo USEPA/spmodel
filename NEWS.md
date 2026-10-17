@@ -23,6 +23,7 @@
 
 ## Bug Fixes
 
+* Fixed various bugs related to one-dimensional covariance functions (i.e., triangular and cosine).
 * Fixed a bug in `splm()` and `spglm()` that could affect estimation of `ie` when it was the only unknown parameter being optimized.
 * Fixed a bug that could cause `conditional()` to error for `"none"` and `"ie"` spatial covariance types.
 * Fixed a bug that could cause `covmatrix(..., cov_type = "pred.pred")` to error for random effect or partition levels in `newdata` missing from `data`.

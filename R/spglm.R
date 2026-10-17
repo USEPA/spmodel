@@ -458,13 +458,6 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
     local_index <- data_object$local_index
   }
 
-  # triangular and circular covariances are only valid in one dimension, so
-  # coordinates were collapsed to 1D for estimation; restore/relabel the
-  # stored data object accordingly for downstream use (e.g., prediction)
-  if (inherits(spcov_initial, c("triangular", "circular"))) {
-    data_object <- replace_data_object_dimcoords1(data_object)
-  }
-
   output <- list(
     coefficients = model_stats$coefficients,
     fitted = model_stats$fitted,

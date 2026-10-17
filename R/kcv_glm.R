@@ -136,14 +136,16 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
 
       # xcoord/ycoord must go through do.call() -- see kcv.splm()'s local
       # branch for why a direct call would break
-      refit <- do.call("spglm", list(
+      refit_args <- list(
         formula = object$formula, data = data_train,
         spcov_initial = spcov_initial_val, dispersion_initial = dispersion_initial_val,
         xcoord = object$xcoord, ycoord = object$ycoord, estmethod = object$estmethod,
         anisotropy = object$anisotropy, random = object$random,
         randcov_initial = randcov_initial_val, partition_factor = object$partition_factor,
         local = fit_local
-      ))
+      )
+      if (isTRUE(object$dim_coords == 1)) refit_args$ycoord <- NULL
+      refit <- do.call("spglm", refit_args)
       # Preserve both covariance variants; prediction uses the uncorrected one.
       refit$vcov$fixed <- object$vcov$fixed
 

@@ -277,6 +277,9 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   # local_list/simulate_covparams/samples must all be specified before samples is
   # first used below (the output = "object" shortcut)
   # get_local_list_conditional() only needs object/newdata
+  coordinates <- prepare_conditional_coordinates(object, newdata)
+  object <- coordinates$object
+  newdata <- coordinates$newdata
   iid_variance <- get_conditional_iid_variance(object, simulate_covparams)
   local_list <- get_local_list_conditional(local, object, newdata)
   if (!local_list$exact && local_list$approximation == "low-rank" && "random" %in% output) {
@@ -523,17 +526,10 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   if (length(output) == 1 && output == "object") {
     return(base_val_w)
   }
-  nonspatial <- inherits(coef(object, type = "spcov"), c("none", "ie"))
   iid_variance <- get_conditional_iid_variance(object)
-  if (inherits(newdata, "sf")) {
-    newdata <- sf_to_df(suppressWarnings(sf::st_centroid(newdata)))
-    names(newdata)[names(newdata) == ".xcoord"] <- object$xcoord
-    names(newdata)[names(newdata) == ".ycoord"] <- object$ycoord
-  }
-  if (NROW(newdata) && !nonspatial) {
-    if (object$dim_coords == 1) newdata[[object$ycoord]] <- 0
-    check_newdata_coords(newdata, object$xcoord, object$ycoord)
-  }
+  coordinates <- prepare_conditional_coordinates(object, newdata)
+  object <- coordinates$object
+  newdata <- coordinates$newdata
   local_list <- get_local_list_conditional(local, object, newdata)
   exact <- local_list$exact
   lowrank <- !exact && local_list$approximation == "low-rank"
@@ -711,4 +707,23 @@ invlink_conditional <- function(mu_link, type, dispersion, family, newdata_size)
 
   if (is.null(dim(val))) dim(val) <- c(n_newdata, n_sim)
   val
+}
+
+prepare_conditional_coordinates <- function(object, newdata) {
+  if (inherits(newdata, "sf")) {
+    newdata <- sf_to_df(suppressWarnings(sf::st_centroid(newdata)))
+    names(newdata)[names(newdata) == ".xcoord"] <- object$xcoord
+    names(newdata)[names(newdata) == ".ycoord"] <- object$ycoord
+  }
+  if (!inherits(coef(object, type = "spcov"), c("none", "ie"))) {
+    if (object$dim_coords == 1) {
+      # Keep ignored coordinates available as predictors while using 1-D distances.
+      coordinate_names <- make.unique(c(names(object$obdata), names(newdata), ".conditional_ycoord"))
+      object$ycoord <- coordinate_names[[length(coordinate_names)]]
+      object$obdata[[object$ycoord]] <- rep(0, NROW(object$obdata))
+      newdata[[object$ycoord]] <- rep(0, NROW(newdata))
+    }
+    if (NROW(newdata)) check_newdata_coords(newdata, object$xcoord, object$ycoord)
+  }
+  list(object = object, newdata = newdata)
 }

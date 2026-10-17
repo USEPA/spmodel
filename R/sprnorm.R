@@ -200,7 +200,8 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
     }
     # replace null if necessary -- this missing() check runs before ycoord's
     # own capture below, so it still reflects the original argument correctly
-    if (missing(ycoord) || is.null(substitute(ycoord))) {
+    ycoord_given <- !missing(ycoord) && !is.null(substitute(ycoord))
+    if (!ycoord_given) {
       # 1-D data: fabricate a constant y-coordinate so the same 2-D distance
       # machinery below can be reused without a separate 1-D code path
       ycoord <- ".ycoord"
@@ -261,7 +262,7 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
       # subset data down to at all (the object is built on all the data
       # and splm()'s own local = TRUE keeps that fit itself scalable; the
       # simulation is separately scalable via neighbor truncation)
-      object <- splm(
+      fit_args <- list(
         formula = ...response... ~ 1,
         data = data,
         spcov_initial = spcov_init,
@@ -272,6 +273,8 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
         ycoord = "...ycoord...",
         local = TRUE
       )
+      if (!ycoord_given) fit_args$ycoord <- NULL
+      object <- do.call(splm, fit_args)
       base_val <- get_sprnorm_vecchia(object, local_list, samples)
     } else {
       if (local_list$method_base != "all") {
@@ -280,7 +283,7 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
         n <- NROW(data)
       }
 
-      object <- splm(
+      fit_args <- list(
         formula = ...response... ~ 1,
         data = data,
         spcov_initial = spcov_init,
@@ -291,6 +294,8 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
         ycoord = "...ycoord...",
         local = TRUE
       )
+      if (!ycoord_given) fit_args$ycoord <- NULL
+      object <- do.call(splm, fit_args)
 
       cov_lowchol_base <- t(chol(covmatrix(object)))
       base_val <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_base %*% rnorm(n)), numeric(n))

@@ -237,13 +237,15 @@ kcv.splm <- function(object, k = 5, cv_predict = FALSE, se.fit = FALSE, local, i
       # support bare unquoted column names, so object$xcoord/object$ycoord
       # (already plain strings) must be passed via do.call() -- a direct call
       # would capture the expression "object$xcoord" instead of its value
-      refit <- do.call("splm", list(
+      refit_args <- list(
         formula = object$formula, data = data_train, spcov_initial = spcov_initial_val,
         xcoord = object$xcoord, ycoord = object$ycoord, estmethod = object$estmethod,
         anisotropy = object$anisotropy, random = object$random,
         randcov_initial = randcov_initial_val, partition_factor = object$partition_factor,
         local = fit_local, ddf = "asymptotic"
-      ))
+      )
+      if (isTRUE(object$dim_coords == 1)) refit_args$ycoord <- NULL
+      refit <- do.call("splm", refit_args)
       # Reuse full-data coefficient uncertainty, as in local loocv().
       refit$vcov$fixed <- vcov(object)
 

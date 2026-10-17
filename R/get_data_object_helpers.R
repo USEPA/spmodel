@@ -105,7 +105,7 @@ expand_formula_dot <- function(formula, data, reserved_cols = character(0)) {
 #' @return A list with elements \code{data} (possibly converted from sf to a
 #'   data frame, and/or with dummy coordinate columns added), \code{xcoord},
 #'   \code{ycoord}, \code{dim_coords}, \code{coordinates_supplied}, \code{ycoord_orig_name},
-#'   \code{ycoord_orig_val}, \code{is_sf}, \code{sf_column_name}, \code{crs},
+#'   \code{is_sf}, \code{sf_column_name}, \code{crs},
 #'   and \code{data_sf}
 #'
 #' @noRd
@@ -160,9 +160,8 @@ get_point_ref_coords <- function(data, spcov_initial, estmethod, xcoord, ycoord)
     }
   }
 
-  # setting ycoord orig val for use with circular or triangular
+  # Exclude the ignored coordinate from ~ . formulas.
   ycoord_orig_name <- NULL
-  ycoord_orig_val <- NULL
   # find coordinate dimension and set defaults
   # dim_coords tracks how many spatial dimensions actually matter for this
   # model: 0 when there is no spatial covariance structure at all (so
@@ -184,12 +183,8 @@ get_point_ref_coords <- function(data, spcov_initial, estmethod, xcoord, ycoord)
     }
   } else if (is.null(ycoord) || inherits(spcov_initial, c("triangular", "cosine"))) {
     dim_coords <- 1
-    # if the user did supply ycoord but the covariance type only uses one
-    # dimension (triangular/cosine), keep the original values around so they
-    # can still be referenced/restored later even though they're not used here
     if (!is.null(ycoord)) {
       ycoord_orig_name <- ycoord
-      ycoord_orig_val <- data[[ycoord]]
     }
     ycoord <- ".ycoord"
     if (xcoord == ".ycoord") {
@@ -220,7 +215,7 @@ get_point_ref_coords <- function(data, spcov_initial, estmethod, xcoord, ycoord)
   list(
     data = data, xcoord = xcoord, ycoord = ycoord, dim_coords = dim_coords,
     coordinates_supplied = coordinates_supplied,
-    ycoord_orig_name = ycoord_orig_name, ycoord_orig_val = ycoord_orig_val,
+    ycoord_orig_name = ycoord_orig_name,
     is_sf = is_sf, sf_column_name = sf_column_name, crs = crs, data_sf = data_sf
   )
 }

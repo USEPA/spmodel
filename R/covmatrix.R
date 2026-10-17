@@ -96,6 +96,7 @@ covmatrix.splm <- function(object, newdata, cov_type, ...) {
     } else {
       object$obdata <- newdata
     }
+    if (isTRUE(object$dim_coords == 1)) object$obdata[[object$ycoord]] <- 0
     return(covmatrix(object))
   }
 

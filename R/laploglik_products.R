@@ -492,6 +492,51 @@ get_D <- function(family, w, y, size, dispersion) {
   D <- Diagonal(x = D_vec)
 }
 
+get_D3 <- function(family, w, y, size, dispersion) {
+  w <- as.numeric(w)
+  mu <- exp(w)
+  if (family == "poisson") {
+    value <- -mu
+  } else if (family == "nbinomial") {
+    p <- stats::plogis(w - log(dispersion))
+    value <- -(dispersion + y) * p * (1 - p) * (1 - 2 * p)
+  } else if (family == "binomial") {
+    p <- expit(w)
+    value <- -size * p * (1 - p) * (1 - 2 * p)
+  } else if (family == "Gamma") {
+    value <- dispersion * y * exp(-w)
+  } else if (family == "inverse.gaussian") {
+    value <- -dispersion * (mu - y^2 * exp(-w)) / (2 * y)
+  } else if (family == "beta") {
+    p <- expit(w)
+    a <- p * (1 - p)
+    b <- 1 - 2 * p
+    k0 <- digamma(dispersion * p) - digamma(dispersion * (1 - p)) + log((1 - y) / y)
+    k1 <- trigamma(dispersion * p) + trigamma(dispersion * (1 - p))
+    k2 <- psigamma(dispersion * p, 2) - psigamma(dispersion * (1 - p), 2)
+    value <- -dispersion * a * (b^2 - 2 * a) * k0 -
+      3 * dispersion^2 * a^2 * b * k1 - dispersion^3 * a^3 * k2
+  }
+  as.numeric(value)
+}
+
+get_laplace_correction <- function(mHInv, family, eta, y, size, dispersion) {
+  v <- Matrix::diag(mHInv)
+  t3 <- get_D3(family, eta, y, size, dispersion)
+  delta <- 0.5 * as.numeric(mHInv %*% (t3 * v))
+  list(delta = delta)
+}
+
+get_latent_center <- function(object, fit_correct = TRUE) {
+  if (!is.logical(fit_correct) || length(fit_correct) != 1L || is.na(fit_correct)) {
+    stop("fit_correct must be TRUE or FALSE.", call. = FALSE)
+  }
+  eta <- fitted(object, type = "link")
+  active <- fit_correct && !is.null(object$laplace)
+  if (!active) return(list(eta = eta, betahat = coef(object), active = FALSE))
+  list(eta = eta + object$laplace$delta[names(eta)], betahat = object$laplace$betahat, active = TRUE)
+}
+
 #' Get a starting value for the Newton-Raphson solve of \code{w}
 #'
 #' @param family The response family

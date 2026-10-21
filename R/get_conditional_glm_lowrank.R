@@ -3,10 +3,10 @@
 #' @param index Observed rows selected for the simulation base.
 #' @return Whitened conditional factors and a base-sized covariance context.
 #' @noRd
-get_conditional_glm_base <- function(object, index) {
+get_conditional_glm_base <- function(object, index, center = get_latent_center(object)) {
   X <- model.matrix(object)[index, , drop = FALSE]
   eta <- fitted(object, type = "link")[index]
-  w <- w_offset_free(fitted(object, type = "link"), model.offset(model.frame(object)))[index]
+  w <- w_offset_free(center$eta, model.offset(model.frame(object)))[index]
   covariance <- object[c("obdata", "coefficients", "random", "partition_factor",
     "anisotropy", "xcoord", "ycoord", "dim_coords", "diagtol")]
   class(covariance) <- class(object)
@@ -25,7 +25,7 @@ get_conditional_glm_base <- function(object, index) {
   list(covariance = covariance, cov_lowchol_base = cov_lowchol_base,
     cov_lowchol_mH = cov_lowchol_mH, cov_betahat_lowchol = t(chol(cov_betahat)),
     SqrtSigInv_X = SqrtSigInv_X, SqrtSigInv_w = forwardsolve(cov_lowchol_base, w),
-    wts_latent = wts_latent, betahat = coef(object))
+    wts_latent = wts_latent, betahat = center$betahat)
 }
 
 #' Prepare one low-rank GLM prediction block
@@ -67,10 +67,10 @@ factor_conditional_glm_block <- function(covariance, cov_lowchol_base) {
 #' @param samples Number of draws.
 #' @return Matrices of coefficients and offset-free prediction latent values.
 #' @noRd
-get_conditional_glm_lowrank <- function(object, newdata, Xnew, local_list, samples, latent = FALSE, random_design = NULL) {
+get_conditional_glm_lowrank <- function(object, newdata, Xnew, local_list, samples, latent = FALSE, random_design = NULL, center = get_latent_center(object)) {
   if (!is.null(object$random) && is.null(random_design)) random_design <- get_conditional_random_design(object, newdata, local_list$index$base)
   chunk_size <- get_conditional_chunk_size(local_list)
-  base <- get_conditional_glm_base(object, local_list$index$base)
+  base <- get_conditional_glm_base(object, local_list$index$base, center)
   effect <- if (!is.null(object$random)) {
     sub <- object
     sub$obdata <- object$obdata[local_list$index$base, , drop = FALSE]

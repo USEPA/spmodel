@@ -1,10 +1,10 @@
 # Prepare the complete observed latent sequence. Response neighbors K may be
 # undrawn; latent neighbors N must precede i. Two separate steps
-get_conditional_vecchia_glm_context <- function(object, newdata, Xnew, local_list, prediction_object = object) {
+get_conditional_vecchia_glm_context <- function(object, newdata, Xnew, local_list, prediction_object = object, center = get_latent_center(object)) {
   X <- model.matrix(object)
   n <- NROW(X)
   eta <- fitted(object, type = "link")
-  w <- as.numeric(w_offset_free(eta, model.offset(model.frame(object))))
+  w <- as.numeric(w_offset_free(center$eta, model.offset(model.frame(object))))
   D <- diag(get_D(object$family, eta, object$y, object$size, as.vector(coef(object, type = "dispersion"))))
   if (any(!is.finite(w)) || any(!is.finite(D))) stop("Observed latent values and response curvature must be finite.", call. = FALSE)
   covariance <- get_conditional_vecchia_covariance(object, object$obdata)
@@ -21,7 +21,7 @@ get_conditional_vecchia_glm_context <- function(object, newdata, Xnew, local_lis
     K <- c(i, conditional_vecchia_neighbors(covariance, i, all_sites, local_list$size - 1L, local_list$method, scores))
     A <- unique(c(i, N, K))
     label <- paste("Observed site", i, "neighborhood")
-    # Step 1 constructs a proper Gaussian, centered at fitted w_A plus M_A delta.
+    # Step 1 constructs a proper Gaussian at the selected w_A center plus M_A delta.
     gaussian <- prepare_conditional_local_gaussian(conditional_vecchia_covariance(covariance, A),
       X[A, , drop = FALSE], w[A], D[A], label)
     # Step 2 conditions that same Gaussian on N and caches only the target.
@@ -32,17 +32,17 @@ get_conditional_vecchia_glm_context <- function(object, newdata, Xnew, local_lis
   }
   prediction <- if (NROW(newdata)) prepare_conditional_vecchia(prediction_object, newdata, local_list) else NULL
   list(operators = operators, order = ord, prediction = prediction, X = X,
-    betahat = coef(object), coefficient_factor = t(chol(vcov(object))))
+    betahat = center$betahat, coefficient_factor = t(chol(vcov(object))))
 }
 
 # Draw shared coefficients, observed latent values, and prediction residuals.
 # Optional latent output retains the field used for prediction.
-get_conditional_vecchia_glm <- function(object, newdata, Xnew, local_list, samples, latent = FALSE, random_design = NULL, random = FALSE) {
+get_conditional_vecchia_glm <- function(object, newdata, Xnew, local_list, samples, latent = FALSE, random_design = NULL, random = FALSE, center = get_latent_center(object)) {
   if (!is.null(object$random) && is.null(random_design)) random_design <- get_conditional_random_design(object, newdata)
   chunk_size <- get_conditional_chunk_size(local_list)
   effect <- if (!is.null(object$random)) prepare_conditional_random(object, random_design, local_list) else NULL
   context <- get_conditional_vecchia_glm_context(object, newdata, Xnew, local_list,
-    if (is.null(effect)) object else effect$spatial)
+    if (is.null(effect)) object else effect$spatial, center)
   n <- NROW(context$X)
   m <- NROW(Xnew)
   p <- length(context$betahat)

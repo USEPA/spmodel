@@ -8,6 +8,9 @@
 #' @param var_correct A logical indicating whether to return the corrected prediction
 #'   variances when predicting via models fit using \code{spglm()} or \code{spgautor()}. The default is
 #'   \code{TRUE}.
+#' @param fit_correct A logical indicating whether to apply the Laplace mean
+#'   corrections to predictions at \code{newdata}; see \code{predict.spmodel}.
+#'   The default is \code{TRUE}.
 #' @rdname augment.spmodel
 #' @method augment spglm
 #' @order 3
@@ -15,7 +18,7 @@
 augment.spglm <- function(x, drop = TRUE, newdata = NULL, type.predict = c("link", "response"),
                           type.residuals = c("deviance", "pearson", "response"), se_fit = FALSE,
                           interval = c("none", "confidence", "prediction"), newdata_size,
-                          level = 0.95, local = local, var_correct = TRUE, ...) {
+                          level = 0.95, local = local, var_correct = TRUE, fit_correct = TRUE, ...) {
   # a "type" argument (as used in spmodel <= v0.7.0) can't be deprecated with a
   # warning here, because "type" would ambiguously match both type.predict and
   # type.residuals via partial matching
@@ -70,7 +73,8 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type.predict = c("link
     if (missing(local)) local <- NULL
     preds_newdata <- predict(x,
       newdata = newdata, type = type.predict, se.fit = se_fit, interval = interval,
-      newdata_size = newdata_size, level = level, local = local, var_correct = var_correct
+      newdata_size = newdata_size, level = level, local = local, var_correct = var_correct,
+      fit_correct = fit_correct
     )
     if (se_fit) {
       if (interval %in% c("confidence", "prediction")) {
@@ -149,7 +153,7 @@ augment.spglm <- function(x, drop = TRUE, newdata = NULL, type.predict = c("link
 augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type.predict = c("link", "response"),
                              type.residuals = c("deviance", "pearson", "response"), se_fit = FALSE,
                              interval = c("none", "confidence", "prediction"), newdata_size,
-                             level = 0.95, local, var_correct = TRUE, ...) {
+                             level = 0.95, local, var_correct = TRUE, fit_correct = TRUE, ...) {
   # a "type" argument (as used in spmodel <= v0.7.0) can't be deprecated with a
   # warning here, because "type" would ambiguously match both type.predict and
   # type.residuals via partial matching
@@ -190,7 +194,8 @@ augment.spgautor <- function(x, drop = TRUE, newdata = NULL, type.predict = c("l
     if (missing(local)) local <- NULL
     preds_newdata <- predict(x,
       newdata = newdata, type = type.predict, se.fit = se_fit, interval = interval,
-      newdata_size = newdata_size, level = level, local = local, var_correct = var_correct
+      newdata_size = newdata_size, level = level, local = local, var_correct = var_correct,
+      fit_correct = fit_correct
     )
     if (se_fit) {
       if (interval %in% c("confidence", "prediction")) {

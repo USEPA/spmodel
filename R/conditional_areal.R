@@ -108,7 +108,7 @@ conditional_areal_output <- function(object, new_val, new_betahat, observed, out
   if (length(output) == 1L) val[[output]] else val[output]
 }
 
-conditional_random_areal <- function(object, newdata, supplied, output, samples, type = "link", newdata_size = NULL) {
+conditional_random_areal <- function(object, newdata, supplied, output, samples, type = "link", newdata_size = NULL, center = NULL) {
   glm <- inherits(object, "spgautor")
   if (supplied || "newdata" %in% output) {
     check_newdata_areal(object$newdata, supplied, newdata, if (glm) "spgautor" else "spautor")
@@ -133,7 +133,8 @@ conditional_random_areal <- function(object, newdata, supplied, output, samples,
   effect <- prepare_conditional_random(object, design, covariance = covariance$observed,
     spatial_factor = t(covariance$cov_lowchol))
   if (glm) {
-    joint <- get_conditional_glm_joint(object, cov_lowchol = t(chol(covmatrix(object))))
+    if (is.null(center)) center <- get_latent_center(object)
+    joint <- get_conditional_glm_joint(object, cov_lowchol = t(chol(covmatrix(object))), center = center)
     draws <- draw_conditional_glm_joint(joint, samples, residual = TRUE)
     beta <- draws$beta
     residual <- draws$residual

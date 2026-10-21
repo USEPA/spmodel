@@ -81,7 +81,8 @@ test_that("iid GLM draws retain the dense joint moments and coefficient stream",
       covariance <- rbind(cbind(B, B %*% t(A), B %*% t(X0)),
         cbind(A %*% B, Q + A %*% B %*% t(A), A %*% B %*% t(X0)),
         cbind(X0 %*% B, X0 %*% B %*% t(A), v * diag(3) + X0 %*% B %*% t(X0)))
-      mu <- c(coef(fit), eta, X0 %*% coef(fit) + f$newdata$off)
+      center <- get_latent_center(fit)
+      mu <- c(center$betahat, center$eta, X0 %*% center$betahat + f$newdata$off)
       set.seed(2)
       reference <- iid_dense_reference(fit, f$newdata, samples = 1007, output = c("beta", "latent", "newdata"))
       set.seed(2)

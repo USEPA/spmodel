@@ -58,7 +58,7 @@ spglm_prediction_reference <- function(object, newdata) {
   variance <- S0 - C %*% Q %*% t(C) + G %*% V %*% t(G)
   P <- Q - Q %*% X %*% B
   variance <- variance + W %*% solve(P + diag(exp(fitted(object, "link")))) %*% t(W)
-  w <- fitted(object, "link") - model.offset(model.frame(object))
+  w <- get_latent_center(object)$eta - model.offset(model.frame(object))
   list(fit = as.vector(newdata$off + W %*% w), variance = variance)
 }
 
@@ -326,6 +326,10 @@ test_that("spglm numerical floor is excluded from BLUPs and included in predicti
   )
   expect_equal(unname(fitted(fit, "spcov")$ie), rep(0, n_obs))
 
+  center <- get_latent_center(fit)
+  beta <- center$betahat
+  w <- center$eta - model.offset(model.frame(fit))
+  residual_weight <- V_inv %*% (w - X %*% beta)
   H <- X0 - C %*% V_inv %*% X
   fit_reference <- as.numeric(X0 %*% beta + C %*% residual_weight + newdata$off)
   var_reference <- de + effective_ie - rowSums((C %*% V_inv) * C) +

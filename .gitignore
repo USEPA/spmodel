@@ -9,3 +9,5 @@ inst/doc
 CLAUDE.md
 .positai
 dev/
+/.quarto/
+**/*.quarto_ipynb

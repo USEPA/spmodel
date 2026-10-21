@@ -2,11 +2,15 @@
 #'   when \code{cv_predict = TRUE} and using \code{spglm()} or \code{spgautor} objects.
 #' @param delta A logical indicating whether to return delta method standard errors
 #' on the response scale when \code{se.fit = TRUE} and \code{type = "response"}. The default is \code{FALSE}.
+#' @param fit_correct A logical indicating whether to apply the Laplace mean corrections to predictions.
+#'   The default is \code{TRUE}.
 #' @rdname loocv
 #' @method loocv spglm
 #' @order 4
 #' @export
-loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, ...) {
+loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, fit_correct = TRUE, ...) {
+  center <- get_latent_center(object, fit_correct)
+  need_se <- se.fit || center$active
   # match type argument so the two display
   type <- match.arg(type)
 
@@ -54,7 +58,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
     # get_d()/get_D() differentiate the data model and stay on w_linpred;
     # see w_offset_free()
     model_offset <- model.offset(model.frame(object))
-    w <- w_offset_free(w_linpred, model_offset)
+    w <- w_offset_free(center$eta, model_offset)
 
     # some products
     SigInv_w <- SigInv %*% w
@@ -80,15 +84,15 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
       cl <- parallel::makeCluster(local_list$ncores)
       cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv_glm,
         Sig = cov_matrix_val,
-        SigInv = SigInv, Xmat = X, w = w, wX = wX,
-        SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
+        SigInv = SigInv, Xmat = X, w = as.matrix(w), wX = wX,
+        SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = need_se
       )
       cl <- parallel::stopCluster(cl)
     } else {
       cv_predict_val_list <- lapply(seq_len(object$n), get_loocv_glm,
         Sig = cov_matrix_val,
         SigInv = SigInv, Xmat = X, w = as.matrix(w, ncol = 1), wX = wX,
-        SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
+        SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = need_se
       )
     }
     cv_predict_val <- vapply(cv_predict_val_list, function(x) x$pred, numeric(1))
@@ -98,7 +102,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
     if (!is.null(model_offset)) {
       cv_predict_val <- cv_predict_val + as.vector(model_offset)
     }
-    if (se.fit) {
+    if (need_se) {
       cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
     }
   } else {
@@ -126,10 +130,10 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
     }
 
     Xmat_full <- model.matrix(object)
-    w_full <- fitted(object, type = "link")
+    w_full <- center$eta
     model_offset_full <- model.offset(model.frame(object))
     size_full <- object$size
-    betahat <- coefficients(object)
+    betahat <- center$betahat
     cov_betahat <- vcov(object, var_correct = FALSE)
 
     extra_randcov_list <- get_extra_randcov_list(object, object$obdata, newdata = object$obdata)
@@ -137,6 +141,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
 
     loocv_context <- list(
       obdata_pred = obdata_pred, Xmat_full = Xmat_full, y_full = y, w_full = w_full,
+      w_mode_full = fitted(object, type = "link"),
       model_offset_full = model_offset_full, size_full = size_full,
       xcoord = xcoord, ycoord = ycoord, spcov_params_val = spcov_params_val, random = object$random,
       randcov_params_val = randcov_params_val, partition_factor = object$partition_factor,
@@ -152,12 +157,12 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
       # turn of parallel as it is used different in predict
       local_list$parallel <- FALSE
       cl <- parallel::makeCluster(local_list$ncores)
-      cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), loocv_local_glm, loocv_context, se.fit, local_list)
+      cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), loocv_local_glm, loocv_context, need_se, local_list)
       cl <- parallel::stopCluster(cl)
     } else {
-      cv_predict_val_list <- lapply(seq_len(object$n), loocv_local_glm, loocv_context, se.fit, local_list)
+      cv_predict_val_list <- lapply(seq_len(object$n), loocv_local_glm, loocv_context, need_se, local_list)
     }
-    if (se.fit) {
+    if (need_se) {
       cv_predict_val <- vapply(cv_predict_val_list, function(x) x$fit, numeric(1))
       cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
     } else {
@@ -168,7 +173,11 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
   # loocv computations above happen on the link scale (like the latent w),
   # so map back to the response scale via the family's inverse link before
   # comparing against the observed response y for the fit statistics
-  cv_predict_val_invlink <- invlink(cv_predict_val, object$family, object$size)
+  cv_predict_val_invlink <- if (center$active) {
+    invlink_mean(cv_predict_val, cv_predict_se^2, object$family, object$size)
+  } else {
+    invlink(cv_predict_val, object$family, object$size)
+  }
 
 
   cv_predict_error <- y - cv_predict_val_invlink
@@ -202,7 +211,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
     if (se.fit) {
       loocv_out$se.fit <- as.vector(cv_predict_se)
       if (type == "response" && delta) {
-        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family, size)
+        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family, object$size)
       }
     }
 
@@ -214,7 +223,9 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
 #' @method loocv spgautor
 #' @order 5
 #' @export
-loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, ...) {
+loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, fit_correct = TRUE, ...) {
+  center <- get_latent_center(object, fit_correct)
+  need_se <- se.fit || center$active
   # match type argument so the two display
   type <- match.arg(type)
 
@@ -243,7 +254,7 @@ loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "respons
   # kriging covaries via Sigma (the offset-free latent process) while
   # get_d()/get_D() differentiate the data model; see w_offset_free()
   model_offset <- model.offset(model.frame(object))
-  w <- w_offset_free(w_linpred, model_offset)
+  w <- w_offset_free(center$eta, model_offset)
 
   # some products
   SigInv_w <- SigInv %*% w
@@ -266,15 +277,15 @@ loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "respons
     cl <- parallel::makeCluster(local_list$ncores)
     cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv_glm,
       Sig = cov_matrix_val,
-      SigInv = SigInv, Xmat = X, w = w, wX = wX,
-      SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
+      SigInv = SigInv, Xmat = X, w = as.matrix(w), wX = wX,
+      SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = need_se
     )
     cl <- parallel::stopCluster(cl)
   } else {
     cv_predict_val_list <- lapply(seq_len(object$n), get_loocv_glm,
       Sig = cov_matrix_val,
       SigInv = SigInv, Xmat = X, w = as.matrix(w, ncol = 1), wX = wX,
-      SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
+      SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = need_se
     )
   }
   cv_predict_val <- vapply(cv_predict_val_list, function(x) x$pred, numeric(1))
@@ -283,11 +294,15 @@ loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "respons
   if (!is.null(model_offset)) {
     cv_predict_val <- cv_predict_val + as.vector(model_offset)
   }
-  if (se.fit) {
+  if (need_se) {
     cv_predict_se <- vapply(cv_predict_val_list, function(x) x$se.fit, numeric(1))
   }
 
-  cv_predict_val_invlink <- invlink(cv_predict_val, object$family, object$size)
+  cv_predict_val_invlink <- if (center$active) {
+    invlink_mean(cv_predict_val, cv_predict_se^2, object$family, object$size)
+  } else {
+    invlink(cv_predict_val, object$family, object$size)
+  }
 
   cv_predict_error <- y - cv_predict_val_invlink
   bias <- mean(cv_predict_error)
@@ -319,7 +334,7 @@ loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "respons
     if (se.fit) {
       loocv_out$se.fit <- as.vector(cv_predict_se)
       if (type == "response" && delta) {
-        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family, size)
+        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family, object$size)
       }
     }
 
@@ -376,6 +391,7 @@ loocv_local_glm <- function(row, context, se.fit, local_list) {
     betahat = context$betahat, cov_betahat = context$cov_betahat,
     dim_coords = context$dim_coords, contrasts = context$contrasts, local = local_list,
     family = context$family, w = context$w_full[-row],
+    w_mode = context$w_mode_full[-row],
     model_offset = if (is.null(context$model_offset_full)) NULL else context$model_offset_full[-row],
     size = if (is.null(context$size_full)) NULL else context$size_full[-row],
     dispersion = context$dispersion_params_val, predvar_adjust_ind = TRUE,

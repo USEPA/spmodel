@@ -9,6 +9,7 @@
 
 ## Minor Updates
 
+* Added a `fit_correct` argument to `predict()`, `augment()`, `loocv()`, `kcv()`, and `conditional()` for `spglm()` and `spgautor()` models, which applies Laplace mean corrections to predictions and conditional simulations (on both the link and response scale).
 * `fitted(type = "randcov")` now reports BLUPs by partition factor level rather than averaging over partition factor levels.
 * When `local` is specified, `loocv()` prediction standard errors for `splm()` objects with `spcov_type` equal to `"none"` or `"ie"` now return predictions and standard errors based on the reestimated fixed effects, rather than via the full-data approximations used by other `spcov_type`s.
 * For `splm()` and `spglm()` model objects fit with with `local`, `kcv(object, local, ...)` now reuses the covariance matrix from `object` across folds rather than refitting it for each fold (for computational efficiency).
@@ -23,6 +24,8 @@
 
 ## Bug Fixes
 
+* Fixed parallel nonlocal `loocv()` and `kcv()` for GLMs, which could fail with an incorrect-dimensions error.
+* Fixed response-scale delta-method standard errors for local binomial `loocv()`.
 * Fixed various bugs related to one-dimensional covariance functions (i.e., triangular and cosine).
 * Fixed a bug in `splm()` and `spglm()` that could affect estimation of `ie` when it was the only unknown parameter being optimized.
 * Fixed a bug that could cause `conditional()` to error for `"none"` and `"ie"` spatial covariance types.

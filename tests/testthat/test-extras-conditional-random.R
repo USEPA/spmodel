@@ -196,7 +196,9 @@ test_that("exact joint effect and prediction draws match Gaussian moments", {
     X <- model.matrix(fit)
     Xu <- model.matrix(~ x, f$new)
     C <- vcov(fit)
-    w <- if (glm) fitted(fit, type = "link") else model.response(model.frame(fit))
+    center <- if (glm) get_latent_center(fit) else
+      list(eta = model.response(model.frame(fit)), betahat = coef(fit))
+    w <- center$eta
     w <- w - fit$obdata$off
     V <- matrix(0, fit$n, fit$n)
     M <- matrix(0, fit$n, NCOL(X))
@@ -206,7 +208,7 @@ test_that("exact joint effect and prediction draws match Gaussian moments", {
       V <- solve(solve(Sigma) - D)
       M <- V %*% solve(Sigma, X)
     }
-    r <- w - X %*% coef(fit)
+    r <- w - X %*% center$betahat
     J <- M - X
     A <- Zu - K %*% Z
     L <- rbind(T, K + A %*% T)
@@ -215,7 +217,7 @@ test_that("exact joint effect and prediction draws match Gaussian moments", {
     target <- F %*% C %*% t(F) + L %*% V %*% t(L) + E %*% H %*% t(E)
     i <- NROW(Gamma) + seq_len(NROW(Xu))
     target[i, i] <- target[i, i] + R
-    mu <- c(T %*% r, Xu %*% coef(fit) + (K + A %*% T) %*% r + f$new$off)
+    mu <- c(T %*% r, Xu %*% center$betahat + (K + A %*% T) %*% r + f$new$off)
     set.seed(1)
     out <- conditional(fit, f$new, samples = 6000, output = c("random", "newdata", "beta", if (glm) "latent"))
     joint <- rbind(out$random, out$newdata)

@@ -19,8 +19,8 @@ draw_conditional_iid_error <- function(n, samples, variance, chunk_size = 1000L)
   value
 }
 
-get_conditional_iid_glm <- function(object, Xnew, variance, samples, latent = FALSE, chunk_size = 1000L) {
-  b <- coef(object)
+get_conditional_iid_glm <- function(object, Xnew, variance, samples, latent = FALSE, chunk_size = 1000L, center = get_latent_center(object)) {
+  b <- center$betahat
   delta <- t(chol(vcov(object))) %*% matrix(rnorm(length(b) * samples), length(b), samples)
   beta <- sweep(delta, 1L, b, "+")
   rownames(beta) <- names(b)
@@ -36,7 +36,7 @@ get_conditional_iid_glm <- function(object, Xnew, variance, samples, latent = FA
     }
     q <- 1 / precision
     A <- (q / variance) * X
-    w <- w_offset_free(eta, model.offset(model.frame(object)))
+    w <- w_offset_free(center$eta, model.offset(model.frame(object)))
     observed <- matrix(NA_real_, NROW(X), samples)
     for (start in seq.int(1L, samples, by = chunk_size)) {
       cols <- seq.int(start, min(samples, start + chunk_size - 1L))

@@ -123,7 +123,8 @@ test_that("full observed neighborhoods reproduce exact fitted-centered moments",
   z <- revised_vecchia_fixture(); fit <- z$fit
   local <- get_local_list_conditional(list(approximation="vecchia",size=100,ordering="none"),fit,z$newdata)
   context <- get_conditional_vecchia_glm_context(fit,z$newdata,model.matrix(~x,z$newdata),local)
-  X <- model.matrix(fit); eta <- fitted(fit,type="link"); w <- eta-model.offset(model.frame(fit))
+  X <- model.matrix(fit); eta <- fitted(fit,type="link")
+  w <- get_latent_center(fit)$eta-model.offset(model.frame(fit))
   V <- solve(solve(covmatrix(fit))-get_D(fit$family,eta,fit$y,fit$size,numeric()))
   V <- as.matrix(V); M <- V%*%solve(covmatrix(fit),X)
   F <- matrix(0,18,18); T <- matrix(0,18,2); a <- v <- numeric(18)

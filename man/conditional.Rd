@@ -29,6 +29,7 @@ conditional(object, ...)
   samples = 1000,
   local,
   newdata_size,
+  fit_correct = TRUE,
   ...
 )
 
@@ -41,6 +42,7 @@ conditional(object, ...)
   type = c("link", "response", "new"),
   samples = 1000,
   newdata_size,
+  fit_correct = TRUE,
   ...
 )
 }
@@ -214,6 +216,12 @@ from \code{object}. The default is \code{"link"}.}
 
 \item{newdata_size}{The \code{size} value for each observation in \code{newdata}
 used when predicting for the binomial family, with a default value of 1.}
+
+\item{fit_correct}{Apply the latent Laplace mean correction for
+\code{spglm()} and \code{spgautor()} model objects. Defaults to \code{TRUE};
+\code{FALSE}, or an object without a stored correction, retains the original
+centers. Response draws transform each latent draw. The \code{"object"} output
+still returns model fitted values.}
 }
 \value{
 If \code{output = "newdata"}, an a x b matrix of conditional simulations

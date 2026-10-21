@@ -4,6 +4,8 @@ skip_if_not(
   "set Sys.setenv(SPMODEL_RUN_EXTRAS = 'true') before devtools::test() to run the extras suite"
 )
 
+# Retain the historical mode-based GLM baselines to verify the opt-out.
+
 test_that("exact output match", {
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   load(file = system.file("extdata", "newexdata.rda", package = "spmodel"))
@@ -41,7 +43,7 @@ test_that("exact output match", {
   expect_equal(round(as.vector(preds$se.fit[1:2]), digits = 4), c(0.7535, 0.8017))
 
   spmod <- spglm(abs(y) ~ x, exdata, family = "Gamma", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-  preds <- predict(spmod, newdata = newexdata, se.fit = TRUE)
+  preds <- predict(spmod, newdata = newexdata, se.fit = TRUE, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(-0.3349, 0.0437))
   expect_equal(round(as.vector(preds$fit[1:2]), digits = 4), c(-0.3043, -0.3981))
   expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.2744, 0.0853))
@@ -51,7 +53,7 @@ test_that("exact output match", {
     family = "Gamma", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord,
     anisotropy = TRUE, random = ~group, partition_factor = ~group
   )
-  preds <- predict(spmod, newdata = newexdata, se.fit = TRUE)
+  preds <- predict(spmod, newdata = newexdata, se.fit = TRUE, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(-0.3349, 0.0437))
   expect_equal(round(as.vector(preds$fit[1:2]), digits = 4), c(-0.3043, -0.3981))
   expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.0918, 0.0853))
@@ -63,7 +65,7 @@ test_that("exact output match", {
   newexdata_pois <- newexdata
   newexdata_pois$count <- 0 # unused by predict(), formula only needs x on newdata
   spmod <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-  preds <- predict(spmod, newdata = newexdata_pois, se.fit = TRUE)
+  preds <- predict(spmod, newdata = newexdata_pois, se.fit = TRUE, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(0.7371, 0.0630))
   expect_equal(round(as.vector(preds$fit[1:2]), digits = 4), c(0.9334, 0.7299))
   expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.1088, 0.0824))
@@ -94,14 +96,14 @@ test_that("exact output match", {
   expect_equal(round(as.vector(preds$se.fit[1]), digits = 4), c(0.9492))
 
   spmod <- spgautor(abs(y) ~ x, family = "Gamma", exdata_Mpoly, spcov_type = "car")
-  preds <- predict(spmod, se.fit = TRUE)
+  preds <- predict(spmod, se.fit = TRUE, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(-0.2769, 0.0317))
   expect_equal(round(as.vector(preds$fit[1]), digits = 4), c(-0.2277))
   expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.1119, 0.1049))
   expect_equal(round(as.vector(preds$se.fit[1]), digits = 4), c(0.1932))
 
   spmod <- spgautor(abs(y) ~ x, family = "Gamma", exdata_Mpoly, spcov_type = "car", random = ~group, partition_factor = ~group)
-  preds <- predict(spmod, se.fit = TRUE)
+  preds <- predict(spmod, se.fit = TRUE, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(-0.2779, 0.0308))
   expect_equal(round(as.vector(preds$fit[1]), digits = 4), c(-0.2143))
   expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.1199, 0.1047))
@@ -111,7 +113,7 @@ test_that("exact output match", {
   exdata_Mpoly_bin <- exdata_Mpoly
   exdata_Mpoly_bin$bin <- as.numeric(exdata_Mpoly_bin$y > median(exdata_Mpoly_bin$y, na.rm = TRUE))
   spmod <- spgautor(bin ~ x, exdata_Mpoly_bin, family = "binomial", spcov_type = "car")
-  preds <- predict(spmod, se.fit = TRUE)
+  preds <- predict(spmod, se.fit = TRUE, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(0.0534, -0.1299))
   expect_equal(round(as.vector(preds$fit[1]), digits = 4), c(0.1455))
   expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(11.3117, 0.2914))
@@ -149,7 +151,7 @@ test_that("exact output match", {
 
   set.seed(seed)
   spmod <- spglm(abs(y) ~ x, exdata, family = "Gamma", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord, local = local_list)
-  preds <- predict(spmod, newdata = newexdata, se.fit = TRUE, local = local_list)
+  preds <- predict(spmod, newdata = newexdata, se.fit = TRUE, local = local_list, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(-0.3550, 0.0499))
   expect_equal(round(as.vector(preds$fit[1:2]), digits = 4), c(-0.2971, -0.4026))
   expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.1255, 0.0851))
@@ -161,7 +163,7 @@ test_that("exact output match", {
     family = "Gamma", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord,
     anisotropy = TRUE, random = ~group, partition_factor = ~group, local = local_list
   )
-  preds <- predict(spmod, newdata = newexdata, se.fit = TRUE, local = local_list)
+  preds <- predict(spmod, newdata = newexdata, se.fit = TRUE, local = local_list, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(-0.3349, 0.0437))
   expect_equal(round(as.vector(preds$fit[1:2]), digits = 4), c(-0.3043, -0.3981))
   expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.0937, 0.0852))
@@ -252,7 +254,7 @@ test_that("exact output match for known covariance/dispersion parameters", {
     family = "poisson", spcov_initial = spcov_initial_val,
     dispersion_initial = dispersion_initial_val, xcoord = xcoord, ycoord = ycoord
   )
-  preds <- predict(spmod, newdata = newexdata_pois, se.fit = TRUE)
+  preds <- predict(spmod, newdata = newexdata_pois, se.fit = TRUE, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(0.6479, 0.0949))
   expect_equal(round(as.numeric(logLik(spmod)), digits = 4), -206.8304)
   expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.4312, 0.1392))
@@ -264,7 +266,7 @@ test_that("exact output match for known covariance/dispersion parameters", {
     dispersion_initial = dispersion_initial_val, xcoord = xcoord, ycoord = ycoord,
     random = ~group, randcov_initial = randcov_initial_val
   )
-  preds <- predict(spmod, newdata = newexdata_pois, se.fit = TRUE)
+  preds <- predict(spmod, newdata = newexdata_pois, se.fit = TRUE, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(0.6466, 0.0948))
   expect_equal(round(as.numeric(logLik(spmod)), digits = 4), -210.1644)
   expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.6605, 0.1396))
@@ -277,7 +279,7 @@ test_that("exact output match for known covariance/dispersion parameters", {
   spmod <- spgautor(abs(y) ~ x, family = "Gamma", exdata_Mpoly,
     spcov_initial = spcov_initial_val, dispersion_initial = dispersion_initial_val
   )
-  preds <- predict(spmod, se.fit = TRUE)
+  preds <- predict(spmod, se.fit = TRUE, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(-0.3581, 0.0365))
   expect_equal(round(as.numeric(logLik(spmod)), digits = 4), -39.9196)
   expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.1797, 0.1550))
@@ -288,7 +290,7 @@ test_that("exact output match for known covariance/dispersion parameters", {
     spcov_initial = spcov_initial_val, dispersion_initial = dispersion_initial_val,
     random = ~group, randcov_initial = randcov_initial_val
   )
-  preds <- predict(spmod, se.fit = TRUE)
+  preds <- predict(spmod, se.fit = TRUE, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(-0.3546, 0.0327))
   expect_equal(round(as.numeric(logLik(spmod)), digits = 4), -41.1913)
   expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.7296, 0.1544))
@@ -323,17 +325,17 @@ test_that("exact output match for prediction and confidence intervals", {
   newexdata_pois <- newexdata
   newexdata_pois$count <- 0 # unused by predict(), formula only needs x on newdata
   spmod <- spglm(count ~ x, exdata_pois, family = "poisson", spcov_type = "exponential", xcoord = xcoord, ycoord = ycoord)
-  preds <- predict(spmod, newdata = newexdata_pois, interval = "prediction", se.fit = TRUE, type = "response", delta = TRUE)
+  preds <- predict(spmod, newdata = newexdata_pois, interval = "prediction", se.fit = TRUE, type = "response", delta = TRUE, fit_correct = FALSE)
   expect_equal(round(as.vector(preds$fit[1:2, ]), digits = 4), c(2.5432, 2.0748, 0.9437, 0.7261, 6.8537, 5.9287))
   expect_equal(round(as.vector(preds$se.fit[1:2]), digits = 4), c(1.2864, 1.1115))
-  preds <- predict(spmod, newdata = newexdata_pois, interval = "confidence", type = "response")
+  preds <- predict(spmod, newdata = newexdata_pois, interval = "confidence", type = "response", fit_correct = FALSE)
   expect_equal(round(as.vector(preds[1:2, ]), digits = 4), c(2.1841, 1.9076, 1.7255, 1.3776, 2.7646, 2.6415))
 
   # spgautor, areal GLM (Gamma)
   spmod <- spgautor(abs(y) ~ x, family = "Gamma", exdata_Mpoly, spcov_type = "car")
-  preds <- predict(spmod, interval = "prediction", se.fit = TRUE, type = "response", delta = TRUE)
+  preds <- predict(spmod, interval = "prediction", se.fit = TRUE, type = "response", delta = TRUE, fit_correct = FALSE)
   expect_equal(round(as.vector(preds$fit[1, ]), digits = 4), c(0.7964, 0.5453, 1.1630))
   expect_equal(round(as.vector(preds$se.fit[1]), digits = 4), 0.1539)
-  preds <- predict(spmod, interval = "confidence", type = "response")
+  preds <- predict(spmod, interval = "confidence", type = "response", fit_correct = FALSE)
   expect_equal(round(as.vector(preds[1, ]), digits = 4), c(0.7964, 0.5524, 1.1481))
 })

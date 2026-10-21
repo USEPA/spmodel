@@ -2,17 +2,18 @@
 #' @method conditional spgautor
 #' @export
 conditional.spgautor <- function(object, newdata, output = "newdata",
-                                type = c("link", "response", "new"), samples = 1000, newdata_size, ...) {
+                                type = c("link", "response", "new"), samples = 1000, newdata_size, fit_correct = TRUE, ...) {
+  center <- get_latent_center(object, fit_correct)
   output <- check_conditional_areal(object, output, samples, list(...))
   type <- match.arg(type)
   if (missing(newdata_size)) newdata_size <- NULL
   if (!is.null(object$random)) {
     return(conditional_random_areal(object, if (missing(newdata)) NULL else newdata,
-      !missing(newdata), output, samples, type, newdata_size))
+      !missing(newdata), output, samples, type, newdata_size, center))
   }
   # Observed-only latent output doesn't need newdata (covmatrix already conditions upon newdata's locations).
   if ("latent" %in% output && !"newdata" %in% output) {
-    joint <- get_conditional_glm_joint(object, cov_lowchol = t(chol(covmatrix(object))))
+    joint <- get_conditional_glm_joint(object, cov_lowchol = t(chol(covmatrix(object))), center = center)
     draws <- draw_conditional_glm_joint(joint, samples)
     latent <- draws$w
     offset <- model.offset(model.frame(object))
@@ -39,7 +40,7 @@ conditional.spgautor <- function(object, newdata, output = "newdata",
   }
 
   cov_context <- get_conditional_areal_cov(object)
-  joint <- get_conditional_glm_joint(object, cov_lowchol = cov_context$cov_lowchol)
+  joint <- get_conditional_glm_joint(object, cov_lowchol = cov_context$cov_lowchol, center = center)
   wts_residual <- backsolve(t(cov_context$cov_lowchol), cov_context$SqrtSigInv_c0)
   draws <- draw_conditional_glm_joint(joint, samples, residual = TRUE)
   new_val <- draw_conditional_areal(context, cov_context, draws$residual, draws$beta,

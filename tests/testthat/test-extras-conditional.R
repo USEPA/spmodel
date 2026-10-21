@@ -93,6 +93,7 @@ joint_reference <- function(fit, newdata, base = seq_len(fit$n), blocks = list(s
   Sigma <- as.matrix(covmatrix(fit))
   SigInv <- solve(Sigma)
   eta <- fitted(fit, type = "link")
+  center <- get_latent_center(fit)
   curvature <- switch(fit$family, poisson = exp(eta),
     binomial = rowSums(model.response(model.frame(fit))) * plogis(eta) * (1 - plogis(eta)))
   H <- solve(SigInv + diag(curvature, NROW(X)))
@@ -105,12 +106,12 @@ joint_reference <- function(fit, newdata, base = seq_len(fit$n), blocks = list(s
   pred_cov <- R + A %*% H %*% t(A) + F %*% C %*% t(F)
   beta_cross <- C %*% t(F)
   offset <- model.offset(model.frame(fit))
-  w <- eta - if (is.null(offset)) 0 else offset
+  w <- center$eta - if (is.null(offset)) 0 else offset
   offset_new <- model.offset(model.frame(delete.response(terms(fit)), newdata))
-  mu <- as.numeric(Xnew %*% coef(fit) + A %*% (w - X %*% coef(fit))) +
+  mu <- as.numeric(Xnew %*% center$betahat + A %*% (w - X %*% center$betahat)) +
     if (is.null(offset_new)) 0 else offset_new
   list(H = H, M = M, C = C, F = F,
-    mean = c(coef(fit), mu), covariance = rbind(cbind(C, beta_cross),
+    mean = c(center$betahat, mu), covariance = rbind(cbind(C, beta_cross),
       cbind(t(beta_cross), pred_cov)))
 }
 
@@ -122,7 +123,8 @@ lowrank_joint_reference <- function(fit, newdata, base, blocks = list(seq_len(NR
   K <- as.matrix(covmatrix(fit, newdata, cov_type = "pred.pred"))
   eta <- fitted(fit, type = "link")
   offset <- model.offset(model.frame(fit))
-  w <- (eta - if (is.null(offset)) 0 else offset)[base]
+  center <- get_latent_center(fit)
+  w <- (center$eta - if (is.null(offset)) 0 else offset)[base]
   curvature <- switch(fit$family, poisson = exp(eta),
     binomial = rowSums(model.response(model.frame(fit))) * plogis(eta) * (1 - plogis(eta)))
   P <- solve(Sigma)
@@ -155,9 +157,9 @@ lowrank_joint_reference <- function(fit, newdata, base, blocks = list(seq_len(NR
   pred_cov <- R + A %*% H %*% t(A) + F %*% V %*% t(F)
   beta_cross <- V %*% t(F)
   offset_new <- model.offset(model.frame(delete.response(terms(fit)), newdata))
-  mu <- as.numeric(Xnew %*% coef(fit) + A %*% (w - X %*% coef(fit))) +
+  mu <- as.numeric(Xnew %*% center$betahat + A %*% (w - X %*% center$betahat)) +
     if (is.null(offset_new)) 0 else offset_new
-  list(mean = c(coef(fit), mu), covariance = rbind(cbind(V, beta_cross),
+  list(mean = c(center$betahat, mu), covariance = rbind(cbind(V, beta_cross),
     cbind(t(beta_cross), pred_cov)), H = H, M = M)
 }
 
@@ -195,7 +197,8 @@ vecchia_joint_reference <- function(fit, newdata, size = Inf, ord = seq_len(NROW
     pool[order(score, pool)[seq_len(min(budget, length(pool)))]]
   }
   eta <- fitted(fit, type = "link")
-  w <- as.numeric(w_offset_free(eta, model.offset(model.frame(fit))))
+  center <- get_latent_center(fit)
+  w <- as.numeric(w_offset_free(center$eta, model.offset(model.frame(fit))))
   D <- diag(get_D(fit$family, eta, fit$y, fit$size, as.vector(coef(fit, type = "dispersion"))))
   Mo <- matrix(0, n, p); Lo <- matrix(0, n, n)
   for (k in seq_len(n)) {
@@ -244,10 +247,10 @@ vecchia_joint_reference <- function(fit, newdata, size = Inf, ord = seq_len(NROW
   }
   F <- Xnew + A %*% (Mo - X); C <- vcov(fit)
   pred_cov <- F %*% C %*% t(F) + A %*% tcrossprod(Lo) %*% t(A) + tcrossprod(L) + effect_covariance
-  mu <- as.numeric(Xnew %*% coef(fit) + A %*% (w - X %*% coef(fit)))
+  mu <- as.numeric(Xnew %*% center$betahat + A %*% (w - X %*% center$betahat))
   offset <- model.offset(model.frame(delete.response(terms(fit)), newdata))
   if (!is.null(offset)) mu <- mu + offset
-  list(mean = c(coef(fit), mu), covariance = rbind(cbind(C, C %*% t(F)), cbind(F %*% C, pred_cov)),
+  list(mean = c(center$betahat, mu), covariance = rbind(cbind(C, C %*% t(F)), cbind(F %*% C, pred_cov)),
     observed_mean = w, observed_covariance = Mo %*% C %*% t(Mo) + tcrossprod(Lo))
 }
 
@@ -1240,9 +1243,12 @@ areal_conditional_reference <- function(fit) {
   A <- C %*% P
   R <- covmatrix(fit, fit$newdata, cov_type = "pred.pred") - A %*% t(C)
   J <- Xnew - A %*% X
+  beta <- coef(fit)
   if (inherits(fit, "spgautor")) {
     eta <- fitted(fit, type = "link")
-    w <- eta - model.offset(model.frame(fit))
+    center <- get_latent_center(fit)
+    beta <- center$betahat
+    w <- center$eta - model.offset(model.frame(fit))
     curvature <- switch(fit$family,
       poisson = exp(eta),
       binomial = rowSums(model.response(model.frame(fit))) * plogis(eta) * (1 - plogis(eta)))
@@ -1258,8 +1264,8 @@ areal_conditional_reference <- function(fit) {
     pred_cov <- R + J %*% beta_cov %*% t(J)
     cross <- beta_cov %*% t(J)
   }
-  mu <- Xnew %*% coef(fit) + A %*% (w - X %*% coef(fit)) + offset
-  list(mean = c(coef(fit), mu),
+  mu <- Xnew %*% beta + A %*% (w - X %*% beta) + offset
+  list(mean = c(beta, mu),
     covariance = rbind(cbind(beta_cov, cross), cbind(t(cross), pred_cov)))
 }
 
@@ -1398,7 +1404,8 @@ test_that("exact observed latent and coefficient draws have the specified joint"
   C <- reference$C
   M <- reference$M
   H <- reference$H
-  target <- list(mean = c(coef(fit), fitted(fit, type = "link") - fit$obdata$off),
+  center <- get_latent_center(fit)
+  target <- list(mean = c(center$betahat, center$eta - fit$obdata$off),
     covariance = rbind(cbind(C, C %*% t(M)),
       cbind(M %*% C, H + M %*% C %*% t(M))))
   set.seed(1)

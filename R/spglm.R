@@ -460,6 +460,7 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
 
   output <- list(
     coefficients = model_stats$coefficients,
+    laplace = model_stats$laplace,
     fitted = model_stats$fitted,
     hatvalues = model_stats$hatvalues,
     residuals = model_stats$residuals,

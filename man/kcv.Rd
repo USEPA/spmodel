@@ -43,6 +43,7 @@ kcv(object, ...)
   delta = FALSE,
   local,
   folds_index,
+  fit_correct = TRUE,
   ...
 )
 
@@ -55,6 +56,7 @@ kcv(object, ...)
   delta = FALSE,
   local,
   folds_index,
+  fit_correct = TRUE,
   ...
 )
 }
@@ -106,6 +108,11 @@ when \code{cv_predict = TRUE} and using \code{spglm()} or \code{spgautor} object
 
 \item{delta}{A logical indicating whether to return delta method standard errors
 on the response scale when \code{se.fit = TRUE} and \code{type = "response"}. The default is \code{FALSE}.}
+
+\item{fit_correct}{Apply the Laplace mean corrections to prediction centers and
+response-scale means (see the technical details vignette). \code{FALSE}, or an
+object without a stored correction, applies neither; fitted values are unchanged.
+The default is \code{TRUE}.}
 }
 \value{
 If \code{cv_predict = FALSE} and \code{se.fit = FALSE},

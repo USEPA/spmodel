@@ -195,7 +195,7 @@ test_that("offsets are handled consistently for spglm", {
   m_off <- fit(count ~ x + offset(off))
   Sig <- as.matrix(covmatrix(m_off))
   X <- model.matrix(m_off)
-  w <- as.numeric(fitted(m_off, type = "link")) - exdata$off
+  w <- as.numeric(fitted(m_off, type = "link") + m_off$laplace$delta) - exdata$off
   cv_ref <- vapply(seq_len(n), function(i) {
     Si <- chol2inv(chol(Sig[-i, -i]))
     Xm <- X[-i, , drop = FALSE]

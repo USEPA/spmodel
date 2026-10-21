@@ -163,6 +163,10 @@
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #' @param newdata_size The \code{size} value for each observation in \code{newdata}
 #'   used when predicting for the binomial family, with a default value of 1.
+#' @param fit_correct Apply the latent Laplace mean correction for conditional simulations from
+#'   \code{spglm()} and \code{spgautor()} model objects. The default is 
+#'   \code{TRUE}. Regardless of \code{fit_correct}, the \code{"object"} output
+#'   still returns model fitted values.
 #'
 #' @details
 #'
@@ -478,7 +482,8 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
 #' @rdname conditional
 #' @method conditional spglm
 #' @export
-conditional.spglm <- function(object, newdata, output = "newdata", type = c("link", "response", "new"), samples = 1000, local, newdata_size, ...) {
+conditional.spglm <- function(object, newdata, output = "newdata", type = c("link", "response", "new"), samples = 1000, local, newdata_size, fit_correct = TRUE, ...) {
+  center <- get_latent_center(object, fit_correct)
   if (inherits(coef(object, type = "spcov"), c("none", "ie")) && is.null(object$random)) local <- FALSE
 
   if (!is.numeric(samples) || length(samples) != 1L || !is.finite(samples) || samples < 1 || samples != floor(samples)) {
@@ -556,23 +561,23 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   }
 
   if (!is.null(iid_variance)) {
-    draws <- get_conditional_iid_glm(object, newdata_model, iid_variance, samples, latent = "latent" %in% output)
+    draws <- get_conditional_iid_glm(object, newdata_model, iid_variance, samples, latent = "latent" %in% output, center = center)
     new_val <- draws$newdata
     new_betahat <- draws$beta
   } else if (lowrank) {
     if ("latent" %in% output && length(local_list$index$base) != NROW(model.matrix(object))) {
       stop("Full latent output is unavailable for a reduced low-rank base; only base latent values are drawn.", call. = FALSE)
     }
-    draws <- get_conditional_glm_lowrank(object, newdata, newdata_model, local_list, samples, latent = "latent" %in% output, random_design = design)
+    draws <- get_conditional_glm_lowrank(object, newdata, newdata_model, local_list, samples, latent = "latent" %in% output, random_design = design, center = center)
     new_val <- draws$newdata
     new_betahat <- draws$beta
   } else if (!exact && local_list$approximation == "vecchia") {
-    draws <- get_conditional_vecchia_glm(object, newdata, newdata_model, local_list, samples, latent = "latent" %in% output, random_design = design, random = "random" %in% output)
+    draws <- get_conditional_vecchia_glm(object, newdata, newdata_model, local_list, samples, latent = "latent" %in% output, random_design = design, random = "random" %in% output, center = center)
     if (!is.null(draws$random)) random_val <- draws$random
     new_val <- draws$newdata
     new_betahat <- draws$beta
   } else {
-    joint <- get_conditional_glm_joint(object)
+    joint <- get_conditional_glm_joint(object, center = center)
     draws <- draw_conditional_glm_joint(joint, samples, residual = TRUE)
     new_betahat <- draws$beta
     if (!is.null(object$random)) {

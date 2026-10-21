@@ -5,6 +5,8 @@
 #'   \code{TRUE}.
 #' @param delta A logical indicating whether to return delta method standard errors
 #' on the response scale when \code{se.fit = TRUE} and \code{type = "response"}. The default is \code{FALSE}.
+#' @param fit_correct A logical indicating whether to apply the Laplace mean corrections to predictions.
+#'   The default is \code{TRUE}.
 #' @param dispersion The dispersion of assumed when computing the prediction standard errors
 #'   for \code{spglm()} or \code{spgautor()} model objects when \code{family}
 #'   is \code{"nbinomial"}, \code{"beta"}, \code{"Gamma"}, or \code{"inverse.gaussian"}.
@@ -25,7 +27,8 @@
 #' augment(spgmod, newdata = moose_preds, interval = "prediction")
 #' }
 predict.spglm <- function(object, newdata, type = c("link", "response", "terms", "weight"), se.fit = FALSE, interval = c("none", "confidence", "prediction"),
-                          level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, delta = FALSE, newdata_size, na.action = na.fail, ...) {
+                          level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, delta = FALSE, newdata_size, na.action = na.fail, fit_correct = TRUE, ...) {
+  center <- get_latent_center(object, fit_correct)
   # match type argument so the two display
   type <- match.arg(type)
   if (type == "weight") {
@@ -35,6 +38,8 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
 
   # match interval argument so the three display
   interval <- match.arg(interval)
+  response_mean <- center$active && type == "response" && interval != "confidence"
+  need_var <- se.fit || response_mean
 
   # deal with newdata_size
   if (missing(newdata_size)) newdata_size <- NULL
@@ -135,14 +140,14 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
     # since those delete a key entirely when its value is NULL (e.g. random,
     # partition_factor, cov_lowchol) instead of storing the NULL
     pred_row_context <- list(
-      se.fit = se.fit, interval = interval, formula = object$terms,
+      se.fit = need_var, interval = interval, formula = object$terms,
       random = object$random, randcov_terms = randcov_terms,
       partition_factor = object$partition_factor, reform_bar2 = reform_bar2,
       partition_index_obdata = partition_index_obdata, cov_lowchol = cov_lowchol,
       Xmat = model.matrix(object), y = object$y, dim_coords = object$dim_coords,
-      betahat = coefficients(object), cov_betahat = vcov(object, var_correct = FALSE),
+      betahat = center$betahat, cov_betahat = vcov(object, var_correct = FALSE),
       contrasts = object$contrasts, local = local_list, family = object$family,
-      w = fitted(object, type = "link"), model_offset = model.offset(model.frame(object)),
+      w = center$eta, w_mode = fitted(object, type = "link"), model_offset = model.offset(model.frame(object)),
       size = object$size, dispersion = dispersion_params_val,
       predvar_adjust_ind = predvar_adjust_ind, xlevels = object$xlevels,
       diagtol = object$diagtol, type = type,
@@ -168,7 +173,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
       if (!is.null(offset)) {
         fit <- fit + offset
       }
-      if (se.fit) {
+      if (need_var) {
         vars <- vapply(pred_spglm, function(x) x$var, numeric(1))
         if (predvar_adjust_all) {
           # predvar_adjust is for the local function so FALSE there is TRUE
@@ -190,16 +195,13 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
         if (type == "response" && se.fit && delta) {
           se <- get_delta_se(fit, se, object$family, newdata_size)
         }
-        if (type == "response") {
-          fit <- invlink(fit, object$family, newdata_size)
-        }
       } else {
         se <- NULL
-        if (type == "response") {
-          fit <- invlink(fit, object$family, newdata_size)
-        }
       }
-      return(finalize_interval_none(fit, se, add_newdata_rows, object$missing_index))
+      if (type == "response") {
+        fit <- if (response_mean) invlink_mean(fit, vars, object$family, newdata_size) else invlink(fit, object$family, newdata_size)
+      }
+      return(finalize_interval_none(fit, if (se.fit) se else NULL, add_newdata_rows, object$missing_index))
     }
 
     if (interval == "prediction") {
@@ -231,7 +233,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
         se <- get_delta_se(fit, se, object$family, newdata_size)
       }
       if (type == "response") {
-        fit <- invlink(fit, object$family, newdata_size)
+        fit <- if (response_mean) invlink_mean(fit, vars, object$family, newdata_size) else invlink(fit, object$family, newdata_size)
         lwr <- invlink(lwr, object$family, newdata_size)
         upr <- invlink(upr, object$family, newdata_size)
       }
@@ -239,7 +241,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
     }
   } else if (interval == "confidence") {
     # finding fitted values of the mean parameters
-    fit <- as.numeric(newdata_model %*% coef(object))
+    fit <- as.numeric(newdata_model %*% center$betahat)
     # apply offset
     if (!is.null(offset)) {
       fit <- fit + offset
@@ -335,6 +337,8 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
   local <- prediction_object$local
   family <- prediction_object$family
   w <- prediction_object$w
+  w_mode <- prediction_object$w_mode
+  if (is.null(w_mode)) w_mode <- w
   model_offset <- prediction_object$model_offset
   size <- prediction_object$size
   dispersion <- prediction_object$dispersion
@@ -376,6 +380,7 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
   # covariance/design rows continue to describe the same sites.
   n_observed <- length(w)
   w <- w[obdata_index]
+  w_mode <- w_mode[obdata_index]
   y <- y[obdata_index]
   if (!is.null(size)) {
     size <- size[obdata_index]
@@ -392,6 +397,7 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
     obdata <- obdata[keep, , drop = FALSE]
     cov_vector_val <- cov_vector_val[keep]
     w <- w[keep]
+    w_mode <- w_mode[keep]
     y <- y[keep]
     if (!is.null(size)) {
       size <- size[keep]
@@ -409,6 +415,7 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
     obdata <- obdata[keep, , drop = FALSE]
     cov_vector_val <- cov_vector_val[keep]
     w <- w[keep]
+    w_mode <- w_mode[keep]
     y <- y[keep]
     if (!is.null(size)) {
       size <- size[keep]
@@ -487,12 +494,10 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
       # directly like y in the Gaussian case), so its own estimation
       # uncertainty contributes an extra variance term on top of the usual
       # kriging variance above
-      # get_wts_varw() uses w only in get_d()/get_D(), so it takes the
-      # offset-inclusive linear predictor (both pieces are now subset to the
-      # same local neighbourhood as Xmat and y)
+      # Curvature stays at the offset-inclusive mode after neighborhood subsetting.
       var_adj <- get_wts_varw(
         family, Xmat, y,
-        if (is.null(model_offset)) w else w + as.vector(model_offset),
+        w_mode,
         size, dispersion, cov_lowchol, x0, c0
       )
       var <- var_adj + var
@@ -511,7 +516,8 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
 #' @export
 predict.spgautor <- function(object, newdata, type = c("link", "response", "terms", "weight"), se.fit = FALSE,
                              interval = c("none", "confidence", "prediction"),
-                             level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, delta = FALSE, newdata_size, na.action = na.fail, ...) {
+                             level = 0.95, dispersion = NULL, terms = NULL, local, var_correct = TRUE, delta = FALSE, newdata_size, na.action = na.fail, fit_correct = TRUE, ...) {
+  center <- get_latent_center(object, fit_correct)
   # match type argument so the two display
   type <- match.arg(type)
   if (type == "weight") {
@@ -521,6 +527,8 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
 
   # match interval argument so the three display
   interval <- match.arg(interval)
+  response_mean <- center$active && type == "response" && interval != "confidence"
+  need_var <- se.fit || response_mean
 
   # deal with newdata_size
   if (missing(newdata_size)) newdata_size <- NULL
@@ -587,7 +595,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
     SqrtSigInv_X <- forwardsolve(cov_matrix_lowchol, X)
 
     # find w observed
-    w <- fitted(object, type = "link")
+    w <- center$eta
     model_offset <- model.offset(model.frame(object))
     if (!is.null(model_offset)) {
       w <- w - model_offset
@@ -595,7 +603,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
     SqrtSigInv_w <- forwardsolve(cov_matrix_lowchol, w)
 
     # beta hat
-    betahat <- coef(object)
+    betahat <- center$betahat
 
     # residuals pearson
     residuals_pearson_w <- SqrtSigInv_w - SqrtSigInv_X %*% betahat
@@ -621,7 +629,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
     pred_row_context <- list(
       cov_matrix_lowchol = cov_matrix_lowchol, betahat = betahat,
       residuals_pearson_w = residuals_pearson_w, cov_betahat = cov_betahat,
-      SqrtSigInv_X = SqrtSigInv_X, se.fit = se.fit, interval = interval,
+      SqrtSigInv_X = SqrtSigInv_X, se.fit = need_var, interval = interval,
       type = type, Xmat = X
     )
     prediction_object[names(pred_row_context)] <- pred_row_context
@@ -641,7 +649,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
       if (!is.null(offset)) {
         fit <- fit + offset
       }
-      if (se.fit) {
+      if (need_var) {
         vars <- vapply(pred_spautor, function(x) x$var, numeric(1))
         if (var_correct) {
           vars_adj <- get_wts_varw(
@@ -661,16 +669,13 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
         if (type == "response" && se.fit && delta) {
           se <- get_delta_se(fit, se, object$family, newdata_size)
         }
-        if (type == "response") {
-          fit <- invlink(fit, object$family, newdata_size)
-        }
       } else {
         se <- NULL
-        if (type == "response") {
-          fit <- invlink(fit, object$family, newdata_size)
-        }
       }
-      return(finalize_interval_none(fit, se, add_newdata_rows = TRUE, object$missing_index))
+      if (type == "response") {
+        fit <- if (response_mean) invlink_mean(fit, vars, object$family, newdata_size) else invlink(fit, object$family, newdata_size)
+      }
+      return(finalize_interval_none(fit, if (se.fit) se else NULL, add_newdata_rows = TRUE, object$missing_index))
     }
 
     if (interval == "prediction") {
@@ -702,7 +707,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
         se <- get_delta_se(fit, se, object$family, newdata_size)
       }
       if (type == "response") {
-        fit <- invlink(fit, object$family, newdata_size)
+        fit <- if (response_mean) invlink_mean(fit, vars, object$family, newdata_size) else invlink(fit, object$family, newdata_size)
         lwr <- invlink(lwr, object$family, newdata_size)
         upr <- invlink(upr, object$family, newdata_size)
       }
@@ -710,7 +715,7 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
     }
   } else if (interval == "confidence") {
     # finding fitted values of the mean parameters
-    fit <- as.numeric(newdata_model %*% coef(object))
+    fit <- as.numeric(newdata_model %*% center$betahat)
     # apply offset
     if (!is.null(offset)) {
       fit <- fit + offset

@@ -105,6 +105,15 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
     Reduce("+", Xt_SigInv_w_list))
   names(betahat) <- colnames(data_object$X_list[[1]])
 
+  eta <- if (is.null(data_object$offset)) w else w + data_object$offset
+  laplace <- get_laplace_correction(w_and_H$mHInv, data_object$family, eta,
+    y, data_object$size, dispersion)
+  center_list <- split(w + laplace$delta, sort(data_object$local_index))
+  center_products <- mapply(function(x, w) crossprod(x$SigInv_X, w),
+    eigenprods_list, center_list, SIMPLIFY = FALSE)
+  laplace$betahat <- as.numeric(cov_betahat_noadjust %*% Reduce("+", center_products))
+  names(laplace$betahat) <- names(betahat)
+
   cov_betahat <- cov_betahat_adjust(
     invcov_betahat_list,
     betahat_list, betahat,
@@ -203,6 +212,8 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   # reorder relevant quantities
   ## fitted
   original_order <- order(data_object$order)
+  laplace$delta <- laplace$delta[original_order]
+  names(laplace$delta) <- data_object$observed_index
   fitted$response <- fitted$response[original_order]
   names(fitted$response) <- data_object$observed_index
   fitted$link <- fitted$link[original_order]
@@ -239,6 +250,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   # return list
   list(
     coefficients = coefficients,
+    laplace = laplace,
     fitted = fitted,
     hatvalues = hatvalues,
     residuals = residuals,
@@ -306,6 +318,13 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
 
   betahat <- as.numeric(tcrossprod(cov_betahat, SigInv_X) %*% w)
   names(betahat) <- colnames(data_object$X)
+
+  eta <- if (is.null(data_object$offset)) w else w + data_object$offset
+  laplace <- get_laplace_correction(w_and_H$mHInv, data_object$family, eta,
+    y, data_object$size, dispersion)
+  laplace$betahat <- as.numeric(tcrossprod(cov_betahat, SigInv_X) %*% (w + laplace$delta))
+  names(laplace$betahat) <- names(betahat)
+  names(laplace$delta) <- data_object$observed_index
 
   cov_betahat <- as.matrix(cov_betahat)
   wts_beta <- tcrossprod(cov_betahat, SigInv_X)
@@ -406,6 +425,7 @@ get_model_stats_spgautor <- function(cov_est_object, data_object, estmethod) {
   # return list
   list(
     coefficients = coefficients,
+    laplace = laplace,
     fitted = fitted,
     hatvalues = hatvalues,
     residuals = residuals,

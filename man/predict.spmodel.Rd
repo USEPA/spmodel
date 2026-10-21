@@ -102,6 +102,7 @@
   delta = FALSE,
   newdata_size,
   na.action = na.fail,
+  fit_correct = TRUE,
   ...
 )
 
@@ -119,6 +120,7 @@
   delta = FALSE,
   newdata_size,
   na.action = na.fail,
+  fit_correct = TRUE,
   ...
 )
 
@@ -312,6 +314,11 @@ on the response scale when \code{se.fit = TRUE} and \code{type = "response"}. Th
 
 \item{newdata_size}{The \code{size} value for each observation in \code{newdata}
 used when predicting for the binomial family, with a default value of 1.}
+
+\item{fit_correct}{Apply the Laplace mean corrections to prediction centers and
+response-scale means (see the technical details vignette). \code{FALSE}, or an
+object without a stored correction, applies neither; fitted values are unchanged.
+The default is \code{TRUE}.}
 }
 \value{
 For \code{splm} or \code{spautor} objects, if \code{se.fit} is \code{FALSE}, \code{predict()} returns

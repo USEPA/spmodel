@@ -180,10 +180,12 @@ test_that("nonspatial mixed-model covariance preserves groups and partitions", {
       covariance <- T - K %*% t(C) + H %*% B %*% t(H)
     } else {
       eta <- fitted(f$fit, type = "link")
+      center <- get_latent_center(f$fit)
+      beta <- center$betahat
       Q <- solve(solve(V) + diag(exp(eta)))
       A <- Q %*% solve(V, X)
       H <- Xn + K %*% (A - X)
-      mu <- as.numeric(Xn %*% beta + K %*% (eta - d$off - X %*% beta)) + nd$off
+      mu <- as.numeric(Xn %*% beta + K %*% (center$eta - d$off - X %*% beta)) + nd$off
       covariance <- T - K %*% t(C) + K %*% Q %*% t(K) + H %*% B %*% t(H)
     }
     set.seed(2)
@@ -202,7 +204,7 @@ test_that("independent latent draws preserve the effective variance floor", {
     draws <- conditional(f$fit, f$newdata, samples = 16000, local = FALSE, output = c("newdata", "beta"))
     residual <- draws$newdata - X %*% draws$beta - f$newdata$off
     expect_normal_moments(residual, rep(0, 3), v * diag(3))
-    expect_normal_moments(draws$newdata, as.numeric(X %*% coef(f$fit)) + f$newdata$off,
+    expect_normal_moments(draws$newdata, as.numeric(X %*% f$fit$laplace$betahat) + f$newdata$off,
       X %*% vcov(f$fit) %*% t(X) + v * diag(3))
   }
 })

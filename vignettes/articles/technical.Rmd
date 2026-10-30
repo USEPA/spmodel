@@ -1385,6 +1385,438 @@ These transformations average the inverse link over the normal approximation, ra
 
 `fit_correct = TRUE` (the default) applies the latent mean shift and, for response-scale prediction means, the response-mean transformation in `predict()`, `loocv()`, `kcv()` and `augment()` with `newdata`. Confidence predictions use the shifted coefficient center but retain its inverse-link transformation, without response-scale averaging over coefficient uncertainty; `type = "terms"` retains the fitted coefficients. `fit_correct = FALSE`, or an object without a stored correction, applies neither correction. `conditional()` applies only the shift: it transforms each latent draw individually, so averaging the transformed draws performs response-scale averaging.
 
+#### On the Relationship Between `spcov_type = "none"` and Ordinary (Nonspatial) GLMs
+
+Let $\sigma^2_{ie}=\sigma^2$ and suppose $\text{Cov}(\mathbf w)=\sigma^2\mathbf I$, with no additional random effects. As $\sigma^2\to0$, coefficient estimates and uncorrected predictions approach their ordinary GLM counterparts (for the same dispersion). The adjusted coefficient covariance approaches the inverse observed GLM information, which agrees with `glm()`'s expected information covariance for canonical links. For ML estimation, the Laplace log-likelihood approaches the ordinary GLM log-likelihood, while for REML, there are some additional terms that result from integration over $\boldsymbol\beta$. In `spglm()`, `spcov_type = "none"` uses a numerical variance floor of $10^{-4}$ (see [Computational Stability](#sec:computational)), so its results approximate the zero-variance limit.
+
+##### Maximum Likelihood Estimation
+
+Throughout these limits, keep the data, design matrix $\mathbf X$, offsets, and dispersion $\varphi$ unchanged as $\sigma^2$ decreases (offsets are omitted for notational conveinence but when present, they are added when evaluating the inverse link or derivatives). 
+
+We start with the ML log-likelihood (which holds $\boldsymbol\beta$ fixed):
+\begin{equation*}
+ \ell_{\rm ML}(\boldsymbol\beta,\varphi,\boldsymbol\theta)
+ =\ln\int [\mathbf y\mid g^{-1}(\mathbf w),\varphi]
+          [\mathbf w\mid\mathbf X,\boldsymbol\beta,\boldsymbol\theta]\,d\mathbf w.
+\end{equation*}
+Recall that $\ell_{\mathbf w}$ denotes the log integrand after integrating $\boldsymbol\beta$. Here, write $\ell_{\mathbf w}^*$ as the fixed-beta analogue with:
+\begin{equation*}
+ \begin{aligned}
+ \ell_{\mathbf w}^*
+ &=\ln([\mathbf y\mid g^{-1}(\mathbf w),\varphi])
+   +\ln([\mathbf w\mid\mathbf X,\boldsymbol\beta,\boldsymbol\theta]),\\
+ \mathbf g^*
+ &=\frac{\partial\ell_{\mathbf w}^*}{\partial\mathbf w}
+ =\mathbf d-\boldsymbol\Sigma^{-1}(\mathbf w-\mathbf X\boldsymbol\beta),\\
+ \mathbf{G}^* = \frac{\partial^2\ell_{\mathbf w}^*}{\partial\mathbf w^2}
+ &=\mathbf D -\boldsymbol\Sigma^{-1}.
+ \end{aligned}
+\end{equation*}
+Now let $\mathbf e=\mathbf w-\mathbf X\boldsymbol\beta$; the terms used in the Laplace approximation simplify as follows:
+\begin{equation*}
+ \begin{aligned}
+ & \ell_{\mathbf w}^*+\frac n2\ln(2\pi)
+   -\frac12\ln|\sigma^{-2}\mathbf I-\mathbf D|\\
+ &=\ln([\mathbf y\mid g^{-1}(\mathbf w),\varphi])
+   -\frac n2\ln(2\pi\sigma^2)-\frac{\mathbf e^\top\mathbf e}{2\sigma^2}
+   +\frac n2\ln(2\pi)
+   -\frac12\ln|\sigma^{-2}\mathbf I-\mathbf D|\\
+ &=\ln([\mathbf y\mid g^{-1}(\mathbf w),\varphi])
+   -\frac{\mathbf e^\top\mathbf e}{2\sigma^2}
+   -\frac n2\ln(\sigma^2)
+   -\frac12\left[-n\ln(\sigma^2)+\ln|\mathbf I-\sigma^2\mathbf D|\right]\\
+ &=\ln([\mathbf y\mid g^{-1}(\mathbf w),\varphi])
+   -\frac{\mathbf e^\top\mathbf e}{2\sigma^2}
+   -\frac12\sum_{i=1}^n\ln\left[1-\sigma^2\mathbf D_{i,i}\right].
+ \end{aligned}
+\end{equation*}
+The second equality uses $|\sigma^{-2}\mathbf I-\mathbf D|=(\sigma^2)^{-n}|\mathbf I-\sigma^2\mathbf D|$.
+The $\ln(\sigma^2)$ terms cancel, and the final equality uses the diagonal structure of $\mathbf D$.
+
+Now let $\mathbf a$ maximize $\ell_{\mathbf w}^*$; the Laplace-approximated ML log-likelihood is:
+\begin{equation*}
+ \ell_{\rm ML}(\boldsymbol\beta,\varphi,\sigma^2)
+ \approx\ln([\mathbf y\mid g^{-1}(\mathbf a),\varphi])
+  -\frac{\mathbf e_{\mathbf a}^\top\mathbf e_{\mathbf a}}{2\sigma^2}
+  -\frac12\sum_{i=1}^n\ln\left[1-\sigma^2(\mathbf D_{\mathbf a})_{i,i}\right],
+\end{equation*}
+where $\mathbf e_{\mathbf a}=\mathbf a-\mathbf X\boldsymbol\beta$ and $\mathbf D_{\mathbf a}$ is $\mathbf{D}$ evaluated at $\mathbf{a}$. The Hessian becomes $\mathbf G_{\mathbf a}^*=\mathbf D_{\mathbf a}-\sigma^{-2}\mathbf I$. Assume that the response log-likelihood's first and second derivatives, $\mathbf d$ and $\mathbf D$, are continuous functions of $\mathbf w$. Also assume that these derivatives, evaluated at $\mathbf a$, remain bounded as $\sigma^2\to0$. Then,
+\begin{equation*}
+  -\frac12\sum_{i=1}^n\ln\left[1-\sigma^2(\mathbf D_{\mathbf a})_{i,i}\right] \longrightarrow -\frac12\sum_{i=1}^n\ln(1) = 0.
+\end{equation*}
+The score $\mathbf g^*$ is zero at the maximizer $\mathbf a$, which implies
+\begin{equation*}
+\begin{aligned}
+ \mathbf0
+ &=\mathbf d_{\mathbf a}-\frac{\mathbf a-\mathbf X\boldsymbol\beta}{\sigma^2}\\
+ &=\mathbf d_{\mathbf a}-\frac{\mathbf e_{\mathbf a}}{\sigma^2},
+ \qquad
+ \mathbf e_{\mathbf a}=\sigma^2\mathbf d_{\mathbf a}.
+\end{aligned}
+\end{equation*}
+Here $\mathbf d_{\mathbf a}$ is $\mathbf d$ evaluated at $\mathbf a$.
+As $\sigma^2 \to 0$, $\mathbf e_{\mathbf a}\to\mathbf0$ and hence, $\mathbf a\to\mathbf X\boldsymbol\beta$. Also,
+\begin{equation*}
+ \frac{\mathbf e_{\mathbf a}^\top\mathbf e_{\mathbf a}}{2\sigma^2}
+ =\frac{\sigma^4\mathbf d_{\mathbf a}^\top \mathbf d_{\mathbf a}}{2\sigma^2}
+ =\frac{\sigma^2\mathbf d_{\mathbf a}^\top \mathbf d_{\mathbf a}}{2}
+ \longrightarrow0.
+\end{equation*}
+Thus it follows that as $\sigma^2 \rightarrow 0$,
+\begin{equation*}
+ \ell_{\rm ML}(\boldsymbol\beta,\varphi,\sigma^2)
+ \longrightarrow
+ \ln([\mathbf y\mid g^{-1}(\mathbf X\boldsymbol\beta),\varphi]),
+\end{equation*}
+the ordinary (nonspatial) generalized linear model log-likelihood. Another way to think about it: The latent normal distribution concentrates at $\mathbf X\boldsymbol\beta$ as $\sigma^2\to0$, so averaging the response likelihood over that distribution approaches evaluating it at $\mathbf X\boldsymbol\beta$.
+
+In `spmodel`, $\boldsymbol\beta$ is profiled out of the normal component during the Newton--Raphson iterations that find $\mathbf a$, with $\boldsymbol\theta$ and $\varphi$ held fixed:
+\begin{equation*}
+ \tilde{\boldsymbol\beta}(\mathbf w)
+ =(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf w,
+ \qquad
+ \hat{\boldsymbol\beta}_{\mathbf a}=\tilde{\boldsymbol\beta}(\mathbf a).
+\end{equation*}
+Let $\mathbf e_{\mathbf a}=\mathbf a-\mathbf X\hat{\boldsymbol\beta}_{\mathbf a}$. Because of the profiling, the $\tilde{\boldsymbol\beta}(\mathbf w)$ value changes as $\mathbf w$ is updated and hence, the score equation used to find $\mathbf a$ is
+\begin{equation*}
+ \begin{aligned}
+ \mathbf0
+ &=\mathbf d_{\mathbf a}-\mathbf P\mathbf a\\
+ &=\mathbf d_{\mathbf a}-\frac{1}{\sigma^2}
+   \left[\mathbf I-\mathbf X(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\right]\mathbf a\\
+ &=\mathbf d_{\mathbf a}
+   -\frac{\mathbf a-\mathbf X\hat{\boldsymbol\beta}_{\mathbf a}}{\sigma^2}\\
+ &=\mathbf d_{\mathbf a}-\frac{\mathbf e_{\mathbf a}}{\sigma^2},
+ \qquad \mathbf e_{\mathbf a}=\sigma^2\mathbf d_{\mathbf a},
+ \end{aligned}
+\end{equation*}
+just as in the fixed $\boldsymbol\beta$ case. Hence, $\mathbf a-\mathbf X\hat{\boldsymbol\beta}_{\mathbf a}=\mathbf e_{\mathbf a}=\sigma^2\mathbf d_{\mathbf a}\to\mathbf0$. 
+
+Recall that the GLM score $\mathbf X^\top\mathbf d_{\mathbf X\boldsymbol\beta}$ equals $\mathbf{0}$ at $\hat{\boldsymbol\beta}_{\rm GLM}$, the ordinary GLM estimate. We can now show that
+\begin{equation*}
+ \begin{aligned}
+ \mathbf X^\top\mathbf e_{\mathbf a}
+ &=\mathbf X^\top\mathbf a-\mathbf X^\top\mathbf X
+   (\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf a=\mathbf0,\\
+ \mathbf X^\top\mathbf d_{\mathbf a}
+ &=\mathbf X^\top\mathbf e_{\mathbf a}/\sigma^2=\mathbf0.
+ \end{aligned}
+\end{equation*}
+This implies
+\begin{equation*}
+ \begin{aligned}
+ \mathbf X^\top\mathbf d_{\mathbf X\hat{\boldsymbol\beta}_{\mathbf a}}
+ &=\mathbf X^\top\mathbf d_{\mathbf a}
+   +\mathbf X^\top\left(
+     \mathbf d_{\mathbf X\hat{\boldsymbol\beta}_{\mathbf a}}
+     -\mathbf d_{\mathbf a}\right)\\
+ &=\mathbf0+\mathbf X^\top\left(
+     \mathbf d_{\mathbf X\hat{\boldsymbol\beta}_{\mathbf a}}
+     -\mathbf d_{\mathbf a}\right)
+ \longrightarrow\mathbf0
+ \end{aligned}
+\end{equation*}
+because $\mathbf a-\mathbf X\hat{\boldsymbol\beta}_{\mathbf a}\to\mathbf0$. Then we have
+\begin{equation*}
+ \begin{aligned}
+ \hat{\boldsymbol\beta}_{\mathbf a}
+ &\to\hat{\boldsymbol\beta}_{\rm GLM},\\
+ \mathbf a&\to\mathbf X\hat{\boldsymbol\beta}_{\rm GLM},\\
+ \mathbf D_{\mathbf a}
+ &\to\mathbf D_{\mathbf X\hat{\boldsymbol\beta}_{\rm GLM}}
+ \equiv\mathbf D_0,
+ \end{aligned}
+\end{equation*}
+where $\mathbf D_0$ is the matrix of second derivatives of the response log-likelihood with respect to $\mathbf w$, evaluated at $\mathbf w=\mathbf X\hat{\boldsymbol\beta}_{\rm GLM}$. These limits assume that the response log-likelihood's first and second derivatives are continuous functions of $\mathbf w$ and, evaluated at $\mathbf a$, remain bounded as $\sigma^2\to0$. They also assume that the fitted estimates stay near a finite, locally unique GLM solution with a finite, positive-definite inverse observed-information covariance matrix.
+
+Together, these results imply that the reported ML log-likelihood, evaluated at $\hat{\boldsymbol\beta}_{\mathbf a}$, approaches the maximized ordinary GLM log-likelihood (with a fixed dispersion, $\varphi$).
+
+##### Restricted Maximum Likelihood Estimation
+
+For restricted maximum likelihood, we integrate over both $\boldsymbol\beta$ and $\mathbf w$:
+\begin{equation*}
+ \ell_R(\varphi,\boldsymbol\theta)
+ =\ln\int_{\mathbf w}\int_{\boldsymbol\beta}
+ [\mathbf y\mid g^{-1}(\mathbf w),\varphi]
+ [\mathbf w\mid\mathbf X,\boldsymbol\beta,\boldsymbol\theta]
+ \,d\boldsymbol\beta\,d\mathbf w.
+\end{equation*}
+It follows that
+\begin{equation*}
+ \begin{aligned}
+ \ell_{\mathbf w}
+ &=\ln([\mathbf y\mid g^{-1}(\mathbf w),\varphi])
+   -\frac{\mathbf e^\top\mathbf e}{2\sigma^2}
+   -\frac n2\ln(\sigma^2)-\frac{n-p}{2}\ln(2\pi)
+   -\frac12\ln|\mathbf X^\top\mathbf X/\sigma^2|,\\
+ \tilde{\boldsymbol\beta}
+ &=(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf w,
+ \qquad
+ \mathbf e=\mathbf w-\mathbf X\tilde{\boldsymbol\beta}.
+ \end{aligned}
+\end{equation*}
+Recall that the derivatives of $\ell_\mathbf{w}$ with respect to $\mathbf w$ are
+\begin{equation*}
+ \mathbf g=\mathbf d-\mathbf P\mathbf w,\qquad
+ \mathbf G=\mathbf D-\mathbf P,\qquad
+ \mathbf P=\frac{1}{\sigma^2}
+ \left[\mathbf I-\mathbf X(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\right].
+\end{equation*}
+
+Now let $\mathbf a$ maximize $\ell_{\mathbf w}$, with $\varphi$ and $\sigma^2$ held fixed, and define $\hat{\boldsymbol\beta}_{\mathbf a}=(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf a$ and $\mathbf e_{\mathbf a}=\mathbf a-\mathbf X\hat{\boldsymbol\beta}_{\mathbf a}$. Applying the Laplace approximation gives
+\begin{equation*}
+ \begin{aligned}
+ \ell_R(\varphi,\sigma^2)
+ &\approx\ln([\mathbf y\mid g^{-1}(\mathbf a),\varphi])
+   -\frac{\mathbf e_{\mathbf a}^\top\mathbf e_{\mathbf a}}{2\sigma^2}
+   -\frac n2\ln(\sigma^2)+\frac p2\ln(2\pi)\\
+ &\quad{}-\frac12\ln|\mathbf X^\top\mathbf X/\sigma^2|
+          -\frac12\ln|\mathbf P-\mathbf D_{\mathbf a}|.
+ \end{aligned}
+\end{equation*}
+Here, the $n\ln(2\pi)/2$ terms have canceled. The approximation above does not immediately imply a useful limiting result. To achieve this goal, we must first combine the two determinants using the matrix determinant lemma of the form
+\begin{equation*}
+ |\mathbf A-\mathbf U\mathbf V\mathbf U^\top|
+ =|\mathbf A|\,|\mathbf V|\,
+   |\mathbf V^{-1}-\mathbf U^\top\mathbf A^{-1}\mathbf U|,
+\end{equation*}
+provided $\mathbf A$ and $\mathbf V$ have inverses. This is the determinant counterpart of the Sherman--Morrison--Woodbury identity. Here, set
+\begin{equation*}
+ \mathbf A=\sigma^{-2}\mathbf I-\mathbf D_{\mathbf a},\qquad
+ \mathbf U=\mathbf X,\qquad
+ \mathbf V=\sigma^{-2}(\mathbf X^\top\mathbf X)^{-1},
+\end{equation*}
+so that $\mathbf P-\mathbf D_{\mathbf a}=\mathbf A-\mathbf U\mathbf V\mathbf U^\top$ and $\mathbf V^{-1}=\sigma^2\mathbf X^\top\mathbf X$. The determinant lemma gives
+\begin{equation*}
+ |\mathbf P-\mathbf D_{\mathbf a}|
+ =\frac{|\mathbf A|}{(\sigma^2)^p|\mathbf X^\top\mathbf X|}
+   \left|\sigma^2\mathbf X^\top\mathbf X-\mathbf X^\top\mathbf A^{-1}\mathbf X\right|.
+\end{equation*}
+Using $\mathbf A^{-1}=\sigma^2(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}$, the matrix inside the last determinant simplifies to
+\begin{equation*}
+ \begin{aligned}
+ &\sigma^2\mathbf X^\top\mathbf X-\mathbf X^\top\mathbf A^{-1}\mathbf X\\
+ &\quad=\sigma^2\mathbf X^\top
+   \left[\mathbf I-(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\right]\mathbf X\\
+ &\quad=\sigma^4\mathbf X^\top(-\mathbf D_{\mathbf a})
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\mathbf X.
+ \end{aligned}
+\end{equation*}
+For the last equality, write $\mathbf I=(\mathbf I-\sigma^2\mathbf D_{\mathbf a})(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}$ and factor the common inverse on the right:
+\begin{equation}\label{eq:glm-inverse-difference}
+ \begin{aligned}
+ &\mathbf I-(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\\
+ &\quad=(\mathbf I-\sigma^2\mathbf D_{\mathbf a})
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}
+   -\mathbf I(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\\
+ &\quad=\left[(\mathbf I-\sigma^2\mathbf D_{\mathbf a})-\mathbf I\right]
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\\
+ &\quad=-\sigma^2\mathbf D_{\mathbf a}
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}.
+ \end{aligned}
+\end{equation}
+Write
+\begin{equation*}
+ \mathbf K=\mathbf X^\top(-\mathbf D_{\mathbf a})
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\mathbf X.
+\end{equation*}
+The matrix $\sigma^2\mathbf X^\top\mathbf X-\mathbf X^\top\mathbf A^{-1}\mathbf X$ is therefore $\sigma^4\mathbf K$. Since it is $p\times p$, factoring out $\sigma^4$ from the determinant $|\sigma^4 \mathbf{K}|$ contributes $(\sigma^4)^p=(\sigma^2)^{2p}$. Substituting into the determinant lemma and canceling powers of $\sigma^2$ gives
+\begin{equation*}
+ \begin{aligned}
+ |\mathbf P-\mathbf D_{\mathbf a}|
+ &=\frac{|\mathbf A|(\sigma^2)^{2p}}{(\sigma^2)^p|\mathbf X^\top\mathbf X|}
+   |\mathbf K|\\
+ &=\frac{|\mathbf A|(\sigma^2)^p}{|\mathbf X^\top\mathbf X|}
+   |\mathbf K|.
+ \end{aligned}
+\end{equation*}
+The other REML determinant is $|\mathbf X^\top\mathbf X/\sigma^2|=|\mathbf X^\top\mathbf X|/(\sigma^2)^p$. Multiplying cancels both this determinant and the remaining power of $\sigma^2$:
+\begin{equation*}
+ \begin{aligned}
+ &|\mathbf X^\top\mathbf X/\sigma^2|\,|\mathbf P-\mathbf D_{\mathbf a}|\\
+ &\quad=\frac{|\mathbf X^\top\mathbf X|}{(\sigma^2)^p}
+   \frac{|\mathbf A|(\sigma^2)^p}{|\mathbf X^\top\mathbf X|}
+   |\mathbf K|\\
+ &\quad=|\sigma^{-2}\mathbf I-\mathbf D_{\mathbf a}|\,
+   |\mathbf K|\\
+ &\quad= |\sigma^{-2}\mathbf{I} ||\mathbf I-\sigma^2 \mathbf D_{\mathbf a}|
+   |\mathbf K| \\
+&\quad= \sigma^{-2n}|\mathbf I-\sigma^2 \mathbf D_{\mathbf a}|
+   |\mathbf K|.
+ \end{aligned}
+\end{equation*}
+Consequently,
+\begin{equation*}
+ \begin{aligned}
+ &\ln|\mathbf X^\top\mathbf X/\sigma^2|+\ln|\mathbf P-\mathbf D_{\mathbf a}|\\
+ &\quad=-n\ln(\sigma^2)
+   +\sum_{i=1}^n\ln[1-\sigma^2(\mathbf D_{\mathbf a})_{i,i}]\\
+ &\qquad{}+\ln|\mathbf K|.
+ \end{aligned}
+\end{equation*}
+Substitution cancels the $n\ln(\sigma^2)/2$ terms, leaving
+\begin{equation*}
+ \begin{aligned}
+ \ell_R(\varphi,\sigma^2)
+ &\approx\ln([\mathbf y\mid g^{-1}(\mathbf a),\varphi])
+   -\frac{\mathbf e_{\mathbf a}^\top\mathbf e_{\mathbf a}}{2\sigma^2}
+   -\frac12\sum_{i=1}^n\ln[1-\sigma^2(\mathbf D_{\mathbf a})_{i,i}]\\
+ &\quad{}-\frac12\ln|\mathbf K|
+   +\frac p2\ln(2\pi).
+ \end{aligned}
+\end{equation*}
+
+Under the same assumptions as in the ML section, omitting terms that approach zero as $\sigma^2\to0$ gives
+\begin{equation*}
+ \ell_R(\varphi,\sigma^2)
+ \approx
+ \ln([\mathbf y\mid g^{-1}(\mathbf a),\varphi])
+ -\frac12\ln|-\mathbf X^\top\mathbf D_{\mathbf a}\mathbf X|
+ +\frac p2\ln(2\pi).
+\end{equation*}
+
+Moreover, REML uses the same Newton--Raphson score equation used to find $\mathbf a$ in ML:
+\begin{equation*}
+ \mathbf0=\mathbf d_{\mathbf a}-\mathbf P\mathbf a
+ =\mathbf d_{\mathbf a}-\mathbf e_{\mathbf a}/\sigma^2
+ \quad\Longrightarrow\quad
+ \mathbf e_{\mathbf a}=\sigma^2\mathbf d_{\mathbf a}.
+\end{equation*}
+Thus for REML, $\hat{\boldsymbol\beta}_{\mathbf a}\to\hat{\boldsymbol\beta}_{\rm GLM}$.
+
+Since $\mathbf a\to\mathbf X\hat{\boldsymbol\beta}_{\rm GLM}$ and $\mathbf D_{\mathbf a}\to\mathbf D_0$, the preceding approximation has the explicit limit
+\begin{equation*}
+ \begin{aligned}
+ &\ln([\mathbf y\mid g^{-1}(\mathbf a),\varphi])
+ -\frac12\ln|-\mathbf X^\top\mathbf D_{\mathbf a}\mathbf X|
+ +\frac p2\ln(2\pi)\\
+ &\quad\longrightarrow
+ \ln([\mathbf y\mid g^{-1}(\mathbf X\hat{\boldsymbol\beta}_{\rm GLM}),\varphi])
+ -\frac12\ln|-\mathbf X^\top\mathbf D_0\mathbf X|
+ +\frac p2\ln(2\pi).
+ \end{aligned}
+\end{equation*}
+This is the Laplace approximation to the log of the GLM likelihood integrated over $\boldsymbol\beta$, rather than the maximized log-likelihood returned by `glm()`.
+
+ML and REML use the same coefficient calculation at the same covariance parameters and response dispersion. Both approach the ordinary GLM coefficient estimates as $\sigma^2\to0$, with dispersion held fixed, but their likelihood values differ because REML retains the adjustment from integrating over $\boldsymbol\beta$.
+
+##### The Covariance of $\hat{\boldsymbol\beta}$
+
+For either ML or REML, the adjusted coefficient covariance approximation is given by (see [Hypothesis Testing](#sec:testing-glm))
+\begin{equation*}
+ \widehat{\operatorname{Cov}}(\hat{\boldsymbol\beta})
+ =\mathbf C_\beta+\mathbf B\boldsymbol\Omega\mathbf B^\top,
+ \qquad
+ \boldsymbol\Omega=(-\mathbf G_{\mathbf a})^{-1}
+ =(\mathbf P-\mathbf D_{\mathbf a})^{-1},
+\end{equation*}
+where $\mathbf B=(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top$.
+Here, $\mathbf C_\beta=\sigma^2(\mathbf X^\top\mathbf X)^{-1}$ is the coefficient covariance if the latent values were observed, and the second term propagates uncertainty in those values. We first simplify their sum.
+
+To simplify $\mathbf B\boldsymbol\Omega\mathbf B^\top$, first recall the matrix from the REML calculation:
+\begin{equation*}
+ \mathbf K=\mathbf X^\top(-\mathbf D_{\mathbf a})
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\mathbf X.
+\end{equation*}
+Substitute $\mathbf P=(\mathbf I-\mathbf X\mathbf B)/\sigma^2$:
+\begin{equation*}
+ \mathbf P-\mathbf D_{\mathbf a}
+ =\frac{\mathbf I-\mathbf X\mathbf B-\sigma^2\mathbf D_{\mathbf a}}{\sigma^2}
+ =\frac{(\mathbf I-\sigma^2\mathbf D_{\mathbf a})-\mathbf X\mathbf B}{\sigma^2}.
+\end{equation*}
+This grouping puts $\mathbf I-\sigma^2\mathbf D_{\mathbf a}$ next to its inverse in the following product:
+\begin{equation*}
+ \begin{aligned}
+ &\mathbf X^\top(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}
+   (\mathbf P-\mathbf D_{\mathbf a})\\
+ &=\frac{1}{\sigma^2}\mathbf X^\top
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}
+   \left[(\mathbf I-\sigma^2\mathbf D_{\mathbf a})-\mathbf X\mathbf B\right]\\
+ &=\frac{1}{\sigma^2}\left[
+   \mathbf X^\top
+   \underbrace{(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})}_{\mathbf I}
+   -\mathbf X^\top(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\mathbf X\mathbf B
+   \right]\\
+ &=\frac{1}{\sigma^2}
+   \left(\mathbf X^\top-\mathbf X^\top(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\mathbf X\mathbf B\right).
+ \end{aligned}
+\end{equation*}
+Next, use $\mathbf X^\top=\mathbf X^\top\mathbf X\mathbf B$ to factor out $\mathbf B$:
+\begin{equation*}
+ \begin{aligned}
+ &\frac{1}{\sigma^2}
+   \left(\mathbf X^\top-\mathbf X^\top(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\mathbf X\mathbf B\right)\\
+ &=\frac{1}{\sigma^2}
+   \left(\mathbf X^\top\mathbf X-\mathbf X^\top(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\mathbf X\right)\mathbf B\\
+ &=\frac{1}{\sigma^2}\mathbf X^\top
+   \left[\mathbf I-(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\right]\mathbf X\mathbf B.
+ \end{aligned}
+\end{equation*}
+Now apply the inverse-difference identity in \eqref{eq:glm-inverse-difference}. The bracket above equals $-\sigma^2\mathbf D_{\mathbf a}(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}$, so
+\begin{equation*}
+ \begin{aligned}
+ &\frac{1}{\sigma^2}\mathbf X^\top
+   \left[\mathbf I-(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\right]\mathbf X\mathbf B\\
+ &=\frac{1}{\sigma^2}\mathbf X^\top
+   \left[-\sigma^2\mathbf D_{\mathbf a}
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\right]\mathbf X\mathbf B\\
+ &=\mathbf X^\top(-\mathbf D_{\mathbf a})
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\mathbf X\mathbf B\\
+ &=\mathbf K\mathbf B.
+ \end{aligned}
+\end{equation*}
+Together, these steps give $\mathbf X^\top(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}(\mathbf P-\mathbf D_{\mathbf a})=\mathbf K\mathbf B$. Multiplying on the right by $\boldsymbol\Omega$ and on the left by $\mathbf K^{-1}$ yields $\mathbf K^{-1}\mathbf X^\top(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1} = \mathbf B\boldsymbol\Omega$.
+
+Next, multiply the definition of $\mathbf K$ by $\sigma^2$ and use \eqref{eq:glm-inverse-difference}:
+\begin{equation*}
+ \begin{aligned}
+ \sigma^2\mathbf K
+ &=\mathbf X^\top\left[-\sigma^2\mathbf D_{\mathbf a}
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\right]\mathbf X\\
+ &=\mathbf X^\top\left[\mathbf I-
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\right]\mathbf X\\
+ &=\mathbf X^\top\mathbf X
+   -\mathbf X^\top(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\mathbf X.
+ \end{aligned}
+\end{equation*}
+Rearranging gives
+\begin{equation*}
+ \mathbf X^\top(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\mathbf X
+ =\mathbf X^\top\mathbf X-\sigma^2\mathbf K.
+\end{equation*}
+Substituting this identity into the covariance term gives
+\begin{equation*}
+ \begin{aligned}
+ \mathbf B\boldsymbol\Omega\mathbf B^\top
+ &=\mathbf K^{-1}\mathbf X^\top(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\mathbf X
+   (\mathbf X^\top\mathbf X)^{-1}\\
+ &=\mathbf K^{-1}(\mathbf X^\top\mathbf X-\sigma^2\mathbf K)
+   (\mathbf X^\top\mathbf X)^{-1}\\
+ &=\mathbf K^{-1}-\sigma^2(\mathbf X^\top\mathbf X)^{-1}.
+ \end{aligned}
+\end{equation*}
+Adding $\mathbf C_\beta$ cancels the last term exactly:
+\begin{equation*}
+ \begin{aligned}
+ \widehat{\operatorname{Cov}}(\hat{\boldsymbol\beta})
+ &=\sigma^2(\mathbf X^\top\mathbf X)^{-1}
+   +\mathbf K^{-1}-\sigma^2(\mathbf X^\top\mathbf X)^{-1}\\
+ &=\mathbf K^{-1}.
+ \end{aligned}
+\end{equation*}
+
+To connect this result to the ordinary GLM, now let $\sigma^2\to0$. The convergence established above gives $\mathbf D_{\mathbf a}\to\mathbf D_0$, so $(\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\to\mathbf I$ and $\mathbf K\to-\mathbf X^\top\mathbf D_0\mathbf X$. With a finite, positive-definite inverse observed-information covariance matrix for the GLM, taking the inverse preserves this limit:
+\begin{equation*}
+ \widehat{\operatorname{Cov}}(\hat{\boldsymbol\beta})
+ =\mathbf K^{-1}
+ =\left[\mathbf X^\top(-\mathbf D_{\mathbf a})
+   (\mathbf I-\sigma^2\mathbf D_{\mathbf a})^{-1}\mathbf X\right]^{-1}
+ \longrightarrow
+ (-\mathbf X^\top\mathbf D_0\mathbf X)^{-1}.
+\end{equation*}
+This is inverse observed GLM information. It agrees with the expected-information covariance used by `glm()` for canonical links and matched dispersion (noncanonical links can give different observed and expected information). These results apply to the adjusted covariance (`var_correct = TRUE`); the unadjusted covariance is only $\mathbf C_\beta$, which tends to zero with $\sigma^2$.
+
 ### Optimization {#sec:optim-glm}
 
 Optimization for `spglm()` and `spgautor()` works as it does for `splm()` and `spautor()`, with one additional step. The convergence criteria for $\mathbf{w}$ (within each covariance parameter iteration) is achieved when the largest absolute value of $\mathbf{w}_k - \mathbf{w}_{k - 1}$ is less than $1/10^4$ or $k > 50$ ($k$ indexes the Newton-Raphson iterations).
@@ -1655,7 +2087,7 @@ The second derivative of the log-likelihood with respect to $w$ is \begin{equati
 \begin{equation*}
   k_1(w | y, \varphi) = \varphi \left[\psi^{(1)}\left(\frac{\varphi \exp(w)}{1 + \exp(w)}\right) + \psi^{(1)}\left( \frac{\varphi}{1 + \exp(w)}\right)\right] - 2\sinh(w) \, k_0(w | y, \varphi)
 \end{equation*}
-and $\psi^{(n)}$ is the $n$th derivative of the digamma function (so $\psi^{(1)}$ is the trigamma function). The two terms of $k_1$ come from differentiating $d = -\varphi \mu (1 - \mu) k_0$ by the product rule: the trigamma term differentiates $k_0$, and the $\sinh$ term differentiates $\varphi \mu(1 - \mu)$. 
+and $\psi^{(n)}$ is the $n$th derivative of the digamma function (so $\psi^{(1)}$ is the trigamma function). The two terms of $k_1$ come from differentiating $d = -\varphi \mu (1 - \mu) k_0$ by the product rule: the trigamma term differentiates $k_0$, and the $\sinh$ term differentiates $\varphi \mu(1 - \mu)$.
 
 For the third derivative, write $p=\operatorname{expit}(w)$, $q=p(1-p)$, $b=1-2p$, and
 \begin{align*}

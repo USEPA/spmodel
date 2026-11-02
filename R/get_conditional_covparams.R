@@ -194,10 +194,7 @@ simulate_theta_draw <- function(theta_hat_free, vcov_theta_lowchol, spcov_type,
 #' shared once the covariance parameters change every draw), so it is a plain
 #' sequential loop, one fresh \code{O(n^3)} factorization per sample.
 #'
-#' Only called when \code{local_list$method_base == local_list$method_new ==
-#' "all"} is guaranteed (see \code{conditional.splm()}'s \code{local_active}
-#' check), so this always operates on the full observed data and all of
-#' \code{newdata} at once and there is no base-subsampling/blocking to account for.
+#' Only called when \code{local = FALSE}, using all observed and prediction sites.
 #'
 #' @param object A fitted \code{splm} model object.
 #' @param newdata The (already processed, i.e. post-

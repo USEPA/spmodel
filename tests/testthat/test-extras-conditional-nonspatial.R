@@ -48,9 +48,8 @@ test_that("independent Gaussian draws retain nugget and coefficient uncertainty"
   for (type in c("exponential", "none", "ie")) {
     f <- nonspatial_fixture(type = type, coordinates = TRUE)
     expect_equal(unname(coef(f$fit, "spcov")[["ie"]]), 2.5)
-    for (base in c(8L, 24L)) {
-      settings <- list(approximation = "low-rank", size_base = base, size_new = 2,
-        reorder_base = "none", reorder_new = "none", chunk_size = 7)
+    for (size in c(8L, 24L)) {
+      settings <- list(size = size, ordering = "none", chunk_size = 7)
       for (ctl in list(FALSE, settings)) {
         for (sites in c(1L, 3L)) {
           nd <- f$newdata[seq_len(sites), , drop = FALSE]
@@ -73,7 +72,7 @@ test_that("independent Gaussian draws retain nugget and coefficient uncertainty"
     set.seed(2)
     z <- matrix(rnorm(9), 3, 3)
     set.seed(2)
-    value <- get_conditional_new_from_base_adjust(list(newdata = f$newdata), f$fit,
+    value <- draw_conditional_exact_lm(f$newdata, f$fit,
       matrix(0, 24, 1), matrix(0, 24, 2), matrix(0, 2, 3), sqrt(2.5) * diag(24), 3)
     L <- value %*% solve(z)
     expect_equal(tcrossprod(L), 2.5 * diag(3), tolerance = 1e-12)
@@ -111,15 +110,14 @@ test_that("nonspatial covariance and simulation do not need geometric distances"
     expect_equal(a, conditional(with_coords$fit, with_coords$newdata, samples = 11, local = FALSE))
     set.seed(2)
     expect_identical(dim(conditional(f$fit, output = "beta", samples = 1, local = FALSE)), c(2L, 1L))
-    for (base in c(8L, 24L)) {
+    for (size in c(8L, 24L)) {
       set.seed(2)
       expect_identical(dim(conditional(f$fit, f$newdata, samples = 11,
-        local = list(approximation = "low-rank", size_base = base, size_new = 2,
-          reorder_base = "none", reorder_new = "none", chunk_size = 4))), c(3L, 11L))
+        local = list(size = size, ordering = "none", chunk_size = 4))), c(3L, 11L))
     }
     expect_identical(dim(conditional(f$fit, f$newdata, samples = 1, local = TRUE)), c(3L, 1L))
     expect_identical(dim(conditional(f$fit, f$newdata, samples = 1,
-      local = list(approximation = "low-rank", size_base = 8))), c(3L, 1L))
+      local = list(size = 8))), c(3L, 1L))
     expect_equal(dim(conditional(f$fit, f$newdata, samples = 1, local = list(method = "all"))), c(3L, 1L))
   }
 })
@@ -238,7 +236,7 @@ test_that("large random-effect designs warn and continue with/without observatio
   for (q in c(10001L, 20000L)) {
     design <- list(observed = Matrix::sparseMatrix(i = integer(), j = integer(), dims = c(1L, q)),
       variance = rep(1, q), info = data.frame(conditioned = rep(TRUE, q)))
-    for (ctl in list(NULL, list(approximation = "vecchia"))) {
+    for (ctl in list(NULL, list())) {
       expect_warning(
         expect_error(prepare_conditional_random(list(), design, ctl), "past size warning"),
         paste0(format(q, big.mark = ",", scientific = FALSE), " random-effect coefficients.*exceedingly long computational times"))

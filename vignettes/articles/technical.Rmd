@@ -1894,7 +1894,7 @@ As previously mentioned, fitting big data spatial generalized linear models requ
 
 ## Simulation Functions (`sprpois()`, `sprnbinom()`, `sprbinom()`, `sprbeta()`, `sprgamma()`, `sprinvgauss()`) {#sec:sim-fns}
 
-For point-referenced spatial simulation via `sprnorm()` and these family functions, `local = TRUE` defaults to Vecchia with 30 neighbors. The family functions apply the same spatial simulation to the latent mean, then generate responses conditionally independently given that latent mean. Low-rank simulation is selected explicitly with `approximation = "low-rank"`. Autoregressive simulation uses the full covariance matrix without these local approximations.
+For point-referenced spatial simulation via `sprnorm()` and these family functions, `local = TRUE` defaults to local neighborhood (Vecchia) with 30 neighbors, whereby past simulated observations are conditioned upon when simulating new observations (see [Vecchia conditional simulation](#sec:conditional-bigdata-splm)). Spatial and nonspatial random effects are independent of one another and hence, can be simulated separately and then summed. Only the spatial random effect realizations require using local neighborhoods. Nonspatial random effects are simulated exactly by drawing one coefficient per level and sharing it across matching observations. Because the random effect realizations are independent, they can be drawn directly without constructing or factoring a covariance matrix, even when there are many levels. With partition factors, each level-partition combination receives its own independent draw. The family functions apply the same spatial simulation to the latent mean, then generate responses conditionally independently given that latent mean. Autoregressive simulation uses the full covariance matrix without these local approximations.
 
 Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian random variables can be simulated using `sprpois()`, `sprnbinom()`, `sprbinom()`, `sprbeta()`, `sprgamma()`, and `sprinvgauss()`, respectively. All of these functions work similarly. First, relevant arguments are passed to `sprnorm()` to simulate $\mathbf{w}$ on the link scale. Then using $\mathbf{w}$ and the dispersion parameter (when required), relevant generalized linear model random variables are simulated independently for each $w_i$. Note that the dispersion parameter is not required for `sprpois()` and `sprbinom()`.
 
@@ -2346,7 +2346,7 @@ By the law of total variance, this correctly propagates $\hat{\boldsymbol{\beta}
 
 For both linear and generalized linear models, the covariance square roots below are implemented using Cholesky factors. For example, if $\hat{\boldsymbol{\Sigma}}_u^*=\mathbf{L}\mathbf{L}^\top$ (where $\mathbf{L}$ is lower triangular), use $\mathbf{L}\mathbf{e}_b$ for $\hat{\boldsymbol{\Sigma}}_u^{*1/2}\mathbf{e}_b$, which implies the correct covariance but is more computationally efficient than computing the square root.
 
-For low-rank and Vecchia conditional simulation, `local$chunk_size` (default 1,000) specifies the maximum number of simulation columns processed simultaneously, saving computational memory.
+For Vecchia conditional simulation, `local$chunk_size` (default 1,000) specifies the maximum number of simulation columns processed simultaneously, saving computational memory.
 
 For `splm()` and `spglm()` models with covariance type `"none"` or `"ie"` and no random effects (described below), `conditional()` sets `local = FALSE`, ignoring any supplied value of `local` (i.e., `local = TRUE`) and instead implementing the exact method, which bypasses explicit spatial conditioning (as off-diagonal covariance terms equal zero under independence). Simulated values are the sum of the mean component and a random error with variance equal to the respective variance component.
 
@@ -2382,7 +2382,7 @@ $$
 \mathbf{u}_b\mid\mathbf{r}_{o,b}\sim N\left(
 \mathbf{H}_o\mathbf{Z}_o^\top\mathbf{S}_o^{-1}\mathbf{r}_{o,b},\mathbf{H}_o\right).
 $$
-Both forms give one shared effect draw per level. A level absent from the conditioning data (the base sample for low-rank simulation) receives one draw per simulation from its fitted zero-mean normal distribution, shared by all prediction rows with that level. After drawing effects, subtract $\mathbf{Z}_o\mathbf{u}_b$ from the residuals, predict spatial errors using $\mathbf{S}$, and add $\mathbf{Z}_u\mathbf{u}_b$ at prediction sites.
+Both forms give one shared effect draw per level. A level absent from the conditioning data receives one draw per simulation from its fitted zero-mean normal distribution, shared by all prediction rows with that level. After drawing effects, subtract $\mathbf{Z}_o\mathbf{u}_b$ from the residuals, predict spatial errors using $\mathbf{S}$, and add $\mathbf{Z}_u\mathbf{u}_b$ at prediction sites.
 
 Exact spatial and autoregressive paths condition on all observed sites. Vecchia uses all observed residuals but approximates $\mathbf{Z}_o^\top\mathbf{S}_o^{-1}\mathbf{Z}_o$ and $\mathbf{Z}_o^\top\mathbf{S}_o^{-1}\mathbf{r}_{o,b}$ with sums over disjoint observed blocks. The target block size is set by `local$size_random` (default 1,000), or the number of blocks by `local$groups_random`. The two quantities are approximated by $\sum_{i = 1}^k \mathbf{Z}_{o_i}^\top\mathbf{S}_{o_i}^{-1}\mathbf{Z}_{o_i}$ and $\sum_{i = 1}^k \mathbf{Z}_{o_i}^\top\mathbf{S}_{o_i}^{-1}\mathbf{r}_{o_i,b}$, respectively, where $o_i$ denotes the observations in block $i$ and $k$ is the number of blocks. Thus rows of $\mathbf{Z}_o$ and $\mathbf{r}_{o,b}$ and rows/columns of $\mathbf{S}_o$ are restricted to that block. Blocks are determined by k-means or random assignment (`local$method_random`) and only used for drawing random effects.
 
@@ -2398,32 +2398,11 @@ Given $\boldsymbol{\beta}_b$, conditioning yields the prediction \begin{equation
 
 With offsets, replace $\mathbf{y}_o$ by $\mathbf{y}_o-\mathbf{o}_o$ in \eqref{eq:cond_splm} and add the new-site offsets $\mathbf{o}_u$ to the simulated responses.
 
-### Big Data: Low-Rank and Vecchia Approximations {#sec:conditional-bigdata-splm}
+### Big Data: Vecchia Approximation {#sec:conditional-bigdata-splm}
 
-For conditional simulation, `local = TRUE` selects Vecchia with 30 neighbors (`splm()`) or 60 neighbors (`spglm()`). Low-rank requires `approximation = "low-rank"`. For both linear and generalized linear models, Vecchia's `method = "all"` directly uses the exact path (`local = FALSE`) rather than sequentially factoring full neighborhoods.
+For conditional simulation, `local = TRUE` selects Vecchia with 30 neighbors (`splm()`) or 60 neighbors (`spglm()`). For both linear and generalized linear models, Vecchia's `method = "all"` directly uses the exact path (`local = FALSE`) rather than sequentially factoring full neighborhoods.
 
 For `splm()`, the `local` argument to `conditional()` approximates the residual simulation in step 2. The `spglm()` construction later reuses this residual step after drawing the observed latent field. Draw one $\boldsymbol{\beta}_b$ shared across all prediction locations and form $\mathbf{r}_{o,b}=\mathbf{y}_o-\mathbf{X}_o\boldsymbol{\beta}_b$. Treat these residuals as known responses in the conditioning calculations below. With random effects, also subtract $\mathbf{Z}_o\mathbf{u}_b$, use the spatial-error covariance $\hat{\mathbf{S}}$ in place of $\hat{\boldsymbol{\Sigma}}$ below, and restore the random-effect contribution when adding back the mean for new sites. Similarly, subtract and add back offsets.
-
-#### Low-Rank
-
-For low-rank simulation, a base sample is selected as a subset of the observed sites and this base sample is treated as the "observed data" to generate conditional simulations. Let $o$ now refer to the subset of observations in the base sample and $u$ to the current block of prediction sites. All quantities below are restricted to these subsets. Then using multivariate normal conditioning it follows that
-\begin{align*}
-  \boldsymbol{\mu}_{u,b}
-    &=\hat{\boldsymbol{\Sigma}}_{uo}
-      \hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{r}_{o,b},\\
-  \hat{\boldsymbol{\Sigma}}_u^{*}
-    &=\hat{\boldsymbol{\Sigma}}_u
-      -\hat{\boldsymbol{\Sigma}}_{uo}
-       \hat{\boldsymbol{\Sigma}}_o^{-1}
-       \hat{\boldsymbol{\Sigma}}_{uo}^{\top}.
-\end{align*}
-Thus $\mathbf{r}_{u,b}\mid\mathbf{r}_{o,b}\sim N(\boldsymbol{\mu}_{u,b},\hat{\boldsymbol{\Sigma}}_u^{*})$, and the block is simulated jointly as
-$$
-  \mathbf{r}_{u,b}=\boldsymbol{\mu}_{u,b}
-    +\hat{\boldsymbol{\Sigma}}_u^{*1/2}\mathbf{e}_{u,b},
-  \qquad \mathbf{e}_{u,b}\sim N(\mathbf{0},\mathbf{I}_{u}).
-$$
-The same base $o$ is used for every prediction block $u$, and the simulated $\mathbf{e}_{u,b}$ are independent across blocks. This approach retains dependence within each block but omits the remaining spatial covariance between different blocks, conditional on the base residuals and shared coefficient and random-effect draws. Blocks still share uncertainty through $\boldsymbol{\beta}_b$ and, when present, $\mathbf{u}_b$. The low-rank approach can parallelize over the conditionally independent prediction blocks.
 
 #### Vecchia
 
@@ -2438,7 +2417,7 @@ Restricting the same covariance quantities to $o$ and $u$ (here $o$ refers to th
      \hat{\boldsymbol{\Sigma}}_o^{-1}
      \hat{\boldsymbol{\Sigma}}_{uo}^{\top}.
 \end{align*}
-Draw $r_{u,b}=\mu_{u,b}+\sqrt{v_u}e_{u,b}$, where the error $e_{u,b}\sim N(0,1)$ is independent of previous realizations. With no eligible neighbors, use $\mu_{u,b}=0$ and $v_u=\hat{\boldsymbol{\Sigma}}_u$. If all neighbors are retained at each step, the residual simulation is exact conditional on the coefficient and random-effect draws. `method = "all"` bypasses both local approximations. The Vecchia approximation is not easily parallelizable because each conditional residual draw depends on prior draws. See @katzfuss2024GPvecchia for more.
+Draw $r_{u,b}=\mu_{u,b}+\sqrt{v_u}e_{u,b}$, where the error $e_{u,b}\sim N(0,1)$ is independent of previous realizations. With no eligible neighbors, use $\mu_{u,b}=0$ and $v_u=\hat{\boldsymbol{\Sigma}}_u$. If all neighbors are retained at each step, the residual simulation is exact conditional on the coefficient and random-effect draws. `method = "all"` uses the exact path. The Vecchia approximation is not easily parallelizable because each conditional residual draw depends on prior draws. See @katzfuss2024GPvecchia for more.
 
 ### Propagating Covariance-Parameter Uncertainty {#sec:conditional-covparams}
 
@@ -2452,7 +2431,7 @@ Because $\boldsymbol{\theta}$ changes on every draw, the covariance factors cann
 
 ## `spglm()` and `spgautor()` {#sec:conditional-spglm}
 
-When `fit_correct = TRUE` (the default) and a stored correction is available, conditional draws of $\boldsymbol\beta$ and the offset-free $\mathbf w_o$ are centered at $\boldsymbol\beta^*$ and $\mathbf a^*$; otherwise, at $\hat{\boldsymbol\beta}$ and $\hat{\mathbf w}_o=\mathbf a$. The exact, low-rank, and Vecchia formulas below display the uncorrected centers. When correction is active, replace $\hat{\mathbf w}_o$ and $\hat{\boldsymbol\beta}$ throughout those formulas and their mean statements by $\mathbf a^*$ and $\boldsymbol\beta^*$, respectively; covariance matrices and response derivatives remain evaluated at the fitted mode. Either way, `output = "object"` returns the original fitted link values, including offsets.
+When `fit_correct = TRUE` (the default) and a stored correction is available, conditional draws of $\boldsymbol\beta$ and the offset-free $\mathbf w_o$ are centered at $\boldsymbol\beta^*$ and $\mathbf a^*$; otherwise, at $\hat{\boldsymbol\beta}$ and $\hat{\mathbf w}_o=\mathbf a$. The exact and Vecchia formulas below display the uncorrected centers. When correction is active, replace $\hat{\mathbf w}_o$ and $\hat{\boldsymbol\beta}$ throughout those formulas and their mean statements by $\mathbf a^*$ and $\boldsymbol\beta^*$, respectively; covariance matrices and response derivatives remain evaluated at the fitted mode. Either way, `output = "object"` returns the original fitted link values, including offsets.
 
 ### Exact Conditional Simulation
 
@@ -2562,15 +2541,9 @@ where $\mathbf{e}_b$ is a standard normal random vector and $\hat{\boldsymbol{\S
 
 With offsets, $\hat{\mathbf{w}}_o$ and $\mathbf{w}_{o,b}$ exclude observed offsets, the response derivatives use $\hat{\mathbf{w}}_o+\mathbf{o}_o$, and new-site offsets $\mathbf{o}_u$ are added to \eqref{eq:cond_spglm}. The resulting draws are on the link scale (`type = "link"`). `type = "response"` applies the inverse link (and multiplies binomial probabilities by `newdata_size`); `type = "new"` additionally draws conditionally independent responses using the fitted dispersion and requested sizes. `simulate_covparams` is unavailable for spatial generalized linear models.
 
-### Big Data: Low-Rank and Vecchia Approximations {#sec:conditional-bigdata-spglm}
+### Big Data: Vecchia Approximation {#sec:conditional-bigdata-spglm}
 
 For large-data approximations (`spglm()` only), the coefficient draw is shared across all sites, using $\hat{\boldsymbol{\beta}}$ and $\mathbf{C}_{adj}$ from the full fitted model.
-
-#### Low-Rank
-
-As for `splm()`, let $o$ now refer to the subset of observations in the base sample and $u$ to the current block of prediction sites. Restrict $\mathbf{D}_o,\hat{\boldsymbol{\Sigma}}_o,\mathbf{X}_o,\hat{\mathbf{w}}_o$ and $\hat{\boldsymbol{\Sigma}}_{uo}$ to these subsets, then recompute $\mathbf{G}_{o\mid\beta}$ and $\mathbf{M}_o$ using the same formulas as in the exact path. Draw $\mathbf{w}_{o,b}\mid\boldsymbol{\beta}_b$, form $\mathbf{r}_{o,b}=\mathbf{w}_{o,b}-\mathbf{X}_o\boldsymbol{\beta}_b$, and apply the low-rank residual simulation described for `splm()`. The same base draw is shared across prediction blocks; the blocks' additional errors are conditionally independent.
-
-When random effects are present, the $o$-indexed quantities in Section \@ref(sec:conditional-random) likewise refer only to the sampled base. Draw $\mathbf{u}_b$ conditional on the base residuals before simulating prediction residuals, as for the linear-model low-rank path.
 
 #### Vecchia
 
@@ -2595,7 +2568,7 @@ All mean and covariance blocks come from the same normal distribution constructe
 
 After drawing the complete observed field, form its residuals by subtracting the sampled mean. The latent draws above already exclude offsets, so no offset is subtracted again. When random effects are present, draw them conditional on these residuals as in Section \@ref(sec:conditional-random) and subtract their contribution as well. Then apply the Vecchia prediction-residual step described for `splm()`: $u$ now denotes the current prediction site and $o$ its selected neighborhood of observed and previously simulated prediction residuals. Treat those residuals as known, simulate the residual at $u$, and add back the sampled mean, random effects, and new-site offset. The default `size` is 60 for `spglm()` (30 for `splm()`); recall the observed latent neighborhood contains at most $2\,\texttt{size}$ sites (though the prediction-residual neighborhood contains at most `size` sites). `method = "all"` uses the exact path.
 
-For exact and Vecchia conditional simulation, `output = "latent"` returns these observed latent draws (offsets added), on the link scale. Latent-only output does not require `newdata` (`type` controls only prediction output). Reduced low-rank bases cannot return a complete observed latent field, so latent output is available when the base includes all observed sites. `spgautor()` uses the exact construction and supports the same latent output.
+For exact and Vecchia conditional simulation, `output = "latent"` returns these observed latent draws (offsets added), on the link scale. Latent-only output does not require `newdata` (`type` controls only prediction output). `spgautor()` uses the exact construction and supports the same latent output.
 
 # The Empirical Semivariogram and Autocovariance (`esv()` and `eacf()`) {#sec:esv}
 

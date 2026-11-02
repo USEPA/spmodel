@@ -87,9 +87,7 @@ when \code{cv_predict = TRUE} and using \code{spglm()} or \code{spgautor} object
 \item{delta}{A logical indicating whether to return delta method standard errors
 on the response scale when \code{se.fit = TRUE} and \code{type = "response"}. The default is \code{FALSE}.}
 
-\item{fit_correct}{Apply the Laplace mean corrections to prediction centers and
-response-scale means (see the technical details vignette). \code{FALSE}, or an
-object without a stored correction, applies neither; fitted values are unchanged.
+\item{fit_correct}{A logical indicating whether to apply the Laplace mean corrections to predictions.
 The default is \code{TRUE}.}
 }
 \value{

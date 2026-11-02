@@ -75,7 +75,7 @@ test_that("offsets are handled consistently for splm and spautor", {
       kcv(a, folds_index = fi, cv_predict = TRUE)$cv_predict),
     exdata$delta
   )
-  for (loc in list(FALSE, list(approximation = "vecchia"))) {
+  for (loc in list(FALSE, list())) {
     set.seed(2)
     ca <- conditional(a, newexdata, samples = 5, local = loc)
     set.seed(2)
@@ -165,9 +165,8 @@ test_that("offsets are handled consistently for spglm", {
     set.seed(1)
     c_none <- conditional(m_none, newexdata, samples = 5)
     expect_equal(c_m, c_none, tolerance = 1e-4)
-    # the vecchia approximation reaches the latent-process variance adjustment
-    # by a different route than the default low-rank one, so it is checked too
-    vec <- list(approximation = "vecchia")
+    # Check the latent-process variance adjustment on the Vecchia path.
+    vec <- list()
     set.seed(2)
     v_m <- conditional(m, newexdata, samples = 5, local = vec)
     set.seed(2)

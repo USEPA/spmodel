@@ -214,12 +214,11 @@ test_that("all GLM simulation routes shift centers without changing random error
       fit <- z$fit
       args <- if (areal) list(object = fit) else list(object = fit, newdata = z$new)
       paths <- if (areal) list(NULL) else list(FALSE,
-        list(approximation = "low-rank", method_base = "all", method_new = "all"),
-        list(approximation = "vecchia", size = 5, ordering = "none"))
+        list(size = 5, ordering = "none"))
       for (path in paths) {
         call <- c(args, list(samples = 8, output = c("newdata", "beta", "latent", "object")))
         if (!areal) call$local <- path
-        if (random && (areal || identical(path, FALSE) || identical(path$approximation, "vecchia"))) {
+        if (random) {
           call$output <- c(call$output, "random")
         }
         set.seed(71); on <- do.call(conditional, call)

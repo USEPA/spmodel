@@ -154,7 +154,6 @@ test_that("effect grouping inputs reject invalid settings", {
   }
   for (setting in list(list(size_random = 10), list(groups_random = 3), list(method_random = "random"))) {
     expect_error(get_local_list_conditional(c(list(method = "all"), setting), f$fit, f$new), "only used")
-    expect_error(get_local_list_conditional(c(list(approximation = "low-rank"), setting), f$fit, f$new), "only used")
     no_random <- f$fit; no_random$random <- NULL
     expect_error(get_local_list_conditional(setting, no_random, f$new), "only used")
   }
@@ -253,17 +252,11 @@ test_that("outputs, local dispatch and zero variances behave properly", {
       expect_identical(attr(all$random, "effect_info")$term, rep("1 | g", 4))
       expect_identical(dim(conditional(fit, samples = 1, local = local, output = "random")), c(4L, 1L))
     }
-    low <- list(approximation = "low-rank", size_base = 12, size_new = 3, reorder_base = "none", reorder_new = "none")
-    expect_error(conditional(fit, f$new, local = low, output = "random"), "sampled base")
-    expect_true(all(is.finite(conditional(fit, f$new, samples = 2, local = low))))
-    full <- list(approximation = "low-rank", method_base = "all", method_new = "all")
-    expect_identical(dim(conditional(fit, f$new, samples = 1, local = full, output = "random")), c(4L, 1L))
-    expect_error(conditional(fit, f$new, local = c(low, list(size_random = 10))), "only used")
     fit$coefficients$randcov[] <- 0
     expect_equal(as.numeric(conditional(fit, samples = 2, output = "random")), rep(0, 8))
     fit$random <- NULL
     fit$coefficients$randcov <- NULL
-    for (local in list(FALSE, list(size = 5), low)) {
+    for (local in list(FALSE, list(size = 5))) {
       for (output in list("random", c("beta", "random"), c("all", "random"))) {
         set.seed(1)
         rng <- .Random.seed
@@ -316,9 +309,8 @@ test_that("local fits, sf data and binomial transformations retain shared draws"
     spcov_initial = spcov_initial("exponential", de = .3, ie = .2, range = .3, known = "given"),
     randcov_initial = randcov_initial(g = .3, known = "given"))
   new <- sf::st_as_sf(d[31:36, ], coords = c("cx", "cy"))
-  for (local in list(FALSE, list(size = 5, size_random = 10),
-      list(approximation = "low-rank", size_base = 12, size_new = 2, reorder_base = "none", reorder_new = "none"))) {
-    output <- if (is.list(local) && identical(local$approximation, "low-rank")) c("newdata", "beta") else c("newdata", "beta", "random")
+  for (local in list(FALSE, list(size = 5, size_random = 10))) {
+    output <- c("newdata", "beta", "random")
     set.seed(1)
     link <- conditional(fit, new, samples = 3, output = output, local = local)
     set.seed(1)
@@ -345,8 +337,7 @@ test_that("crossed slopes, nesting and new partitions keep their meaning", {
     Z <- as.matrix(design$observed)
     expect_equal(as.matrix(covmatrix(fit) - covmatrix(conditional_spatial_object(fit))),
       Z %*% diag(design$variance) %*% t(Z), ignore_attr = TRUE)
-    for (local in list(FALSE, list(size = 5, size_random = 10),
-        list(approximation = "low-rank", size_base = 12, size_new = 3, reorder_base = "none", reorder_new = "none"))) {
+    for (local in list(FALSE, list(size = 5, size_random = 10))) {
       expect_true(all(is.finite(conditional(fit, new, samples = 3, local = local))))
     }
   }
@@ -377,13 +368,6 @@ test_that("effect preparation is reused and covariance blocks stay local", {
     set.seed(1)
     second <- get_local_list_conditional(list(size = 5, size_random = 10, ordering = "random"), f$fit, f$new[1, , drop = FALSE])
     expect_identical(first$random_blocks, second$random_blocks)
-    low <- list(approximation = "low-rank", size_base = 12, size_new = 2,
-      reorder_base = "none", reorder_new = "none", chunk_size = 2)
-    set.seed(1)
-    serial <- conditional(f$fit, f$new, samples = 7, local = low)
-    set.seed(1)
-    parallel <- conditional(f$fit, f$new, samples = 7, local = c(low, list(parallel = TRUE, ncores = 2)))
-    expect_equal(serial, parallel)
   }
   check(FALSE)
   check(TRUE)

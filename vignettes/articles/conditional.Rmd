@@ -192,16 +192,10 @@ big_dat$z <- sprnorm(
 bigmod <- splm(z ~ 1, data = big_dat, spcov_type = "exponential", xcoord = xc, ycoord = yc, local = TRUE)
 ```
 
-`conditional()` accommodates big data the same way `sprnorm()` does (see the "Simulating Large Spatial Data" vignette): via its own `local` argument, offering a low-rank and a Vecchia-style sequential approximation. We conditionally simulate 500 new locations using the low-rank approximation:
+`conditional()` accommodates big data through its `local` argument, using local neighborhood (Vecchia) sequential simulation. We conditionally simulate 500 new locations:
 ```{r}
 big_newdata <- data.frame(xc = runif(500), yc = runif(500))
-cond_lowrank <- conditional(bigmod, newdata = big_newdata, local = list(approximation = "low-rank"))
-dim(cond_lowrank)
-```
-
-and, for comparison, using the Vecchia approximation:
-```{r}
-cond_vecchia <- conditional(bigmod, newdata = big_newdata, local = list(approximation = "vecchia"))
+cond_vecchia <- conditional(bigmod, newdata = big_newdata, local = TRUE)
 dim(cond_vecchia)
 ```
 

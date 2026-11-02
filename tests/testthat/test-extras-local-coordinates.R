@@ -33,15 +33,13 @@ test_that("explicit NULL coordinates match omitted coordinates in independent fi
       expect_false(conditional_has_coordinates(actual, actual$newdata))
       expect_identical(predict(actual, nd, se.fit = TRUE, local = FALSE),
         predict(reference, nd, se.fit = TRUE, local = FALSE))
-      for (ctl in list(FALSE, list(approximation = "low-rank", size_base = 10,
-        size_new = 2, reorder_base = "random", kmeans_new = FALSE))) {
-        set.seed(2)
-        expected <- conditional(reference, samples = 3, local = ctl)
-        set.seed(2)
-        expect_identical(conditional(actual, samples = 3, local = ctl), expected)
-        set.seed(2)
-        expect_identical(conditional(actual, nd, samples = 3, local = ctl), expected)
-      }
+      ctl <- FALSE
+      set.seed(2)
+      expected <- conditional(reference, samples = 3, local = ctl)
+      set.seed(2)
+      expect_identical(conditional(actual, samples = 3, local = ctl), expected)
+      set.seed(2)
+      expect_identical(conditional(actual, nd, samples = 3, local = ctl), expected)
       if (random) {
         for (newdata in list(nd, actual$newdata)) {
           expect_error(conditional(actual, newdata, samples = 1, local = TRUE),
@@ -81,9 +79,7 @@ test_that("explicit NULL coordinates preserve spatial and sf fitting behavior", 
 test_that("explicit NULL coordinates preserve unconditional simulation behavior", {
   d <- local_coordinate_fixture(24)
   params <- spcov_params("exponential", de = .3, ie = .5, range = .4)
-  for (ctl in list(FALSE, list(approximation = "vecchia", size = 5, ordering = "none"),
-    list(approximation = "low-rank", size_base = 10, size_new = 4,
-      reorder_base = "none", kmeans_new = FALSE))) {
+  for (ctl in list(FALSE, list(size = 5, ordering = "none"))) {
     set.seed(2)
     reference <- sprnorm(params, data = d, xcoord = cx, samples = 3, local = ctl)
     set.seed(2)
@@ -212,11 +208,7 @@ test_that("one-dimensional conditional simulation matches constant-y spatial fit
     reference <- do.call(fun, c(args, list(ycoord = "cy")))
     expect_true(conditional_has_coordinates(fit, nd))
     expect_false(conditional_has_coordinates(fit, nd[setdiff(names(nd), xname)]))
-    for (ctl in list(FALSE, TRUE, list(approximation = "vecchia", size = 7, ordering = "none"),
-      list(approximation = "low-rank", size_base = 15, size_new = 3,
-        reorder_base = "none", kmeans_new = TRUE),
-      list(approximation = "low-rank", size_base = 15, size_new = 3,
-        reorder_base = "none", kmeans_new = FALSE))) {
+    for (ctl in list(FALSE, TRUE, list(size = 7, ordering = "none"))) {
       set.seed(2)
       expected <- conditional(reference, nd, samples = 3, local = ctl)
       set.seed(2)
@@ -238,8 +230,7 @@ test_that("one-dimensional conditional simulation ignores unused y coordinates",
     fit <- splm(y ~ x, d, xcoord = cx, spcov_initial = params, ddf = "asymptotic")
     expect_warning(with_y <- splm(y ~ x, d, xcoord = cx, ycoord = cy,
       spcov_initial = params, ddf = "asymptotic"), "Ignoring y-coordinate")
-    for (ctl in list(FALSE, TRUE, list(approximation = "low-rank", size_base = 15,
-      size_new = 3, reorder_base = "none", kmeans_new = TRUE))) {
+    for (ctl in list(FALSE, TRUE)) {
       set.seed(2)
       expected <- conditional(fit, nd, samples = 3, local = ctl)
       set.seed(2)
@@ -263,8 +254,7 @@ test_that("one-dimensional conditional coordinates support geometry and random e
       spcov_initial = params, randcov_initial = randcov_initial(g = .2, known = "given"))
     if (glm) args$family <- "poisson" else args$ddf <- "asymptotic"
     fit <- do.call(if (glm) spglm else splm, args)
-    for (ctl in list(FALSE, TRUE, list(approximation = "low-rank", size_base = 15,
-      size_new = 3, reorder_base = "none", kmeans_new = TRUE))) {
+    for (ctl in list(FALSE, TRUE)) {
       set.seed(2)
       expected <- conditional(fit, nd, samples = 3, local = ctl)
       set.seed(2)
@@ -288,8 +278,7 @@ test_that("one-dimensional conditional coordinates preserve coordinate predictor
     reference <- do.call(fun, args)
     expect_warning(fit <- do.call(fun, c(args, list(ycoord = "cy"))), "Ignoring y-coordinate")
     observed <- fit$obdata
-    for (ctl in list(FALSE, TRUE, list(approximation = "low-rank", size_base = 15,
-      size_new = 3, reorder_base = "none", kmeans_new = TRUE))) {
+    for (ctl in list(FALSE, TRUE)) {
       set.seed(2)
       expected <- conditional(reference, nd, samples = 3, local = ctl)
       set.seed(2)
@@ -415,8 +404,7 @@ test_that("one-dimensional covariance fits agree in prediction and cross validat
         se.fit = TRUE, local = ctl), NA)
       expect_equal(actual, expected)
     }
-    for (ctl in list(FALSE, TRUE, list(approximation = "low-rank", size_base = 12,
-      size_new = 2, reorder_base = "none", kmeans_new = FALSE))) {
+    for (ctl in list(FALSE, TRUE)) {
       set.seed(2)
       expected <- conditional(reference, nd, samples = 3, local = ctl)
       set.seed(2)
@@ -614,17 +602,13 @@ test_that("stored and supplied coordinate-free prediction rows use the same cont
       spcov_initial = params, randcov_initial = randparams) else
       splm(y ~ x, d, random = ~g, spcov_initial = params, randcov_initial = randparams,
         ddf = "asymptotic")
-    for (ctl in list(TRUE, list(approximation = "vecchia", ordering = "random"),
-      list(approximation = "low-rank", size_base = 10, kmeans_new = FALSE),
-      list(approximation = "low-rank", method_base = "all", size_new = 2, kmeans_new = TRUE))) {
+    for (ctl in list(TRUE, list(ordering = "random"))) {
       implicit <- tryCatch(conditional(fit, samples = 1, local = ctl), error = conditionMessage)
       expect_match(implicit, "simulation without coordinates")
       expect_error(conditional(fit, nd, samples = 1, local = ctl), implicit, fixed = TRUE)
       expect_error(conditional(fit, fit$newdata, samples = 1, local = ctl), implicit, fixed = TRUE)
     }
-    for (ctl in list(FALSE, list(approximation = "vecchia", method = "all"),
-      list(approximation = "low-rank", size_base = 10, size_new = 2,
-        reorder_base = "random", kmeans_new = FALSE))) {
+    for (ctl in list(FALSE, list(method = "all"))) {
       set.seed(2)
       implicit <- conditional(fit, samples = 3, local = ctl)
       set.seed(2)
@@ -653,19 +637,11 @@ test_that("supplied coordinates remain available for independent random-effect s
     if (glm) args$family <- "poisson" else args$ddf <- "asymptotic"
     fit <- do.call(if (glm) spglm else splm, args)
     nd <- args$data[21:24, ]
-    for (ctl in list(TRUE, list(approximation = "low-rank", size_base = 10,
-      reorder_base = "grts", kmeans_new = FALSE))) {
-      set.seed(2)
-      implicit <- conditional(fit, samples = 3, local = ctl)
-      set.seed(2)
-      expect_equal(conditional(fit, nd, samples = 3, local = ctl), implicit)
-      expect_identical(dim(implicit), c(4L, 3L))
-    }
-    ctl <- list(approximation = "low-rank", method_base = "all", size_new = 2, kmeans_new = TRUE)
-    if (geometry == "coincident") {
-      expect_error(conditional(fit, samples = 1, local = ctl), "not enough distinct prediction locations.*kmeans_new = FALSE")
-    } else {
-      expect_identical(dim(conditional(fit, samples = 1, local = ctl)), c(4L, 1L))
-    }
+    ctl <- TRUE
+    set.seed(2)
+    implicit <- conditional(fit, samples = 3, local = ctl)
+    set.seed(2)
+    expect_equal(conditional(fit, nd, samples = 3, local = ctl), implicit)
+    expect_identical(dim(implicit), c(4L, 3L))
   }
 })

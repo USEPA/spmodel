@@ -15,10 +15,8 @@
 #'   If \code{simulate_covparams = TRUE},
 #'   the output type can also be any subset of \code{c("cov", "spcov", "randcov")}.
 #'   For generalized linear models, \code{"latent"} returns simulated observed-site
-#'   link values, including offsets. It is not available for the \code{"low-rank"} approximation
-#'   unless \code{method_base = "all"}.
-#'   \code{"random"} returns realized random effects. It is unavailable when local$approximation
-#'   is \code{"low-rank"}.
+#'   link values, including offsets.
+#'   \code{"random"} returns realized random effects.
 #'    The default is \code{"newdata"}. See Details for more.
 #' @param type For \code{spglm()} and \code{spgautor()} model objects, the scale of the conditional
 #'   simulations for \code{newdata}.
@@ -30,129 +28,50 @@
 #'   from \code{object}. The default is \code{"link"}.
 #' @param samples  The number of conditional simulations. The default is
 #'   \code{1,000}.
-#' @param local For \code{splm()} and \code{spglm()} model objects, an optional logical or list
-#'   controlling the big data approximation.
-#'   If omitted, \code{local} is set
-#'   to \code{TRUE} or \code{FALSE} based on the whether the observed
-#'   or prediction sample size (the number of
-#'   non-missing observations in \code{data} or \code{newdata}) exceeds 5,000,
-#'   \code{local} is set to \code{TRUE}. Otherwise it is set to \code{FALSE}.
-#'   If \code{FALSE}, no big data approximation is implemented.
-#'   If a list is provided, \code{local$approximation} selects which big data
-#'   approximation is used and can take on the values
-#'   \code{"low-rank"} or \code{"vecchia"} (the default):
+#' @param local For \code{splm()} and \code{spglm()} model objects, an optional
+#'   logical or list controlling the big data approximation. If omitted, \code{local}
+#'   is \code{TRUE} when either the observed or prediction sample size exceeds
+#'   5,000, and \code{FALSE} otherwise. \code{FALSE} uses exact simulation.
+#'   \code{TRUE} or a list uses a local neighborhood (Vecchia) approach,
+#'   simulating each prediction
+#'   conditional on neighbors selected from observed and previously simulated
+#'   predictions. A list can contain:
 #'   \itemize{
-#'     \item \code{"low-rank"}: a base sample is drawn from the observed
-#'       data, \code{newdata} is split into blocks, and each block is
-#'       simulated conditional on the base sample alone  (blocks are
-#'       assumed conditionally independent of one another given the base
-#'       sample, coefficients and realized random effects). The base-sample settings (\code{method_base}/\code{size_base}/
-#'       \code{reorder_base}) and the \code{newdata}-blocking settings
-#'       (\code{method_new}/\code{size_new}/\code{reorder_new}/\code{kmeans_new})
-#'       are separate from one another.
-#'       \itemize{
-#'         \item \code{method_base}: Whether the observed data conditioned on is
-#'           restricted to a base sample. If \code{method_base = "all"}, no
-#'           big data approximation is applied to the observed data (all of it is
-#'           conditioned on). If \code{method_base = "base"}, the observed data
-#'           is subset to \code{size_base} observations (ordered via
-#'           \code{reorder_base}) to form the base sample. The default is
-#'           \code{"base"}.
-#'         \item \code{reorder_base}: The data reordering approached to reorder
-#'           the observed data prior to subsetting to obtain a base sample.
-#'           If \code{reorder = "none"}, no reordering
-#'           is applied to the observed data. If \code{reorder = "random"}, the observed data order is
-#'           randomly reshuffled. If \code{reorder = "grts"}, the observed data order is
-#'           randomly generated using the GRTS algorithm for spatially balanced
-#'           sampling via \code{spsurvey::grts()}. The default is \code{"grts"}.
-#'         \item \code{size_base}: The number of observed data observations used for the base sample.
-#'           The default is 5,000. See Details for more.
-#'         \item \code{method_new}: Whether \code{newdata} is split into blocks
-#'           for simulation. If \code{method_new = "all"}, no big data
-#'           approximation is applied to \code{newdata} (it is simulated all at
-#'           once). If \code{method_new = "base"}, \code{newdata} is split into
-#'           blocks of (approximately) \code{size_new} observations each (ordered
-#'           via \code{reorder_new}, and optionally grouped via \code{kmeans_new}),
-#'           with each block simulated conditional on the base sample
-#'           independently of every other block. The default is \code{"base"}.
-#'         \item \code{reorder_new}: The data reordering approach used to reorder
-#'           \code{newdata} before splitting it into blocks. If \code{reorder = "none"}, no reordering
-#'           is applied to \code{newdata}. If \code{reorder = "random"}, \code{newdata} is
-#'           randomly reshuffled. The default is \code{"random"}.
-#'         \item \code{kmeans_new}: Whether \code{newdata} observations
-#'           should be assigned to blocks based on k-means clustering
-#'           on the coordinates, with clusters of size approximately equal to
-#'           \code{size_new}. The default is \code{FALSE} when \code{reorder_new = "none"}
-#'           and \code{TRUE} otherwise.
-#'         \item \code{size_new}: The (approximate) number of observations used
-#'           for each block. The default is 1,000. See Details for more.
-#'         \item \code{chunk_size}: For big data (local) \code{splm()} and \code{spglm()}
-#'           simulation the
-#'           maximum number of \code{samples} columns processed simultaneously.
-#'           The default is 1,000. \code{chunk_size} is purely computational
-#'           and does not affect corretness.
-#'         \item \code{parallel}: If \code{TRUE}, parallel processing via the
-#'           parallel package is automatically used. The default is \code{FALSE}.
-#'         \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
-#'           parallelize over. The default is the number of available cores on your machine.
-#'       }
-#'       If \code{local$approximation} is \code{"low-rank"}, defaults for the remaining \code{"low-rank"}
-#'       settings are chosen such that \code{local} is transformed into
-#'       \code{list(approximation = "low-rank", method_base = "base", size_base = 5000,
-#'       reorder_base = "grts", method_new = "base", size_new = 1000,
-#'       reorder_new = "random", kmeans_new = TRUE, parallel = FALSE)}.
-#'     \item \code{"vecchia"}: every \code{newdata} location is simulated one
-#'       at a time (in some order over \code{newdata}), each conditional on
-#'       neighbors selected from all observed data plus each already-simulated
-#'       \code{newdata} location (not a single shared base sample).
-#'       \code{newdata} locations are never assumed conditionally independent
-#'       of one another. This matches \code{local = FALSE} when
-#'       \code{method = "all"};
-#'       \code{method = "distance"}/\code{"covariance"}
-#'       truncate the conditioning set to a fixed number of neighbors
-#'       sorted by distance or covariance with the new observation. No parallelization
-#'       exists because the algorithm is inherently sequential, as each new observation
-#'       depends on previous ones.
-#'       \itemize{
-#'         \item \code{method}: The neighbor-selection rule used to build each
-#'           location's conditioning set once it exceeds \code{size} candidates
-#'           (all observed data plus every already-simulated \code{newdata}
-#'           location). Values are \code{"all"}, \code{"distance"}
-#'           (the \code{size} nearest eligible candidates), or \code{"covariance"}
-#'           (the \code{size} candidates with the highest absolute model covariance,
-#'           including random effects and partition factors). Without
-#'           random effects or partition factors, distance and covariance give the
-#'           same ranking for covariance functions decreasing with distance.
-#'           The default is
-#'           \code{"covariance"}. For both linear and generalized linear models,
-#'           \code{method = "all"} uses the exact path, as with \code{local = FALSE}.
-#'         \item \code{size}: The number of neighbors used when \code{method}
-#'           is \code{"distance"} or \code{"covariance"}. The default is 30 for
-#'           \code{splm()} and 60 for \code{spglm()}.
-#'         \item \code{ordering}: The order \code{newdata} locations are
-#'           simulated in -- \code{"maxmin"}, \code{"middleout"},
-#'           \code{"outsidein"}, \code{"coordinate"}, \code{"grts"},
-#'           \code{"random"}, or \code{"none"} (same options as
-#'           \code{decorrelate()}'s \code{ordering} argument). The default is
-#'           \code{"maxmin"} unless locations are coincident, in which case it
-#'           is \code{"grts"}.
-#'         \item \code{size_random}: For models with random effects, the approximate
-#'           number of observed sites per block for drawing realized random effects,
-#'           implying \code{ceiling(n / size_random)} groups. The default is 1,000.
-#'           If specified, \code{groups_random} is ignored.
-#'         \item \code{groups_random}: The number of random effect blocks.
-#'         \item \code{method_random}: How to form the random effect blocks:
-#'           \code{"kmeans"} (the default) or \code{"random"}.
-#'         \item \code{chunk_size}: For local \code{splm()} and \code{spglm()}
-#'           simulation, with or without random effects, the
-#'           maximum number of \code{samples} columns processed simultaneously.
-#'           The default is 1,000. \code{chunk_size} is purely computational and does
-#'           not affect correctness.
-#'       }
+#'     \item \code{method}: The neighbor-selection rule used to build each
+#'       location's conditioning set once it exceeds \code{size} candidates
+#'       (all observed data plus every already-simulated \code{newdata}
+#'       location). Values are \code{"all"}, \code{"distance"}
+#'       (the \code{size} nearest eligible candidates), or \code{"covariance"}
+#'       (the \code{size} candidates with the highest absolute model covariance,
+#'       including random effects and partition factors). Without
+#'       random effects or partition factors, distance and covariance give the
+#'       same ranking for covariance functions decreasing with distance.
+#'       The default is
+#'       \code{"covariance"}. For both linear and generalized linear models,
+#'       \code{method = "all"} uses the exact path, as with \code{local = FALSE}.
+#'     \item \code{size}: The number of neighbors used when \code{method}
+#'       is \code{"distance"} or \code{"covariance"}. The default is 30 for
+#'       \code{splm()} and 60 for \code{spglm()}.
+#'     \item \code{ordering}: The order \code{newdata} locations are
+#'       simulated in -- \code{"maxmin"}, \code{"middleout"},
+#'       \code{"outsidein"}, \code{"coordinate"}, \code{"grts"},
+#'       \code{"random"}, or \code{"none"} (same options as
+#'       \code{decorrelate()}'s \code{ordering} argument). The default is
+#'       \code{"maxmin"} unless locations are coincident, in which case it
+#'       is \code{"grts"}.
+#'     \item \code{size_random}: For models with random effects, the approximate
+#'       number of observed sites per block for drawing realized random effects,
+#'       implying \code{ceiling(n / size_random)} groups. The default is 1,000.
+#'       If specified, \code{groups_random} is ignored.
+#'     \item \code{groups_random}: The number of random effect blocks.
+#'     \item \code{method_random}: How to form the random effect blocks:
+#'       \code{"kmeans"} (the default) or \code{"random"}.
+#'     \item \code{chunk_size}: For local \code{splm()} and \code{spglm()}
+#'       simulation, with or without random effects, the
+#'       maximum number of \code{samples} columns processed simultaneously.
+#'       The default is 1,000. \code{chunk_size} is purely computational and does
+#'       not affect correctness.
 #'   }
-#'       With \code{local = TRUE} or \code{local = list()}, the default is
-#'       \code{list(approximation = "vecchia", method = "covariance")},
-#'       with \code{size = 30} for \code{splm()} and \code{size = 60} for \code{spglm()}.
 #' @param simulate_covparams For \code{splm()} model objects, whether to also
 #'   simulate new covariance parameters for each sample. \code{simulate_covparams}
 #'   requires \code{object$vcov$cov} to be specified during model fitting by
@@ -186,20 +105,9 @@
 #'   \code{output} (only available when \code{simulate_covparams = TRUE}),
 #'   the simulated covariance parameter draws themselves are returned.
 #'
-#'   \code{local} Details: When \code{local$approximation} is \code{"low-rank"}, the big
-#'   data approximation works by assigning \code{size_base}
-#'   observations to a base sample and then simulating data for the base sample.
-#'   The remaining observations are assigned to blocks. For each block, data
-#'   are simulated from the conditional distribution given the base sample.
-#'   Observations from the same block share conditional covariance while
-#'   observations from distinct blocks are assumed conditionally independent
-#'   (given the base sample, coefficients and realized random effects). Parallelization generally further speeds up
-#'   computations. When \code{local$approximation} is \code{"vecchia"}, no such
-#'   independence assumption is made -- see the \code{local} argument above
-#'   for details. For spatial generalized linear models, the latent values are
-#'   drawn sequentially, conditioning on local sites in the neighborhood and
-#'   previously drawn latent site locations. Thus the neighborhood is at most
-#'   \code{2 * size}.
+#'   Spatial generalized linear model latent values are drawn
+#'   sequentially, conditioning on local sites and previously drawn latent
+#'   sites. The neighborhood contains at most \code{2 * size} sites.
 #'
 #' @return If \code{output = "newdata"}, an a x b matrix of conditional simulations
 #'   for each row in \code{newdata}, where a is the
@@ -286,22 +194,11 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   newdata <- coordinates$newdata
   iid_variance <- get_conditional_iid_variance(object, simulate_covparams)
   local_list <- get_local_list_conditional(local, object, newdata)
-  if (!local_list$exact && local_list$approximation == "low-rank" && "random" %in% output) {
-    stop("Random-effect output is unavailable on low-rank paths; effects are conditioned only on the sampled base and used internally for prediction.", call. = FALSE)
-  }
-  effect_index <- if (local_list$approximation == "low-rank") local_list$index$base else seq_len(object$n)
-  design <- if (!is.null(object$random)) get_conditional_random_design(object, newdata, effect_index) else NULL
+  design <- if (!is.null(object$random)) get_conditional_random_design(object, newdata) else NULL
   random_val <- NULL
 
-  # simulate_covparams cannot reuse a single shared covariance factorization
-  # across samples the way the rest of conditional() does, so it is only
-  # supported when no big-data approximation is actually in effect. Once
-  # local_list$method_base/method_new are both "all" (guaranteed here), the
-  # simulate_covparams path below always operates on the full observed data
-  # and all of newdata as one block, with no base-subsampling/blocking to
-  # account for
-  local_active <- local_list$approximation == "vecchia" ||
-    (local_list$approximation == "low-rank" && (local_list$method_base != "all" || local_list$method_new != "all"))
+  # Covariance parameters are resimulated only on the exact path.
+  local_active <- !local_list$exact
   if (isTRUE(simulate_covparams) && local_active) {
     simulate_covparams <- FALSE
     message("simulate_covparams = TRUE is not used when a big-data approximation (local) is specified; setting simulate_covparams = FALSE.")
@@ -394,9 +291,9 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
       new_val <- matrix(numeric(), 0, samples)
     } else if (!is.null(iid_variance)) {
       new_val <- draw_conditional_iid_error(NROW(newdata), samples, iid_variance)
-    } else if (local_list$approximation == "vecchia") {
+    } else if (!local_list$exact) {
       # Vecchia selects a neighborhood from observed and earlier prediction
-      # residuals at each site; there is no shared-base/block split.
+      # residuals at each site.
       context <- prepare_conditional_vecchia(object, newdata, local_list)
       new_val <- matrix(NA_real_, NROW(newdata), samples)
       for (start in seq.int(1L, samples, by = chunk_size)) {
@@ -405,53 +302,12 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
         new_val[, cols] <- draw_conditional_vecchia(context, residual, length(cols))
       }
     } else {
-      # low-rank, part 1: restrict the "observed" data conditioned on to a
-      # spatially-representative base sample instead of all of data, so the
-      # base covariance matrix factorized below stays a manageable size
-      if (local_list$method_base != "all") {
-        object$obdata <- object$obdata[local_list$index$base, , drop = FALSE]
-        y_base <- y[local_list$index$base]
-        X_base <- X[local_list$index$base, , drop = FALSE]
-      } else {
-        y_base <- y
-        X_base <- X
-      }
-      # low-rank, part 2: split newdata into blocks so each block's
-      # observed-by-prediction covariance is computed and factorized
-      # separately (blocks are treated as conditionally independent given the
-      # base sample); each block is a list element handled by
-      # get_conditional_new_from_base_adjust() below, in parallel if requested
-      if (local_list$method_new != "all") {
-        x0 <- lapply(local_list$index$new, function(x) newdata_model[x, , drop = FALSE])
-        newdata_split <- lapply(local_list$index$new, function(x) newdata[x, , drop = FALSE])
-      } else {
-        x0 <- list(newdata_model)
-        newdata_split <- list(newdata)
-      }
-      newdata_list <- mapply(x = x0, y = newdata_split, FUN = function(x, y) list(x0 = x, newdata = y), SIMPLIFY = FALSE)
       cov_lowchol_base <- t(chol(covmatrix(object)))
-      # solved once and shared across every block instead of re-solving a
-      # full n_base x samples residual matrix inside each block's call (see
-      # get_conditional_new_from_base_adjust())
-      SqrtSigInv_y <- forwardsolve(cov_lowchol_base, cbind(y_base))
-      SqrtSigInv_X <- forwardsolve(cov_lowchol_base, X_base)
-      if (local_list$parallel) {
-        cl <- parallel::makeCluster(local_list$ncores)
-        new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust, object, SqrtSigInv_y, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples, chunk_size)
-        cl <- parallel::stopCluster(cl)
-      } else {
-        new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust, object, SqrtSigInv_y, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples, chunk_size)
-      }
-
-
-      new_val <- do.call("rbind", new_val)
-      # blocks were processed independently (and possibly reordered upstream by
-      # GRTS/k-means grouping in get_local_list_conditional()), so restore the
-      # original newdata row order before returning
-      if (local_list$method_new != "all") {
-        index_new <- do.call("c", local_list$index$new)
-        new_val <- new_val[order(index_new), , drop = FALSE]
-      }
+      SqrtSigInv_y <- forwardsolve(cov_lowchol_base, cbind(y))
+      SqrtSigInv_X <- forwardsolve(cov_lowchol_base, X)
+      new_val <- draw_conditional_exact_lm(
+        newdata, object, SqrtSigInv_y, SqrtSigInv_X,
+        new_betahat, cov_lowchol_base, samples, chunk_size)
     }
   }
 
@@ -537,10 +393,7 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   newdata <- coordinates$newdata
   local_list <- get_local_list_conditional(local, object, newdata)
   exact <- local_list$exact
-  lowrank <- !exact && local_list$approximation == "low-rank"
-  if (lowrank && "random" %in% output) stop("Random-effect output is unavailable on low-rank paths; effects are conditioned only on the sampled base and used internally for prediction.", call. = FALSE)
-  effect_index <- if (lowrank) local_list$index$base else seq_len(object$n)
-  design <- if (!is.null(object$random)) get_conditional_random_design(object, newdata, effect_index) else NULL
+  design <- if (!is.null(object$random)) get_conditional_random_design(object, newdata) else NULL
   random_val <- NULL
   if (exact && is.null(iid_variance) && object$n > 10000) {
     message("Exact spatial generalized linear model conditional simulation requires a dense observed latent precision factorization. See Details.")
@@ -564,14 +417,7 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
     draws <- get_conditional_iid_glm(object, newdata_model, iid_variance, samples, latent = "latent" %in% output, center = center)
     new_val <- draws$newdata
     new_betahat <- draws$beta
-  } else if (lowrank) {
-    if ("latent" %in% output && length(local_list$index$base) != NROW(model.matrix(object))) {
-      stop("Full latent output is unavailable for a reduced low-rank base; only base latent values are drawn.", call. = FALSE)
-    }
-    draws <- get_conditional_glm_lowrank(object, newdata, newdata_model, local_list, samples, latent = "latent" %in% output, random_design = design, center = center)
-    new_val <- draws$newdata
-    new_betahat <- draws$beta
-  } else if (!exact && local_list$approximation == "vecchia") {
+  } else if (!exact) {
     draws <- get_conditional_vecchia_glm(object, newdata, newdata_model, local_list, samples, latent = "latent" %in% output, random_design = design, random = "random" %in% output, center = center)
     if (!is.null(draws$random)) random_val <- draws$random
     new_val <- draws$newdata
@@ -587,7 +433,7 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
       new_val <- newdata_model %*% new_betahat + draw_conditional_random_prediction(effect, prediction, draws$residual, a, local_list)
       if ("random" %in% output) random_val <- conditional_random_output(a, design)
     } else new_val <- if (NROW(newdata)) newdata_model %*% new_betahat +
-      get_conditional_new_from_base_adjust_glm(list(newdata = newdata), object, draws$residual, joint$cov_lowchol, samples) else matrix(numeric(), 0, samples)
+      draw_conditional_exact_glm(newdata, object, draws$residual, joint$cov_lowchol, samples) else matrix(numeric(), 0, samples)
     if ("latent" %in% output) draws$latent <- draws$residual + model.matrix(object) %*% new_betahat
     rm(joint)
   }

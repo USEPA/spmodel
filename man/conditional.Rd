@@ -64,98 +64,21 @@ fitted model object are used.}
 If \code{simulate_covparams = TRUE},
 the output type can also be any subset of \code{c("cov", "spcov", "randcov")}.
 For generalized linear models, \code{"latent"} returns simulated observed-site
-link values, including offsets. It is not available for the \code{"low-rank"} approximation
-unless \code{method_base = "all"}.
-\code{"random"} returns realized random effects. It is unavailable when local$approximation
-is \code{"low-rank"}.
+link values, including offsets.
+\code{"random"} returns realized random effects.
 The default is \code{"newdata"}. See Details for more.}
 
 \item{samples}{The number of conditional simulations. The default is
 \code{1,000}.}
 
-\item{local}{For \code{splm()} and \code{spglm()} model objects, an optional logical or list
-controlling the big data approximation.
-If omitted, \code{local} is set
-to \code{TRUE} or \code{FALSE} based on the whether the observed
-or prediction sample size (the number of
-non-missing observations in \code{data} or \code{newdata}) exceeds 5,000,
-\code{local} is set to \code{TRUE}. Otherwise it is set to \code{FALSE}.
-If \code{FALSE}, no big data approximation is implemented.
-If a list is provided, \code{local$approximation} selects which big data
-approximation is used and can take on the values
-\code{"low-rank"} or \code{"vecchia"} (the default):
-\itemize{
-\item \code{"low-rank"}: a base sample is drawn from the observed
-data, \code{newdata} is split into blocks, and each block is
-simulated conditional on the base sample alone  (blocks are
-assumed conditionally independent of one another given the base
-sample, coefficients and realized random effects). The base-sample settings (\code{method_base}/\code{size_base}/
-\code{reorder_base}) and the \code{newdata}-blocking settings
-(\code{method_new}/\code{size_new}/\code{reorder_new}/\code{kmeans_new})
-are separate from one another.
-\itemize{
-\item \code{method_base}: Whether the observed data conditioned on is
-restricted to a base sample. If \code{method_base = "all"}, no
-big data approximation is applied to the observed data (all of it is
-conditioned on). If \code{method_base = "base"}, the observed data
-is subset to \code{size_base} observations (ordered via
-\code{reorder_base}) to form the base sample. The default is
-\code{"base"}.
-\item \code{reorder_base}: The data reordering approached to reorder
-the observed data prior to subsetting to obtain a base sample.
-If \code{reorder = "none"}, no reordering
-is applied to the observed data. If \code{reorder = "random"}, the observed data order is
-randomly reshuffled. If \code{reorder = "grts"}, the observed data order is
-randomly generated using the GRTS algorithm for spatially balanced
-sampling via \code{spsurvey::grts()}. The default is \code{"grts"}.
-\item \code{size_base}: The number of observed data observations used for the base sample.
-The default is 5,000. See Details for more.
-\item \code{method_new}: Whether \code{newdata} is split into blocks
-for simulation. If \code{method_new = "all"}, no big data
-approximation is applied to \code{newdata} (it is simulated all at
-once). If \code{method_new = "base"}, \code{newdata} is split into
-blocks of (approximately) \code{size_new} observations each (ordered
-via \code{reorder_new}, and optionally grouped via \code{kmeans_new}),
-with each block simulated conditional on the base sample
-independently of every other block. The default is \code{"base"}.
-\item \code{reorder_new}: The data reordering approach used to reorder
-\code{newdata} before splitting it into blocks. If \code{reorder = "none"}, no reordering
-is applied to \code{newdata}. If \code{reorder = "random"}, \code{newdata} is
-randomly reshuffled. The default is \code{"random"}.
-\item \code{kmeans_new}: Whether \code{newdata} observations
-should be assigned to blocks based on k-means clustering
-on the coordinates, with clusters of size approximately equal to
-\code{size_new}. The default is \code{FALSE} when \code{reorder_new = "none"}
-and \code{TRUE} otherwise.
-\item \code{size_new}: The (approximate) number of observations used
-for each block. The default is 1,000. See Details for more.
-\item \code{chunk_size}: For big data (local) \code{splm()} and \code{spglm()}
-simulation the
-maximum number of \code{samples} columns processed simultaneously.
-The default is 1,000. \code{chunk_size} is purely computational
-and does not affect corretness.
-\item \code{parallel}: If \code{TRUE}, parallel processing via the
-parallel package is automatically used. The default is \code{FALSE}.
-\item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
-parallelize over. The default is the number of available cores on your machine.
-}
-If \code{local$approximation} is \code{"low-rank"}, defaults for the remaining \code{"low-rank"}
-settings are chosen such that \code{local} is transformed into
-\code{list(approximation = "low-rank", method_base = "base", size_base = 5000,
-      reorder_base = "grts", method_new = "base", size_new = 1000,
-      reorder_new = "random", kmeans_new = TRUE, parallel = FALSE)}.
-\item \code{"vecchia"}: every \code{newdata} location is simulated one
-at a time (in some order over \code{newdata}), each conditional on
-neighbors selected from all observed data plus each already-simulated
-\code{newdata} location (not a single shared base sample).
-\code{newdata} locations are never assumed conditionally independent
-of one another. This matches \code{local = FALSE} when
-\code{method = "all"};
-\code{method = "distance"}/\code{"covariance"}
-truncate the conditioning set to a fixed number of neighbors
-sorted by distance or covariance with the new observation. No parallelization
-exists because the algorithm is inherently sequential, as each new observation
-depends on previous ones.
+\item{local}{For \code{splm()} and \code{spglm()} model objects, an optional
+logical or list controlling the big data approximation. If omitted, \code{local}
+is \code{TRUE} when either the observed or prediction sample size exceeds
+5,000, and \code{FALSE} otherwise. \code{FALSE} uses exact simulation.
+\code{TRUE} or a list uses a local neighborhood (Vecchia) approach,
+simulating each prediction
+conditional on neighbors selected from observed and previously simulated
+predictions. A list can contain:
 \itemize{
 \item \code{method}: The neighbor-selection rule used to build each
 location's conditioning set once it exceeds \code{size} candidates
@@ -191,11 +114,7 @@ simulation, with or without random effects, the
 maximum number of \code{samples} columns processed simultaneously.
 The default is 1,000. \code{chunk_size} is purely computational and does
 not affect correctness.
-}
-}
-With \code{local = TRUE} or \code{local = list()}, the default is
-\code{list(approximation = "vecchia", method = "covariance")},
-with \code{size = 30} for \code{splm()} and \code{size = 60} for \code{spglm()}.}
+}}
 
 \item{simulate_covparams}{For \code{splm()} model objects, whether to also
 simulate new covariance parameters for each sample. \code{simulate_covparams}
@@ -217,10 +136,9 @@ from \code{object}. The default is \code{"link"}.}
 \item{newdata_size}{The \code{size} value for each observation in \code{newdata}
 used when predicting for the binomial family, with a default value of 1.}
 
-\item{fit_correct}{Apply the latent Laplace mean correction for
-\code{spglm()} and \code{spgautor()} model objects. Defaults to \code{TRUE};
-\code{FALSE}, or an object without a stored correction, retains the original
-centers. Response draws transform each latent draw. The \code{"object"} output
+\item{fit_correct}{Apply the latent Laplace mean correction for conditional simulations from
+\code{spglm()} and \code{spgautor()} model objects. The default is
+\code{TRUE}. Regardless of \code{fit_correct}, the \code{"object"} output
 still returns model fitted values.}
 }
 \value{
@@ -270,20 +188,9 @@ fixed effects. If \code{"cov"}/\code{"spcov"}/\code{"randcov"} is in
 \code{output} (only available when \code{simulate_covparams = TRUE}),
 the simulated covariance parameter draws themselves are returned.
 
-\code{local} Details: When \code{local$approximation} is \code{"low-rank"}, the big
-data approximation works by assigning \code{size_base}
-observations to a base sample and then simulating data for the base sample.
-The remaining observations are assigned to blocks. For each block, data
-are simulated from the conditional distribution given the base sample.
-Observations from the same block share conditional covariance while
-observations from distinct blocks are assumed conditionally independent
-(given the base sample, coefficients and realized random effects). Parallelization generally further speeds up
-computations. When \code{local$approximation} is \code{"vecchia"}, no such
-independence assumption is made -- see the \code{local} argument above
-for details. For spatial generalized linear models, the latent values are
-drawn sequentially, conditioning on local sites in the neighborhood and
-previously drawn latent site locations. Thus the neighborhood is at most
-\code{2 * size}.
+Spatial generalized linear model latent values are drawn
+sequentially, conditioning on local sites and previously drawn latent
+sites. The neighborhood contains at most \code{2 * size} sites.
 }
 \examples{
 set.seed(0)

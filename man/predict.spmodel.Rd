@@ -275,8 +275,8 @@ so that its size is only \code{size_new}. The default \code{size_new}
 is \code{4000}.
 \item \code{ordering} chooses the \code{size_new} nodes from
 \code{newdata} and takes the same values as the \code{ordering}
-argument of \code{\link{sprnorm}()}/\code{\link{conditional}()} under
-\code{approximation = "vecchia"} (\code{"maxmin"}, \code{"grts"},
+argument of \code{\link{sprnorm}()}/\code{\link{conditional}()} with
+\code{local = TRUE} (\code{"maxmin"}, \code{"grts"},
 \code{"random"}, \code{"none"}, \code{"middleout"},
 \code{"outsidein"}, \code{"coordinate"}). The default is
 \code{"grts"}.
@@ -315,9 +315,7 @@ on the response scale when \code{se.fit = TRUE} and \code{type = "response"}. Th
 \item{newdata_size}{The \code{size} value for each observation in \code{newdata}
 used when predicting for the binomial family, with a default value of 1.}
 
-\item{fit_correct}{Apply the Laplace mean corrections to prediction centers and
-response-scale means (see the technical details vignette). \code{FALSE}, or an
-object without a stored correction, applies neither; fitted values are unchanged.
+\item{fit_correct}{A logical indicating whether to apply the Laplace mean corrections to predictions.
 The default is \code{TRUE}.}
 }
 \value{

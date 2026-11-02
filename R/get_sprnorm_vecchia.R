@@ -1,131 +1,90 @@
-#' Simulate every location sequentially (Vecchia method), unconditionally
+#' Simulate independent random effects and a Vecchia spatial-plus-nugget field
 #'
-#' Draws a spatial Gaussian field at every row of \code{object$obdata} one
-#' at a time, in \code{local_list$order}, each conditional on every
-#' earlier-drawn location. This
-#' is the unconditional analog of \code{\link{get_conditional_vecchia}()}
-#' (which additionally conditions on already-known observed data); see that
-#' function's documentation for the shared exactness argument (a Cholesky-
-#' decomposition-as-sequential-conditioning identity) and the shared
-#' per-location-not-per-sample vectorization strategy.
+#' Random effects are drawn once per level and partition. Spatial neighbors
+#' are selected from earlier sites within the same partition by exhaustive
+#' distance or covariance ranking. All simulation columns share the same
+#' neighborhoods and conditional covariance calculations.
 #'
-#' @param object A fitted \code{splm} model object (built from known/given
-#'   covariance parameters purely as a convenient wrapper around
-#'   \code{object$obdata}/\code{object$xcoord}/\code{object$ycoord}/
-#'   \code{object$random}/\code{object$partition_factor} and \code{covmatrix()} --
-#'   see \code{\link{sprnorm.exponential}()}).
-#' @param local_list The resolved \code{local} list from
-#'   \code{\link{get_local_list_simulation}()} (\code{approximation == "vecchia"}),
-#'   supplying \code{order}, \code{method}, and \code{size}.
-#' @param samples The number of simulations.
-#'
-#' @return A matrix of simulated values, in \code{object$obdata}'s original
-#'   row order, one column per simulation.
-#'
+#' @param object A fitted splm covariance context.
+#' @param local_list Resolved simulation order, method, and neighborhood size.
+#' @param samples Number of simulations.
+#' @return A matrix of centered draws in the original row order.
 #' @noRd
 get_sprnorm_vecchia <- function(object, local_list, samples) {
-
-  xcoord <- object$xcoord
-  ycoord <- object$ycoord
-  obdata <- object$obdata
-
-  xcoord_val <- obdata[[xcoord]]
-  ycoord_val <- obdata[[ycoord]]
-
-  n <- NROW(obdata)
-
+  data <- object$obdata
+  spcov <- coef(object, type = "spcov")
   ord <- local_list$order
-  neighbor_method <- local_list$method
-  size <- local_list$size
-
-  spcov_val <- coef(object, type = "spcov")
-  total_var <- spcov_target_var(spcov_val, object$diagtol) + sum(coef(object, type = "randcov"))
-  has_randstruct <- !is.null(object$random) || !is.null(object$partition_factor)
-  if (has_randstruct) {
-    keep_cols <- unique(c(xcoord, ycoord, all.vars(object$random), all.vars(object$partition_factor)))
+  coords <- as.matrix(data[, c(object$xcoord, object$ycoord), drop = FALSE])
+  if (object$anisotropy) {
+    transformed <- transform_anis(data, object$xcoord, object$ycoord,
+      spcov[["rotate"]], spcov[["scale"]])
+    coords <- cbind(transformed$xcoord_val, transformed$ycoord_val)
   }
-
-  xo <- xcoord_val[ord]
-  yo <- ycoord_val[ord]
-
-  Y_ordered <- matrix(NA_real_, n, samples)
+  coords <- unname(coords[ord, , drop = FALSE])
+  partition <- partition_group(object$partition_factor, data)
+  if (!is.null(partition)) partition <- partition[ord]
+  n <- nrow(data)
+  neighbors <- sprnorm_vecchia_neighbors(coords, local_list$size,
+    local_list$method, spcov, partition)
   Z <- matrix(rnorm(n * samples), n, samples)
-
-  # first point in the order has no pool to condition on and is drawn directly
-  # from its own marginal variance (covmatrix()-derived when random effects/
-  # partition factors are present, since a random slope can make marginal
-  # variance location-specific; total_var otherwise)
-  if (has_randstruct) {
-    target_row_1 <- obdata[ord[1], keep_cols, drop = FALSE]
-    own_var_1 <- as.numeric(covmatrix(object, newdata = target_row_1, cov_type = "pred.pred"))
-  } else {
-    own_var_1 <- total_var
+  Y <- matrix(0, n, samples)
+  target_var <- spcov_target_var(spcov, object$diagtol)
+  for (i in seq_len(n)) {
+    pool <- neighbors[[i]]
+    if (!length(pool)) {
+      Y[i, ] <- sqrt(target_var) * Z[i, ]
+      next
+    }
+    distance <- spdist_vectors2(coords[i, 1], coords[i, 2],
+      coords[pool, 1], coords[pool, 2], sparse = FALSE)
+    cross_cov <- as.numeric(cov_vector(spcov, distance))
+    pool_distance <- spdist_vectors2(coords[pool, 1], coords[pool, 2],
+      coords[pool, 1], coords[pool, 2], sparse = FALSE)
+    pool_cov <- as.matrix(cov_matrix2(spcov, pool_distance, diagtol = object$diagtol))
+    chol_pool <- chol(pool_cov)
+    weights <- backsolve(chol_pool, forwardsolve(t(chol_pool), cross_cov))
+    variance <- max(target_var - sum(weights * cross_cov), 0)
+    center <- as.numeric(crossprod(weights, Y[pool, , drop = FALSE]))
+    Y[i, ] <- center + sqrt(variance) * Z[i, ]
   }
-  Y_ordered[1, ] <- sqrt(own_var_1) * Z[1, ]
+  result <- matrix(0, n, samples)
+  result[ord, ] <- Y
+  random <- draw_sprnorm_random(data, coef(object, type = "randcov"),
+    object$partition_factor, samples)
+  if (!is.null(random)) result <- result + random
+  result
+}
 
-  for (k in 2:n) {
-    # conditioning pool: every earlier-drawn location (in the simulation
-    # order) and never subsampled, per the design decision that distinguishes
-    # "vecchia" from "low-rank"
-    n_pool <- k - 1
-    pool_x <- xo[seq_len(n_pool)]
-    pool_y <- yo[seq_len(n_pool)]
-    pool_idx <- ord[seq_len(n_pool)]
-
-    dist_target_pool <- as.numeric(spdist_vectors2(xo[k], yo[k], pool_x, pool_y, sparse = FALSE))
-
-    if (neighbor_method != "all" && n_pool > size) {
-      if (neighbor_method == "distance") {
-        keep <- order(dist_target_pool)[seq_len(size)]
-      } else {
-        # "covariance": rank by |covariance| rather than raw covariance, for
-        # spcov_types with negative covariance lobes (wave, cosine, jbessel)
-        # (see the identical reasoning in predict.R/decorrelate_data.R).
-        # Spatial-only, even when random effects/partition factors are
-        # present (see get_conditional_vecchia()'s equivalent note).
-        cov_target_pool_full <- as.numeric(cov_vector(spcov_val, dist_target_pool))
-        keep <- order(abs(cov_target_pool_full), decreasing = TRUE)[seq_len(size)]
+#' Find spatial neighbors among preceding sites within each partition
+#' @noRd
+sprnorm_vecchia_neighbors <- function(coords, size, method, spcov, partition = NULL) {
+  n <- nrow(coords)
+  neighbors <- rep(list(integer()), n)
+  groups <- if (is.null(partition)) list(seq_len(n)) else split(seq_len(n), partition, drop = TRUE)
+  covariance_rank <- method == "covariance" && inherits(spcov, c("cosine", "wave", "jbessel"))
+  for (group in groups) {
+    if (length(group) < 2L) next
+    for (j in seq.int(2L, length(group))) {
+      i <- group[j]
+      pool <- group[seq_len(j - 1L)]
+      if (length(pool) > size) {
+        distance <- as.numeric(spdist_vectors2(coords[i, 1], coords[i, 2],
+          coords[pool, 1], coords[pool, 2], sparse = FALSE))
+        score <- if (covariance_rank) -abs(as.numeric(cov_vector(spcov, distance))) else distance
+        pool <- pool[order(score, pool)[seq_len(size)]]
       }
-      pool_x <- pool_x[keep]
-      pool_y <- pool_y[keep]
-      pool_val <- Y_ordered[keep, , drop = FALSE]
-      dist_target_pool <- dist_target_pool[keep]
-      pool_idx <- pool_idx[keep]
-    } else {
-      pool_val <- Y_ordered[seq_len(n_pool), , drop = FALSE]
+      neighbors[[i]] <- pool
     }
-
-    if (has_randstruct) {
-      # build the (target, neighbor_1, ..., neighbor_m) data frame in the
-      # EXACT order of pool_val so cov_full's rows/columns 2:(m+1) line up
-      # positionally with pool_val's rows after truncation
-      neighbor_rows <- obdata[pool_idx, keep_cols, drop = FALSE]
-      target_row <- obdata[ord[k], keep_cols, drop = FALSE]
-      combined <- rbind(target_row, neighbor_rows)
-      cov_full <- as.matrix(covmatrix(object, newdata = combined, cov_type = "pred.pred"))
-      cov_target_pool <- cov_full[1, -1]
-      cov_pool_pool <- cov_full[-1, -1, drop = FALSE]
-      target_var <- cov_full[1, 1]
-    } else {
-      cov_target_pool <- as.numeric(cov_vector(spcov_val, dist_target_pool))
-      dist_pool_pool <- spdist_vectors2(pool_x, pool_y, pool_x, pool_y, sparse = FALSE)
-      cov_pool_pool <- as.matrix(cov_matrix2(spcov_val, dist_matrix = dist_pool_pool))
-      target_var <- total_var
-    }
-
-    # conditioning weights depend only on locations/covariance parameters
-    # computed once per location, reused across every sample below
-    chol_pool <- chol(cov_pool_pool)
-    w <- backsolve(chol_pool, forwardsolve(t(chol_pool), cov_target_pool))
-    cond_var <- max(target_var - sum(w * cov_target_pool), 0)
-
-    # vectorized across every sample (column) of pool_val at once
-    cond_mean <- as.numeric(crossprod(w, pool_val))
-
-    Y_ordered[k, ] <- cond_mean + sqrt(cond_var) * Z[k, ]
   }
+  neighbors
+}
 
-  Y <- matrix(NA_real_, n, samples)
-  Y[ord, ] <- Y_ordered
-  Y
+#' Draw shared random effects without forming an observation covariance matrix
+#' @noRd
+draw_sprnorm_random <- function(data, randcov, partition_factor, samples) {
+  if (!length(randcov)) return(NULL)
+  design <- get_randcov_design(data, randcov, partition_factor)
+  q <- ncol(design$observed)
+  effects <- matrix(rnorm(q * samples), q, samples) * sqrt(design$variance)
+  unname(as.matrix(design$observed %*% effects))
 }

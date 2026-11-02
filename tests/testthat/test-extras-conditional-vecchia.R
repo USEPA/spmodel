@@ -54,11 +54,11 @@ test_that("revised Gaussian preparation and conditioning match dense algebra", {
 
 test_that("revised defaults, latent output, and factor preparation are coherent", {
   z <- revised_vecchia_fixture(); fit <- z$fit
-  settings <- list(approximation="vecchia",size=5,ordering="none",chunk_size=2)
-  expect_equal(get_local_list_conditional(list(approximation="vecchia"),fit,z$newdata)$size,60)
+  settings <- list(size=5,ordering="none",chunk_size=2)
+  expect_equal(get_local_list_conditional(list(),fit,z$newdata)$size,60)
   lm <- fit; class(lm) <- "splm"
-  expect_equal(get_local_list_conditional(list(approximation="vecchia"),lm,z$newdata)$size,30)
-  expect_error(get_local_list_conditional(c(settings,list(size_response=3)),fit,z$newdata),"not supported")
+  expect_equal(get_local_list_conditional(list(),lm,z$newdata)$size,30)
+  expect_error(get_local_list_conditional(c(settings,list(unknown=3)),fit,z$newdata),"Unknown local argument")
   prepare <- prepare_conditional_local_gaussian; n_calls <- 0L; sizes <- integer()
   pred_prepare <- prepare_conditional_vecchia; prediction_calls <- 0L
   scores <- conditional_vecchia_scores; score_calls <- 0L
@@ -121,7 +121,7 @@ test_that("Vecchia ranks full covariance and restricts partition eligibility", {
 
 test_that("full observed neighborhoods reproduce exact fitted-centered moments", {
   z <- revised_vecchia_fixture(); fit <- z$fit
-  local <- get_local_list_conditional(list(approximation="vecchia",size=100,ordering="none"),fit,z$newdata)
+  local <- get_local_list_conditional(list(size=100,ordering="none"),fit,z$newdata)
   context <- get_conditional_vecchia_glm_context(fit,z$newdata,model.matrix(~x,z$newdata),local)
   X <- model.matrix(fit); eta <- fitted(fit,type="link")
   w <- get_latent_center(fit)$eta-model.offset(model.frame(fit))
@@ -138,7 +138,7 @@ test_that("full observed neighborhoods reproduce exact fitted-centered moments",
   expect_equal(H%*%diag(v)%*%t(H),V,ignore_attr=TRUE,tolerance=1e-10)
   set.seed(1); exact <- conditional(fit,z$newdata,output=c("newdata","latent"),samples=4,local=FALSE)
   set.seed(1); all <- conditional(fit,z$newdata,output=c("newdata","latent"),samples=4,
-    local=list(approximation="vecchia",method="all",ordering="none"))
+    local=list(method="all",ordering="none"))
   expect_identical(exact,all)
 })
 
@@ -150,21 +150,19 @@ test_that("Vecchia defaults and all-neighbor exact dispatch apply to both model 
   for (fit in list(lm, z$fit)) {
     for (setting in list(TRUE, list())) {
       local <- get_local_list_conditional(setting, fit, z$newdata)
-      expect_identical(local$approximation, "vecchia")
       expect_equal(local$size, if (inherits(fit, "spglm")) 60 else 30)
       expect_false(local$exact)
       set.seed(1)
       draws <- conditional(fit, z$newdata, samples = 3, local = setting)
       set.seed(1)
       explicit <- conditional(fit, z$newdata, samples = 3,
-        local = list(approximation = "vecchia"))
+        local = list())
       expect_identical(draws, explicit)
     }
     large <- fit; large$n <- 5001
     expect_message(local <- get_local_list_conditional(NULL, large, z$newdata), "local = TRUE")
-    expect_identical(local$approximation, "vecchia")
     expect_false(local$exact)
-    expect_error(get_local_list_conditional(list(size_base = 5), fit, z$newdata), "approximation.*low-rank")
+    expect_error(get_local_list_conditional(list(size_base = 5), fit, z$newdata), "Unknown local argument")
   }
   local_mocked_bindings(
     conditional_vecchia_order = function(...) stop("exact calls must not order sites"),
@@ -232,20 +230,19 @@ test_that("small covariance blocks preserve anisotropy, random effects and diagt
     fit$diagtol <- .5
     ctx <- get_conditional_vecchia_covariance(fit,fit$obdata)
     expect_equal(conditional_vecchia_covariance(ctx,c(1,4,7)),covmatrix(fit)[c(1,4,7),c(1,4,7)],ignore_attr=TRUE)
-    ans <- conditional(fit,z$newdata,samples=3,local=list(approximation="vecchia",size=3,ordering="none"))
+    ans <- conditional(fit,z$newdata,samples=3,local=list(size=3,ordering="none"))
     expect_true(all(is.finite(ans)))
   }
 })
 
-test_that("latent output offsets and low-rank limitations are explicit", {
+test_that("latent output preserves offsets and supports calls without newdata", {
   z <- revised_vecchia_fixture("binomial"); fit <- z$fit
   set.seed(1); out <- conditional(fit,z$newdata,output=c("latent","beta"),samples=5,local=FALSE,type="new")
   set.seed(1); joint <- draw_conditional_glm_joint(get_conditional_glm_joint(fit),5,residual=TRUE)
   target <- sweep(joint$residual+model.matrix(fit)%*%joint$beta,1,model.offset(model.frame(fit)),"+")
   expect_equal(out$latent,target,ignore_attr=TRUE)
-  expect_error(conditional(fit,z$newdata,output="latent",local=list(approximation = "low-rank", size_base=5,reorder_base="none")),"reduced low-rank")
-  expect_equal(dim(conditional(fit,output="latent",samples=2,local=list(approximation = "low-rank", method_base="all",method_new="all"))),c(18,2))
-  for(size in list(0,NA,Inf,1.5,c(1,2))) expect_error(conditional(fit,z$newdata,local=list(approximation="vecchia",size=size)),"size must")
+  expect_equal(dim(conditional(fit,output="latent",samples=2,local=list(method="all"))),c(18,2))
+  for(size in list(0,NA,Inf,1.5,c(1,2))) expect_error(conditional(fit,z$newdata,local=list(size=size)),"size must")
 })
 
 test_that("coincident observed sites remain separate latent draws", {

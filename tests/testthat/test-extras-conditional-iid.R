@@ -117,8 +117,8 @@ test_that("iid simulation skips dense preparation and unused latent draws", {
       expect_identical(dim(actual), c(5001L, 3L))
       expect_identical(dim(conditional(f$fit, output = "beta", samples = 1)), c(2L, 1L))
     }, covmatrix = fail, spdist = fail, spdist_vectors = fail,
-      get_conditional_glm_joint = fail, get_conditional_glm_base = fail,
-      get_conditional_new_from_base_adjust = fail, prepare_conditional_vecchia = fail,
+      get_conditional_glm_joint = fail, get_conditional_vecchia_glm_context = fail,
+      draw_conditional_exact_lm = fail, prepare_conditional_vecchia = fail,
       get_D = fail, get_extra_partition_list = fail, model_matrix_group_labels = fail,
       .package = "spmodel")
   }
@@ -184,9 +184,8 @@ test_that("iid latent precision checks cover positive beta curvature", {
   }
 })
 
-iid_ignored_local <- list(NULL, FALSE, TRUE, list(approximation = "vecchia", size = 3),
-  list(approximation = "low-rank", size_base = 8, size_new = 2, reorder_base = "grts", kmeans_new = TRUE),
-  list(approximation = "bad", size_random = 0, chunk_size = 0, parallel = TRUE, ncores = -1), NA, "unused")
+iid_ignored_local <- list(NULL, FALSE, TRUE, list(size = 3),
+  list(unknown = "bad", size_random = 0, chunk_size = 0, parallel = TRUE, ncores = -1), NA, "unused")
 
 test_that("iid conditional simulation ignores every local setting before spatial preparation", {
   for (family in list(NULL, "poisson")) for (type in c("none", "ie")) for (coordinates in c(FALSE, TRUE)) {
@@ -195,18 +194,13 @@ test_that("iid conditional simulation ignores every local setting before spatial
     set.seed(18)
     reference <- conditional(f$fit, f$newdata, samples = 7, output = output, local = FALSE)
     fail <- function(...) stop("unexpected spatial preparation")
-    resolve_lowrank <- get_local_list_conditional_lowrank
     testthat::with_mocked_bindings({
       for (ctl in iid_ignored_local) {
         set.seed(18)
         expect_message(actual <- conditional(f$fit, f$newdata, samples = 7, output = output, local = ctl), NA)
         expect_identical(actual, reference)
       }
-    }, covmatrix = fail, spdist = fail, get_local_list_conditional_lowrank = function(local, ...) {
-      expect_identical(local$method_base, "all")
-      expect_identical(local$method_new, "all")
-      resolve_lowrank(local, ...)
-    },
+    }, covmatrix = fail, spdist = fail,
       get_local_list_conditional_vecchia = fail, prepare_conditional_vecchia = fail,
       .package = "spmodel")
     if (is.null(family)) {
@@ -245,7 +239,7 @@ test_that("models with spatial covariance or random effects retain local control
     f <- iid_conditional_fixture(family, coordinates = TRUE)
     if (random) f$fit$random <- ~g else
       f$fit$coefficients$spcov <- spcov_params("exponential", de = 1, ie = .5, range = 1)
-    ctl <- list(approximation = "bad")
+    ctl <- list(unknown = "bad")
     testthat::with_mocked_bindings({
       expect_error(conditional(f$fit, f$newdata, samples = 1, local = ctl), "retained local controls")
     }, get_local_list_conditional = function(local, ...) {

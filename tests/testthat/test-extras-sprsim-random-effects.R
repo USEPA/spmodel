@@ -13,8 +13,7 @@ test_that("should retain intercept, slope and combined covariance", {
   S <- 0.4 * exp(-distance / 0.3) + diag(0.2, 12)
   same <- outer(data$group, data$group, "==")
   configurations <- list(FALSE,
-    list(approximation = "low-rank", method_base = "base", size_base = 6, reorder_base = "none", size_new = 6, reorder_new = "none"),
-    list(approximation = "vecchia", method = "all", ordering = "none"))
+    list(method = "distance", size = 11, ordering = "none"))
   components <- list(c(group = 0.6), c("x | group" = 0.6),
     c("1 | group" = 0.3, "x | group" = 0.6))
   set.seed(1)

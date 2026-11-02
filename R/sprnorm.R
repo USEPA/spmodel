@@ -19,90 +19,33 @@
 #' @param ycoord Name of the column in \code{data} representing the y-coordinate.
 #'   Can be quoted or unquoted. Not required if \code{data} are an \code{sf}
 #'   object.
-#' @param local An optional logical or list controlling the big data approximation.
-#'   If omitted, \code{local} is set
-#'   to \code{TRUE} or \code{FALSE} based on the desired sample size (the number of
-#'   non-missing observations in \code{data}) -- if the desired sample size exceeds 5,000,
-#'   \code{local} is set to \code{TRUE}. Otherwise it is set to \code{FALSE}.
-#'   \code{local} is also set to \code{FALSE} when \code{spcov_type} is \code{"none"}
-#'   and there are no random effects specified via \code{random}.
-#'   If \code{FALSE}, no big data approximation is implemented.
-#'   If a list is provided, \code{local$approximation} selects which big data
-#'   approximation is used (the default is \code{"vecchia"}), and can take on the values
+#' @param local An optional
+#'   logical or list controlling the big data approximation. If omitted, \code{local}
+#'   is \code{TRUE} when the desired sample size exceeds
+#'   5,000, and \code{FALSE} otherwise. \code{FALSE} uses exact simulation.
+#'   \code{TRUE} or a list uses a local neighborhood (Vecchia) approach,
+#'   simulating each observation
+#'   conditional on neighbors selected from previously simulated
+#'   observation. A list can contain:
 #'   \itemize{
-#'     \item \code{"low-rank"}: a base sample is drawn from the data, the
-#'       remaining locations are split into blocks, and each block is
-#'       simulated conditional on the base sample alone. Blocks are
-#'       assumed conditionally independent of one another given the base
-#'       sample.
-#'       \itemize{
-#'         \item \code{method_base}: Whether the data simulated is restricted
-#'           to a base sample at all. If \code{method_base = "all"}, no big
-#'           data approximation is applied (equivalent to \code{local = FALSE});
-#'           this happens automatically whenever \code{size_base} is at least
-#'           the desired sample size. If \code{method_base = "base"}, the data
-#'           is subset to \code{size_base} locations (ordered via
-#'           \code{reorder_base}) to form the base sample. The default is
-#'           \code{"base"}.
-#'         \item \code{reorder_base}: The data reordering approach used prior to splitting
-#'           into base and new sets. If \code{reorder_base = "none"}, no reordering
-#'           is applied to the data. If \code{reorder_base = "random"}, the data order is
-#'           randomly reshuffled. If \code{reorder_base = "grts"}, the data order is
-#'           randomly generated using the GRTS algorithm for spatially balanced
-#'           sampling via \code{spsurvey::grts()}. The default is \code{"grts"}.
-#'         \item \code{size_base}: The number of data observations used for the base sample.
-#'           The default is 5,000. See Details for more.
-#'         \item \code{kmeans_new}: For observations outside the base sample, whether
-#'           they should be assigned to blocks based on k-means clustering
-#'           on the coordinates, with clusters of size approximately equal to
-#'           \code{size_new}. The default is \code{FALSE} when \code{reorder_base = "none"}
-#'           and \code{TRUE} otherwise.
-#'         \item \code{size_new}: The (approximate) number of observations used
-#'           for each block. The default is 1,000. See Details for more.
-#'         \item \code{parallel}: If \code{TRUE}, parallel processing via the
-#'           parallel package is automatically used. The default is \code{FALSE}.
-#'         \item \code{ncores}: If \code{parallel = TRUE}, the number of cores to
-#'           parallelize over. The default is the number of available cores on your machine.
-#'       }
-#'       If \code{local$approximation} is \code{"low-rank"}, defaults for the remaining \code{"low-rank"}
-#'       settings are chosen such that \code{local} is transformed into
-#'       \code{list(approximation = "low-rank", method_base = "base", size_base = 5000,
-#'       reorder_base = "grts", size_new = 1000, kmeans_new = TRUE, parallel = FALSE)}.
-#'     \item \code{"vecchia"}: every location is simulated one at a time (in
-#'       some order), each conditional on \strong{all} already-simulated
-#'       locations (not a single shared base sample. Locations are
-#'       never assumed conditionally independent of one another. This is
-#'       exact (matches \code{local = FALSE}) when \code{method = "all"};
-#'       \code{method = "distance"}/\code{"covariance"} truncate the conditioning set to a fixed number of neighbors
-#'       sorted by distance or covariance with the new observation. No parallelization
-#'       exists because the algorithm is inherently sequential, as each new observation
-#'       depends on previous ones.
-#'       \itemize{
-#'         \item \code{method}: The neighbor-selection rule used to build each
-#'           location's conditioning set once it exceeds \code{size}
-#'           already-simulated candidates. Values are \code{"all"} (no truncation,
-#'           exact), \code{"distance"} (the \code{size} nearest candidates),
-#'           or \code{"covariance"} (the \code{size} candidates with the
-#'           highest covariance, in absolute value, with the location being
-#'           simulated). Same convention as \code{predict()}'s own
-#'           \code{local$method}. The default is \code{"covariance"}. \code{method = "all"} is very computationally
-#'           intensive and \code{local = FALSE} should almost always be used instead. 
-#'           (\code{method = "all"} primarily exists for numerical verification).
-#'         \item \code{size}: The number of neighbors used when \code{method}
-#'           is \code{"distance"} or \code{"covariance"}. The default is 30.
-#'         \item \code{ordering}: The order locations are simulated in --
-#'           \code{"maxmin"}, \code{"middleout"}, \code{"outsidein"},
-#'           \code{"coordinate"}, \code{"grts"}, \code{"random"}, or
-#'           \code{"none"} (same options as \code{decorrelate()}'s
-#'           \code{ordering} argument). The default is \code{"maxmin"} unless
-#'           locations are coincident, in which case it is \code{"grts"}.
-#'       }
-#'       \code{parallel}/\code{ncores} are not used when \code{local$approximation} is
-#'       \code{"vecchia"}.
+#'     \item \code{method}: The method used to build each
+#'       location's local neighborhood set once it exceeds \code{size}
+#'       already-simulated candidates. Values are \code{"all"} (no truncation,
+#'       exact), \code{"distance"} (the \code{size} nearest candidates),
+#'       or \code{"covariance"} (the \code{size} candidates with the
+#'       highest covariance, in absolute value, with the location being
+#'       simulated). This is the same convention as \code{predict()}'s own
+#'       \code{local$method}. The default is \code{"covariance"}.
+#'       \code{method = "all"} is an alias for \code{local = FALSE}.
+#'     \item \code{size}: The number of neighbors used when \code{method}
+#'       is \code{"distance"} or \code{"covariance"}. The default is 30.
+#'     \item \code{ordering}: The order locations are simulated in --
+#'       \code{"maxmin"}, \code{"middleout"}, \code{"outsidein"},
+#'       \code{"coordinate"}, \code{"grts"}, \code{"random"}, or
+#'       \code{"none"} (these are the same options as \code{decorrelate()}'s
+#'       \code{ordering} argument). The default is \code{"maxmin"} unless
+#'       locations are coincident, in which case it is \code{"grts"}.
 #'   }
-#' 
-#'       With \code{local = TRUE} or \code{local = list()}, the default is
-#'       \code{list(approximation = "vecchia", method = "covariance", size = 30)}.
 #' @param W Weight matrix specifying the neighboring structure used for car and
 #'   sar models. Not required if \code{data} are an \code{sf}
 #'   polygon object and \code{W} should be calculated internally (using queen contiguity).
@@ -135,17 +78,6 @@
 #'   \code{extra} parameter for car and sar models is ignored when all observations have
 #'   neighbors.
 #'
-#'   \code{local} Details: When \code{local$approximation} is \code{"low-rank"}, the big
-#'   data approximation works by assigning \code{size_base}
-#'   observations to a base sample and then simulating data for the base sample.
-#'   The remaining observations are assigned to blocks. For each block, data
-#'   are simulated from the conditional distribution given the base sample.
-#'   Observations from the same block share conditional covariance while
-#'   observations from distinct blocks are assumed conditionally independent
-#'   (given the base sample). Parallelization generally further speeds up
-#'   computations. When \code{local$approximation} is \code{"vecchia"}, no such
-#'   independence assumption is made and each new observation is simulated by
-#'   conditioning on prior observations.
 #'
 #' @return If \code{samples} is 1, a vector of random variables for each row of \code{data}
 #'   is returned. If \code{samples} is greater than one, a matrix of random variables
@@ -171,8 +103,10 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
     stop("mean vector must be length n or length 1 (recycled)")
   }
 
-  if (spcov_params[["de"]] == 0 && (missing(randcov_params) || is.null(randcov_params))) {
-    base_val <- replicate(samples, rnorm(n, sd = sqrt(spcov_params[["ie"]])))
+  if (spcov_params[["de"]] == 0) {
+    return(sprnorm.none(spcov_params, mean, samples, data,
+      if (missing(randcov_params)) NULL else randcov_params,
+      if (missing(partition_factor)) NULL else partition_factor))
   } else {
     ## convert sp to data frame (point geometry)
     attr_sp <- attr(class(data), "package")
@@ -256,63 +190,24 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
     if (missing(local)) local <- NULL
     local_list <- get_local_list_simulation(local, n, data)
 
-    if (local_list$approximation == "vecchia") {
-      # vecchia: every location is simulated sequentially, conditional on
-      # every earlier-simulated location so there is no base sample to
-      # subset data down to at all (the object is built on all the data
-      # and splm()'s own local = TRUE keeps that fit itself scalable; the
-      # simulation is separately scalable via neighbor truncation)
-      fit_args <- list(
-        formula = ...response... ~ 1,
-        data = data,
-        spcov_initial = spcov_init,
-        random = random,
-        randcov_initial = randcov_init,
-        partition_factor = partition_factor,
-        xcoord = "...xcoord...",
-        ycoord = "...ycoord...",
-        local = TRUE
-      )
-      if (!ycoord_given) fit_args$ycoord <- NULL
-      object <- do.call(splm, fit_args)
+    fit_args <- list(
+      formula = ...response... ~ 1,
+      data = data,
+      spcov_initial = spcov_init,
+      random = random,
+      randcov_initial = randcov_init,
+      partition_factor = partition_factor,
+      xcoord = "...xcoord...",
+      ycoord = "...ycoord...",
+      local = list(var_adjust = "none")
+    )
+    if (!ycoord_given) fit_args$ycoord <- NULL
+    object <- do.call(splm, fit_args)
+    if (!local_list$exact) {
       base_val <- get_sprnorm_vecchia(object, local_list, samples)
     } else {
-      if (local_list$method_base != "all") {
-        newdata <- lapply(local_list$index$new, function(x) data[x, , drop = FALSE])
-        data <- data[local_list$index$base, , drop = FALSE]
-        n <- NROW(data)
-      }
-
-      fit_args <- list(
-        formula = ...response... ~ 1,
-        data = data,
-        spcov_initial = spcov_init,
-        random = random,
-        randcov_initial = randcov_init,
-        partition_factor = partition_factor,
-        xcoord = "...xcoord...",
-        ycoord = "...ycoord...",
-        local = TRUE
-      )
-      if (!ycoord_given) fit_args$ycoord <- NULL
-      object <- do.call(splm, fit_args)
-
       cov_lowchol_base <- t(chol(covmatrix(object)))
       base_val <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_base %*% rnorm(n)), numeric(n))
-
-      if (local_list$method_base != "all") {
-
-        if (local_list$parallel) {
-          cl <- parallel::makeCluster(local_list$ncores)
-          new_val <- parLapply(cl, newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
-          cl <- parallel::stopCluster(cl)
-        } else {
-          new_val <- lapply(newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
-        }
-        base_val <- rbind(base_val, do.call("rbind", new_val))
-        index <- c(local_list$index$base, do.call("c", local_list$index$new))
-        base_val <- base_val[order(index), , drop = FALSE]
-      }
     }
   }
 
@@ -395,43 +290,21 @@ sprnorm.none <- function(spcov_params, mean = 0, samples = 1, data, randcov_para
     stop("mean vector must be length n or length 1 (recycled)")
   }
 
-  dist_matrix <- diag(n)
-
-  # compute the random effects covariance matrix
   if (missing(randcov_params) || is.null(randcov_params) || length(randcov_params) == 0L) {
     randcov_params <- NULL
-    randcov_Zs <- NULL
   } else {
     random <- get_simulation_random(randcov_params, env = environment())
     init <- randcov_initial(randcov_params, known = "given")
     names(init$initial) <- names(init$is_known) <- labels(terms(random))
     randcov_params <- validate_randcov_initial(init)$initial
-    randcov_Zs <- get_randcov_Zs(data = data, names(randcov_params))
+    get_randcov_groups(random, data)
   }
 
-  # partition matrix
   if (missing(partition_factor)) partition_factor <- NULL
-  partition_matrix_val <- partition_matrix(partition_factor, data)
-
-  # compute the covariance matrix
-  cov_matrix_val <- cov_matrix(
-    spcov_params, dist_matrix,
-    randcov_params, randcov_Zs, partition_matrix_val
-  )
-
-  if (is.null(randcov_params)) {
-    # with no spatial dependence and no random effects, the covariance matrix
-    # is just ie * I, so drawing directly from rnorm() with sd = sqrt(ie) is
-    # equivalent to (and much cheaper than) the general Cholesky route below
-    sprnorm_val <- vapply(seq_len(samples), function(x) mean + rnorm(n, sd = sqrt(spcov_params[["ie"]])), numeric(n))
-  } else {
-    # transpose is lower triangular, needed for normal sim
-    cov_matrix_lowchol <- t(chol(cov_matrix_val))
-    # record sample sizes
-
-    # simulate n random normal vectors
-    sprnorm_val <- vapply(seq_len(samples), function(x) mean + as.numeric(cov_matrix_lowchol %*% rnorm(n)), numeric(n))
-  }
+  sprnorm_val <- matrix(rnorm(n * samples, sd = sqrt(spcov_params[["ie"]])), n, samples)
+  random <- draw_sprnorm_random(data, randcov_params, partition_factor, samples)
+  if (!is.null(random)) sprnorm_val <- sprnorm_val + random
+  sprnorm_val <- sweep(sprnorm_val, 1, mean, "+")
 
   if (samples == 1) {
     sprnorm_val <- as.vector(sprnorm_val)

@@ -71,7 +71,7 @@ ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
 
 # Big Data Approximations
 
-Simulating exact spatially correlated data requires factoring an $n \times n$ covariance matrix, which becomes computationally prohibitive for large $n$. `sprnorm()`'s `local` argument enables the same kind of big data approximation used by `conditional()` -- a low-rank approximation and a Vecchia approximation are available. The current default when `local = TRUE` is the Vecchia approximation with 30 neighbors.
+Simulating exact spatially correlated data requires factoring an $n \times n$ covariance matrix, which becomes computationally prohibitive for large $n$. `sprnorm()`'s `local` argument enables the same kind of big data approximation used by `conditional()`: `local = TRUE` uses a local neighborhood (Vecchia) approach with 30 neighbors.
 
 First we generate coordinates for 10,000 locations at which we desire simulations:
 
@@ -80,50 +80,14 @@ n <- 10000
 sim_dat <- data.frame(xc = runif(n), yc = runif(n))
 ```
 
-## The Low-Rank Approximation
-
-The low-rank approximation works in two steps. First, a base sample of `size_base` locations (5,000 by default) is drawn from the data and simulated exactly. Then every remaining location is assigned to a block of `size_new` locations (1,000 by default) and simulated conditional on the base sample alone, with locations in different blocks assumed conditionally independent of one another given the base sample. We illustrate this by marking which of our 10,000 locations would fall in the base sample:
-```{r}
-index <- sample(seq_len(n))
-sim_dat$in_base <- factor(ifelse(index <= 5000, "Yes", "No"), levels = c("Yes", "No"))
-ggplot(sim_dat, aes(x = xc, y = yc, color = in_base)) +
-  geom_point(size = 0.5) +
-  scale_color_manual(values = c("Yes" = "black", "No" = "pink")) +
-  facet_wrap(~ in_base, ncol = 1) +
-  theme_bw(base_size = 14)
-```
-
-By default, the base sample is actually selected using the GRTS algorithm for spatially balanced sampling [@dumelle2023spsurvey] (`reorder_base = "grts"`) rather than random sampling. This helps ensure the base sample is well spread out across the spatial domain rather than clustered as a random sample could produce. The locations outside the base sample are then split into blocks using k-means clustering (by default) on their coordinates:
-```{r}
-sim_dat_not_in_base <- sim_dat[sim_dat$in_base == "No", ]
-sim_dat_not_in_base$block <- as.factor(kmeans(sim_dat_not_in_base[, c("xc", "yc")], centers = 5)$cluster)
-
-ggplot(sim_dat_not_in_base, aes(x = xc, y = yc, color = block)) +
-  geom_point(size = 0.8) +
-  theme_bw(base_size = 14) +
-  theme(legend.position = "none")
-```
-
-Each block above is simulated independently (optionally in parallel) conditional on the same base sample, making the approximation scale well to large $n$.
-
-Now we simulate at the 10,000 locations using the low-rank approximation and visualize the sample:
-```{r}
-sim_dat$val <- sprnorm(params, data = sim_dat, xcoord = xc, ycoord = yc, local = list(approximation = "low-rank"))
-
-ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
-  geom_point(size = 0.8) +
-  scale_color_viridis_c() +
-  theme_bw(base_size = 14)
-```
-
 ## The Vecchia Approximation
 
-The default (`local$approximation = "vecchia"`) simulates one location at a time, each conditional on selected previously simulated locations. This makes no assumption of conditional independence across blocks. Accuracy and runtime depend on the covariance, neighborhood size, and ordering. Now we simulate 10,000 locations using the Vecchia approximation and visualize the sample:
+Vecchia (`local = TRUE`) simulates one location at a time, each conditional on selected previously simulated locations. Accuracy and runtime depend on the covariance, neighborhood size, and ordering. Now we simulate 10,000 locations using the Vecchia approximation and visualize the sample:
 ```{r}
 sim_dat$val <- sprnorm(
   params,
   data = sim_dat, xcoord = xc, ycoord = yc,
-  local = list(approximation = "vecchia")
+  local = TRUE
 )
 
 ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +

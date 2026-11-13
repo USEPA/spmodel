@@ -74,106 +74,6 @@ test_that("the effect precision agrees with the dense conditional", {
   expect_equal(context$covariance, H, ignore_attr = TRUE, tolerance = 1e-10)
   expect_equal(context$covariance %*% t(context$blocks[[1]]$weights), T,
     ignore_attr = TRUE, tolerance = 1e-10)
-  settings <- get_local_list_conditional(list(size = 5, size_random = 10), f$fit, f$new)
-  set.seed(1)
-  blocks <- prepare_conditional_random(f$fit, design, settings)
-  precision <- solve(Gamma)
-  S <- as.matrix(covmatrix(conditional_spatial_object(f$fit)))
-  for (block in blocks$blocks) {
-    j <- block$rows
-    precision <- precision + t(Z[j, ]) %*% solve(S[j, j], Z[j, ])
-  }
-  expect_equal(blocks$covariance, solve(precision), ignore_attr = TRUE)
-  expect_equal(sort(unlist(lapply(blocks$blocks, `[[`, "rows"))), seq_len(f$fit$n))
-  expect_equal(lengths(conditional_random_blocks(f$fit, 1)), rep(1L, f$fit$n))
-  repeated <- f$fit
-  repeated$obdata$cx <- repeated$obdata$cy <- 0
-  expect_error(conditional_random_blocks(repeated, 10), "Too few distinct")
-})
-
-test_that("effect grouping controls follow local fitting conventions", {
-  f <- random_conditional_fixture()
-  n <- f$fit$n
-  design <- get_conditional_random_design(f$fit, f$new)
-  Z <- as.matrix(design$observed)
-  S <- as.matrix(covmatrix(conditional_spatial_object(f$fit)))
-  for (method in c("kmeans", "random")) {
-    set.seed(1)
-    local <- get_local_list_conditional(list(groups_random = 7, method_random = method), f$fit, f$new)
-    expect_equal(local$groups_random, 7)
-    expect_equal(local$size_random, ceiling(n / 7))
-    expect_length(local$random_blocks, 7)
-    expect_equal(sort(unlist(local$random_blocks)), seq_len(n))
-    set.seed(1)
-    labels <- get_local_estimation_index(list(groups = 7, size = ceiling(n / 7), method = method),
-      f$fit$obdata, f$fit$xcoord, f$fit$ycoord, n)
-    expect_identical(local$random_blocks, unname(split(seq_len(n), labels)))
-    if (method == "random") expect_lte(diff(range(lengths(local$random_blocks))), 1)
-    prepared <- prepare_conditional_random(f$fit, design, local)
-    precision <- diag(1 / design$variance)
-    for (rows in local$random_blocks) precision <- precision +
-      t(Z[rows, , drop = FALSE]) %*% solve(S[rows, rows], Z[rows, , drop = FALSE])
-    expect_equal(prepared$covariance, solve(precision), ignore_attr = TRUE)
-    set.seed(1)
-    one <- get_local_list_conditional(list(groups_random = 1, method_random = method, ordering = "none"), f$fit, f$new)
-    expect_identical(one$random_blocks, list(seq_len(n)))
-    expect_equal(prepare_conditional_random(f$fit, design, one)$covariance,
-      prepare_conditional_random(f$fit, design)$covariance)
-    set.seed(1)
-    first <- get_local_list_conditional(list(groups_random = 7, method_random = method, ordering = "random"), f$fit, f$new)
-    set.seed(1)
-    second <- get_local_list_conditional(list(groups_random = 7, method_random = method, ordering = "random"), f$fit, f$new[1, , drop = FALSE])
-    expect_identical(first$random_blocks, second$random_blocks)
-  }
-  set.seed(1)
-  size <- get_local_list_conditional(list(size_random = 10), f$fit, f$new)
-  set.seed(1)
-  both <- get_local_list_conditional(list(size_random = 10, groups_random = 7), f$fit, f$new)
-  expect_identical(size, both[names(size)])
-  expect_identical(size$method_random, "kmeans")
-  repeated <- f$fit
-  repeated$obdata$cx <- repeated$obdata$cy <- 0
-  expect_error(get_local_list_conditional(list(groups_random = 2), repeated, f$new), "Too few distinct")
-  set.seed(1)
-  random <- get_local_list_conditional(list(groups_random = 7, method_random = "random"), repeated, f$new)
-  expect_length(random$random_blocks, 7)
-  expect_equal(sort(unlist(random$random_blocks)), seq_len(n))
-  expect_equal(lengths(conditional_random_blocks(repeated, groups = n, method = "random")), rep(1L, n))
-})
-
-test_that("effect grouping inputs reject invalid settings", {
-  f <- random_conditional_fixture()
-  for (name in c("size_random", "groups_random")) {
-    for (value in list(0, -1, NA, Inf, 1.5, c(1, 2), "3")) {
-      expect_error(get_local_list_conditional(setNames(list(value), name), f$fit, f$new), "positive integer")
-    }
-  }
-  expect_error(get_local_list_conditional(list(groups_random = f$fit$n + 1), f$fit, f$new), "cannot exceed")
-  for (method in list("none", NA, 1, c("kmeans", "random"))) {
-    expect_error(get_local_list_conditional(list(method_random = method), f$fit, f$new), "method_random must")
-  }
-  for (setting in list(list(size_random = 10), list(groups_random = 3), list(method_random = "random"))) {
-    expect_error(get_local_list_conditional(c(list(method = "all"), setting), f$fit, f$new), "only used")
-    no_random <- f$fit; no_random$random <- NULL
-    expect_error(get_local_list_conditional(setting, no_random, f$new), "only used")
-  }
-})
-
-test_that("random grouping supports shared LM and GLM effect draws", {
-  for (glm in c(FALSE, TRUE)) {
-    f <- random_conditional_fixture(glm)
-    for (method in c("kmeans", "random")) {
-      local <- list(size = 5, groups_random = 3, method_random = method)
-      set.seed(1)
-      basic <- conditional(f$fit, f$new, samples = 5, local = local)
-      set.seed(1)
-      all <- conditional(f$fit, f$new, samples = 5, local = local, output = c("all", "random"))
-      expect_identical(basic, all$newdata)
-      expect_equal(dim(all$random), c(4, 5))
-      expect_true(all(is.finite(all$random)))
-      expect_true(all(is.finite(all$newdata)))
-    }
-  }
 })
 
 test_that("exact joint effect and prediction draws match Gaussian moments", {
@@ -195,7 +95,7 @@ test_that("exact joint effect and prediction draws match Gaussian moments", {
     X <- model.matrix(fit)
     Xu <- model.matrix(~ x, f$new)
     C <- vcov(fit)
-    center <- if (glm) get_latent_center(fit) else
+    center <- if (glm) list(eta = fitted(fit, type = "link"), betahat = coef(fit)) else
       list(eta = model.response(model.frame(fit)), betahat = coef(fit))
     w <- center$eta
     w <- w - fit$obdata$off
@@ -238,29 +138,29 @@ test_that("exact joint effect and prediction draws match Gaussian moments", {
   }
 })
 
-test_that("outputs, local dispatch and zero variances behave properly", {
+test_that("outputs and zero variances behave properly", {
   for (glm in c(FALSE, TRUE)) {
     f <- random_conditional_fixture(glm)
     fit <- f$fit
-    for (local in list(FALSE, list(size = 5, size_random = 10, ordering = "none"))) {
+    {
       set.seed(1)
-      basic <- conditional(fit, f$new, samples = 7, local = local)
+      basic <- conditional(fit, f$new, samples = 7)
       set.seed(1)
-      all <- conditional(fit, f$new, samples = 7, local = local, output = c("all", "random", if (glm) "latent"))
+      all <- conditional(fit, f$new, samples = 7, output = c("all", "random", if (glm) "latent"))
       expect_identical(basic, all$newdata)
       expect_identical(dim(all$random), c(4L, 7L))
       expect_identical(attr(all$random, "effect_info")$term, rep("1 | g", 4))
-      expect_identical(dim(conditional(fit, samples = 1, local = local, output = "random")), c(4L, 1L))
+      expect_identical(dim(conditional(fit, samples = 1, output = "random")), c(4L, 1L))
     }
     fit$coefficients$randcov[] <- 0
     expect_equal(as.numeric(conditional(fit, samples = 2, output = "random")), rep(0, 8))
     fit$random <- NULL
     fit$coefficients$randcov <- NULL
-    for (local in list(FALSE, list(size = 5))) {
+    {
       for (output in list("random", c("beta", "random"), c("all", "random"))) {
         set.seed(1)
         rng <- .Random.seed
-        expect_error(conditional(fit, samples = 2, output = output, local = local),
+        expect_error(conditional(fit, samples = 2, output = output),
           'output = "random" requires a model with random effects.', fixed = TRUE)
         expect_identical(.Random.seed, rng)
       }
@@ -284,7 +184,7 @@ test_that("areal effect draws keep the full neighborhood and permit random-only 
     expect_identical(rownames(out$newdata), c("2", "9"))
     expect_identical(dim(out$random), c(3L, 3L))
     expect_true(all(is.finite(out$newdata)))
-    expect_error(conditional(fit, local = FALSE), "only exact")
+    expect_error(conditional(fit, local = TRUE), "only exact")
     args$data$y[c(2, 9)] <- 3
     fit_full <- do.call(if (glm) spgautor else spautor, args)
     expect_identical(dim(conditional(fit_full, samples = 1, output = "random")), c(3L, 1L))
@@ -309,16 +209,16 @@ test_that("local fits, sf data and binomial transformations retain shared draws"
     spcov_initial = spcov_initial("exponential", de = .3, ie = .2, range = .3, known = "given"),
     randcov_initial = randcov_initial(g = .3, known = "given"))
   new <- sf::st_as_sf(d[31:36, ], coords = c("cx", "cy"))
-  for (local in list(FALSE, list(size = 5, size_random = 10))) {
+  {
     output <- c("newdata", "beta", "random")
     set.seed(1)
-    link <- conditional(fit, new, samples = 3, output = output, local = local)
+    link <- conditional(fit, new, samples = 3, output = output)
     set.seed(1)
-    response <- conditional(fit, new, samples = 3, output = output, local = local, type = "response")
+    response <- conditional(fit, new, samples = 3, output = output, type = "response")
     expect_equal(response$newdata, plogis(link$newdata))
     expect_identical(response$beta, link$beta)
     if ("random" %in% output) expect_identical(response$random, link$random)
-    draws <- conditional(fit, new, samples = 3, local = local, type = "new", newdata_size = 1:6)
+    draws <- conditional(fit, new, samples = 3, type = "new", newdata_size = 1:6)
     expect_true(all(draws >= 0 & draws <= 1:6 & draws == floor(draws)))
   }
 })
@@ -337,41 +237,12 @@ test_that("crossed slopes, nesting and new partitions keep their meaning", {
     Z <- as.matrix(design$observed)
     expect_equal(as.matrix(covmatrix(fit) - covmatrix(conditional_spatial_object(fit))),
       Z %*% diag(design$variance) %*% t(Z), ignore_attr = TRUE)
-    for (local in list(FALSE, list(size = 5, size_random = 10))) {
-      expect_true(all(is.finite(conditional(fit, new, samples = 3, local = local))))
+    {
+      expect_true(all(is.finite(conditional(fit, new, samples = 3))))
     }
   }
 })
 
-test_that("effect preparation is reused and covariance blocks stay local", {
-  check <- function(glm) {
-    f <- random_conditional_fixture(glm)
-    original <- f$fit
-    prepare <- prepare_conditional_random
-    covfun <- if (glm) covmatrix.spglm else covmatrix.splm
-    calls <- 0L
-    sizes <- integer()
-    bindings <- list(prepare_conditional_random = function(...) { calls <<- calls + 1L; prepare(...) })
-    bindings[[if (glm) "covmatrix.spglm" else "covmatrix.splm"]] <- function(object, ...) {
-      sizes <<- c(sizes, NROW(object$obdata)); covfun(object, ...)
-    }
-    do.call(testthat::local_mocked_bindings, c(bindings, list(.env = environment())))
-      for (chunk in c(1, 20)) {
-        calls <- 0L; sizes <- integer()
-        conditional(f$fit, f$new, samples = 7, local = list(size = 5, size_random = 10, chunk_size = chunk))
-        expect_equal(calls, 1L)
-        expect_lt(max(sizes), f$fit$n)
-      }
-    expect_identical(f$fit, original)
-    set.seed(1)
-    first <- get_local_list_conditional(list(size = 5, size_random = 10, ordering = "random"), f$fit, f$new)
-    set.seed(1)
-    second <- get_local_list_conditional(list(size = 5, size_random = 10, ordering = "random"), f$fit, f$new[1, , drop = FALSE])
-    expect_identical(first$random_blocks, second$random_blocks)
-  }
-  check(FALSE)
-  check(TRUE)
-})
 
 test_that("theta draws use their own effects and retain randcov parameter output", {
   f <- random_conditional_fixture()

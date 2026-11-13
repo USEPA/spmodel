@@ -69,38 +69,9 @@ ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
 
 `sprnorm()` simulates data with mean zero by default; a non-constant mean can be supplied via the `mean` argument. Multiple independent realizations can be simulated at once via the `samples` argument, which returns a matrix (one column per sample) instead of a vector. Generating many samples via `samples` this way costs nearly the same (computationally) as generating a single sample, as the primary cost of factoring an $n \times n$ covariance matrix occurs only once and is reused for each sample. For technical details regarding simulating data in `spmodel`, see the Technical Details vignette.
 
-# Big Data Approximations
-
-Simulating exact spatially correlated data requires factoring an $n \times n$ covariance matrix, which becomes computationally prohibitive for large $n$. `sprnorm()`'s `local` argument enables the same kind of big data approximation used by `conditional()`: `local = TRUE` uses a local neighborhood (Vecchia) approach with 30 neighbors.
-
-First we generate coordinates for 10,000 locations at which we desire simulations:
-
-```{r}
-n <- 10000
-sim_dat <- data.frame(xc = runif(n), yc = runif(n))
-```
-
-## The Vecchia Approximation
-
-Vecchia (`local = TRUE`) simulates one location at a time, each conditional on selected previously simulated locations. Accuracy and runtime depend on the covariance, neighborhood size, and ordering. Now we simulate 10,000 locations using the Vecchia approximation and visualize the sample:
-```{r}
-sim_dat$val <- sprnorm(
-  params,
-  data = sim_dat, xcoord = xc, ycoord = yc,
-  local = TRUE
-)
-
-ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
-  geom_point(size = 0.8) +
-  scale_color_viridis_c() +
-  theme_bw(base_size = 14)
-```
-
-By default, 30 previously-simulated neighbors are used to condition upon for each new location being simulated.
-
 # Simulating Non-Gaussian Data
 
-`spmodel` also provides `sprpois()`, `sprnbinom()`, `sprbinom()`, `sprbeta()`, `sprgamma()`, and `sprinvgauss()` for simulating other spatially correlated random variables (Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian, respectively). Each works by first simulating a latent process with `sprnorm()` and then simulating the requested distribution conditional on that latent process, and each accepts the same `local` argument described here.
+`spmodel` also provides `sprpois()`, `sprnbinom()`, `sprbinom()`, `sprbeta()`, `sprgamma()`, and `sprinvgauss()` for simulating other spatially correlated random variables (Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian, respectively). Each works by first simulating a latent process with `sprnorm()` and then simulating the requested distribution conditional on that latent process.
 
 We simulate a single spatially correlated realization of binomial data by running
 ```{r}
@@ -109,17 +80,6 @@ sim_dat <- data.frame(xc = runif(n), yc = runif(n))
 sim_dat$val <- as.factor(sprbinom(params, data = sim_dat, xcoord = xc, ycoord = yc))
 ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
   geom_point(size = 1) +
-  scale_color_manual(values = c("blue", "orange")) +
-  theme_bw(base_size = 14)
-```
-
-For a larger data set, we can run, for example
-```{r}
-n <- 10000
-sim_dat <- data.frame(xc = runif(n), yc = runif(n))
-sim_dat$val <- as.factor(sprbinom(params, data = sim_dat, xcoord = xc, ycoord = yc, local = TRUE))
-ggplot(sim_dat, aes(x = xc, y = yc, color = val)) +
-  geom_point(size = 0.8) +
   scale_color_manual(values = c("blue", "orange")) +
   theme_bw(base_size = 14)
 ```

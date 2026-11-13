@@ -77,9 +77,9 @@ test_that("offsets are handled consistently for splm and spautor", {
   )
   for (loc in list(FALSE, list())) {
     set.seed(2)
-    ca <- conditional(a, newexdata, samples = 5, local = loc)
+    ca <- conditional(a, newexdata, samples = 5)
     set.seed(2)
-    cb <- conditional(b, newexdata, samples = 5, local = loc)
+    cb <- conditional(b, newexdata, samples = 5)
     expect_equal(as.numeric(cb - ca), rep(newexdata$delta, times = 5))
   }
 
@@ -168,9 +168,9 @@ test_that("offsets are handled consistently for spglm", {
     # Check the latent-process variance adjustment on the Vecchia path.
     vec <- list()
     set.seed(2)
-    v_m <- conditional(m, newexdata, samples = 5, local = vec)
+    v_m <- conditional(m, newexdata, samples = 5)
     set.seed(2)
-    v_none <- conditional(m_none, newexdata, samples = 5, local = vec)
+    v_none <- conditional(m_none, newexdata, samples = 5)
     expect_equal(v_m, v_none, tolerance = 1e-4)
   }
 
@@ -194,7 +194,7 @@ test_that("offsets are handled consistently for spglm", {
   m_off <- fit(count ~ x + offset(off))
   Sig <- as.matrix(covmatrix(m_off))
   X <- model.matrix(m_off)
-  w <- as.numeric(fitted(m_off, type = "link") + m_off$laplace$delta) - exdata$off
+  w <- as.numeric(fitted(m_off, type = "link")) - exdata$off
   cv_ref <- vapply(seq_len(n), function(i) {
     Si <- chol2inv(chol(Sig[-i, -i]))
     Xm <- X[-i, , drop = FALSE]

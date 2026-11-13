@@ -27,7 +27,6 @@ sprnorm(
   partition_factor,
   xcoord,
   ycoord,
-  local,
   ...
 )
 
@@ -90,34 +89,6 @@ object.}
 Can be quoted or unquoted. Not required if \code{data} are an \code{sf}
 object.}
 
-\item{local}{An optional
-logical or list controlling the big data approximation. If omitted, \code{local}
-is \code{TRUE} when the desired sample size exceeds
-5,000, and \code{FALSE} otherwise. \code{FALSE} uses exact simulation.
-\code{TRUE} or a list uses a local neighborhood (Vecchia) approach,
-simulating each observation
-conditional on neighbors selected from previously simulated
-observation. A list can contain:
-\itemize{
-\item \code{method}: The neighbor-selection rule used to build each
-location's conditioning set once it exceeds \code{size}
-already-simulated candidates. Values are \code{"all"} (no truncation,
-exact), \code{"distance"} (the \code{size} nearest candidates),
-or \code{"covariance"} (the \code{size} candidates with the
-highest covariance, in absolute value, with the location being
-simulated). Same convention as \code{predict()}'s own
-\code{local$method}. The default is \code{"covariance"}.
-\code{method = "all"} is an alias for \code{local = FALSE}.
-\item \code{size}: The number of neighbors used when \code{method}
-is \code{"distance"} or \code{"covariance"}. The default is 30.
-\item \code{ordering}: The order locations are simulated in --
-\code{"maxmin"}, \code{"middleout"}, \code{"outsidein"},
-\code{"coordinate"}, \code{"grts"}, \code{"random"}, or
-\code{"none"} (same options as \code{decorrelate()}'s
-\code{ordering} argument). The default is \code{"maxmin"} unless
-locations are coincident, in which case it is \code{"grts"}.
-}}
-
 \item{W}{Weight matrix specifying the neighboring structure used for car and
 sar models. Not required if \code{data} are an \code{sf}
 polygon object and \code{W} should be calculated internally (using queen contiguity).}
@@ -147,7 +118,7 @@ mean and covariance structure.
 \details{
 Random variables are simulated via the product of the covariance matrix's
 square (Cholesky) root and independent standard normal random variables
-with mean 0 and variance 1, with big data approximations available. It is
+with mean 0 and variance 1. It is
 nearly the sample computational cost to call \code{sprnorm()} for any value
 of \code{samples}.
 

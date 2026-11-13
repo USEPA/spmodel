@@ -12,29 +12,26 @@ test_that("should retain intercept, slope and combined covariance", {
   distance <- as.matrix(dist(data[c("cx", "cy")]))
   S <- 0.4 * exp(-distance / 0.3) + diag(0.2, 12)
   same <- outer(data$group, data$group, "==")
-  configurations <- list(FALSE,
-    list(method = "distance", size = 11, ordering = "none"))
   components <- list(c(group = 0.6), c("x | group" = 0.6),
     c("1 | group" = 0.3, "x | group" = 0.6))
   set.seed(1)
-  for (local in configurations) {
+  {
     for (j in seq_along(components)) {
       for (partition in list(NULL, ~ part)) {
         target <- S + same * switch(j, 0.6, 0.6 * tcrossprod(data$x),
           0.3 + 0.6 * tcrossprod(data$x))
         if (!is.null(partition)) target <- target * outer(data$part, data$part, "==")
         draws <- sprnorm(spatial, data = data, xcoord = cx, ycoord = cy,
-          randcov_params = components[[j]], partition_factor = partition,
-          local = local, samples = 6000)
+          randcov_params = components[[j]], partition_factor = partition, samples = 6000)
         expect_equal(dim(draws), c(12L, 6000L))
         expect_lt(max(abs(rowMeans(draws))), 0.06)
         expect_lt(max(abs(cov(t(draws)) - target)), 0.09)
       }
     }
     set.seed(1)
-    omitted <- sprnorm(spatial, data = data, xcoord = cx, ycoord = cy, local = local)
+    omitted <- sprnorm(spatial, data = data, xcoord = cx, ycoord = cy)
     set.seed(1)
-    explicit <- sprnorm(spatial, data = data, xcoord = cx, ycoord = cy, local = local, randcov_params = NULL)
+    explicit <- sprnorm(spatial, data = data, xcoord = cx, ycoord = cy, randcov_params = NULL)
     expect_identical(explicit, omitted)
   }
   set.seed(1)

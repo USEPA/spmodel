@@ -48,20 +48,19 @@ test_that("independent Gaussian draws retain nugget and coefficient uncertainty"
   for (type in c("exponential", "none", "ie")) {
     f <- nonspatial_fixture(type = type, coordinates = TRUE)
     expect_equal(unname(coef(f$fit, "spcov")[["ie"]]), 2.5)
-    for (size in c(8L, 24L)) {
-      settings <- list(size = size, ordering = "none", chunk_size = 7)
-      for (ctl in list(FALSE, settings)) {
+    {
+      {
         for (sites in c(1L, 3L)) {
           nd <- f$newdata[seq_len(sites), , drop = FALSE]
           for (samples in c(1L, 15L)) {
             set.seed(2)
-            expect_identical(dim(conditional(f$fit, nd, samples = samples, local = ctl)), c(sites, samples))
+            expect_identical(dim(conditional(f$fit, nd, samples = samples)), c(sites, samples))
           }
         }
         X <- model.matrix(~x, f$newdata)
         B <- vcov(f$fit)
         set.seed(2)
-        draws <- conditional(f$fit, f$newdata, samples = 12000, local = ctl,
+        draws <- conditional(f$fit, f$newdata, samples = 12000,
           output = c("newdata", "beta"))
         expected <- 2.5 * diag(3) + X %*% B %*% t(X)
         expect_normal_moments(draws$newdata, as.numeric(X %*% coef(f$fit)) + f$newdata$off, expected)
@@ -99,26 +98,24 @@ test_that("nonspatial covariance and simulation do not need geometric distances"
         expect_length(predict(f$fit, nd, se.fit = TRUE, local = FALSE)$fit, sites)
         for (samples in c(1L, 11L)) {
           set.seed(2)
-          expect_identical(dim(conditional(f$fit, nd, samples = samples, local = FALSE)), c(sites, samples))
+          expect_identical(dim(conditional(f$fit, nd, samples = samples)), c(sites, samples))
         }
       }
     }, spdist = function(...) stop("unexpected distance calculation"),
        spdist_vectors = function(...) stop("unexpected cross-distance calculation"), .package = "spmodel")
     set.seed(2)
-    a <- conditional(f$fit, f$newdata, samples = 11, local = FALSE)
+    a <- conditional(f$fit, f$newdata, samples = 11)
     set.seed(2)
-    expect_equal(a, conditional(with_coords$fit, with_coords$newdata, samples = 11, local = FALSE))
+    expect_equal(a, conditional(with_coords$fit, with_coords$newdata, samples = 11))
     set.seed(2)
-    expect_identical(dim(conditional(f$fit, output = "beta", samples = 1, local = FALSE)), c(2L, 1L))
+    expect_identical(dim(conditional(f$fit, output = "beta", samples = 1)), c(2L, 1L))
     for (size in c(8L, 24L)) {
       set.seed(2)
-      expect_identical(dim(conditional(f$fit, f$newdata, samples = 11,
-        local = list(size = size, ordering = "none", chunk_size = 4))), c(3L, 11L))
+      expect_identical(dim(conditional(f$fit, f$newdata, samples = 11)), c(3L, 11L))
     }
-    expect_identical(dim(conditional(f$fit, f$newdata, samples = 1, local = TRUE)), c(3L, 1L))
-    expect_identical(dim(conditional(f$fit, f$newdata, samples = 1,
-      local = list(size = 8))), c(3L, 1L))
-    expect_equal(dim(conditional(f$fit, f$newdata, samples = 1, local = list(method = "all"))), c(3L, 1L))
+    expect_identical(dim(conditional(f$fit, f$newdata, samples = 1)), c(3L, 1L))
+    expect_identical(dim(conditional(f$fit, f$newdata, samples = 1)), c(3L, 1L))
+    expect_equal(dim(conditional(f$fit, f$newdata, samples = 1)), c(3L, 1L))
   }
 })
 
@@ -130,14 +127,14 @@ test_that("nonspatial families preserve link transformations and response suppor
         nd <- f$newdata[seq_len(sites), , drop = FALSE]
         sizes <- seq_len(sites) + 3L
         set.seed(2)
-        link <- conditional(f$fit, nd, samples = samples, local = FALSE, type = "link", newdata_size = sizes)
+        link <- conditional(f$fit, nd, samples = samples, type = "link", newdata_size = sizes)
         set.seed(2)
-        response <- conditional(f$fit, nd, samples = samples, local = FALSE, type = "response", newdata_size = sizes)
+        response <- conditional(f$fit, nd, samples = samples, type = "response", newdata_size = sizes)
         expected <- if (family %in% c("binomial", "beta")) plogis(link) else exp(link)
         if (family == "binomial") expected <- expected * sizes
         expect_equal(response, expected)
         set.seed(2)
-        fresh <- conditional(f$fit, nd, samples = samples, local = FALSE, type = "new", newdata_size = sizes)
+        fresh <- conditional(f$fit, nd, samples = samples, type = "new", newdata_size = sizes)
         expect_identical(dim(fresh), c(sites, samples))
         expect_true(all(is.finite(fresh) & fresh >= 0))
         if (family %in% c("poisson", "binomial", "nbinomial")) expect_equal(fresh, round(fresh))
@@ -178,7 +175,7 @@ test_that("nonspatial mixed-model covariance preserves groups and partitions", {
       covariance <- T - K %*% t(C) + H %*% B %*% t(H)
     } else {
       eta <- fitted(f$fit, type = "link")
-      center <- get_latent_center(f$fit)
+      center <- list(eta = fitted(f$fit, type = "link"), betahat = coef(f$fit))
       beta <- center$betahat
       Q <- solve(solve(V) + diag(exp(eta)))
       A <- Q %*% solve(V, X)
@@ -187,7 +184,7 @@ test_that("nonspatial mixed-model covariance preserves groups and partitions", {
       covariance <- T - K %*% t(C) + K %*% Q %*% t(K) + H %*% B %*% t(H)
     }
     set.seed(2)
-    draws <- conditional(f$fit, nd, samples = 16000, local = FALSE, output = c("newdata", "random"))
+    draws <- conditional(f$fit, nd, samples = 16000, output = c("newdata", "random"))
     expect_normal_moments(draws$newdata, mu, covariance)
     expect_true(any(!attr(draws$random, "effect_info")$conditioned))
   }
@@ -199,10 +196,10 @@ test_that("independent latent draws preserve the effective variance floor", {
     X <- model.matrix(~x, f$newdata)
     v <- if (type == "none") 1e-4 else 0.5
     set.seed(2)
-    draws <- conditional(f$fit, f$newdata, samples = 16000, local = FALSE, output = c("newdata", "beta"))
+    draws <- conditional(f$fit, f$newdata, samples = 16000, output = c("newdata", "beta"))
     residual <- draws$newdata - X %*% draws$beta - f$newdata$off
     expect_normal_moments(residual, rep(0, 3), v * diag(3))
-    expect_normal_moments(draws$newdata, as.numeric(X %*% f$fit$laplace$betahat) + f$newdata$off,
+    expect_normal_moments(draws$newdata, as.numeric(X %*% coef(f$fit)) + f$newdata$off,
       X %*% vcov(f$fit) %*% t(X) + v * diag(3))
   }
 })
@@ -212,12 +209,12 @@ test_that("nonspatial simulation accepts geometry and implicit prediction data",
     f <- nonspatial_fixture(family, "ie", coordinates = TRUE)
     sfnew <- sf::st_as_sf(f$newdata, coords = c("cx", "cy"))
     set.seed(2)
-    expected <- conditional(f$fit, f$newdata, samples = 5, local = FALSE)
+    expected <- conditional(f$fit, f$newdata, samples = 5)
     set.seed(2)
-    expect_equal(conditional(f$fit, sfnew, samples = 5, local = FALSE), expected)
+    expect_equal(conditional(f$fit, sfnew, samples = 5), expected)
     f$fit$newdata <- f$newdata[c("x", "off", "g", "part")]
     set.seed(2)
-    expect_equal(conditional(f$fit, samples = 5, local = FALSE), expected)
+    expect_equal(conditional(f$fit, samples = 5), expected)
   }
 })
 
@@ -227,18 +224,18 @@ test_that("coordinate-free fitting has an explicit estimation-method boundary", 
     for (method in c("sv-wls", "sv-cl")) expect_error(nonspatial_fixture(type = type, estmethod = method), "semivariogram estimation requires coordinates")
   }
   f <- nonspatial_fixture(type = "exponential", coordinates = TRUE)
-  expect_error(conditional(f$fit, f$newdata[c("x", "off")], local = FALSE),
+  expect_error(conditional(f$fit, f$newdata[c("x", "off")]),
     'newdata is missing.*"cx".*"cy"')
 })
 
-test_that("large random-effect designs warn and continue with/without observation blocking", {
+test_that("large random-effect designs warn and continue", {
   testthat::local_mocked_bindings(conditional_spatial_object = function(...) stop("past size warning"), .package = "spmodel")
   for (q in c(10001L, 20000L)) {
     design <- list(observed = Matrix::sparseMatrix(i = integer(), j = integer(), dims = c(1L, q)),
       variance = rep(1, q), info = data.frame(conditioned = rep(TRUE, q)))
-    for (ctl in list(NULL, list())) {
+    {
       expect_warning(
-        expect_error(prepare_conditional_random(list(), design, ctl), "past size warning"),
+        expect_error(prepare_conditional_random(list(), design), "past size warning"),
         paste0(format(q, big.mark = ",", scientific = FALSE), " random-effect coefficients.*exceedingly long computational times"))
     }
   }

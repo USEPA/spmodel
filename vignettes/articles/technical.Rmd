@@ -1126,7 +1126,6 @@ Here $\mathbf G_{\mathbf a}=\mathbf D_{\mathbf a}-\mathbf P$ and $\mathbf G_{\ma
 \begin{equation*}
  \mathrm{bias} = \frac{1}{n}\sum_{i=1}^n(y_i-\hat\mu_i),\qquad MSPE = \frac{1}{n}\sum_{i = 1}^n(y_i - \hat\mu_i)^2.
 \end{equation*}
-When `fit_correct = TRUE` (the default), held-out predictions use the [Laplace mean corrections](#sec:laplace-mean). Cross-validation generally uses the full-fit latent mean correction. Local `kcv()` recomputes it for each fold, except when it delegates to `loocv()`.
 
 When `cv_predict = TRUE`, the predictions of held-out $\mathbf{w}$ (on the link scale) are returned. The standard errors of these predictions are returned when `se.fit = TRUE`; setting `type = "response"` and `delta = TRUE` additionally returns these on the response scale via the same delta-method transform used by `predict()` (`interval = "prediction"`). Note that $\mathbf{G}_{-i}$ (or, for `kcv()`, $\mathbf{G}_{-F}$) is determined from $\mathbf{G}$ using Helmert-Wolf blocking as is done for $\boldsymbol{\Sigma}_{-i}$/$\boldsymbol{\Sigma}_{-F}$ and $\boldsymbol{\Sigma}$. `interval`/`level` prediction interval coverage (`loocv()` and `kcv()`) is not available here, since `spglm()`/`spgautor()` have no observed-scale latent mean to compare a prediction interval against.
 
@@ -1140,7 +1139,7 @@ When `cv_predict = TRUE`, the predictions of held-out $\mathbf{w}$ (on the link 
 
 Building from the previously defined empirical best linear unbiased predictions (i.e., empirical Kriging predictions), predictions of $\mathbf{w}_u$ are given on the link scale (`type = "link"`) by \begin{equation}\label{eq:glm_blup}
   \dot{\mathbf{w}}_u = \mathbf{X}_u \hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\Sigma}}_{uo} \hat{\boldsymbol{\Sigma}}^{-1}_{o} (\hat{\mathbf{w}}_o - \mathbf{X}_o \hat{\boldsymbol{\beta}}) .
-\end{equation} When `fit_correct = TRUE` (the default) and a stored correction is available, replace $\hat{\mathbf w}_o$ and $\hat{\boldsymbol\beta}$ by $\mathbf a^*$ and $\boldsymbol\beta^*$ (see [Laplace mean corrections](#sec:laplace-mean)). For corrected response-scale prediction means, the prediction variance is computed internally even when standard errors and prediction intervals are not requested. Link-scale predictions do not require this extra calculation, and confidence predictions do not average over coefficient uncertainty on the response scale.
+\end{equation}
 
 #### Prediction Variances {#sec:predict-variance-glm}
 
@@ -1150,7 +1149,7 @@ Similar to the covariance matrix of $\hat{\boldsymbol{\beta}}$, the prediction-e
 \end{equation*}
 and note that $\dot{\mathbf{w}}_u = \boldsymbol{\Lambda} \hat{\mathbf{w}}_o$ (using $\hat{\boldsymbol{\beta}} = \mathbf{B}\hat{\mathbf{w}}_o$, this reduces to $\mathbf{X}_u \hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\Sigma}}_{uo}\hat{\boldsymbol{\Sigma}}_o^{-1}(\hat{\mathbf{w}}_o - \mathbf{X}_o\hat{\boldsymbol{\beta}})$, matching \eqref{eq:glm_blup}).
 
-The adjusted covariance can be interpreted by conditioning on the responses $\mathbf y$, with covariance parameters held fixed at their estimated values. The conditional moments in this derivation use the joint working distribution defined in [Laplace mean corrections](#sec:laplace-mean), extended to prediction sites using a normal distribution. It represents coefficient uncertainty through $\boldsymbol\beta\mid\mathbf w_o\sim N(\mathbf B\mathbf w_o,\mathbf C_\beta)$ (see [Hypothesis Testing](#sec:testing-glm)); $\boldsymbol\beta$ remains fixed in the fitted model. Averaging the normal conditional moments of $\mathbf w_u\mid\mathbf w_o,\boldsymbol\beta$ over this working distribution for the fixed-effect coefficients gives
+The adjusted covariance can be interpreted by conditioning on the responses $\mathbf y$, with covariance parameters held fixed at their estimated values. The conditional moments in this derivation use the joint working distribution defined in [Working Distribution](#sec:working-distribution), extended to prediction sites using a normal distribution. It represents coefficient uncertainty through $\boldsymbol\beta\mid\mathbf w_o\sim N(\mathbf B\mathbf w_o,\mathbf C_\beta)$ (see [Hypothesis Testing](#sec:testing-glm)); $\boldsymbol\beta$ remains fixed in the fitted model. Averaging the normal conditional moments of $\mathbf w_u\mid\mathbf w_o,\boldsymbol\beta$ over this working distribution for the fixed-effect coefficients gives
 \begin{equation*}
  \mathrm E(\mathbf w_u\mid\mathbf w_o)=\boldsymbol\Lambda\mathbf w_o,\qquad
  \mathrm{Cov}(\mathbf w_u\mid\mathbf w_o)
@@ -1180,18 +1179,14 @@ and
 \end{equation*}
 The substitutions use conditional independence of $\mathbf w_u$ and $\mathbf y$ given $\mathbf w_o$, with $\boldsymbol\Lambda$ fixed. The first covariance term propagates uncertainty about $\mathbf w_o$ given $\mathbf{y}$. The second is the prediction uncertainty remaining if $\mathbf w_o$ were observed. With covariance parameters treated as fixed, $\mathrm{Cov}(\mathbf w_u\mid\mathbf w_o)$ does not depend on the realized value of $\mathbf w_o$, so averaging over $\mathbf w_o\mid\mathbf y$ leaves it unchanged.
 
-Without the mean correction, the Laplace approximation is
+The Laplace approximation is
 \begin{equation*}
  \mathbf w_o\mid\mathbf y\approx N(\mathbf a,\boldsymbol\Omega),\qquad
  \boldsymbol\Omega=(-\mathbf G_{\mathbf a})^{-1}.
 \end{equation*}
-Its mean is the mode $\mathbf a$, giving prediction $\boldsymbol\Lambda\mathbf a$. With the mean correction, we use
-\begin{equation*}
- \mathbf w_o\mid\mathbf y\approx N(\mathbf a+\boldsymbol\delta,\boldsymbol\Omega)
-\end{equation*}
-for conditional mean summaries (see [Laplace mean corrections](#sec:laplace-mean)), giving $\boldsymbol\Lambda(\mathbf a+\boldsymbol\delta)$. We apply the mean correction $\boldsymbol\delta$ while retaining the inverse-Hessian approximation to the covariance [@lindley1980approximate], so both centers give the same reported link-scale prediction covariance.
+Its mean is the mode $\mathbf a$, giving prediction $\boldsymbol\Lambda\mathbf a$.
 
-Let $\mathbf e_u=\dot{\mathbf w}_u-\mathbf w_u$ be the prediction error, where $\dot{\mathbf w}_u=\boldsymbol\Lambda\mathbf a$ or $\boldsymbol\Lambda(\mathbf a+\boldsymbol\delta)$. Given $\mathbf y$, $\dot{\mathbf w}_u$ is fixed because it is a function of the observed data. Thus
+Let $\mathbf e_u=\dot{\mathbf w}_u-\mathbf w_u$ be the prediction error, where $\dot{\mathbf w}_u=\boldsymbol\Lambda\mathbf a$. Given $\mathbf y$, $\dot{\mathbf w}_u$ is fixed because it is a function of the observed data. Thus
 \begin{equation*}
 \begin{aligned}
  \mathrm E(\mathbf e_u\mid\mathbf y)&=\dot{\mathbf w}_u-\mathrm E(\mathbf w_u\mid\mathbf y),\\
@@ -1209,7 +1204,7 @@ To see the final equality explicitly, write $\mathbf m_u=\mathrm E(\mathbf w_u\m
  &=\mathrm{Cov}(\mathbf w_u\mid\mathbf y).
 \end{aligned}
 \end{equation*}
-The two minus signs cancel in the product. This does not require the prediction center to equal the conditional mean, since covariance subtracts the error's own mean. With the uncorrected center $\boldsymbol\Lambda\mathbf a$, the error has approximate conditional mean $-\boldsymbol\Lambda\boldsymbol\delta$, which this covariance does not include because it is a constant. Substituting $\boldsymbol\Omega$ into the total-covariance expression above gives the adjusted prediction-error covariance (`var_correct = TRUE`)
+The two minus signs cancel in the product. This does not require the prediction center to equal the conditional mean, since covariance subtracts the error's own mean. Substituting $\boldsymbol\Omega$ into the total-covariance expression above gives the adjusted prediction-error covariance (`var_correct = TRUE`)
 \begin{equation}\label{eq:glm_blup_cov}
 \begin{aligned}
   \mathrm{Cov}(\mathbf e_u\mid\mathbf y)&\approx\dot{\boldsymbol\Sigma}_u\\
@@ -1228,11 +1223,11 @@ Comparing \eqref{eq:glm_blup_cov} with \eqref{eq:glm_blup_cov_unadj} shows that 
 
 When `se.fit = TRUE`, standard errors are returned on the link scale by taking the square root of the diagonal of the relevant $\dot{\boldsymbol{\Sigma}}_u$.
 
-Predictions (i.e., Kriging) can also be returned on the weight scale (`type = "weight"`), analogous to `type = "weight"` for `splm()`/`spautor()`. For exact prediction, this returns the relevant row of $\boldsymbol\Lambda$. These weights are the same whether or not the Laplace mean correction is applied (i.e., $\boldsymbol\Lambda \mathbf{a}$ or $\boldsymbol\Lambda (\mathbf{a} + \boldsymbol\delta)$ use the same $\boldsymbol\Lambda$).
+Predictions (i.e., Kriging) can also be returned on the weight scale (`type = "weight"`), analogous to `type = "weight"` for `splm()`/`spautor()`. For exact prediction, this returns the relevant row of $\boldsymbol\Lambda$.
 
 ### `interval = "prediction"` {#sec:predict-predict-glm}
 
-Predictions of $\mathbf{w}_u$ are returned on the link scale (`type = "link"`) by evaluating $\dot{\mathbf{w}}_u$ (possibly corrected by `fit_correct = TRUE`). The (100 $\times$ `level`)% prediction interval for $(w_u)_i$ is $(\dot{w}_u)_i \pm z^* \sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$, where $\sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$ is the standard error of $(\dot{w}_u)_i$ obtained from `se.fit = TRUE`, $\Phi(z^*) = 1 - \alpha / 2$, $\Phi(\cdot)$ is the standard normal (Gaussian) cumulative distribution function, $\alpha = 1 -$ `level`, and `level` is an argument to `predict()`. The default for `level` is 0.95, which corresponds to a $z^*$ of approximately 1.96. On the response scale (`type = "response"`), interval endpoints apply $g^{-1}$ to the link-scale endpoints. The point prediction is the response-scale mean from the [Laplace mean corrections](#sec:laplace-mean) when the correction is used, and $g^{-1}$ of the link-scale prediction otherwise. Note that the prediction intervals are symmetric on the link scale but are not generally symmetric on the response scale, because the inverse link stretches one side of the interval more than the other. One could instead obtain (approximately) symmetric standard errors on the response scale using the delta method [@ver2012invented] (`delta = TRUE`),
+Predictions of $\mathbf{w}_u$ are returned on the link scale (`type = "link"`) by evaluating $\dot{\mathbf{w}}_u$. The (100 $\times$ `level`)% prediction interval for $(w_u)_i$ is $(\dot{w}_u)_i \pm z^* \sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$, where $\sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}}$ is the standard error of $(\dot{w}_u)_i$ obtained from `se.fit = TRUE`, $\Phi(z^*) = 1 - \alpha / 2$, $\Phi(\cdot)$ is the standard normal (Gaussian) cumulative distribution function, $\alpha = 1 -$ `level`, and `level` is an argument to `predict()`. The default for `level` is 0.95, which corresponds to a $z^*$ of approximately 1.96. On the response scale (`type = "response"`), interval endpoints apply $g^{-1}$ to the link-scale endpoints. The point prediction is $g^{-1}$ of the link-scale prediction. Note that the prediction intervals are symmetric on the link scale but are not generally symmetric on the response scale, because the inverse link stretches one side of the interval more than the other. One could instead obtain (approximately) symmetric standard errors on the response scale using the delta method [@ver2012invented] (`delta = TRUE`),
 \begin{equation*}
   \text{SE}[g^{-1}((\dot{w}_u)_i)] \approx \left|g^{-1 \prime}((\dot{w}_u)_i)\right| \sqrt{(\dot{\boldsymbol{\Sigma}}_u)_{i, i}} ,
 \end{equation*}
@@ -1240,7 +1235,7 @@ where $g^{-1 \prime}(\cdot)$ is the derivative of the inverse link function. For
 
 ### `interval = "confidence"` {#sec:predict-conf-glm}
 
-Estimates for $(\mathbf{X}_u)_i \boldsymbol{\beta}$ (the fixed effects portion of the model) are returned on the link scale (`type = "link"`) by evaluating $(\mathbf{X}_u)_i \hat{\boldsymbol{\beta}}$ (using $\boldsymbol\beta^*$ when the `fit_correct = TRUE`). Response-scale confidence predictions retain the inverse link of this quantity without averaging over coefficient uncertainty. Next, write
+Estimates for $(\mathbf{X}_u)_i \boldsymbol{\beta}$ (the fixed effects portion of the model) are returned on the link scale (`type = "link"`) by evaluating $(\mathbf{X}_u)_i \hat{\boldsymbol{\beta}}$. Response-scale confidence predictions retain the inverse link of this quantity without averaging over coefficient uncertainty. Next, write
 \begin{equation*}
   \text{SE}[(\mathbf{X}_u)_i \hat{\boldsymbol{\beta}}] = \sqrt{(\mathbf{X}_u)_i \left[\mathbf{B} (-\mathbf{G}_\mathbf{a})^{-1} \mathbf{B}^\top + (\mathbf{X}_o^\top \hat{\boldsymbol{\Sigma}}^{-1}_o \mathbf{X}_o)^{-1}\right](\mathbf{X}_u)_i^\top}
 \end{equation*}
@@ -1339,9 +1334,7 @@ We can profile $\boldsymbol{\beta}$ out of the Gaussian component of the log-lik
 This form of $\mathbf{G}_{\mathbf{a}}^*$ follows directly from integration over $\mathbf{w}$ while holding $\boldsymbol{\beta}$ fixed.
 Note that $-2\ln[\mathbf{a} | \mathbf{X}, \tilde{\boldsymbol{\beta}}, \boldsymbol{\theta}]$ is exactly \eqref{eq:ml-lik} (for maximum likelihood).
 
-#### Laplace Mean Corrections {#sec:laplace-mean}
-
-The Laplace approximation above is centered at $\mathbf a=\hat{\mathbf w}_o$, the maximizer of $\ell_{\mathbf w}$. Uncorrected predictions use $\hat{\boldsymbol\beta}=\mathbf B\mathbf a$ and $\dot{\mathbf w}_u=\boldsymbol\Lambda\mathbf a$, whereas conditional-mean prediction targets the mean of $\mathbf w$ given $\mathbf y$. This conditional distribution can be skewed, particularly with small counts or probabilities near zero or one, so predictions centered at the mode can differ from the conditional-mean target generally desired for prediction.
+#### Working Distribution {#sec:working-distribution}
 
 With $\varphi$ and $\boldsymbol\theta$ fixed at their estimates, define a joint working distribution by normalizing $[\mathbf y\mid g^{-1}(\mathbf w),\varphi][\mathbf w\mid\mathbf X,\boldsymbol\beta,\boldsymbol\theta]$ over both $\mathbf w$ and $\boldsymbol\beta$. This working distribution represents uncertainty about $\boldsymbol\beta$, which remains fixed in the fitted model. Integrating $\boldsymbol\beta$ out of this working distribution gives
 \begin{equation*}
@@ -1353,41 +1346,9 @@ With $\varphi$ and $\boldsymbol\theta$ fixed at their estimates, define a joint 
 \end{equation*}
 Here $[\mathbf w\mid\mathbf X,\boldsymbol\theta]$ denotes the normal density integrated over the coefficient values $\boldsymbol\beta$. Conditional expectations and covariances below refer to the normalized working distribution. Its log density equals $\ell_{\mathbf w}$, the objective function used in the Newton-Raphson portion of model fitting, up to an additive constant that does not involve $\mathbf w$.
 
-The expectation of a smooth function $f(\cdot)$ is
-\begin{equation*}
- \mathrm E\{f(\mathbf w)\mid\mathbf y\}=\frac{\int_{\mathbf w}f(\mathbf w)\exp(\ell_{\mathbf w})\,d\mathbf w}{\int_{\mathbf w}\exp(\ell_{\mathbf w})\,d\mathbf w}.
-\end{equation*}
-
-Expanding this ratio of integrals about the mode [@lindley1980approximate, eqs. 5--6; @evangelou2011estimation, eq. 17] gives
-\begin{equation*}
- \mathrm E\{f(\mathbf w)\mid\mathbf y\}\approx f(\mathbf a)+\nabla f(\mathbf a)^\top\boldsymbol\delta
- +\tfrac12\operatorname{tr}\{\nabla^2 f(\mathbf a)\,\boldsymbol\Omega\},\qquad
- \boldsymbol\delta=\tfrac12\boldsymbol\Omega\mathbf D'_a\operatorname{diag}(\boldsymbol\Omega),
-\end{equation*}
-where $\mathbf D'_a$ is the diagonal matrix with entries $D'_{i,i}=\ell_i'''(a_i+o_i)$, the third derivatives of the conditional log-likelihood contributions with respect to $w_i$. The form of this equation in the aforementioned references is more general; here it simplifies because the normal component of the log-likelihood (which is quadratic in $\mathbf w$) has zero third derivatives, and each response contribution depends only on its own $w_i$. Lindley gives the general expansion; @evangelou2011estimation apply it with model parameters held at their estimates, giving log-density Hessian $\mathbf D_a-\boldsymbol\Sigma^{-1}$ in our notation. Here we apply it to the working distribution defined above, so $\boldsymbol\Omega=(\mathbf P-\mathbf D_a)^{-1}$. On the link scale, apply the formula separately to $f(\mathbf w)=w_i$: its gradient is the coordinate vector $\mathbf e_i$ (one in position $i$, zero elsewhere), and its second derivative is zero. This gives
-\begin{equation*}
- \mathbf a^*=\mathbf a+\boldsymbol\delta,\qquad
- \boldsymbol\beta^*=\mathbf B\mathbf a^*,
-\end{equation*}
-and hence, link-scale predictions are shifted to target the working conditional mean (rather than the conditional mode). The shift is stored in `object$laplace$delta`. These mean shifts are only applied to predictions (and conditional simulations); model fitting retains the standard Laplace approximation centered at the mode (@lindley1980approximate argues for using the mode as the expansion point in model fitting). The covariance approximation is unchanged at the order retained for this mean correction [@lindley1980approximate], so reported link-scale prediction variances remain unchanged. Site-level shifts can be small, but can be larger when the conditional distribution is skewed. Even small shifts can matter for population-level means and sums (e.g., block prediction) if they consistently shift in the same direction.
-
-On the response scale the inverse link is nonlinear, so the curvature term in the approximation remains. This motivates an additional correction when predictions are transformed to represent the conditional mean on the response scale. For families with log links (Poisson, negative binomial, gamma, inverse Gaussian), the inverse link is the $\exp(\cdot)$ transformation, while for families with logit links (binomial, beta), it is the inverse logit, or $\text{expit}(\cdot)$ transformation. Let $\hat{\sigma}_i^2=(\dot{\boldsymbol\Sigma}_u)_{i,i}$ be the estimated latent-scale (link-scale) prediction variance, using the selected `var_correct` setting. For the log links, averaging over the Gaussian approximation with center $\dot w_i$ and variance $\hat{\sigma}_i^2$ gives the lognormal-based response-scale mean:
-\begin{equation*}
- \tilde\mu_i=\exp(\dot w_i+\hat{\sigma}_i^2/2).
-\end{equation*}
-For the logit links, we can apply a probit-based transformation [@bishop2006pattern] to the response scale prediction:
-\begin{equation*}
- \tilde\mu_i\approx \operatorname{expit}\!\left(\frac{\dot w_i}{\sqrt{1+\pi\hat{\sigma}_i^2/8}}\right).
-\end{equation*}
-For binomial data, this mean is then multiplied by the trial size $m_i$.
-
-These transformations average the inverse link over the normal approximation, rather than using only the Taylor expansion. They approximate the conditional response mean. Delta-method standard errors use the inverse-link derivative at the selected link-scale center, so the latent mean shift can change them while leaving link-scale standard errors unchanged.
-
-`fit_correct = TRUE` (the default) applies the latent mean shift and, for response-scale prediction means, the response-mean transformation in `predict()`, `loocv()`, `kcv()` and `augment()` with `newdata`. Confidence predictions use the shifted coefficient center but retain its inverse-link transformation, without response-scale averaging over coefficient uncertainty; `type = "terms"` retains the fitted coefficients. `fit_correct = FALSE`, or an object without a stored correction, applies neither correction. `conditional()` applies only the shift: it transforms each latent draw individually, so averaging the transformed draws performs response-scale averaging.
-
 #### On the Relationship Between `spcov_type = "none"` and Ordinary (Nonspatial) GLMs
 
-Let $\sigma^2_{ie}=\sigma^2$ and suppose $\text{Cov}(\mathbf w)=\sigma^2\mathbf I$, with no additional random effects. As $\sigma^2\to0$, coefficient estimates and uncorrected predictions approach their ordinary GLM counterparts (for the same dispersion). The adjusted coefficient covariance approaches the inverse observed GLM information, which agrees with `glm()`'s expected information covariance for canonical links. For ML estimation, the Laplace log-likelihood approaches the ordinary GLM log-likelihood, while for REML, there are some additional terms that result from integration over $\boldsymbol\beta$. In `spglm()`, `spcov_type = "none"` uses a numerical variance floor of $10^{-4}$ (see [Computational Stability](#sec:computational)), so its results approximate the zero-variance limit.
+Let $\sigma^2_{ie}=\sigma^2$ and suppose $\text{Cov}(\mathbf w)=\sigma^2\mathbf I$, with no additional random effects. As $\sigma^2\to0$, coefficient estimates and predictions approach their ordinary GLM counterparts (for the same dispersion). The adjusted coefficient covariance approaches the inverse observed GLM information, which agrees with `glm()`'s expected information covariance for canonical links. For ML estimation, the Laplace log-likelihood approaches the ordinary GLM log-likelihood, while for REML, there are some additional terms that result from integration over $\boldsymbol\beta$. In `spglm()`, `spcov_type = "none"` uses a numerical variance floor of $10^{-4}$ (see [Computational Stability](#sec:computational)), so its results approximate the zero-variance limit.
 
 ##### Maximum Likelihood Estimation
 
@@ -1840,7 +1801,7 @@ Rearranging gives $\boldsymbol\beta=\hat{\boldsymbol\beta}_{\mathbf w}-\mathbf e
 \begin{equation*}
  \boldsymbol\beta\mid\mathbf w,\mathbf y\sim N(\hat{\boldsymbol\beta}_{\mathbf w},\mathbf C_\beta).
 \end{equation*}
-This definition requires an extra interpretive step: rearranging alone does not turn the fixed parameter $\boldsymbol\beta$ into a random variable. Unlike $\mathbf w$, which is random in the fitted model, $\boldsymbol\beta$ receives a working distribution only to represent uncertainty about its fixed value; it is the coefficient conditional distribution of the joint working construction in [Laplace mean corrections](#sec:laplace-mean). Given $\mathbf w$, the response likelihood provides no additional information about $\boldsymbol\beta$. Expectations and covariances below refer to this joint working distribution. The laws of total expectation and covariance give
+This definition requires an extra interpretive step: rearranging alone does not turn the fixed parameter $\boldsymbol\beta$ into a random variable. Unlike $\mathbf w$, which is random in the fitted model, $\boldsymbol\beta$ receives a working distribution only to represent uncertainty about its fixed value; it is the coefficient conditional distribution of the joint working construction in [Working Distribution](#sec:working-distribution). Given $\mathbf w$, the response likelihood provides no additional information about $\boldsymbol\beta$. Expectations and covariances below refer to this joint working distribution. The laws of total expectation and covariance give
 \begin{equation*}
 \begin{aligned}
  \mathrm E(\boldsymbol\beta\mid\mathbf y)
@@ -1857,7 +1818,7 @@ This definition requires an extra interpretive step: rearranging alone does not 
 \end{equation*}
 The matrix $\mathbf B$ factors out of the conditional expectation because the design matrix and covariance parameters are treated as fixed. In the covariance expression, the first term propagates latent uncertainty given the responses; the second is the usual coefficient covariance $\mathbf C_\beta$ if $\mathbf w$ were observed. The Hessian $\mathbf G$ depends on $\mathbf w$ through the diagonal elements in $\mathbf D$. Evaluating $-\mathbf G$ at the mode $\mathbf a$ gives the observed information used in the Laplace approximation. This yields the adjusted covariance matrix reported by `vcov()` with `var_correct = TRUE` and used for coefficient standard errors and Wald tests; the working-distribution calculation does not establish an exact sampling covariance. The same covariance formula is obtained by @ver2024marginal through a closely related argument, conditioning on $\mathbf w$ and assuming $\mathrm E(\hat{\mathbf w}\mid\mathbf w)=\mathbf w$ (the derivation above does not rely on this conditional-unbiasedness assumption).
 
-Without the Laplace mean correction, $\mathrm E(\mathbf w\mid\mathbf y)\approx\mathbf a$ yields center $\hat{\boldsymbol\beta}=\mathbf B\mathbf a$. With the Laplace mean correction, $\mathrm E(\mathbf w\mid\mathbf y)\approx\mathbf a+\boldsymbol\delta$ yields center $\boldsymbol\beta^*=\mathbf B(\mathbf a+\boldsymbol\delta)$. The fitted model estimate of $\boldsymbol\beta$ uses $\mathbf B\mathbf a$, while prediction and conditional simulation use $\boldsymbol\beta^*$ when `fit_correct = TRUE` and $\mathbf B\mathbf a$ otherwise. The covariance approximation is unchanged at the order retained for the mean correction [@lindley1980approximate], so coefficient standard errors are unchanged.
+$\mathrm E(\mathbf w\mid\mathbf y)\approx\mathbf a$ yields center $\hat{\boldsymbol\beta}=\mathbf B\mathbf a$.
 
 `spmodel` uses observed information to find $\hat{\mathbf w}$ via Newton-Raphson and evaluates $-\mathbf G_a$ at the solution to obtain the reported fixed effect covariance above. This is a different choice than `glm()`'s Fisher scoring, which replaces $-\mathbf D$ by its expectation $\mathbf V=-\text{E}(\mathbf D)$ (see [Variance Functions](#sec:varfunc-glm)) at every step, so `glm()`'s standard errors are built from expected rather than observed information (for the same likelihood, Fisher scoring and Newton-Raphson solve the same score equations). The two coincide under a canonical link: the score is then linear in $y_i$, so $D_{i,i}$ is a function of $\mu_i$ alone and does not fluctuate with $y_i$ at all -- the Poisson and binomial rows of the $d_i, D_{i,i}$ table illustrate this. Under a non-canonical link, which `spmodel` uses for the other four families, $D_{i,i}$ retains a term that depends on $y_i$ directly (the gamma's $D_{i,i} = -\varphi y_i/\exp(w_i)$ is a clear example), so a particular sample's observed information need not match its expectation $V_{i,i}$.
 
@@ -1894,8 +1855,6 @@ As previously mentioned, fitting big data spatial generalized linear models requ
 
 ## Simulation Functions (`sprpois()`, `sprnbinom()`, `sprbinom()`, `sprbeta()`, `sprgamma()`, `sprinvgauss()`) {#sec:sim-fns}
 
-For point-referenced spatial simulation via `sprnorm()` and these family functions, `local = TRUE` defaults to local neighborhood (Vecchia) with 30 neighbors, whereby past simulated observations are conditioned upon when simulating new observations (see [Vecchia conditional simulation](#sec:conditional-bigdata-splm)). Spatial and nonspatial random effects are independent of one another and hence, can be simulated separately and then summed. Only the spatial random effect realizations require using local neighborhoods. Nonspatial random effects are simulated exactly by drawing one coefficient per level and sharing it across matching observations. Because the random effect realizations are independent, they can be drawn directly without constructing or factoring a covariance matrix, even when there are many levels. With partition factors, each level-partition combination receives its own independent draw. The family functions apply the same spatial simulation to the latent mean, then generate responses conditionally independently given that latent mean. Autoregressive simulation uses the full covariance matrix without these local approximations.
-
 Poisson, negative binomial, binomial, beta, gamma, and inverse Gaussian random variables can be simulated using `sprpois()`, `sprnbinom()`, `sprbinom()`, `sprbeta()`, `sprgamma()`, and `sprinvgauss()`, respectively. All of these functions work similarly. First, relevant arguments are passed to `sprnorm()` to simulate $\mathbf{w}$ on the link scale. Then using $\mathbf{w}$ and the dispersion parameter (when required), relevant generalized linear model random variables are simulated independently for each $w_i$. Note that the dispersion parameter is not required for `sprpois()` and `sprbinom()`.
 
 ## `varcomp()` {#sec:varcomp-glm}
@@ -1910,14 +1869,7 @@ Note that both forms are built from the spatial covariance matrix $\boldsymbol{\
 
 ## Distribution Parameterizations {#sec:distributions-glm}
 
-`spmodel` supports six generalized linear models families: Poisson and negative binomial for count data, binomial for binary data, gamma and inverse Gaussian for skewed data, and beta for proportion data, each parameterized following @ver2024marginal. Following these parameterizations, the Poisson, binomial, gamma, and negative binomial (when $\varphi$ is treated as known) distributions are members of the exponential (dispersion) family in $y$. The inverse Gaussian and beta parameterizations used here do not have this exponential-dispersion form with $y$ as the canonical statistic: their mean-dependent terms involve both $y$ and $1/y$, or both $\ln y$ and $\ln(1-y)$, respectively. Thus neither has a canonical GLM link under these parameterizations [@ferrari2004beta]. Each family's density, log-likelihood, first, second and third derivatives of the log-likelihood with respect to $\mathbf{w}$ ($d_i$, $D_{i,i}$ and $D'_{i,i}$), and deviance are derived below, and the derivatives are collected in a table at the end of the section.
-
-Define the third derivative used in the Laplace mean correction as
-\begin{equation*}
-  D'_{i,i}=\frac{\partial D_{i,i}}{\partial w_i}
-  =\frac{\partial^3\ln f(y_i\mid g^{-1}(w_i),\varphi)}{\partial w_i^3}.
-\end{equation*}
-Let $\mathbf D'=\operatorname{diag}(D'_{1,1},\ldots,D'_{n,n})$. With offsets, evaluate the derivatives at $w_i+o_i$; $\mathbf D'_a$ denotes evaluation at $a_i+o_i$.
+`spmodel` supports six generalized linear models families: Poisson and negative binomial for count data, binomial for binary data, gamma and inverse Gaussian for skewed data, and beta for proportion data, each parameterized following @ver2024marginal. Following these parameterizations, the Poisson, binomial, gamma, and negative binomial (when $\varphi$ is treated as known) distributions are members of the exponential (dispersion) family in $y$. The inverse Gaussian and beta parameterizations used here do not have this exponential-dispersion form with $y$ as the canonical statistic: their mean-dependent terms involve both $y$ and $1/y$, or both $\ln y$ and $\ln(1-y)$, respectively. Thus neither has a canonical GLM link under these parameterizations [@ferrari2004beta]. Each family's density, log-likelihood, first and second derivatives of the log-likelihood with respect to $\mathbf{w}$ ($d_i$ and $D_{i,i}$), and deviance are derived below, and the derivatives are collected in a table at the end of the section.
 
 ### Unscaled and Scaled Deviances {#sec:deviance-scaling}
 
@@ -1951,9 +1903,6 @@ The second derivative of the log-likelihood with respect to $w$ is \begin{equati
   \frac{d^2}{d w^2} \ln f(y | \mu) = - \exp(w).
 \end{equation*}
 
-The third derivative of the log-likelihood with respect to $w$ is \begin{equation*}
-  \frac{d^3}{d w^3} \ln f(y | \mu) = -\exp(w).
-\end{equation*}
 
 The log-likelihood of the saturated model is \begin{equation*}
   \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i y_i \ln(y_i) - y_i - \ln(y_i!).
@@ -1996,13 +1945,6 @@ The second derivative of the log-likelihood with respect to $w$ is \begin{equati
   \frac{d^2}{d w^2} \ln f(y | \mu) = - \frac{\varphi \exp(w) (y + \varphi)}{(\varphi + \exp(w))^2} .
 \end{equation*}
 
-The third derivative of the log-likelihood with respect to $w$ is \begin{equation*}
-\begin{split}
-  \frac{d^3}{d w^3} \ln f(y | \mu)
-  & = -\varphi(y+\varphi)\left[\frac{\exp(w)}{(\varphi+\exp(w))^2}-\frac{2\exp(2w)}{(\varphi+\exp(w))^3}\right] \\
-  & = -\frac{\varphi(y+\varphi)\exp(w)(\varphi-\exp(w))}{(\varphi+\exp(w))^3}.
-\end{split}
-\end{equation*}
 
 The log-likelihood of the saturated model is \begin{equation*}
   \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \ln(\Gamma(y_i + \varphi)) - \ln(\Gamma(\varphi)) - \ln(y_i!) + y_i \ln(y_i) - y_i \ln(y_i + \varphi) + \varphi \ln(\varphi) - \varphi \ln(y_i + \varphi).
@@ -2039,13 +1981,6 @@ The second derivative of the log-likelihood with respect to $w$ is \begin{equati
   \frac{d^2}{d w^2} \ln f(y | \mu) = - \frac{m \exp(w)}{(1 + \exp(w))^2}.
 \end{equation*}
 
-The third derivative of the log-likelihood with respect to $w$ is \begin{equation*}
-\begin{split}
-  \frac{d^3}{d w^3} \ln f(y | \mu)
-  & = -m\left[\frac{\exp(w)}{(1+\exp(w))^2}-\frac{2\exp(2w)}{(1+\exp(w))^3}\right] \\
-  & = -\frac{m\exp(w)(1-\exp(w))}{(1+\exp(w))^3}.
-\end{split}
-\end{equation*}
 
 The log-likelihood of the saturated model is \begin{equation*}
   \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \ln \left[ \binom{m_i}{y_i} \right] + y_i \ln(y_i) + (m_i - y_i) \ln(m_i - y_i) - m_i \ln(m_i).
@@ -2089,23 +2024,6 @@ The second derivative of the log-likelihood with respect to $w$ is \begin{equati
 \end{equation*}
 and $\psi^{(n)}$ is the $n$th derivative of the digamma function (so $\psi^{(1)}$ is the trigamma function). The two terms of $k_1$ come from differentiating $d = -\varphi \mu (1 - \mu) k_0$ by the product rule: the trigamma term differentiates $k_0$, and the $\sinh$ term differentiates $\varphi \mu(1 - \mu)$.
 
-For the third derivative, write $p=\operatorname{expit}(w)$, $q=p(1-p)$, $b=1-2p$, and
-\begin{align*}
- c_0&=\psi^{(0)}(\varphi p)-\psi^{(0)}(\varphi(1-p))+\ln((1-y)/y),\\
- c_1&=\psi^{(1)}(\varphi p)+\psi^{(1)}(\varphi(1-p)),\\
- c_2&=\psi^{(2)}(\varphi p)-\psi^{(2)}(\varphi(1-p)).
-\end{align*}
-Here $c_0=k_0(w\mid y,\varphi)$. The derivatives of $p$ with respect to $w$ are $p'=q$, $p''=qb$ and $p'''=q(b^2-2q)$, while the first three log-likelihood derivatives with respect to $p$ are $-\varphi c_0$, $-\varphi^2c_1$ and $-\varphi^3c_2$. By the chain rule, the third derivative of the log-likelihood with respect to $w$ is
-\begin{equation*}
-\begin{split}
- \frac{d^3}{dw^3}\ln f(y\mid p,\varphi)
- &=\frac{\partial^3\ln f}{\partial p^3}(p')^3
-   +3\frac{\partial^2\ln f}{\partial p^2}p'p''
-   +\frac{\partial\ln f}{\partial p}p'''\\
- &=-\varphi q(b^2-2q)c_0-3\varphi^2q^2bc_1-\varphi^3q^3c_2.
-\end{split}
-\end{equation*}
-
 The log-likelihood of the saturated model is \begin{equation*}
   \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i \ln(\Gamma(\varphi)) - \ln(\Gamma(y_i \varphi)) - \ln(\Gamma((1 - y_i)\varphi)) +  (y_i \varphi - 1) \ln(y_i) + ((1 - y_i)\varphi - 1) \ln(1 - y_i).
 \end{equation*}
@@ -2142,9 +2060,6 @@ The second derivative of the log-likelihood with respect to $w$ is \begin{equati
   \frac{d^2}{d w^2} \ln f(y | \mu) = - \frac{\varphi y}{\exp(w)}.
 \end{equation*}
 
-The third derivative of the log-likelihood with respect to $w$ is \begin{equation*}
-  \frac{d^3}{d w^3} \ln f(y | \mu) = \frac{\varphi y}{\exp(w)}.
-\end{equation*}
 
 The log-likelihood of the saturated model is \begin{equation*}
   \ln f(\mathbf{y} | \boldsymbol{\mu}_s) = \sum_i - \ln(\Gamma(\varphi)) + \varphi [\ln(\varphi) - \ln(y_i)] + (\varphi - 1) \ln(y_i) - \frac{y_i \varphi}{y_i}.
@@ -2180,11 +2095,6 @@ The second derivative of the log-likelihood with respect to $w$ is \begin{equati
   \frac{d^2}{d w^2} \ln f(y | \mu) = - \frac{\varphi(\exp(2w) + y^2)}{2y\exp(w)}.
 \end{equation*}
 
-The third derivative of the log-likelihood with respect to $w$ is \begin{equation*}
-  \frac{d^3}{d w^3} \ln f(y | \mu)
-  = -\frac{\varphi}{2y}\frac{d}{dw}\left[\exp(w)+y^2\exp(-w)\right]
-  = -\frac{\varphi(\exp(2w)-y^2)}{2y\exp(w)}.
-\end{equation*}
 
 Note that this is not a typical parameterization of the inverse Gaussian distribution. The typical parameterization of the inverse Gaussian distribution is \begin{equation*}
  f(y | \mu, \lambda) = \sqrt{\frac{\lambda}{2 \pi y^3}} \exp \left( - \frac{\lambda(y - \mu)^2}{2\mu^2y} \right),
@@ -2208,34 +2118,27 @@ The unscaled deviance `spmodel` returns is slightly different than scaling the a
  \sum_i (y_i - \hat{\mu}_i)^2 / (\hat{\mu}_i^2 y_i).
 \end{equation*}
 
-### Table of Inverse Link Functions, $d_i$, $D_{i, i}$, and $D'_{i, i}$ {#sec:di_and_Di}
+### Table of Inverse Link Functions, $d_i$, and $D_{i, i}$ {#sec:di_and_Di}
 
-The following table contains the link function, the inverse link function, $d_i$, $D_{i, i}$, and $D'_{i, i}$ for each spatial generalized linear model family. See more details for each family in the previous subsections.
+The following table contains the link function, the inverse link function, $d_i$, and $D_{i, i}$ for each spatial generalized linear model family. See more details for each family in the previous subsections.
 
 | Family | Link $\eta = g(\mu)$ | Inverse Link $\mu = g^{-1}(w)$ | Quantity | Value |
 |:-----------------|:---------------------------|:---------------------|:------------|:--------------------------------------------------|
 | Poisson | $\ln(\mu)$ | $\mu = \exp(w)$ | $d_i$ | $y_i - \exp(w_i)$ |
 | | | | $D_{i,i}$ | $- \exp(w_i)$ |
-| | | | $D'_{i, i}$ | $-\exp(w_i)$ |
 | Negative Binomial | $\ln(\mu)$ | $\mu = \exp(w)$ | $d_i$ | $\frac{\varphi (y_i - \exp(w_i))}{\exp(w_i) + \varphi}$ |
 | | | | $D_{i,i}$ | $- \frac{\varphi \exp(w_i) (y_i + \varphi)}{(\varphi + \exp(w_i))^2}$ |
-| | | | $D'_{i, i}$ | $-\frac{\varphi(y_i+\varphi)\exp(w_i)(\varphi-\exp(w_i))}{(\varphi+\exp(w_i))^3}$ |
 | Binomial | $\ln\{\mu / (1 - \mu)\}$ | $\mu = \frac{\exp(w)}{1 + \exp(w)}$ | $d_i$ | $y_i - \frac{m_i \exp(w_i)}{1 + \exp(w_i)}$ |
 | | | | $D_{i,i}$ | $- \frac{m_i \exp(w_i)}{(1 + \exp(w_i))^2}$ |
-| | | | $D'_{i, i}$ | $-\frac{m_i\exp(w_i)(1-\exp(w_i))}{(1+\exp(w_i))^3}$ |
 | Beta | $\ln\{\mu / (1 - \mu)\}$ | $\mu = \frac{\exp(w)}{1 + \exp(w)}$ | $d_i$ | $- \frac{\varphi \exp(w_i) k_0(w_i \mid y_i, \varphi)}{(1 + \exp(w_i))^2}$ |
 | | | | $D_{i,i}$ | $- \frac{\varphi \exp(2w_i) k_1(w_i \mid y_i, \varphi)}{(1 + \exp(w_i))^4}$ |
-| | | | $D'_{i, i}$ | $\begin{gathered}-\varphi q_i(b_i^2-2q_i)c_{0i}\\{}-3\varphi^2q_i^2b_i c_{1i}-\varphi^3q_i^3c_{2i}\end{gathered}$ |
 | Gamma | $\ln(\mu)$ | $\mu = \exp(w)$ | $d_i$ | $-\varphi + \frac{\varphi y_i}{\exp(w_i)}$ |
 | | | | $D_{i,i}$ | $- \frac{\varphi y_i}{\exp(w_i)}$ |
-| | | | $D'_{i, i}$ | $\frac{\varphi y_i}{\exp(w_i)}$ |
 | Inverse Gaussian | $\ln(\mu)$ | $\mu = \exp(w)$ | $d_i$ | $\varphi \left( \frac{y_i}{2 \exp(w_i)} - \frac{\exp(w_i)}{2y_i} \right) + \frac{1}{2}$ |
 | | | | $D_{i,i}$ | $- \frac{\varphi(\exp(2w_i) + y_i^2)}{2y_i\exp(w_i)}$ |
-| | | | $D'_{i, i}$ | $-\frac{\varphi(\exp(2w_i)-y_i^2)}{2y_i\exp(w_i)}$ |
 
 : A table of link functions, inverse link functions, and relevant quantities for each spatial generalized linear model family. Only the Poisson and binomial links are canonical -- see Variance Functions.
 
-For beta, $q_i$, $b_i$ and $c_{0i},c_{1i},c_{2i}$ are the observation-specific quantities defined in the [beta derivation](#sec:beta).
 
 ### Variance Functions {#sec:varfunc-glm}
 
@@ -2346,9 +2249,8 @@ By the law of total variance, this correctly propagates $\hat{\boldsymbol{\beta}
 
 For both linear and generalized linear models, the covariance square roots below are implemented using Cholesky factors. For example, if $\hat{\boldsymbol{\Sigma}}_u^*=\mathbf{L}\mathbf{L}^\top$ (where $\mathbf{L}$ is lower triangular), use $\mathbf{L}\mathbf{e}_b$ for $\hat{\boldsymbol{\Sigma}}_u^{*1/2}\mathbf{e}_b$, which implies the correct covariance but is more computationally efficient than computing the square root.
 
-For Vecchia conditional simulation, `local$chunk_size` (default 1,000) specifies the maximum number of simulation columns processed simultaneously, saving computational memory.
 
-For `splm()` and `spglm()` models with covariance type `"none"` or `"ie"` and no random effects (described below), `conditional()` sets `local = FALSE`, ignoring any supplied value of `local` (i.e., `local = TRUE`) and instead implementing the exact method, which bypasses explicit spatial conditioning (as off-diagonal covariance terms equal zero under independence). Simulated values are the sum of the mean component and a random error with variance equal to the respective variance component.
+For `splm()` and `spglm()` models with covariance type `"none"` or `"ie"` and no random effects (described below), `conditional()` uses an exact method that bypasses explicit spatial conditioning (as off-diagonal covariance terms equal zero under independence). Simulated values are the sum of the mean component and a random error with variance equal to the respective variance component.
 
 ## Models with Random Effects {#sec:conditional-random}
 
@@ -2375,7 +2277,7 @@ $$
 $$
 The same conditional can also be derived from the full Gaussian joint distribution of $(\boldsymbol{\beta},\mathbf{u})$ (linear models) or $(\boldsymbol{\beta},\mathbf{w}_o,\mathbf{u})$ (generalized linear models), though this derivation uses much more notation.
 
-We can instead evaluate the equivalent precision form below (which can be derived via the Sherman-Morrison-Woodbury formula). For the Vecchia effect step, this permits a block-diagonal approximation to $\mathbf{S}_o$ while retaining cross-block covariance from $\mathbf{Z}_o\boldsymbol{\Gamma}\mathbf{Z}_o^\top$:
+We can instead evaluate the equivalent precision form below (which can be derived via the Sherman-Morrison-Woodbury formula):
 $$
 \mathbf{H}_o=(\boldsymbol{\Gamma}^{-1}+\mathbf{Z}_o^\top\mathbf{S}_o^{-1}\mathbf{Z}_o)^{-1},
 \qquad
@@ -2384,7 +2286,7 @@ $$
 $$
 Both forms give one shared effect draw per level. A level absent from the conditioning data receives one draw per simulation from its fitted zero-mean normal distribution, shared by all prediction rows with that level. After drawing effects, subtract $\mathbf{Z}_o\mathbf{u}_b$ from the residuals, predict spatial errors using $\mathbf{S}$, and add $\mathbf{Z}_u\mathbf{u}_b$ at prediction sites.
 
-Exact spatial and autoregressive paths condition on all observed sites. Vecchia uses all observed residuals but approximates $\mathbf{Z}_o^\top\mathbf{S}_o^{-1}\mathbf{Z}_o$ and $\mathbf{Z}_o^\top\mathbf{S}_o^{-1}\mathbf{r}_{o,b}$ with sums over disjoint observed blocks. The target block size is set by `local$size_random` (default 1,000), or the number of blocks by `local$groups_random`. The two quantities are approximated by $\sum_{i = 1}^k \mathbf{Z}_{o_i}^\top\mathbf{S}_{o_i}^{-1}\mathbf{Z}_{o_i}$ and $\sum_{i = 1}^k \mathbf{Z}_{o_i}^\top\mathbf{S}_{o_i}^{-1}\mathbf{r}_{o_i,b}$, respectively, where $o_i$ denotes the observations in block $i$ and $k$ is the number of blocks. Thus rows of $\mathbf{Z}_o$ and $\mathbf{r}_{o,b}$ and rows/columns of $\mathbf{S}_o$ are restricted to that block. Blocks are determined by k-means or random assignment (`local$method_random`) and only used for drawing random effects.
+Exact spatial and autoregressive paths condition on all observed sites.
 
 `output = "random"` returns realized random effects, with one row per effect level (and partition combination when relevant) and one column per conditional simulation.
 
@@ -2398,27 +2300,6 @@ Given $\boldsymbol{\beta}_b$, conditioning yields the prediction \begin{equation
 
 With offsets, replace $\mathbf{y}_o$ by $\mathbf{y}_o-\mathbf{o}_o$ in \eqref{eq:cond_splm} and add the new-site offsets $\mathbf{o}_u$ to the simulated responses.
 
-### Big Data: Vecchia Approximation {#sec:conditional-bigdata-splm}
-
-For conditional simulation, `local = TRUE` selects Vecchia with 30 neighbors (`splm()`) or 60 neighbors (`spglm()`). For both linear and generalized linear models, Vecchia's `method = "all"` directly uses the exact path (`local = FALSE`) rather than sequentially factoring full neighborhoods.
-
-For `splm()`, the `local` argument to `conditional()` approximates the residual simulation in step 2. The `spglm()` construction later reuses this residual step after drawing the observed latent field. Draw one $\boldsymbol{\beta}_b$ shared across all prediction locations and form $\mathbf{r}_{o,b}=\mathbf{y}_o-\mathbf{X}_o\boldsymbol{\beta}_b$. Treat these residuals as known responses in the conditioning calculations below. With random effects, also subtract $\mathbf{Z}_o\mathbf{u}_b$, use the spatial-error covariance $\hat{\mathbf{S}}$ in place of $\hat{\boldsymbol{\Sigma}}$ below, and restore the random-effect contribution when adding back the mean for new sites. Similarly, subtract and add back offsets.
-
-#### Vecchia
-
-For Vecchia simulation, each simulated residual is generated conditionally using a local neighborhood of up to `size` residuals. The prediction locations are sorted first by `ordering`; all observed residuals are already known. Then, the first prediction residual is simulated using up to `size` observations from the observed data (ranked by absolute covariance (the default) or distance). After this residual is realized, the second prediction residual's pool of potential neighbors includes the observed data and the first realized prediction residual. For the third residual, the potential neighbor pool is the observed data and the two realized prediction residuals, and so on. That is, each realized prediction residual is added to the potential neighbor pool for the next location.
-
-Restricting the same covariance quantities to $o$ and $u$ (here $o$ refers to the neighbors for location $u$) and then using multivariate normal conditioning it follows that
-\begin{align*}
-  \mu_{u,b}&=\hat{\boldsymbol{\Sigma}}_{uo}
-    \hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{r}_{o,b},\\
-  v_u&=\hat{\boldsymbol{\Sigma}}_u
-    -\hat{\boldsymbol{\Sigma}}_{uo}
-     \hat{\boldsymbol{\Sigma}}_o^{-1}
-     \hat{\boldsymbol{\Sigma}}_{uo}^{\top}.
-\end{align*}
-Draw $r_{u,b}=\mu_{u,b}+\sqrt{v_u}e_{u,b}$, where the error $e_{u,b}\sim N(0,1)$ is independent of previous realizations. With no eligible neighbors, use $\mu_{u,b}=0$ and $v_u=\hat{\boldsymbol{\Sigma}}_u$. If all neighbors are retained at each step, the residual simulation is exact conditional on the coefficient and random-effect draws. `method = "all"` uses the exact path. The Vecchia approximation is not easily parallelizable because each conditional residual draw depends on prior draws. See @katzfuss2024GPvecchia for more.
-
 ### Propagating Covariance-Parameter Uncertainty {#sec:conditional-covparams}
 
 By default, every draw in \eqref{eq:cond_splm} shares the same fitted covariance parameters $\hat{\boldsymbol{\theta}}$ while coefficients, realized random effects (when present), and predictions are resimulated. `simulate_covparams = TRUE` (`splm()` model objects only) additionally resamples the free components of $\boldsymbol{\theta}$, once per draw; fixed covariance parameters retain their specified values:
@@ -2431,7 +2312,6 @@ Because $\boldsymbol{\theta}$ changes on every draw, the covariance factors cann
 
 ## `spglm()` and `spgautor()` {#sec:conditional-spglm}
 
-When `fit_correct = TRUE` (the default) and a stored correction is available, conditional draws of $\boldsymbol\beta$ and the offset-free $\mathbf w_o$ are centered at $\boldsymbol\beta^*$ and $\mathbf a^*$; otherwise, at $\hat{\boldsymbol\beta}$ and $\hat{\mathbf w}_o=\mathbf a$. The exact and Vecchia formulas below display the uncorrected centers. When correction is active, replace $\hat{\mathbf w}_o$ and $\hat{\boldsymbol\beta}$ throughout those formulas and their mean statements by $\mathbf a^*$ and $\boldsymbol\beta^*$, respectively; covariance matrices and response derivatives remain evaluated at the fitted mode. Either way, `output = "object"` returns the original fitted link values, including offsets.
 
 ### Exact Conditional Simulation
 
@@ -2540,35 +2420,6 @@ After obtaining these draws, form residuals $\mathbf{r}_{o,b}=\mathbf{w}_{o,b}-\
 where $\mathbf{e}_b$ is a standard normal random vector and $\hat{\boldsymbol{\Sigma}}_u^*$ is the conditional covariance defined in \eqref{eq:cond_splm}. Sampling $\mathbf{w}_{o,b}$ already propagates latent uncertainty, so no additional analytical latent-variance correction is added.
 
 With offsets, $\hat{\mathbf{w}}_o$ and $\mathbf{w}_{o,b}$ exclude observed offsets, the response derivatives use $\hat{\mathbf{w}}_o+\mathbf{o}_o$, and new-site offsets $\mathbf{o}_u$ are added to \eqref{eq:cond_spglm}. The resulting draws are on the link scale (`type = "link"`). `type = "response"` applies the inverse link (and multiplies binomial probabilities by `newdata_size`); `type = "new"` additionally draws conditionally independent responses using the fitted dispersion and requested sizes. `simulate_covparams` is unavailable for spatial generalized linear models.
-
-### Big Data: Vecchia Approximation {#sec:conditional-bigdata-spglm}
-
-For large-data approximations (`spglm()` only), the coefficient draw is shared across all sites, using $\hat{\boldsymbol{\beta}}$ and $\mathbf{C}_{adj}$ from the full fitted model.
-
-#### Vecchia
-
-The first Vecchia step is to simulate each observed latent value sequentially. The observed sites and prediction sites are ordered separately using `ordering`. Then for the current observed site $i$, let $N$ contain up to `size` previously simulated latent neighbors and $K$ contain up to `size` nearby response sites, including $i$. Let $o$ now refer to the subset of observed sites in their union, $o=N\cup K$, with at most $2\,\texttt{size}$ sites. Including both latent sites and data sites in the neighborhood is useful because the realized data can still inform latent predictions through the response Hessian. Restricting the exact-path quantities to this subset gives
-$$
-(-\mathbf{G}_{o \mid \beta})^{-1} = \boldsymbol\Omega_{o\mid\beta}=(\hat{\boldsymbol{\Sigma}}_o^{-1}-\mathbf{D}_o)^{-1},\qquad
-\mathbf{M}_o=\boldsymbol\Omega_{o\mid\beta}\hat{\boldsymbol{\Sigma}}_o^{-1}\mathbf{X}_o.
-$$
-For observed latent neighborhoods, `method = "covariance"` ranks by absolute total covariance, including random effects, and `method = "distance"` ranks by distance. Both restrict neighbors to the same partition. The diagonal $\mathbf{D}_o$ uses all sites in $o$, including those only in $N$.
-
-There are two steps to simulate $w_{i,b}$:
-
-1. Construct the local normal (i.e., Gaussian) distribution with mean $\mathbf{m}_o(\boldsymbol{\beta}_b)=\hat{\mathbf{w}}_o+\mathbf{M}_o(\boldsymbol{\beta}_b-\hat{\boldsymbol{\beta}})$ and covariance $\boldsymbol\Omega_{o\mid\beta}$.
-2. Use the multivariate normal conditioning formula to condition this normal distribution on the previously realized $\mathbf{w}_{N,b}$, where $N\subset o$. With $\mathbf{g}_i=(\boldsymbol\Omega_{o\mid\beta})_{iN}(\boldsymbol\Omega_{o\mid\beta})_{NN}^{-1}$, draw only
-
-$$
-w_{i,b}=(\mathbf{m}_o)_i+\mathbf{g}_i\{\mathbf{w}_{N,b}-(\mathbf{m}_o)_N\}
-+\{(\boldsymbol\Omega_{o\mid\beta})_{ii}-\mathbf{g}_i(\boldsymbol\Omega_{o\mid\beta})_{Ni}\}^{1/2}e_{i,b},
-\qquad e_{i,b}\sim N(0,1).
-$$
-All mean and covariance blocks come from the same normal distribution constructed on $o$; the subscripts $i$ and $N$ select entries from that distribution. Thus response information from the entire local subset $o$ is used even though only the latent draws at $N$ are treated as known. Sites without realized latent draws are marginalized over. These matrices can be prepared once and reused across draws.
-
-After drawing the complete observed field, form its residuals by subtracting the sampled mean. The latent draws above already exclude offsets, so no offset is subtracted again. When random effects are present, draw them conditional on these residuals as in Section \@ref(sec:conditional-random) and subtract their contribution as well. Then apply the Vecchia prediction-residual step described for `splm()`: $u$ now denotes the current prediction site and $o$ its selected neighborhood of observed and previously simulated prediction residuals. Treat those residuals as known, simulate the residual at $u$, and add back the sampled mean, random effects, and new-site offset. The default `size` is 60 for `spglm()` (30 for `splm()`); recall the observed latent neighborhood contains at most $2\,\texttt{size}$ sites (though the prediction-residual neighborhood contains at most `size` sites). `method = "all"` uses the exact path.
-
-For exact and Vecchia conditional simulation, `output = "latent"` returns these observed latent draws (offsets added), on the link scale. Latent-only output does not require `newdata` (`type` controls only prediction output). `spgautor()` uses the exact construction and supports the same latent output.
 
 # The Empirical Semivariogram and Autocovariance (`esv()` and `eacf()`) {#sec:esv}
 

@@ -46,7 +46,7 @@ set.seed(0)
 
 # Conditional Simulation in `spmodel`
 
-`predict()` returns a single best prediction (and its standard error) at each new location, one location at a time. However, `predict()` does not tell us how predictions at different locations may relate to one another. Suppose we instead want to know something about the entire predicted surface at once (e.g., quantiles, extreme values, threshold exceedances, etc.). Answering these types of questions requires jointly simulating the predicted surface, not just each location's pointwise mean and standard error. `conditional()` provides exactly this: repeated draws from the joint distribution of the response (or, for `spglm()` models, the latent process) at a set of new locations, conditional on the observed data. Though typically the focus on conditional simulation is on predictions at new locations, `conditional()` also provides simulated values of covariance and fixed effect model parameters. `conditional()` supports `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects; large data support exists for `splm()` and `spglm()` model objects via the `local` argument. For technical details regarding conditional simulation, see @zimmerman2024spatial and the Technical Details vignette.
+`predict()` returns a single best prediction (and its standard error) at each new location, one location at a time. However, `predict()` does not tell us how predictions at different locations may relate to one another. Suppose we instead want to know something about the entire predicted surface at once (e.g., quantiles, extreme values, threshold exceedances, etc.). Answering these types of questions requires jointly simulating the predicted surface, not just each location's pointwise mean and standard error. `conditional()` provides exactly this: repeated draws from the joint distribution of the response (or, for `spglm()` models, the latent process) at a set of new locations, conditional on the observed data. Though typically the focus on conditional simulation is on predictions at new locations, `conditional()` also provides simulated values of covariance and fixed effect model parameters. `conditional()` supports `splm()`, `spautor()`, `spglm()`, and `spgautor()` model objects. For technical details regarding conditional simulation, see @zimmerman2024spatial and the Technical Details vignette.
 
 The `sulfate` data is an `sf` object that contains sulfate measurements in the conterminous United States (CONUS). We first visualize the distribution of the sulfate data by running
 ```{r}
@@ -178,28 +178,6 @@ ggplot(data.frame(presence = moose_cond[1, ]), aes(x = presence)) +
   geom_histogram(bins = 30) +
   theme_bw(base_size = 14)
 ```
-
-# Big Data
-
-Both fitting a model to many observed locations and conditionally simulating at many new locations can become computationally expensive as sample sizes grow. We simulate 6,000 observed locations and fit a spatial linear model, requesting `splm()`'s own big data approximation via `local = TRUE`:
-```{r}
-n <- 6000
-big_dat <- data.frame(xc = runif(n), yc = runif(n))
-big_dat$z <- sprnorm(
-  spcov_params("exponential", de = 1, ie = 0.1, range = 0.2),
-  data = big_dat, xcoord = xc, ycoord = yc
-)
-bigmod <- splm(z ~ 1, data = big_dat, spcov_type = "exponential", xcoord = xc, ycoord = yc, local = TRUE)
-```
-
-`conditional()` accommodates big data through its `local` argument, using local neighborhood (Vecchia) sequential simulation. We conditionally simulate 500 new locations:
-```{r}
-big_newdata <- data.frame(xc = runif(500), yc = runif(500))
-cond_vecchia <- conditional(bigmod, newdata = big_newdata, local = TRUE)
-dim(cond_vecchia)
-```
-
-For `conditional()`, `local = TRUE` is shorthand for the default implementation of the big data approach, which is Vecchia with 30 neighbors (`splm()`) or 60 neighbors (`spglm()`).
 
 # References {.unnumbered}
 

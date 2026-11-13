@@ -42,7 +42,6 @@
   level = 0.95,
   local = local,
   var_correct = TRUE,
-  fit_correct = TRUE,
   ...
 )
 
@@ -58,7 +57,6 @@
   level = 0.95,
   local,
   var_correct = TRUE,
-  fit_correct = TRUE,
   ...
 )
 }
@@ -108,10 +106,6 @@ used when predicting for the binomial family.}
 \item{var_correct}{A logical indicating whether to return the corrected prediction
 variances when predicting via models fit using \code{spglm()} or \code{spgautor()}. The default is
 \code{TRUE}.}
-
-\item{fit_correct}{A logical indicating whether to apply the Laplace mean
-corrections to predictions at \code{newdata}; see \code{predict.spmodel}.
-The default is \code{TRUE}.}
 }
 \value{
 When augmenting the original data set, a tibble with additional columns

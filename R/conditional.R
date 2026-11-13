@@ -28,50 +28,6 @@
 #'   from \code{object}. The default is \code{"link"}.
 #' @param samples  The number of conditional simulations. The default is
 #'   \code{1,000}.
-#' @param local For \code{splm()} and \code{spglm()} model objects, an optional
-#'   logical or list controlling the big data approximation. If omitted, \code{local}
-#'   is \code{TRUE} when either the observed or prediction sample size exceeds
-#'   5,000, and \code{FALSE} otherwise. \code{FALSE} uses exact simulation.
-#'   \code{TRUE} or a list uses a local neighborhood (Vecchia) approach,
-#'   simulating each prediction
-#'   conditional on neighbors selected from observed and previously simulated
-#'   predictions. A list can contain:
-#'   \itemize{
-#'     \item \code{method}: The neighbor-selection rule used to build each
-#'       location's conditioning set once it exceeds \code{size} candidates
-#'       (all observed data plus every already-simulated \code{newdata}
-#'       location). Values are \code{"all"}, \code{"distance"}
-#'       (the \code{size} nearest eligible candidates), or \code{"covariance"}
-#'       (the \code{size} candidates with the highest absolute model covariance,
-#'       including random effects and partition factors). Without
-#'       random effects or partition factors, distance and covariance give the
-#'       same ranking for covariance functions decreasing with distance.
-#'       The default is
-#'       \code{"covariance"}. For both linear and generalized linear models,
-#'       \code{method = "all"} uses the exact path, as with \code{local = FALSE}.
-#'     \item \code{size}: The number of neighbors used when \code{method}
-#'       is \code{"distance"} or \code{"covariance"}. The default is 30 for
-#'       \code{splm()} and 60 for \code{spglm()}.
-#'     \item \code{ordering}: The order \code{newdata} locations are
-#'       simulated in -- \code{"maxmin"}, \code{"middleout"},
-#'       \code{"outsidein"}, \code{"coordinate"}, \code{"grts"},
-#'       \code{"random"}, or \code{"none"} (same options as
-#'       \code{decorrelate()}'s \code{ordering} argument). The default is
-#'       \code{"maxmin"} unless locations are coincident, in which case it
-#'       is \code{"grts"}.
-#'     \item \code{size_random}: For models with random effects, the approximate
-#'       number of observed sites per block for drawing realized random effects,
-#'       implying \code{ceiling(n / size_random)} groups. The default is 1,000.
-#'       If specified, \code{groups_random} is ignored.
-#'     \item \code{groups_random}: The number of random effect blocks.
-#'     \item \code{method_random}: How to form the random effect blocks:
-#'       \code{"kmeans"} (the default) or \code{"random"}.
-#'     \item \code{chunk_size}: For local \code{splm()} and \code{spglm()}
-#'       simulation, with or without random effects, the
-#'       maximum number of \code{samples} columns processed simultaneously.
-#'       The default is 1,000. \code{chunk_size} is purely computational and does
-#'       not affect correctness.
-#'   }
 #' @param simulate_covparams For \code{splm()} model objects, whether to also
 #'   simulate new covariance parameters for each sample. \code{simulate_covparams}
 #'   requires \code{object$vcov$cov} to be specified during model fitting by
@@ -82,10 +38,6 @@
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #' @param newdata_size The \code{size} value for each observation in \code{newdata}
 #'   used when predicting for the binomial family, with a default value of 1.
-#' @param fit_correct Apply the latent Laplace mean correction for conditional simulations from
-#'   \code{spglm()} and \code{spgautor()} model objects. The default is 
-#'   \code{TRUE}. Regardless of \code{fit_correct}, the \code{"object"} output
-#'   still returns model fitted values.
 #'
 #' @details
 #'
@@ -104,10 +56,6 @@
 #'   fixed effects. If \code{"cov"}/\code{"spcov"}/\code{"randcov"} is in
 #'   \code{output} (only available when \code{simulate_covparams = TRUE}),
 #'   the simulated covariance parameter draws themselves are returned.
-#'
-#'   Spatial generalized linear model latent values are drawn
-#'   sequentially, conditioning on local sites and previously drawn latent
-#'   sites. The neighborhood contains at most \code{2 * size} sites.
 #'
 #' @return If \code{output = "newdata"}, an a x b matrix of conditional simulations
 #'   for each row in \code{newdata}, where a is the
@@ -151,16 +99,12 @@ conditional <- function(object, ...) {
 #' @rdname conditional
 #' @method conditional splm
 #' @export
-conditional.splm <- function(object, newdata, output = "newdata", samples = 1000, local, simulate_covparams = FALSE, ...) {
-  if (inherits(coef(object, type = "spcov"), c("none", "ie")) && is.null(object$random)) local <- FALSE
+conditional.splm <- function(object, newdata, output = "newdata", samples = 1000, simulate_covparams = FALSE, ...) {
 
   if (!is.numeric(samples) || length(samples) != 1L || !is.finite(samples) || samples < 1 || samples != floor(samples)) {
     stop("samples must be a positive integer.", call. = FALSE)
   }
 
-  if (missing(local)) {
-    local <- NULL
-  }
   if (!is.logical(simulate_covparams) || length(simulate_covparams) != 1 || is.na(simulate_covparams)) {
     stop("simulate_covparams must be TRUE or FALSE.", call. = FALSE)
   }
@@ -186,23 +130,12 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
     }
   }
 
-  # local_list/simulate_covparams/samples must all be specified before samples is
-  # first used below (the output = "object" shortcut)
-  # get_local_list_conditional() only needs object/newdata
   coordinates <- prepare_conditional_coordinates(object, newdata)
   object <- coordinates$object
   newdata <- coordinates$newdata
   iid_variance <- get_conditional_iid_variance(object, simulate_covparams)
-  local_list <- get_local_list_conditional(local, object, newdata)
   design <- if (!is.null(object$random)) get_conditional_random_design(object, newdata) else NULL
   random_val <- NULL
-
-  # Covariance parameters are resimulated only on the exact path.
-  local_active <- !local_list$exact
-  if (isTRUE(simulate_covparams) && local_active) {
-    simulate_covparams <- FALSE
-    message("simulate_covparams = TRUE is not used when a big-data approximation (local) is specified; setting simulate_covparams = FALSE.")
-  }
 
   if (!isTRUE(simulate_covparams) && any(c("cov", "spcov", "randcov") %in% output)) {
     stop("output can only include \"cov\", \"spcov\", or \"randcov\" when simulate_covparams = TRUE.", call. = FALSE)
@@ -261,7 +194,7 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
     new_randcov <- covparams_out$new_randcov
     if ("random" %in% output) random_val <- conditional_random_output(covparams_out$random, design)
   } else if (!is.null(object$random)) {
-    draws <- get_conditional_random_lm(object, newdata, newdata_model, y, local_list, samples, design, "random" %in% output)
+    draws <- get_conditional_random_lm(object, newdata, newdata_model, y, samples, design, "random" %in% output)
     new_betahat <- draws$beta
     new_val <- draws$newdata
     random_val <- draws$random
@@ -285,22 +218,12 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
       new_betahat <- matrix(new_betahat, nrow = 1)
     }
     new_betahat <- sweep(new_betahat, 1, betahat, "+")
-    chunk_size <- if (local_list$exact) samples else get_conditional_chunk_size(local_list)
+    chunk_size <- samples
 
     if (!NROW(newdata)) {
       new_val <- matrix(numeric(), 0, samples)
     } else if (!is.null(iid_variance)) {
       new_val <- draw_conditional_iid_error(NROW(newdata), samples, iid_variance)
-    } else if (!local_list$exact) {
-      # Vecchia selects a neighborhood from observed and earlier prediction
-      # residuals at each site.
-      context <- prepare_conditional_vecchia(object, newdata, local_list)
-      new_val <- matrix(NA_real_, NROW(newdata), samples)
-      for (start in seq.int(1L, samples, by = chunk_size)) {
-        cols <- seq.int(start, min(samples, start + chunk_size - 1L))
-        residual <- y - X %*% new_betahat[, cols, drop = FALSE]
-        new_val[, cols] <- draw_conditional_vecchia(context, residual, length(cols))
-      }
     } else {
       cov_lowchol_base <- t(chol(covmatrix(object)))
       SqrtSigInv_y <- forwardsolve(cov_lowchol_base, cbind(y))
@@ -315,7 +238,7 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   # (mean-zero) conditional spatial residual draws -- completes the
   # composition sampling described previously
   if (isTRUE(simulate_covparams) || is.null(object$random)) {
-    chunk_size <- if (!is.null(iid_variance)) 1000L else if (local_list$exact) samples else get_conditional_chunk_size(local_list)
+    chunk_size <- if (!is.null(iid_variance)) 1000L else samples
     for (start in seq.int(1L, samples, by = chunk_size)) {
       cols <- seq.int(start, min(samples, start + chunk_size - 1L))
       new_val[, cols] <- newdata_model %*% new_betahat[, cols, drop = FALSE] + new_val[, cols, drop = FALSE]
@@ -338,17 +261,12 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
 #' @rdname conditional
 #' @method conditional spglm
 #' @export
-conditional.spglm <- function(object, newdata, output = "newdata", type = c("link", "response", "new"), samples = 1000, local, newdata_size, fit_correct = TRUE, ...) {
-  center <- get_latent_center(object, fit_correct)
-  if (inherits(coef(object, type = "spcov"), c("none", "ie")) && is.null(object$random)) local <- FALSE
+conditional.spglm <- function(object, newdata, output = "newdata", type = c("link", "response", "new"), samples = 1000, newdata_size, ...) {
 
   if (!is.numeric(samples) || length(samples) != 1L || !is.finite(samples) || samples < 1 || samples != floor(samples)) {
     stop("samples must be a positive integer.", call. = FALSE)
   }
 
-  if (missing(local)) {
-    local <- NULL
-  }
 
   if ("all" %in% output) {
     output <- c("newdata", "beta", "object", if ("latent" %in% output) "latent", if ("random" %in% output) "random")
@@ -391,11 +309,9 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   coordinates <- prepare_conditional_coordinates(object, newdata)
   object <- coordinates$object
   newdata <- coordinates$newdata
-  local_list <- get_local_list_conditional(local, object, newdata)
-  exact <- local_list$exact
   design <- if (!is.null(object$random)) get_conditional_random_design(object, newdata) else NULL
   random_val <- NULL
-  if (exact && is.null(iid_variance) && object$n > 10000) {
+  if (is.null(iid_variance) && object$n > 10000) {
     message("Exact spatial generalized linear model conditional simulation requires a dense observed latent precision factorization. See Details.")
   }
   newdata_model_list <- if (NROW(newdata)) get_newdata_model_matrix(object, newdata) else
@@ -414,23 +330,18 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   }
 
   if (!is.null(iid_variance)) {
-    draws <- get_conditional_iid_glm(object, newdata_model, iid_variance, samples, latent = "latent" %in% output, center = center)
-    new_val <- draws$newdata
-    new_betahat <- draws$beta
-  } else if (!exact) {
-    draws <- get_conditional_vecchia_glm(object, newdata, newdata_model, local_list, samples, latent = "latent" %in% output, random_design = design, random = "random" %in% output, center = center)
-    if (!is.null(draws$random)) random_val <- draws$random
+    draws <- get_conditional_iid_glm(object, newdata_model, iid_variance, samples, latent = "latent" %in% output)
     new_val <- draws$newdata
     new_betahat <- draws$beta
   } else {
-    joint <- get_conditional_glm_joint(object, center = center)
+    joint <- get_conditional_glm_joint(object)
     draws <- draw_conditional_glm_joint(joint, samples, residual = TRUE)
     new_betahat <- draws$beta
     if (!is.null(object$random)) {
       effect <- prepare_conditional_random(object, design)
-      prediction <- prepare_conditional_random_prediction(effect, newdata, local_list)
+      prediction <- prepare_conditional_random_prediction(effect, newdata)
       a <- draw_conditional_random(effect, draws$residual)
-      new_val <- newdata_model %*% new_betahat + draw_conditional_random_prediction(effect, prediction, draws$residual, a, local_list)
+      new_val <- newdata_model %*% new_betahat + draw_conditional_random_prediction(effect, prediction, draws$residual, a)
       if ("random" %in% output) random_val <- conditional_random_output(a, design)
     } else new_val <- if (NROW(newdata)) newdata_model %*% new_betahat +
       draw_conditional_exact_glm(newdata, object, draws$residual, joint$cov_lowchol, samples) else matrix(numeric(), 0, samples)
@@ -453,7 +364,7 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   # new_val holds link-scale draws up to this point; back-transform to the
   # response scale, or simulate a genuinely new observation, only if asked
   if (type != "link" && NROW(new_val)) {
-    chunk_size <- if (exact) samples else get_conditional_chunk_size(local_list)
+    chunk_size <- samples
     for (start in seq.int(1L, samples, by = chunk_size)) {
       cols <- seq.int(start, min(samples, start + chunk_size - 1L))
       new_val[, cols] <- invlink_conditional(new_val[, cols, drop = FALSE], type,

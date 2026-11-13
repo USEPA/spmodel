@@ -159,13 +159,6 @@ invlink <- function(fitted_link, family, size) {
   fitted
 }
 
-invlink_mean <- function(fitted_link, var_link, family, size = NULL) {
-  if (!family %in% c("binomial", "beta")) return(exp(fitted_link + var_link / 2))
-  # probit approximation; consider updating to Gauss-Hermite quadrature
-  prob <- stats::plogis(fitted_link / sqrt(1 + pi * var_link / 8))
-  if (family == "binomial" && !is.null(size)) prob <- prob * size
-  prob
-}
 
 #' Remove a model offset from a fitted link-scale vector
 #'
@@ -196,4 +189,3 @@ w_offset_free <- function(w, offset) {
     w - as.vector(offset)
   }
 }
-

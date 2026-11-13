@@ -30,24 +30,14 @@ test_that("explicit NULL coordinates match omitted coordinates in independent fi
       actual <- do.call(fun, c(args, coords))
       expect_identical(actual[setdiff(names(actual), "call")],
         reference[setdiff(names(reference), "call")])
-      expect_false(conditional_has_coordinates(actual, actual$newdata))
       expect_identical(predict(actual, nd, se.fit = TRUE, local = FALSE),
         predict(reference, nd, se.fit = TRUE, local = FALSE))
-      ctl <- FALSE
       set.seed(2)
-      expected <- conditional(reference, samples = 3, local = ctl)
+      expected <- conditional(reference, samples = 3)
       set.seed(2)
-      expect_identical(conditional(actual, samples = 3, local = ctl), expected)
+      expect_identical(conditional(actual, samples = 3), expected)
       set.seed(2)
-      expect_identical(conditional(actual, nd, samples = 3, local = ctl), expected)
-      if (random) {
-        for (newdata in list(nd, actual$newdata)) {
-          expect_error(conditional(actual, newdata, samples = 1, local = TRUE),
-            "simulation without coordinates")
-        }
-        expect_error(conditional(actual, samples = 1, local = TRUE),
-          "simulation without coordinates")
-      }
+      expect_identical(conditional(actual, nd, samples = 3), expected)
     }
   }
 })
@@ -72,19 +62,18 @@ test_that("explicit NULL coordinates preserve spatial and sf fitting behavior", 
     expect_warning(actual <- do.call(fun, c(args, list(xcoord = NULL, ycoord = NULL))), NA)
     expect_identical(actual[setdiff(names(actual), "call")],
       reference[setdiff(names(reference), "call")])
-    expect_true(conditional_has_coordinates(actual, args$data))
   }
 })
 
 test_that("explicit NULL coordinates preserve unconditional simulation behavior", {
   d <- local_coordinate_fixture(24)
   params <- spcov_params("exponential", de = .3, ie = .5, range = .4)
-  for (ctl in list(FALSE, list(size = 5, ordering = "none"))) {
+  {
     set.seed(2)
-    reference <- sprnorm(params, data = d, xcoord = cx, samples = 3, local = ctl)
+    reference <- sprnorm(params, data = d, xcoord = cx, samples = 3)
     set.seed(2)
     expect_identical(sprnorm(params, data = d, xcoord = cx, ycoord = NULL,
-      samples = 3, local = ctl), reference)
+      samples = 3), reference)
   }
   expect_error(sprnorm(params, data = d, xcoord = NULL), "xcoord argument must be specified")
   for (type in c("none", "ie")) {
@@ -206,17 +195,15 @@ test_that("one-dimensional conditional simulation matches constant-y spatial fit
     fun <- if (glm) spglm else splm
     fit <- do.call(fun, c(args, if (null_y) list(ycoord = NULL)))
     reference <- do.call(fun, c(args, list(ycoord = "cy")))
-    expect_true(conditional_has_coordinates(fit, nd))
-    expect_false(conditional_has_coordinates(fit, nd[setdiff(names(nd), xname)]))
-    for (ctl in list(FALSE, TRUE, list(size = 7, ordering = "none"))) {
+    {
       set.seed(2)
-      expected <- conditional(reference, nd, samples = 3, local = ctl)
+      expected <- conditional(reference, nd, samples = 3)
       set.seed(2)
-      actual <- conditional(fit, nd, samples = 3, local = ctl)
+      actual <- conditional(fit, nd, samples = 3)
       expect_equal(actual, expected, tolerance = 1e-12)
       expect_identical(dim(actual), c(6L, 3L))
       set.seed(2)
-      expect_identical(conditional(fit, samples = 3, local = ctl), actual)
+      expect_identical(conditional(fit, samples = 3), actual)
     }
   }
 })
@@ -230,15 +217,15 @@ test_that("one-dimensional conditional simulation ignores unused y coordinates",
     fit <- splm(y ~ x, d, xcoord = cx, spcov_initial = params, ddf = "asymptotic")
     expect_warning(with_y <- splm(y ~ x, d, xcoord = cx, ycoord = cy,
       spcov_initial = params, ddf = "asymptotic"), "Ignoring y-coordinate")
-    for (ctl in list(FALSE, TRUE)) {
+    {
       set.seed(2)
-      expected <- conditional(fit, nd, samples = 3, local = ctl)
+      expected <- conditional(fit, nd, samples = 3)
       set.seed(2)
-      expect_identical(conditional(with_y, nd, samples = 3, local = ctl), expected)
+      expect_identical(conditional(with_y, nd, samples = 3), expected)
       polluted <- nd
       polluted[[fit$ycoord]] <- seq_len(nrow(nd))
       set.seed(2)
-      expect_identical(conditional(fit, polluted, samples = 3, local = ctl), expected)
+      expect_identical(conditional(fit, polluted, samples = 3), expected)
     }
   }
 })
@@ -254,14 +241,14 @@ test_that("one-dimensional conditional coordinates support geometry and random e
       spcov_initial = params, randcov_initial = randcov_initial(g = .2, known = "given"))
     if (glm) args$family <- "poisson" else args$ddf <- "asymptotic"
     fit <- do.call(if (glm) spglm else splm, args)
-    for (ctl in list(FALSE, TRUE)) {
+    {
       set.seed(2)
-      expected <- conditional(fit, nd, samples = 3, local = ctl)
+      expected <- conditional(fit, nd, samples = 3)
       set.seed(2)
       expect_equal(conditional(fit, sf::st_as_sf(nd, coords = c("cx", "cy")),
-        samples = 3, local = ctl), expected, tolerance = 1e-12)
+        samples = 3), expected, tolerance = 1e-12)
     }
-    expect_error(conditional(fit, nd[setdiff(names(nd), "cx")], local = TRUE), "cx")
+    expect_error(conditional(fit, nd[setdiff(names(nd), "cx")]), "cx")
   }
 })
 
@@ -278,11 +265,11 @@ test_that("one-dimensional conditional coordinates preserve coordinate predictor
     reference <- do.call(fun, args)
     expect_warning(fit <- do.call(fun, c(args, list(ycoord = "cy"))), "Ignoring y-coordinate")
     observed <- fit$obdata
-    for (ctl in list(FALSE, TRUE)) {
+    {
       set.seed(2)
-      expected <- conditional(reference, nd, samples = 3, local = ctl)
+      expected <- conditional(reference, nd, samples = 3)
       set.seed(2)
-      expect_equal(conditional(fit, nd, samples = 3, local = ctl), expected, tolerance = 1e-12)
+      expect_equal(conditional(fit, nd, samples = 3), expected, tolerance = 1e-12)
     }
     expect_identical(fit$obdata, observed)
   }
@@ -404,13 +391,13 @@ test_that("one-dimensional covariance fits agree in prediction and cross validat
         se.fit = TRUE, local = ctl), NA)
       expect_equal(actual, expected)
     }
-    for (ctl in list(FALSE, TRUE)) {
+    {
       set.seed(2)
-      expected <- conditional(reference, nd, samples = 3, local = ctl)
+      expected <- conditional(reference, nd, samples = 3)
       set.seed(2)
-      expect_equal(conditional(fit, nd, samples = 3, local = ctl), expected)
+      expect_equal(conditional(fit, nd, samples = 3), expected)
       set.seed(2)
-      expect_equal(conditional(fit, samples = 3, local = ctl), expected)
+      expect_equal(conditional(fit, samples = 3), expected)
     }
   }
 })
@@ -602,17 +589,11 @@ test_that("stored and supplied coordinate-free prediction rows use the same cont
       spcov_initial = params, randcov_initial = randparams) else
       splm(y ~ x, d, random = ~g, spcov_initial = params, randcov_initial = randparams,
         ddf = "asymptotic")
-    for (ctl in list(TRUE, list(ordering = "random"))) {
-      implicit <- tryCatch(conditional(fit, samples = 1, local = ctl), error = conditionMessage)
-      expect_match(implicit, "simulation without coordinates")
-      expect_error(conditional(fit, nd, samples = 1, local = ctl), implicit, fixed = TRUE)
-      expect_error(conditional(fit, fit$newdata, samples = 1, local = ctl), implicit, fixed = TRUE)
-    }
-    for (ctl in list(FALSE, list(method = "all"))) {
+    {
       set.seed(2)
-      implicit <- conditional(fit, samples = 3, local = ctl)
+      implicit <- conditional(fit, samples = 3)
       set.seed(2)
-      expect_identical(conditional(fit, nd, samples = 3, local = ctl), implicit)
+      expect_identical(conditional(fit, nd, samples = 3), implicit)
       expect_identical(dim(implicit), c(4L, 3L))
     }
   }
@@ -637,11 +618,10 @@ test_that("supplied coordinates remain available for independent random-effect s
     if (glm) args$family <- "poisson" else args$ddf <- "asymptotic"
     fit <- do.call(if (glm) spglm else splm, args)
     nd <- args$data[21:24, ]
-    ctl <- TRUE
     set.seed(2)
-    implicit <- conditional(fit, samples = 3, local = ctl)
+    implicit <- conditional(fit, samples = 3)
     set.seed(2)
-    expect_equal(conditional(fit, nd, samples = 3, local = ctl), implicit)
+    expect_equal(conditional(fit, nd, samples = 3), implicit)
     expect_identical(dim(implicit), c(4L, 3L))
   }
 })

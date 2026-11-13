@@ -9,13 +9,13 @@ test_that("splm conditional simulation returns requested outputs", {
   expect_true(all(is.finite(draws$newdata)))
 })
 
-test_that("Poisson conditional simulation supports exact and local paths", {
+test_that("Poisson conditional simulation supports exact draws", {
   data <- data.frame(cx = seq_len(12), x = rep(c(-1, 0, 1), 4),
     y = c(2, 1, 4, 3, 6, 2, 1, 4, 5, 2, 3, 6))
   fit <- spglm(y ~ x, data, family = "poisson", xcoord = cx,
     spcov_initial = spcov_initial("exponential", de = 0.4, ie = 0.2, range = 3, known = "given"))
-  for (local in list(FALSE, list(size = 3, ordering = "none"))) {
-    draws <- conditional(fit, data[1:2, ], samples = 2, type = "new", local = local)
+  {
+    draws <- conditional(fit, data[1:2, ], samples = 2, type = "new")
     expect_equal(dim(draws), c(2, 2))
     expect_true(all(is.finite(draws) & draws >= 0 & draws == floor(draws)))
   }

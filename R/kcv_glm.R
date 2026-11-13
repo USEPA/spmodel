@@ -2,26 +2,22 @@
 #' when \code{cv_predict = TRUE} and using \code{spglm()} or \code{spgautor} objects.
 #' @param delta A logical indicating whether to return delta method standard errors
 #' on the response scale when \code{se.fit = TRUE} and \code{type = "response"}. The default is \code{FALSE}.
-#' @inheritParams loocv
 #' @rdname kcv
 #' @method kcv spglm
 #' @order 4
 #' @export
-kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, folds_index, fit_correct = TRUE, ...) {
-  center <- get_latent_center(object, fit_correct)
-  need_se <- se.fit || center$active
-  fit_correct <- center$active
+kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, folds_index, ...) {
   # match type argument so the two display
   type <- match.arg(type)
 
   if (missing(local)) local <- NULL
   if (missing(folds_index)) folds_index <- NULL
-  
+
   if (is.null(folds_index)) {
     check_kcv_k(k, object$n)
 
     if (k == object$n) {
-      return(loocv(object, cv_predict = cv_predict, type = type, se.fit = se.fit, delta = delta, local = local, fit_correct = fit_correct, ...))
+      return(loocv(object, cv_predict = cv_predict, type = type, se.fit = se.fit, delta = delta, local = local, ...))
     }
     fold_id <- get_kcv_folds(k, object$n)
   } else {
@@ -44,7 +40,7 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
   y <- object$y
 
   cv_predict_val <- numeric(object$n)
-  if (need_se) cv_predict_se <- numeric(object$n)
+  if (se.fit) cv_predict_se <- numeric(object$n)
 
   if (local_list$method == "all") {
     # exact k-fold CV: build the covariance matrix (on the latent link scale)
@@ -69,7 +65,7 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
 
     # kriging covaries via Sigma (the offset-free latent process)
     model_offset <- model.offset(model.frame(object))
-    w <- w_offset_free(center$eta, model_offset)
+    w <- w_offset_free(fitted(object, type = "link"), model_offset)
 
     # some products
     SigInv_w <- SigInv %*% w
@@ -89,20 +85,20 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
       cv_predict_val_list <- parallel::parLapply(cl, fold_list, get_kcv_glm,
         Sig = cov_matrix_val,
         SigInv = SigInv, Xmat = X, w = as.matrix(w), wX = wX,
-        SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = need_se
+        SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
       )
       cl <- parallel::stopCluster(cl)
     } else {
       cv_predict_val_list <- lapply(fold_list, get_kcv_glm,
         Sig = cov_matrix_val,
         SigInv = SigInv, Xmat = X, w = as.matrix(w, ncol = 1), wX = wX,
-        SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = need_se
+        SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
       )
     }
     for (i in seq_along(fold_list)) {
       fold_rows <- fold_list[[i]]
       cv_predict_val[fold_rows] <- cv_predict_val_list[[i]]$pred
-      if (need_se) cv_predict_se[fold_rows] <- cv_predict_val_list[[i]]$se.fit
+      if (se.fit) cv_predict_se[fold_rows] <- cv_predict_val_list[[i]]$se.fit
     }
     # get_kcv_glm() predicted the offset-free latent process, so give each
     # held-out row its own offset back (standard errors are unaffected, since
@@ -155,8 +151,8 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
 
       # refit$missing_index (ascending) always equals fold_rows (ascending),
       # so predict()'s default no-newdata output lines up positionally
-      pred <- predict(refit, type = "link", se.fit = need_se, local = local_list, interval = "none", fit_correct = fit_correct)
-      if (need_se) {
+      pred <- predict(refit, type = "link", se.fit = se.fit, local = local_list, interval = "none")
+      if (se.fit) {
         cv_predict_val[fold_rows] <- pred$fit
         cv_predict_se[fold_rows] <- pred$se.fit
       } else {
@@ -168,11 +164,7 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
   # kcv computations above happen on the link scale (like the latent w),
   # so map back to the response scale via the family's inverse link before
   # comparing against the observed response y for the fit statistics
-  cv_predict_val_invlink <- if (center$active) {
-    invlink_mean(cv_predict_val, cv_predict_se^2, object$family, object$size)
-  } else {
-    invlink(cv_predict_val, object$family, object$size)
-  }
+  cv_predict_val_invlink <- invlink(cv_predict_val, object$family, object$size)
 
   cv_predict_error <- y - cv_predict_val_invlink
   bias <- mean(cv_predict_error)
@@ -218,9 +210,7 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
 #' @method kcv spgautor
 #' @order 5
 #' @export
-kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, folds_index, fit_correct = TRUE, ...) {
-  center <- get_latent_center(object, fit_correct)
-  need_se <- se.fit || center$active
+kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "response"), se.fit = FALSE, delta = FALSE, local, folds_index, ...) {
   # match type argument so the two display
   type <- match.arg(type)
 
@@ -233,7 +223,7 @@ kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "respon
     check_kcv_k(k, object$n)
 
     if (k == object$n) {
-      return(loocv(object, cv_predict = cv_predict, type = type, se.fit = se.fit, delta = delta, local = local, fit_correct = fit_correct, ...))
+      return(loocv(object, cv_predict = cv_predict, type = type, se.fit = se.fit, delta = delta, local = local, ...))
     }
     fold_id <- get_kcv_folds(k, object$n)
   } else {
@@ -267,7 +257,7 @@ kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "respon
 
   # kriging covaries via Sigma (the offset-free latent process)
   model_offset <- model.offset(model.frame(object))
-  w <- w_offset_free(center$eta, model_offset)
+  w <- w_offset_free(fitted(object, type = "link"), model_offset)
 
   # some products
   SigInv_w <- SigInv %*% w
@@ -287,23 +277,23 @@ kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "respon
     cv_predict_val_list <- parallel::parLapply(cl, fold_list, get_kcv_glm,
       Sig = cov_matrix_val,
       SigInv = SigInv, Xmat = X, w = as.matrix(w), wX = wX,
-      SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = need_se
+      SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
     )
     cl <- parallel::stopCluster(cl)
   } else {
     cv_predict_val_list <- lapply(fold_list, get_kcv_glm,
       Sig = cov_matrix_val,
       SigInv = SigInv, Xmat = X, w = as.matrix(w, ncol = 1), wX = wX,
-      SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = need_se
+      SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
     )
   }
 
   cv_predict_val <- numeric(object$n)
-  if (need_se) cv_predict_se <- numeric(object$n)
+  if (se.fit) cv_predict_se <- numeric(object$n)
   for (i in seq_along(fold_list)) {
     fold_rows <- fold_list[[i]]
     cv_predict_val[fold_rows] <- cv_predict_val_list[[i]]$pred
-    if (need_se) cv_predict_se[fold_rows] <- cv_predict_val_list[[i]]$se.fit
+    if (se.fit) cv_predict_se[fold_rows] <- cv_predict_val_list[[i]]$se.fit
   }
   # give each held-out row its own offset back (see the analogous step in
   # kcv.spglm())
@@ -311,11 +301,7 @@ kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "respon
     cv_predict_val <- cv_predict_val + as.vector(model_offset)
   }
 
-  cv_predict_val_invlink <- if (center$active) {
-    invlink_mean(cv_predict_val, cv_predict_se^2, object$family, object$size)
-  } else {
-    invlink(cv_predict_val, object$family, object$size)
-  }
+  cv_predict_val_invlink <- invlink(cv_predict_val, object$family, object$size)
 
   cv_predict_error <- y - cv_predict_val_invlink
   bias <- mean(cv_predict_error)

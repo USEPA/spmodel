@@ -10,23 +10,8 @@ get_conditional_random_design <- function(object, newdata) {
   get_randcov_design(observed, coef(object, type = "randcov"), object$partition_factor, newdata)
 }
 
-conditional_random_blocks <- function(object, size = 1000L, groups = NULL, method = "kmeans") {
-  n <- NROW(object$obdata)
-  if (is.null(size)) size <- 1000L
-  if (is.null(method)) method <- "kmeans"
-  if (is.null(groups)) groups <- ceiling(n / size)
-  if (groups == 1L) return(list(seq_len(n)))
-  if (method == "kmeans") {
-    xy <- object$obdata[, c(object$xcoord, object$ycoord), drop = FALSE]
-    if (NROW(unique(xy)) < groups) stop("Too few distinct observed locations for the requested random-effect blocks; increase local$size_random or reduce local$groups_random, or use local$method_random = \"random\".", call. = FALSE)
-    if (groups == n) return(as.list(seq_len(n)))
-  }
-  labels <- get_local_estimation_index(list(method = method, groups = groups, size = ceiling(n / groups)),
-    object$obdata, object$xcoord, object$ycoord, n)
-  unname(split(seq_len(n), labels))
-}
 
-prepare_conditional_random <- function(object, design, local_list = NULL, covariance = NULL, spatial_factor = NULL) {
+prepare_conditional_random <- function(object, design, covariance = NULL, spatial_factor = NULL) {
   Z <- design$observed
   n <- NROW(Z)
   active <- which(design$variance > 0 & design$info$conditioned)
@@ -37,11 +22,6 @@ prepare_conditional_random <- function(object, design, local_list = NULL, covari
   ), call. = FALSE, immediate. = TRUE)
   spatial <- conditional_spatial_object(object)
   blocks <- list(seq_len(n))
-  if (!is.null(local_list) && !local_list$exact) {
-    blocks <- local_list$random_blocks
-    if (is.null(blocks)) blocks <- conditional_random_blocks(object, local_list$size_random,
-      local_list$groups_random, local_list$method_random)
-  }
   precision <- diag(1 / design$variance[active], length(active))
   prepared <- vector("list", length(blocks))
   for (k in seq_along(blocks)) {
@@ -93,47 +73,42 @@ check_conditional_random_output <- function(value) {
   value
 }
 
-prepare_conditional_random_prediction <- function(context, newdata, local_list = NULL) {
+prepare_conditional_random_prediction <- function(context, newdata) {
   if (!NROW(newdata)) return(list())
-  if (!is.null(local_list) && !local_list$exact) return(prepare_conditional_vecchia(context$spatial, newdata, local_list))
   lower <- t(context$blocks[[1L]]$factor)
   covariance <- get_conditional_prediction_covariance(newdata, context$spatial)
   factor <- factor_conditional_prediction_covariance(covariance, lower)
   list(factor = factor, lower = lower)
 }
 
-draw_conditional_random_prediction <- function(context, prediction, residual, a, local_list = NULL) {
+draw_conditional_random_prediction <- function(context, prediction, residual, a) {
   m <- NROW(context$design$newdata)
   samples <- NCOL(residual)
   if (!m) return(matrix(numeric(), 0, samples))
   spatial <- residual - as.matrix(context$design$observed %*% a)
-  if (!is.null(local_list) && !local_list$exact) {
-    value <- draw_conditional_vecchia(prediction, spatial, samples)
-  } else {
-    whitened <- forwardsolve(prediction$lower, spatial)
-    value <- unname(crossprod(prediction$factor$SqrtSigInv_c0, whitened) +
-      prediction$factor$chol_cond_cov %*% matrix(rnorm(m * samples), m, samples))
-  }
+  whitened <- forwardsolve(prediction$lower, spatial)
+  value <- unname(crossprod(prediction$factor$SqrtSigInv_c0, whitened) +
+    prediction$factor$chol_cond_cov %*% matrix(rnorm(m * samples), m, samples))
   value + as.matrix(context$design$newdata %*% a)
 }
 
-get_conditional_random_lm <- function(object, newdata, Xnew, y, local_list, samples, design, random = FALSE) {
+get_conditional_random_lm <- function(object, newdata, Xnew, y, samples, design, random = FALSE) {
   X <- model.matrix(object)
-  context <- prepare_conditional_random(object, design, local_list)
-  prediction <- prepare_conditional_random_prediction(context, newdata, local_list)
+  context <- prepare_conditional_random(object, design)
+  prediction <- prepare_conditional_random_prediction(context, newdata)
   betahat <- coef(object)
   factor <- t(chol(vcov(object)))
   beta <- matrix(NA_real_, length(betahat), samples, dimnames = list(names(betahat), NULL))
   value <- matrix(NA_real_, NROW(Xnew), samples)
   effects <- if (random) matrix(NA_real_, length(design$variance), samples) else NULL
-  chunk_size <- if (local_list$exact) samples else get_conditional_chunk_size(local_list)
+  chunk_size <- samples
   for (start in seq.int(1L, samples, by = chunk_size)) {
     cols <- seq.int(start, min(samples, start + chunk_size - 1L))
     beta[, cols] <- betahat + factor %*% matrix(rnorm(length(betahat) * length(cols)), length(betahat))
     residual <- y - X %*% beta[, cols, drop = FALSE]
     a <- draw_conditional_random(context, residual)
     value[, cols] <- Xnew %*% beta[, cols, drop = FALSE] +
-      draw_conditional_random_prediction(context, prediction, residual, a, local_list)
+      draw_conditional_random_prediction(context, prediction, residual, a)
     if (random) effects[, cols] <- a
   }
   list(beta = beta, newdata = value, random = if (random) conditional_random_output(effects, design) else NULL)

@@ -140,7 +140,7 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
       partition_factor = object$partition_factor, reform_bar2 = reform_bar2,
       partition_index_obdata = partition_index_obdata, cov_lowchol = cov_lowchol,
       Xmat = model.matrix(object), y = object$y, dim_coords = object$dim_coords,
-      betahat = coefficients(object), cov_betahat = vcov(object, var_correct = FALSE),
+      betahat = coef(object), cov_betahat = vcov(object, var_correct = FALSE),
       contrasts = object$contrasts, local = local_list, family = object$family,
       w = fitted(object, type = "link"), model_offset = model.offset(model.frame(object)),
       size = object$size, dispersion = dispersion_params_val,
@@ -190,16 +190,13 @@ predict.spglm <- function(object, newdata, type = c("link", "response", "terms",
         if (type == "response" && se.fit && delta) {
           se <- get_delta_se(fit, se, object$family, newdata_size)
         }
-        if (type == "response") {
-          fit <- invlink(fit, object$family, newdata_size)
-        }
       } else {
         se <- NULL
-        if (type == "response") {
-          fit <- invlink(fit, object$family, newdata_size)
-        }
       }
-      return(finalize_interval_none(fit, se, add_newdata_rows, object$missing_index))
+      if (type == "response") {
+        fit <- invlink(fit, object$family, newdata_size)
+      }
+      return(finalize_interval_none(fit, if (se.fit) se else NULL, add_newdata_rows, object$missing_index))
     }
 
     if (interval == "prediction") {
@@ -335,6 +332,7 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
   local <- prediction_object$local
   family <- prediction_object$family
   w <- prediction_object$w
+  w_mode <- w
   model_offset <- prediction_object$model_offset
   size <- prediction_object$size
   dispersion <- prediction_object$dispersion
@@ -367,8 +365,23 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
   )
   obdata <- local_setup$obdata
   randcov_terms <- local_setup$randcov_terms
+  obdata_index <- local_setup$obdata_index
   dist_vector <- local_setup$dist_vector
   cov_vector_val <- local_setup$cov_vector_val
+
+  # Partition filtering happens before neighbor selection. Compose that
+  # retained-row mapping with every observation-level latent quantity so the
+  # covariance/design rows continue to describe the same sites.
+  n_observed <- length(w)
+  w <- w[obdata_index]
+  w_mode <- w_mode[obdata_index]
+  y <- y[obdata_index]
+  if (!is.null(size)) {
+    size <- size[obdata_index]
+  }
+  if (!is.null(model_offset)) {
+    model_offset <- model_offset[obdata_index]
+  }
 
   # subsetting data if method distance
   if (local$method == "distance") {
@@ -378,6 +391,7 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
     obdata <- obdata[keep, , drop = FALSE]
     cov_vector_val <- cov_vector_val[keep]
     w <- w[keep]
+    w_mode <- w_mode[keep]
     y <- y[keep]
     if (!is.null(size)) {
       size <- size[keep]
@@ -395,6 +409,7 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
     obdata <- obdata[keep, , drop = FALSE]
     cov_vector_val <- cov_vector_val[keep]
     w <- w[keep]
+    w_mode <- w_mode[keep]
     y <- y[keep]
     if (!is.null(size)) {
       size <- size[keep]
@@ -446,8 +461,8 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
     fit <- x0 %*% betahat_wt + base::crossprod(SqrtSigInv_c0, base::forwardsolve(cov_lowchol, residuals_weight))
     if (local$method %in% c("distance", "covariance")) {
       wtfit <- fit
-      fit <- Matrix::Matrix(0, nrow = 1, ncol = n, sparse = TRUE)
-      fit[keep] <- wtfit
+      fit <- Matrix::Matrix(0, nrow = 1, ncol = n_observed, sparse = TRUE)
+      fit[obdata_index[keep]] <- wtfit
     }
   } else {
     # universal kriging BLUP on the link scale: the trend x0 %*% betahat plus
@@ -465,7 +480,7 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
     # a random slope's contribution to Var(Y0) is sigma^2 * x0^2, not sigma^2
     # (as it would be for a random intercept), so it must be computed for this
     # specific newdata row rather than summed directly from randcov_params_val
-    total_var <- spcov_params_val[["de"]] + spcov_params_val[["ie"]] +
+    total_var <- spcov_target_var(spcov_params_val, diagtol) +
       randcov_newvar(randcov_params_val, newdata_list$row, randcov_terms)
     var <- as.numeric(total_var - base::crossprod(SqrtSigInv_c0, SqrtSigInv_c0) + H %*% base::tcrossprod(cov_betahat, H))
     if (predvar_adjust_ind) {
@@ -473,12 +488,10 @@ get_pred_spglm <- function(newdata_list, prediction_object) {
       # directly like y in the Gaussian case), so its own estimation
       # uncertainty contributes an extra variance term on top of the usual
       # kriging variance above
-      # get_wts_varw() uses w only in get_d()/get_D(), so it takes the
-      # offset-inclusive linear predictor (both pieces are now subset to the
-      # same local neighbourhood as Xmat and y)
+      # Curvature stays at the offset-inclusive mode after neighborhood subsetting.
       var_adj <- get_wts_varw(
         family, Xmat, y,
-        if (is.null(model_offset)) w else w + as.vector(model_offset),
+        w_mode,
         size, dispersion, cov_lowchol, x0, c0
       )
       var <- var_adj + var
@@ -647,16 +660,13 @@ predict.spgautor <- function(object, newdata, type = c("link", "response", "term
         if (type == "response" && se.fit && delta) {
           se <- get_delta_se(fit, se, object$family, newdata_size)
         }
-        if (type == "response") {
-          fit <- invlink(fit, object$family, newdata_size)
-        }
       } else {
         se <- NULL
-        if (type == "response") {
-          fit <- invlink(fit, object$family, newdata_size)
-        }
       }
-      return(finalize_interval_none(fit, se, add_newdata_rows = TRUE, object$missing_index))
+      if (type == "response") {
+        fit <- invlink(fit, object$family, newdata_size)
+      }
+      return(finalize_interval_none(fit, if (se.fit) se else NULL, add_newdata_rows = TRUE, object$missing_index))
     }
 
     if (interval == "prediction") {

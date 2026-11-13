@@ -24,7 +24,7 @@ MathJax.Hub.Config({
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.14.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.15.0</span>
       </span>
     </div>
 
@@ -54,7 +54,7 @@ MathJax.Hub.Config({
       <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
-      <a href="../articles/simulation.html">Simulating Spatial Data in spmodel</a>
+      <a href="../articles/simulation.html">Simulating Large Spatial Data in spmodel</a>
     </li>
     <li>
       <a href="../articles/conditional.html">Conditional Simulation in spmodel</a>
@@ -246,7 +246,8 @@ if <code>index</code> is provided. If <code>method = "random"</code>,
 observations are randomly assigned to <code>index</code> based on <code>size</code>.
 If <code>method = "kmeans"</code>, observations assigned to <code>index</code>
 based on k-means clustering on the coordinates with <code>groups</code> clusters. The default
-is <code>"kmeans"</code>. Note that both methods have a random component, which
+is <code>"kmeans"</code> when coordinates are supplied, and <code>"random"</code> otherwise.
+Both methods have a random component, which
 means that you may get different results from separate model fitting calls.
 To ensure consistent results, specify <code>index</code> or set a seed via
 <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">base::set.seed()</a></code>.</p></li>
@@ -461,18 +462,18 @@ so they have variance 1 before optimization.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Deviance Residuals:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Min      1Q  Median      3Q     Max </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -1.5220 -0.8048  0.5531  0.8218  1.5765 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -1.5193 -0.8024  0.5517  0.8211  1.5738 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (fixed):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error z value Pr(&gt;|z|)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) -0.897017   1.192058  -0.752    0.452</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> elev         0.002442   0.003236   0.755    0.450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) -0.890952   1.173444  -0.759    0.448</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> elev         0.002414   0.003237   0.746    0.456</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Pseudo R-squared: 0.003172</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Pseudo R-squared: 0.003122</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (exponential spatial covariance):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        de        ie     range </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4.063e+00 4.263e-04 3.325e+04 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4.010e+00 4.010e-04 3.213e+04 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (Dispersion for binomial family):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> dispersion </span>

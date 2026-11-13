@@ -87,18 +87,28 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
   check_newdata_coords(newdata, xcoord, ycoord)
 
   if (object$anisotropy) { # could just do rotate != 0 || scale != 1
+    # User covariance functions expect raw coordinates and apply anisotropy
+    # themselves. Keep those columns unchanged and use private transformed
+    # columns only for the low-level distance/neighbor calculations below.
     obdata_aniscoords <- transform_anis(obdata, xcoord, ycoord,
       rotate = spcov_params_val[["rotate"]],
       scale = spcov_params_val[["scale"]]
     )
-    obdata[[xcoord]] <- obdata_aniscoords$xcoord_val
-    obdata[[ycoord]] <- obdata_aniscoords$ycoord_val
     newdata_aniscoords <- transform_anis(newdata, xcoord, ycoord,
       rotate = spcov_params_val[["rotate"]],
       scale = spcov_params_val[["scale"]]
     )
-    newdata[[xcoord]] <- newdata_aniscoords$xcoord_val
-    newdata[[ycoord]] <- newdata_aniscoords$ycoord_val
+    coord_names <- make.unique(c(
+      names(obdata), names(newdata),
+      "...spmodel_anis_xcoord...", "...spmodel_anis_ycoord..."
+    ))
+    anis_coord_names <- tail(coord_names, 2)
+    obdata[[anis_coord_names[[1]]]] <- obdata_aniscoords$xcoord_val
+    obdata[[anis_coord_names[[2]]]] <- obdata_aniscoords$ycoord_val
+    newdata[[anis_coord_names[[1]]]] <- newdata_aniscoords$xcoord_val
+    newdata[[anis_coord_names[[2]]]] <- newdata_aniscoords$ycoord_val
+    xcoord <- anis_coord_names[[1]]
+    ycoord <- anis_coord_names[[2]]
   }
 
   newdata_model_list <- get_newdata_model_matrix(object, newdata)
@@ -227,7 +237,7 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
           nodes = seq_len(local$size_new),
           parallel = local$parallel, ncores = local$ncores
         )
-        de_ie <- spcov_params_val[["de"]] + spcov_params_val[["ie"]]
+        de_ie <- spcov_target_var(spcov_params_val, object$diagtol)
         c0 <- bq$c0
         s0 <- bq$s0 + de_ie * (1 / G - 1 / local$size_new)
       } else {
@@ -354,7 +364,7 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
 #' \code{nodes = seq_len(G)} every block point is a node and \code{s0} is
 #' exact (this replaces the old row-by-row \code{get_bk_var()}) used by \code{local$method_new = "basis"}.
 #' \code{covmatrix()}'s \code{"pred.obs"} type omits the independent error
-#' variance for a point against itself, so one \code{ie} is added back per
+#' variance for a point against itself, so one stabilized \code{ie} is added back per
 #' node (mirroring the old \code{get_each_bk_meancov()}), which also places
 #' the block-variance diagonal at exactly the \eqn{1/G} weight that the exact
 #' \code{s0} carries.
@@ -375,7 +385,7 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
 #' @noRd
 get_block_quantities <- function(object, grid, nodes, chunk = 1000L, parallel = FALSE, ncores = NULL) {
   G <- NROW(grid)
-  ie <- object$coefficients$spcov[["ie"]]
+  ie <- spcov_ie_stabilized(object$coefficients$spcov, object$diagtol)
   n_obs <- NROW(object$obdata)
 
   # object_nodes supplies grid[nodes, ] as the "observed" side so that

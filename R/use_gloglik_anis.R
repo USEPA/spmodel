@@ -42,7 +42,7 @@ use_gloglik_anis <- function(spcov_initial, data_object, estmethod, spcov_profil
   optim_dotlist <- check_optim_method(optim_par, optim_dotlist)
 
   # performing optimization
-  optim_output <- do.call("optim", c(
+  optim_output <- optim_with_ie_bound(
     list(
       par = optim_par,
       fn = gloglik_anis,
@@ -53,8 +53,8 @@ use_gloglik_anis <- function(spcov_initial, data_object, estmethod, spcov_profil
       randcov_orig2optim = randcov_orig2optim_val,
       randcov_profiled = randcov_profiled
     ),
-    optim_dotlist
-  ))
+    optim_dotlist, ie_only_lower(optim_par, spcov_initial, data_object$diagtol, spcov_profiled)
+  )
 
   # transforming to original scale. NOTE: unlike the laploglik-family call
   # sites, spcov_initial is deliberately NOT passed here -- floor_estimated_ie()

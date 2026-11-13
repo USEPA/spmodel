@@ -238,6 +238,11 @@ test_that("direct functions work", {
   spcov_params_val <- spcov_params(spcov_type = spcov_type, de = 1, ie = 1, range = 1)
   mod <- decorrelate_data(y ~ x, exdata, xcoord = xcoord, ycoord = ycoord, spcov_params = spcov_params_val)
   expect_s3_class(mod, "decorrelate_data")
+  floor_mod <- decorrelate_data(y ~ x, exdata,
+    xcoord = xcoord, ycoord = ycoord,
+    spcov_params = spcov_params(spcov_type, de = 2, ie = 0, range = 1)
+  )
+  expect_equal(floor_mod$total_var, 2.0002)
   newmod <- decorrelate_newdata(mod, newdata = newexdata)
   expect_s3_class(newmod, "decorrelate_newdata")
   preds <- rnorm(NROW(newexdata))

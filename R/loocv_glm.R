@@ -54,7 +54,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
     # get_d()/get_D() differentiate the data model and stay on w_linpred;
     # see w_offset_free()
     model_offset <- model.offset(model.frame(object))
-    w <- w_offset_free(w_linpred, model_offset)
+    w <- w_offset_free(fitted(object, type = "link"), model_offset)
 
     # some products
     SigInv_w <- SigInv %*% w
@@ -80,7 +80,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
       cl <- parallel::makeCluster(local_list$ncores)
       cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv_glm,
         Sig = cov_matrix_val,
-        SigInv = SigInv, Xmat = X, w = w, wX = wX,
+        SigInv = SigInv, Xmat = X, w = as.matrix(w), wX = wX,
         SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
       )
       cl <- parallel::stopCluster(cl)
@@ -129,7 +129,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
     w_full <- fitted(object, type = "link")
     model_offset_full <- model.offset(model.frame(object))
     size_full <- object$size
-    betahat <- coefficients(object)
+    betahat <- coef(object)
     cov_betahat <- vcov(object, var_correct = FALSE)
 
     extra_randcov_list <- get_extra_randcov_list(object, object$obdata, newdata = object$obdata)
@@ -202,7 +202,7 @@ loocv.spglm <- function(object, cv_predict = FALSE, type = c("link", "response")
     if (se.fit) {
       loocv_out$se.fit <- as.vector(cv_predict_se)
       if (type == "response" && delta) {
-        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family, size)
+        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family, object$size)
       }
     }
 
@@ -243,7 +243,7 @@ loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "respons
   # kriging covaries via Sigma (the offset-free latent process) while
   # get_d()/get_D() differentiate the data model; see w_offset_free()
   model_offset <- model.offset(model.frame(object))
-  w <- w_offset_free(w_linpred, model_offset)
+  w <- w_offset_free(fitted(object, type = "link"), model_offset)
 
   # some products
   SigInv_w <- SigInv %*% w
@@ -266,7 +266,7 @@ loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "respons
     cl <- parallel::makeCluster(local_list$ncores)
     cv_predict_val_list <- parallel::parLapply(cl, seq_len(object$n), get_loocv_glm,
       Sig = cov_matrix_val,
-      SigInv = SigInv, Xmat = X, w = w, wX = wX,
+      SigInv = SigInv, Xmat = X, w = as.matrix(w), wX = wX,
       SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
     )
     cl <- parallel::stopCluster(cl)
@@ -319,7 +319,7 @@ loocv.spgautor <- function(object, cv_predict = FALSE, type = c("link", "respons
     if (se.fit) {
       loocv_out$se.fit <- as.vector(cv_predict_se)
       if (type == "response" && delta) {
-        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family, size)
+        loocv_out$se.fit <- get_delta_se(cv_predict_val, loocv_out$se.fit, object$family, object$size)
       }
     }
 

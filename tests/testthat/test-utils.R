@@ -171,6 +171,66 @@ test_that("smwInv_rand works", {
 })
 
 ################################################################################
+############################ get_randcov_Z() / get_randcov_groups() interaction terms
+################################################################################
+
+test_that("get_randcov_Z() and get_randcov_groups() correctly cross interaction/nested grouping variables (regression test)", {
+  # bug test for where an interaction/nested random-effect
+  # grouping term (e.g. "1 | g1:g2", or "1 | group:subgroup" from
+  # random = ~ group / subgroup) only included its first variable's levels
+  bare <- function(m) {
+    m <- as.matrix(m)
+    matrix(as.vector(m), nrow = nrow(m), dimnames = list(NULL, colnames(m)))
+  }
+
+  set.seed(1)
+  data <- data.frame(
+    g1 = factor(sample(c("a", "b", "c"), 30, replace = TRUE)),
+    g2 = factor(sample(c("x", "y"), 30, replace = TRUE)),
+    g3 = factor(sample(c("p", "q"), 30, replace = TRUE))
+  )
+
+  # 2-way and 3-way crossings must match a dense model.matrix() reference
+  # exactly: same number of columns, same column names/order, same 0/1 values
+  for (form in list(list(term = "1 | g1:g2", mm = ~ g1:g2 - 1),
+                     list(term = "1 | g1:g2:g3", mm = ~ g1:g2:g3 - 1))) {
+    Z <- get_randcov_Z(form$term, data)$Z
+    mm <- model.matrix(form$mm, data)
+    expect_equal(ncol(Z), ncol(mm))
+    expect_equal(colnames(Z), colnames(mm))
+    expect_equal(bare(Z), bare(mm))
+
+    # the variant for fitting: ZZt (same-group
+    # membership) must match the dense reference, regardless of column order
+    ZZt <- get_randcov_Z(form$term, data)$ZZt
+    expect_equal(as.matrix(ZZt), unname(tcrossprod(mm, mm)))
+
+    # fit-time (Z-derived) and predict-time (model_matrix_group_labels())
+    # group membership must agree row for row
+    z_group <- apply(as.matrix(Z), 1, function(r) colnames(Z)[which(r == 1)])
+    expect_equal(unname(z_group), unname(model_matrix_group_labels(form$mm, data)))
+  }
+
+  # unused factor levels (drop.unused.levels = FALSE) must still produce a
+  # (all-zero) column for every level combination, matching a dense reference
+  # that also keeps unused levels
+  data_unused <- data
+  levels(data_unused$g1) <- c(levels(data_unused$g1), "d")
+  Z_unused <- get_randcov_Z("1 | g1:g2", data_unused)$Z
+  mm_unused <- model.matrix(~ g1:g2 - 1, data_unused)
+  expect_equal(ncol(Z_unused), ncol(mm_unused))
+  expect_equal(colnames(Z_unused), colnames(mm_unused))
+  expect_equal(bare(Z_unused), bare(mm_unused))
+
+  # get_randcov_groups() (the large-data helper) must
+  # have the same number of distinct groups as the dense reference
+  groups <- get_randcov_groups(~ g1 / g2, data)
+  mm_ref <- model.matrix(~ g1:g2 - 1, data)
+  mm_ref <- mm_ref[, colSums(abs(mm_ref)) > 0, drop = FALSE]
+  expect_equal(nlevels(droplevels(groups[["1 | g1:g2"]]$group)), ncol(mm_ref))
+})
+
+################################################################################
 ############################ spcov_initial
 ################################################################################
 

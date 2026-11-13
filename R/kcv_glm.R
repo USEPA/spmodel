@@ -12,7 +12,7 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
 
   if (missing(local)) local <- NULL
   if (missing(folds_index)) folds_index <- NULL
-  
+
   if (is.null(folds_index)) {
     check_kcv_k(k, object$n)
 
@@ -65,7 +65,7 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
 
     # kriging covaries via Sigma (the offset-free latent process)
     model_offset <- model.offset(model.frame(object))
-    w <- w_offset_free(w_linpred, model_offset)
+    w <- w_offset_free(fitted(object, type = "link"), model_offset)
 
     # some products
     SigInv_w <- SigInv %*% w
@@ -84,7 +84,7 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
       cl <- parallel::makeCluster(local_list$ncores)
       cv_predict_val_list <- parallel::parLapply(cl, fold_list, get_kcv_glm,
         Sig = cov_matrix_val,
-        SigInv = SigInv, Xmat = X, w = w, wX = wX,
+        SigInv = SigInv, Xmat = X, w = as.matrix(w), wX = wX,
         SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
       )
       cl <- parallel::stopCluster(cl)
@@ -108,10 +108,10 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
     }
   } else {
     # local/big data: refit per fold with the covariance and dispersion
-    # parameters held known (see kcv.splm()'s local branch for why this is
-    # cheap regardless of n), predicting the now-missing fold on the link
-    # scale via predict(), which passes local through to its own
-    # nearest-neighbor approximation
+    # parameters held known, avoiding covariance optimization and predicting
+    # the now-missing fold on the link scale via predict(), which passes local through to its own
+    # nearest-neighbor approximation (but does not recompute
+    # the covariance matrix of betahat for computational efficiency).
     response_name <- all.vars(object$formula)[1]
 
     spcov_params_val <- coef(object, type = "spcov")
@@ -132,21 +132,26 @@ kcv.spglm <- function(object, k = 5, cv_predict = FALSE, type = c("link", "respo
     for (fold_rows in fold_list) {
       data_train <- object$obdata
       data_train[[response_name]][fold_rows] <- NA
+      fit_local <- get_kcv_estimation_local(object, fold_rows, local_list)
 
       # xcoord/ycoord must go through do.call() -- see kcv.splm()'s local
       # branch for why a direct call would break
-      refit <- do.call("spglm", list(
+      refit_args <- list(
         formula = object$formula, data = data_train,
         spcov_initial = spcov_initial_val, dispersion_initial = dispersion_initial_val,
         xcoord = object$xcoord, ycoord = object$ycoord, estmethod = object$estmethod,
         anisotropy = object$anisotropy, random = object$random,
         randcov_initial = randcov_initial_val, partition_factor = object$partition_factor,
-        local = local
-      ))
+        local = fit_local
+      )
+      if (isTRUE(object$dim_coords == 1)) refit_args$ycoord <- NULL
+      refit <- do.call("spglm", refit_args)
+      # Preserve both covariance variants; prediction uses the uncorrected one.
+      refit$vcov$fixed <- object$vcov$fixed
 
       # refit$missing_index (ascending) always equals fold_rows (ascending),
       # so predict()'s default no-newdata output lines up positionally
-      pred <- predict(refit, type = "link", se.fit = se.fit, local = local, interval = "none")
+      pred <- predict(refit, type = "link", se.fit = se.fit, local = local_list, interval = "none")
       if (se.fit) {
         cv_predict_val[fold_rows] <- pred$fit
         cv_predict_se[fold_rows] <- pred$se.fit
@@ -252,7 +257,7 @@ kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "respon
 
   # kriging covaries via Sigma (the offset-free latent process)
   model_offset <- model.offset(model.frame(object))
-  w <- w_offset_free(w_linpred, model_offset)
+  w <- w_offset_free(fitted(object, type = "link"), model_offset)
 
   # some products
   SigInv_w <- SigInv %*% w
@@ -271,7 +276,7 @@ kcv.spgautor <- function(object, k, cv_predict = FALSE, type = c("link", "respon
     cl <- parallel::makeCluster(local_list$ncores)
     cv_predict_val_list <- parallel::parLapply(cl, fold_list, get_kcv_glm,
       Sig = cov_matrix_val,
-      SigInv = SigInv, Xmat = X, w = w, wX = wX,
+      SigInv = SigInv, Xmat = X, w = as.matrix(w), wX = wX,
       SigInv_wX = SigInv_wX, mHinv = mHinv, se.fit = se.fit
     )
     cl <- parallel::stopCluster(cl)

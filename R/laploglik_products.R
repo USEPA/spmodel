@@ -87,8 +87,7 @@ laploglik_products.exponential <- function(spcov_params_val, dispersion_params_v
     w <- w + data_object$offset
   }
   # l00 is minus twice the conditional data log-likelihood at the converged w,
-  # l01 is the Laplace correction (log determinant of the negative Hessian at
-  # the mode); l1/l2/(l3) extend the usual Gaussian wolfinger pieces so that
+  # l01 is the Laplace log determinant; l1/l2/(l3) extend the Gaussian pieces so that
   # get_minustwolaploglik() can combine them the same way as get_minustwologlik()
   l00 <- get_l00(data_object$family, w, y, data_object$size, dispersion)
   l01 <- mHldet
@@ -188,7 +187,7 @@ laploglik_products.car <- function(spcov_params_val, dispersion_params_val, data
     w <- w + data_object$offset
   }
   # l00 is minus twice the conditional data log-likelihood at the converged w,
-  # l01 is the Laplace correction (log determinant of the negative Hessian at the mode)
+  # l01 is the Laplace log determinant
   l00 <- get_l00(data_object$family, w, y, data_object$size, dispersion)
   l01 <- mHldet
   l1 <- Sigldet
@@ -222,9 +221,10 @@ laploglik_products.sar <- laploglik_products.car
 #'
 #' @return A list with elements \code{w} (the converged latent predictor
 #'   vector), \code{H} (always \code{NULL}; retained for a consistent return
-#'   shape), \code{mHldet} (the log-determinant of the negative Hessian), and,
+#'   shape), \code{mHldet} (the Laplace log determinant, unprojected under ML
+#'   and projected under REML), and,
 #'   if \code{ret_mHInv} is \code{TRUE}, \code{mHInv} (the inverse of the
-#'   negative Hessian). When there is more than one partition, the update
+#'   projected negative Hessian). When there is more than one partition, the update
 #'   uses the Sherman-Morrison-Woodbury identity (via \code{smw_HInv()})
 #'   instead of a direct solve, since the Hessian is otherwise too large to invert
 #'
@@ -273,7 +273,8 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
       w <- wnew
     }
 
-    mHldet <- as.numeric(determinant(-H, logarithm = TRUE)$modulus)
+    # ML holds beta fixed in the integral; Newton uses the profiled Hessian.
+    mHldet <- as.numeric(determinant(if (estmethod == "ml") SigInv - D else -H, logarithm = TRUE)$modulus)
     w_and_H_list <- list(w = w, H = NULL, mHldet = mHldet)
     if (ret_mHInv) {
       # not done above because this is only for model stats and solve(H) slower than solve(H, g)
@@ -339,7 +340,13 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
       w <- wnew
     }
 
-    mHldet <- smw_mHldet(A_list = DSigInv_list, AInv = DSigInv_Inv, U = SigInv_X, C = cov_betahat, CInv = cov_betahat_Inv)
+    if (estmethod == "ml") {
+      mHldet <- sum(vapply(DSigInv_list, function(x) {
+        as.numeric(determinant(x, logarithm = TRUE)$modulus)
+      }, numeric(1)))
+    } else {
+      mHldet <- smw_mHldet(A_list = DSigInv_list, AInv = DSigInv_Inv, U = SigInv_X, C = cov_betahat, CInv = cov_betahat_Inv)
+    }
     w_and_H_list <- list(w = w, H = NULL, mHldet = mHldet)
     if (ret_mHInv) {
       w_and_H_list$mHInv <- -HInv
@@ -362,9 +369,10 @@ get_w_and_H_spglm <- function(data_object, dispersion, SigInv_list, SigInv_X, co
 #'
 #' @return A list with elements \code{w} (the converged latent predictor
 #'   vector), \code{H} (always \code{NULL}; retained for a consistent return
-#'   shape), \code{mHldet} (the log-determinant of the negative Hessian), and,
+#'   shape), \code{mHldet} (the Laplace log determinant, unprojected under ML
+#'   and projected under REML), and,
 #'   if \code{ret_mHInv} is \code{TRUE}, \code{mHInv} (the inverse of the
-#'   negative Hessian)
+#'   projected negative Hessian)
 #'
 #' @noRd
 get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_betahat, cov_betahat_Inv, estmethod, ret_mHInv = FALSE) {
@@ -400,7 +408,7 @@ get_w_and_H_spgautor <- function(data_object, dispersion, SigInv, SigInv_X, cov_
     w <- wnew
   }
 
-  mHldet <- as.numeric(determinant(-H, logarithm = TRUE)$modulus)
+  mHldet <- as.numeric(determinant(if (estmethod == "ml") SigInv - D else -H, logarithm = TRUE)$modulus)
   w_and_H_list <- list(w = w, H = NULL, mHldet = mHldet)
   if (ret_mHInv) {
     # not done above because this is only for model stats and solve(H) slower than solve(H, g)

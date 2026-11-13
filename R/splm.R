@@ -89,7 +89,8 @@
 #'       observations are randomly assigned to \code{index} based on \code{size}.
 #'       If \code{method = "kmeans"}, observations assigned to \code{index}
 #'       based on k-means clustering on the coordinates with \code{groups} clusters. The default
-#'       is \code{"kmeans"}. Note that both methods have a random component, which
+#'       is \code{"kmeans"} when coordinates are supplied, and \code{"random"} otherwise.
+#'       Both methods have a random component, which
 #'       means that you may get different results from separate model fitting calls.
 #'       To ensure consistent results, specify \code{index} or set a seed via
 #'       \code{base::set.seed()}.
@@ -330,6 +331,8 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
   # (not missing()) to see whether the argument was supplied.
   xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
   ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
+  if (!length(xcoord)) xcoord <- NULL
+  if (!length(ycoord)) ycoord <- NULL
 
   # get data object
   data_object <- get_data_object_splm(
@@ -391,13 +394,6 @@ splm <- function(formula, data, spcov_type, xcoord, ycoord, spcov_initial,
     local_index <- NULL
   } else {
     local_index <- data_object$local_index
-  }
-
-  # triangular and circular covariances are only valid in one dimension, so
-  # coordinates were collapsed to 1D for estimation; restore/relabel the
-  # stored data object accordingly for downstream use (e.g., prediction)
-  if (inherits(spcov_initial, c("triangular", "circular"))) {
-    data_object <- replace_data_object_dimcoords1(data_object)
   }
 
   output <- list(

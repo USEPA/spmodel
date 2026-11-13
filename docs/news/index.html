@@ -21,7 +21,7 @@ MathJax.Hub.Config({
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.14.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.15.0</span>
       </span>
     </div>
 
@@ -51,7 +51,7 @@ MathJax.Hub.Config({
       <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
-      <a href="../articles/simulation.html">Simulating Spatial Data in spmodel</a>
+      <a href="../articles/simulation.html">Simulating Large Spatial Data in spmodel</a>
     </li>
     <li>
       <a href="../articles/conditional.html">Conditional Simulation in spmodel</a>
@@ -86,7 +86,45 @@ MathJax.Hub.Config({
     </div>
 
     <div class="section level2">
-<h2 class="page-header" data-toc-text="0.14.0" id="spmodel-0140">spmodel 0.14.0<a class="anchor" aria-label="anchor" href="#spmodel-0140"></a></h2>
+<h2 class="page-header" data-toc-text="0.15.0" id="spmodel-0150">spmodel 0.15.0<a class="anchor" aria-label="anchor" href="#spmodel-0150"></a></h2>
+<div class="section level3">
+<h3 id="major-updates-0-15-0">Major Updates<a class="anchor" aria-label="anchor" href="#major-updates-0-15-0"></a></h3>
+<ul><li>Added support for conditional simulation via <code><a href="../reference/conditional.html">conditional()</a></code> for <code><a href="../reference/spautor.html">spautor()</a></code> and <code><a href="../reference/spgautor.html">spgautor()</a></code> model objects, which draws simulated values from the distribution of <code>newdata</code> conditional on observed data.</li>
+<li>Conditional simulation for models with random effects now draws realized effects instead of marginalizing; see <code>output = "random"</code>.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="minor-updates-0-15-0">Minor Updates<a class="anchor" aria-label="anchor" href="#minor-updates-0-15-0"></a></h3>
+<ul><li>
+<code>fitted(type = "randcov")</code> now reports BLUPs by partition factor level rather than averaging over partition factor levels.</li>
+<li>When <code>local</code> is specified, <code><a href="../reference/loocv.html">loocv()</a></code> prediction standard errors for <code><a href="../reference/splm.html">splm()</a></code> objects with <code>spcov_type</code> equal to <code>"none"</code> or <code>"ie"</code> now return predictions and standard errors based on the reestimated fixed effects, rather than via the full-data approximations used by other <code>spcov_type</code>s.</li>
+<li>For <code><a href="../reference/splm.html">splm()</a></code> and <code><a href="../reference/spglm.html">spglm()</a></code> model objects fit with with <code>local</code>, <code>kcv(object, local, ...)</code> now reuses the covariance matrix from <code>object</code> across folds rather than refitting it for each fold (for computational efficiency).</li>
+<li>Updated the <code><a href="../reference/conditional.html">conditional()</a></code> sampling for <code><a href="../reference/spglm.html">spglm()</a></code> model objects to first simulate fixed effects and then the latent means given the fixed effects.</li>
+<li>Updated the Laplace log-likelihood evaluation to use the determinant of the unprojected Hessian for maximum likelihood estimation. This is a breaking change that affects backwards compatibility.</li>
+<li>Restored the Laplace log-likelihood constant <code>n / 2 * log(2 * pi)</code> so likelihood-based statistics are comparable on the standard scale. This is a breaking change that affects backwards compatibility.</li>
+<li>Explicit <code>xcoord</code> and <code>ycoord</code> values of <code>NULL</code> now are treated as though they were omitted.</li>
+<li>Minor vignette updates.</li>
+<li>Minor error message updates.</li>
+<li>Minor documentation updates.</li>
+<li>Minor warning message updates.</li>
+<li>Minor internal consistency and efficiency updates.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-15-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-15-0"></a></h3>
+<ul><li>Fixed parallel nonlocal <code><a href="../reference/loocv.html">loocv()</a></code> and <code><a href="../reference/kcv.html">kcv()</a></code> for GLMs, which could fail with an incorrect-dimensions error.</li>
+<li>Fixed response-scale delta-method standard errors for local binomial <code><a href="../reference/loocv.html">loocv()</a></code>.</li>
+<li>Fixed various bugs related to one-dimensional covariance functions (i.e., triangular and cosine).</li>
+<li>Fixed a bug in <code><a href="../reference/splm.html">splm()</a></code> and <code><a href="../reference/spglm.html">spglm()</a></code> that could affect estimation of <code>ie</code> when it was the only unknown parameter being optimized.</li>
+<li>Fixed a bug that could cause <code><a href="../reference/conditional.html">conditional()</a></code> to error for <code>"none"</code> and <code>"ie"</code> spatial covariance types.</li>
+<li>Fixed a bug that could cause <code>covmatrix(..., cov_type = "pred.pred")</code> to error for random effect or partition levels in <code>newdata</code> missing from <code>data</code>.</li>
+<li>Fixed a bug with <code><a href="../reference/splm.html">splm()</a></code> and <code><a href="../reference/spglm.html">spglm()</a></code> model objects that summed random effect BLUPs over partition factor levels instead of averaging (now superseded by <code>fitted(type = "randcov"</code>) returning BLUPs by partition factor level).</li>
+<li>Fixed a bug that could falsely flag separation warnings in <code><a href="../reference/spglm.html">spglm()</a></code> and <code><a href="../reference/spgautor.html">spgautor()</a></code> for binomial responses when <code>size &gt; 1</code>.</li>
+<li>Fixed a bug that could transform anisotropic coordinates twice for block prediction and <code><a href="../reference/spglm.html">spglm()</a></code> prediction standard errors.</li>
+<li>Fixed a bug that could cause improper row alignment for local <code><a href="../reference/spglm.html">spglm()</a></code> predictions with partition factors.</li>
+<li>Fixed a bug that could cause a random effect grouping term which crossed or nested more than one variable (e.g., <code>random = ~ (1 | group1:group2)</code> or <code>random = ~ group1 / group2</code>) to use only the first grouping variable when fitting <code><a href="../reference/splm.html">splm()</a></code> or <code><a href="../reference/spglm.html">spglm()</a></code> model objects.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="0.14.0" id="spmodel-0140">spmodel 0.14.0<small>2026-09-10</small><a class="anchor" aria-label="anchor" href="#spmodel-0140"></a></h2>
 <div class="section level3">
 <h3 id="major-updates-0-14-0">Major Updates<a class="anchor" aria-label="anchor" href="#major-updates-0-14-0"></a></h3>
 <ul><li>Added support for conditional simulation via <code><a href="../reference/conditional.html">conditional()</a></code> for <code><a href="../reference/splm.html">splm()</a></code> and <code><a href="../reference/spglm.html">spglm()</a></code> model objects, which draws simulated values from the distribution of <code>newdata</code> conditional on observed data.</li>

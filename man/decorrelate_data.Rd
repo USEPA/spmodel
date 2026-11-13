@@ -56,8 +56,8 @@ include \code{"grts"}, \code{"maxmin"}, \code{"middleout"},
 \code{"grts"} applies ordering using a spatially balanced GRTS sample via \code{spsurvey::grts()}.
 \code{"maxmin"} applies maximum minimum distance ordering via \code{GPvecchia::order_maxmin_exact()}.
 \code{"middleout"} applies middle out ordering via \code{GPvecchia::order_middleout()}.
-\code{"outsidein"} applies middle out ordering via \code{GPvecchia::order_outsidein()}.
-\code{"coordinate"} applies middle out ordering via \code{GPvecchia::order_coordinate(..., coordinate = c(1, 2))},
+\code{"outsidein"} applies outside in ordering via \code{GPvecchia::order_outsidein()}.
+\code{"coordinate"} applies coordinate ordering via \code{GPvecchia::order_coordinate(..., coordinate = c(1, 2))},
 which orders from bottom-left to top-right of the spatial domain.
 \code{"random"} applies a completely random ordering.
 \code{"none"} applies no random ordering.

@@ -24,7 +24,7 @@ MathJax.Hub.Config({
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.14.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.15.0</span>
       </span>
     </div>
 
@@ -54,7 +54,7 @@ MathJax.Hub.Config({
       <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
-      <a href="../articles/simulation.html">Simulating Spatial Data in spmodel</a>
+      <a href="../articles/simulation.html">Simulating Large Spatial Data in spmodel</a>
     </li>
     <li>
       <a href="../articles/conditional.html">Conditional Simulation in spmodel</a>
@@ -240,7 +240,8 @@ if <code>index</code> is provided. If <code>method = "random"</code>,
 observations are randomly assigned to <code>index</code> based on <code>size</code>.
 If <code>method = "kmeans"</code>, observations assigned to <code>index</code>
 based on k-means clustering on the coordinates with <code>groups</code> clusters. The default
-is <code>"kmeans"</code>. Note that both methods have a random component, which
+is <code>"kmeans"</code> when coordinates are supplied, and <code>"random"</code> otherwise.
+Both methods have a random component, which
 means that you may get different results from separate model fitting calls.
 To ensure consistent results, specify <code>index</code> or set a seed via
 <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">base::set.seed()</a></code>.</p></li>

@@ -11,10 +11,14 @@
 #'   from the geometry of \code{newdata}. If omitted, missing data from the
 #'   fitted model object are used.
 #' @param output  The output type, which can be any subset of
-#'   \code{c("newdata", "beta", "object")}. If \code{simulate_covparams = TRUE},
+#'   \code{c("newdata", "beta", "object")} (\code{"all"} is shorthand for this full vector).
+#'   If \code{simulate_covparams = TRUE},
 #'   the output type can also be any subset of \code{c("cov", "spcov", "randcov")}.
+#'   For generalized linear models, \code{"latent"} returns simulated observed-site
+#'   link values, including offsets.
+#'   \code{"random"} returns realized random effects.
 #'    The default is \code{"newdata"}. See Details for more.
-#' @param type For \code{spglm()} model objects, the scale of the conditional
+#' @param type For \code{spglm()} and \code{spgautor()} model objects, the scale of the conditional
 #'   simulations for \code{newdata}.
 #'   When \code{type = "link"}, the predicted means on the
 #'   link scale are returned. When \code{type = "response"}, the predicted means
@@ -42,8 +46,12 @@
 #'   If \code{"beta"} is in \code{output},
 #'   conditional simulations are returned for each fixed effect
 #'   (i.e., element of \code{coef(object)}. If \code{"object"} is in \code{output},
-#'   the observed data from \code{object} is returned once for each row of
-#'   \code{newdata}. For example, \code{c("newdata", "beta")} returns
+#'   observed responses (\code{splm()} or \code{spautor()}) or fitted link values (including offsets)
+#'   (\code{spglm()} or \code{spgautor()}) are returned in observed-row order,
+#'   repeated across simulation columns. If \code{"latent"} is requested, the
+#'   actual observed link-scale draws are returned, with offsets included.
+#'  \code{type} affects only \code{newdata}.
+#'   For example, \code{c("newdata", "beta")} returns
 #'   the conditional simulations both for \code{newdata} and for the
 #'   fixed effects. If \code{"cov"}/\code{"spcov"}/\code{"randcov"} is in
 #'   \code{output} (only available when \code{simulate_covparams = TRUE}),
@@ -55,8 +63,13 @@
 #'   If \code{output = "beta"}, an p x b matrix of conditional simulations for each
 #'   element in \code{coef(object)}, where p is the
 #'   number of fixed effects and b is the number of samples.
-#'   If \code{output = "object"}, an n x b matrix of observed data values, where n is the
-#'   number of rows in \code{data} and b is the number of samples.
+#'   If \code{output = "object"}, an n x b matrix of observed responses
+#'   (\code{splm()} and \code{spautor()}) or fitted link values (including offsets)
+#'   (\code{spglm()} and \code{spgautor()}), where n is the number of observed rows and b is the number of samples.
+#'   \code{output = "latent"} returns an n x b matrix of simulated observed
+#'   link values (including offsets).
+#'   \code{output = "random"} returns a q x b matrix of realized random effects coefficients,
+#'   separated by partition factor (when relevant).
 #'   If \code{output = "cov"}/\code{"spcov"}/\code{"randcov"}
 #'   (\code{simulate_covparams = TRUE} only), a (covariance parameter) x b
 #'   matrix of the of conditoinal simulations for each covariance parameter, where b is the
@@ -88,47 +101,41 @@ conditional <- function(object, ...) {
 #' @export
 conditional.splm <- function(object, newdata, output = "newdata", samples = 1000, simulate_covparams = FALSE, ...) {
 
-  # the big data approximation (local) is not supported in this release;
-  # always compute the exact solution
-  local <- FALSE
+  if (!is.numeric(samples) || length(samples) != 1L || !is.finite(samples) || samples < 1 || samples != floor(samples)) {
+    stop("samples must be a positive integer.", call. = FALSE)
+  }
+
   if (!is.logical(simulate_covparams) || length(simulate_covparams) != 1 || is.na(simulate_covparams)) {
     stop("simulate_covparams must be TRUE or FALSE.", call. = FALSE)
   }
 
   if ("all" %in% output) {
-    output <- c("newdata", "beta", "object")
+    output <- c("newdata", "beta", "object", if ("random" %in% output) "random")
   }
-  if (any(!output %in% c("newdata", "beta", "object", "cov", "spcov", "randcov"))) {
-    stop("output must be \"newdata\", \"beta\", \"object\", \"cov\", \"spcov\", \"randcov\", or \"all\".", call. = FALSE)
+  if (!is.character(output) || !length(output) || anyNA(output) || any(!output %in% c("newdata", "beta", "object", "cov", "spcov", "randcov", "random"))) {
+    stop("output must be \"newdata\", \"beta\", \"object\", \"cov\", \"spcov\", \"randcov\", \"random\", or \"all\".", call. = FALSE)
+  }
+  if ("random" %in% output && is.null(object$random)) {
+    stop('output = "random" requires a model with random effects.', call. = FALSE)
   }
 
   # error if newdata missing from arguments and object
   if (missing(newdata)) {
-    if (is.null(object$newdata)) {
+    if (!"newdata" %in% output) {
+      newdata <- object$obdata[FALSE, , drop = FALSE]
+    } else if (is.null(object$newdata)) {
       stop("No missing data to predict. newdata must be specified in the newdata argument or object$newdata must be non-NULL.", call. = FALSE)
     } else {
       newdata <- object$newdata
     }
   }
 
-  # local_list/simulate_covparams/samples must all be specified before samples is
-  # first used below (the output = "object" shortcut)
-  # get_local_list_conditional() only needs object/newdata
-  local_list <- get_local_list_conditional(local, object, newdata)
-
-  # simulate_covparams cannot reuse a single shared covariance factorization
-  # across samples the way the rest of conditional() does, so it is only
-  # supported when no big-data approximation is actually in effect. Once
-  # local_list$method_base/method_new are both "all" (guaranteed here), the
-  # simulate_covparams path below always operates on the full observed data
-  # and all of newdata as one block, with no base-subsampling/blocking to
-  # account for
-  local_active <- local_list$approximation == "vecchia" ||
-    (local_list$approximation == "low-rank" && (local_list$method_base != "all" || local_list$method_new != "all"))
-  if (isTRUE(simulate_covparams) && local_active) {
-    simulate_covparams <- FALSE
-    message("simulate_covparams = TRUE is not used when a big-data approximation (local) is specified; setting simulate_covparams = FALSE.")
-  }
+  coordinates <- prepare_conditional_coordinates(object, newdata)
+  object <- coordinates$object
+  newdata <- coordinates$newdata
+  iid_variance <- get_conditional_iid_variance(object, simulate_covparams)
+  design <- if (!is.null(object$random)) get_conditional_random_design(object, newdata) else NULL
+  random_val <- NULL
 
   if (!isTRUE(simulate_covparams) && any(c("cov", "spcov", "randcov") %in% output)) {
     stop("output can only include \"cov\", \"spcov\", or \"randcov\" when simulate_covparams = TRUE.", call. = FALSE)
@@ -144,7 +151,7 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   y <- model.response(model.frame(object))
   # output = "object" just replicates the observed y across simulation columns
   # (for easy row-binding with the newdata/beta draws below)
-  base_val_y <- matrix(rep(y, times = samples), ncol = samples)
+  base_val_y <- if ("object" %in% output) matrix(rep(y, times = samples), ncol = samples) else NULL
   if (length(output) == 1 && output == "object") {
     return(base_val_y)
   }
@@ -158,7 +165,8 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   X <- model.matrix(object)
 
   # now simulate beta and add
-  newdata_model_list <- get_newdata_model_matrix(object, newdata)
+  newdata_model_list <- if (NROW(newdata)) get_newdata_model_matrix(object, newdata) else
+    list(newdata = object$obdata[FALSE, , drop = FALSE], newdata_model = X[FALSE, , drop = FALSE], offset = NULL)
   newdata <- newdata_model_list$newdata
   newdata_model <- newdata_model_list$newdata_model
   offset <- newdata_model_list$offset
@@ -171,16 +179,26 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
+  if (!is.null(iid_variance) && !is.null(object$partition_factor) && NROW(newdata)) {
+    model.frame(object$partition_factor, newdata)
+  }
 
   if (isTRUE(simulate_covparams)) {
     # covariance parameters resimulated per draw -- see get_conditional_covparams()
     # for why this cannot share the vectorized-across-samples approach below
-    covparams_out <- get_conditional_covparams(object, newdata, y, X, betahat, vcov_theta, samples)
+    covparams_out <- get_conditional_covparams(object, newdata, y, X, betahat, vcov_theta, samples, design, "random" %in% output)
     new_betahat <- covparams_out$new_betahat
     new_val <- covparams_out$new_val
     new_cov <- covparams_out$new_cov
     new_spcov <- covparams_out$new_spcov
     new_randcov <- covparams_out$new_randcov
+    if ("random" %in% output) random_val <- conditional_random_output(covparams_out$random, design)
+  } else if (!is.null(object$random)) {
+    draws <- get_conditional_random_lm(object, newdata, newdata_model, y, samples, design, "random" %in% output)
+    new_betahat <- draws$beta
+    new_val <- draws$newdata
+    random_val <- draws$random
+    new_cov <- new_spcov <- new_randcov <- NULL
   } else {
     new_cov <- NULL
     new_spcov <- NULL
@@ -200,88 +218,39 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
       new_betahat <- matrix(new_betahat, nrow = 1)
     }
     new_betahat <- sweep(new_betahat, 1, betahat, "+")
-    new_fitted <- X %*% new_betahat
-    # residualize the observed y against each simulated beta -- these
-    # (mean-zero, per-draw) residuals are what the spatial field is actually
-    # conditioned on below; the simulated trend is added back in at the end
-    new_resid <- sweep(-1 * new_fitted, 1, y, "+")
+    chunk_size <- samples
 
-    if (local_list$approximation == "vecchia") {
-      # vecchia: every newdata location is simulated sequentially, conditional
-      # on ALL observed data (not subsampled, see get_conditional_vecchia())
-      # plus every earlier-simulated newdata location, so there is no base/block
-      # splitting step here at all
-      new_val <- get_conditional_vecchia(object, newdata, new_resid, local_list, samples)
+    if (!NROW(newdata)) {
+      new_val <- matrix(numeric(), 0, samples)
+    } else if (!is.null(iid_variance)) {
+      new_val <- draw_conditional_iid_error(NROW(newdata), samples, iid_variance)
     } else {
-      # low-rank, part 1: restrict the "observed" data conditioned on to a
-      # spatially-representative base sample instead of all of data, so the
-      # base covariance matrix factorized below stays a manageable size
-      if (local_list$method_base != "all") {
-        object$obdata <- object$obdata[local_list$index$base, , drop = FALSE]
-        y_base <- y[local_list$index$base]
-        X_base <- X[local_list$index$base, , drop = FALSE]
-      } else {
-        y_base <- y
-        X_base <- X
-      }
-      # low-rank, part 2: split newdata into blocks so each block's
-      # observed-by-prediction covariance is computed and factorized
-      # separately (blocks are treated as conditionally independent given the
-      # base sample); each block is a list element handled by
-      # get_conditional_new_from_base_adjust() below, in parallel if requested
-      if (local_list$method_new != "all") {
-        x0 <- lapply(local_list$index$new, function(x) newdata_model[x, , drop = FALSE])
-        newdata_split <- lapply(local_list$index$new, function(x) newdata[x, , drop = FALSE])
-      } else {
-        x0 <- list(newdata_model)
-        newdata_split <- list(newdata)
-      }
-      newdata_list <- mapply(x = x0, y = newdata_split, FUN = function(x, y) list(x0 = x, newdata = y), SIMPLIFY = FALSE)
-      spcov_val <- coef(object, type = "spcov")
-      # pure nugget (independent error, no spatial dependence or random effects):
-      # the base covariance matrix is diagonal, so a plain sqrt() gives its
-      # (lower triangular) Cholesky factor without paying for a full chol()
-      if (spcov_val[["de"]] == 0 && is.null(coef(object, type = "randcov"))) {
-        # object$n is the full sample size not the base sample size
-        cov_lowchol_base <- Matrix::Diagonal(n = NROW(object$obdata), x = sqrt(spcov_val[["ie"]]))
-      } else {
-        cov_lowchol_base <- t(chol(covmatrix(object)))
-      }
-      # solved once and shared across every block instead of re-solving a
-      # full n_base x samples residual matrix inside each block's call (see
-      # get_conditional_new_from_base_adjust())
-      SqrtSigInv_y <- forwardsolve(cov_lowchol_base, cbind(y_base))
-      SqrtSigInv_X <- forwardsolve(cov_lowchol_base, X_base)
-      if (local_list$parallel) {
-        cl <- parallel::makeCluster(local_list$ncores)
-        new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust, object, SqrtSigInv_y, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples)
-        cl <- parallel::stopCluster(cl)
-      } else {
-        new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust, object, SqrtSigInv_y, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples)
-      }
-
-
-      new_val <- do.call("rbind", new_val)
-      # blocks were processed independently (and possibly reordered upstream by
-      # GRTS/k-means grouping in get_local_list_conditional()), so restore the
-      # original newdata row order before returning
-      if (local_list$method_new != "all") {
-        index_new <- do.call("c", local_list$index$new)
-        new_val <- new_val[order(index_new), , drop = FALSE]
-      }
+      cov_lowchol_base <- t(chol(covmatrix(object)))
+      SqrtSigInv_y <- forwardsolve(cov_lowchol_base, cbind(y))
+      SqrtSigInv_X <- forwardsolve(cov_lowchol_base, X)
+      new_val <- draw_conditional_exact_lm(
+        newdata, object, SqrtSigInv_y, SqrtSigInv_X,
+        new_betahat, cov_lowchol_base, samples, chunk_size)
     }
   }
 
   # add the simulated fixed effect trend (X0 %*% beta_b) back onto the
   # (mean-zero) conditional spatial residual draws -- completes the
   # composition sampling described previously
-  new_val <- newdata_model %*% new_betahat + new_val
+  if (isTRUE(simulate_covparams) || is.null(object$random)) {
+    chunk_size <- if (!is.null(iid_variance)) 1000L else samples
+    for (start in seq.int(1L, samples, by = chunk_size)) {
+      cols <- seq.int(start, min(samples, start + chunk_size - 1L))
+      new_val[, cols] <- newdata_model %*% new_betahat[, cols, drop = FALSE] + new_val[, cols, drop = FALSE]
+    }
+  }
 
   if (!is.null(offset)) {
     new_val <- sweep(new_val, 1, offset, "+")
   }
 
-  val <- list(newdata = new_val, beta = new_betahat, object = base_val_y, cov = new_cov, spcov = new_spcov, randcov = new_randcov)
+  if ("random" %in% output) random_val <- check_conditional_random_output(random_val)
+  val <- list(newdata = new_val, beta = new_betahat, object = base_val_y, cov = new_cov, spcov = new_spcov, randcov = new_randcov, random = random_val)
   if (length(output) == 1) {
     return(val[[output]])
   } else {
@@ -294,22 +263,29 @@ conditional.splm <- function(object, newdata, output = "newdata", samples = 1000
 #' @export
 conditional.spglm <- function(object, newdata, output = "newdata", type = c("link", "response", "new"), samples = 1000, newdata_size, ...) {
 
-  # the big data approximation (local) is not supported in this release;
-  # always compute the exact solution
-  local <- FALSE
+  if (!is.numeric(samples) || length(samples) != 1L || !is.finite(samples) || samples < 1 || samples != floor(samples)) {
+    stop("samples must be a positive integer.", call. = FALSE)
+  }
+
 
   if ("all" %in% output) {
-    output <- c("newdata", "beta", "object")
+    output <- c("newdata", "beta", "object", if ("latent" %in% output) "latent", if ("random" %in% output) "random")
   }
-  if (any(!output %in% c("newdata", "beta", "object"))) {
-    stop("output must be \"newdata\", \"beta\", \"object\", or \"all\".", call. = FALSE)
+  if (!is.character(output) || !length(output) || anyNA(output) || any(!output %in% c("newdata", "beta", "object", "latent", "random"))) {
+    stop("output must be \"newdata\", \"beta\", \"object\", \"latent\", \"random\", or \"all\".", call. = FALSE)
+  }
+  if ("random" %in% output && is.null(object$random)) {
+    stop('output = "random" requires a model with random effects.', call. = FALSE)
   }
 
   type <- match.arg(type)
 
-  # error if newdata missing from arguments and object
+  # Latent-only calls need no prediction data; explicit prediction calls retain
+  # the existing missing-response/newdata behavior.
   if (missing(newdata)) {
-    if (is.null(object$newdata)) {
+    if (!"newdata" %in% output) {
+      newdata <- NULL
+    } else if (is.null(object$newdata)) {
       stop("No missing data to predict. newdata must be specified in the newdata argument or object$newdata must be non-NULL.", call. = FALSE)
     } else {
       newdata <- object$newdata
@@ -323,50 +299,23 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
     newdata_size <- rep(1, NROW(newdata))
   }
 
-  # spglm() models a latent Gaussian process w on the link scale via a
-  # Laplace approximation (analogous to a GLMM's linear predictor); w plays
-  # the role that the observed y plays in conditional.splm() above. Unlike y,
-  # w is not observed directly and its own estimation uncertainty is
-  # propagated analytically via var_adj below rather than by simulating a new
-  # draw of w (see get_conditional_new_from_base_adjust_glm())
-  w <- fitted(object, type = "link")
-  y <- object$y
-  size <- object$size
-  base_val_w <- matrix(rep(w, times = samples), ncol = samples)
+  base_val_w <- if ("object" %in% output) {
+    matrix(rep(fitted(object, type = "link"), times = samples), ncol = samples)
+  } else NULL
   if (length(output) == 1 && output == "object") {
     return(base_val_w)
   }
-  # handle offset: everything below that is built from Sigma (SqrtSigInv_w,
-  # base_val, i.e., the conditional draws) uses the offset-free w, while get_D() below
-  # is a derivative of the data model and so must stay on the offset-inclusive
-  # linear predictor; see w_offset_free()
-  offset_obdata <- model.offset(model.frame(object))
-  w <- w_offset_free(w, offset_obdata)
-
-
-  local_list <- get_local_list_conditional(local, object, newdata)
-  if (local_list$approximation == "vecchia" && object$n > 10000) {
-    message("local$approximation = \"vecchia\" for spglm() model objects requires a one-time factorization of a dense ", object$n, " x ", object$n, " matrix to account for uncertainty in the latent spatial process. This step does not benefit from vecchia's neighbor truncation (unlike the rest of the simulation) and may be slow and memory-intensive for large observed sample sizes. See Details.")
+  iid_variance <- get_conditional_iid_variance(object)
+  coordinates <- prepare_conditional_coordinates(object, newdata)
+  object <- coordinates$object
+  newdata <- coordinates$newdata
+  design <- if (!is.null(object$random)) get_conditional_random_design(object, newdata) else NULL
+  random_val <- NULL
+  if (is.null(iid_variance) && object$n > 10000) {
+    message("Exact spatial generalized linear model conditional simulation requires a dense observed latent precision factorization. See Details.")
   }
-
-  betahat <- coef(object)
-  X <- model.matrix(object)
-
-  # same composition sampling idea as conditional.splm(): draw beta from its
-  # asymptotic sampling distribution N(betahat, vcov(object)) so fixed effect
-  # uncertainty propagates into the conditional draws of w below
-  cov_betahat_lowchol <- t(chol(vcov(object)))
-  new_betahat <- vapply(seq_len(samples), function(x) as.numeric(cov_betahat_lowchol %*% rnorm(length(betahat))), numeric(length(betahat)))
-  # beta0 force to matrix
-  if (!is.matrix(new_betahat)) {
-    new_betahat <- matrix(new_betahat, nrow = 1)
-  }
-  new_betahat <- sweep(new_betahat, 1, betahat, "+")
-  # new_fitted <- X %*% new_betahat
-  # new_resid <- w - new_fitted
-
-  # now simulate beta and add
-  newdata_model_list <- get_newdata_model_matrix(object, newdata)
+  newdata_model_list <- if (NROW(newdata)) get_newdata_model_matrix(object, newdata) else
+    list(newdata = object$obdata[FALSE, , drop = FALSE], newdata_model = model.matrix(object)[FALSE, , drop = FALSE], offset = NULL)
   newdata <- newdata_model_list$newdata
   newdata_model <- newdata_model_list$newdata_model
   offset <- newdata_model_list$offset
@@ -376,105 +325,37 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
   newdata_model <- newdata_model[, keep_cols, drop = FALSE]
   attr(newdata_model, "assign") <- attr_assign[keep_cols]
   attr(newdata_model, "contrasts") <- attr_contrasts
-
-  # big data approximation, part 1 (see conditional.splm() for part 2, the
-  # newdata blocking, applied identically below): restrict to a
-  # spatially-representative base sample, keeping X/w/y/size in sync. Skipped
-  # entirely when local_list$approximation == "vecchia", which always conditions on
-  # ALL observed data (not subsampled, see get_conditional_vecchia_glm()).
-  if (local_list$approximation != "vecchia" && local_list$method_base != "all") {
-    object$obdata <- object$obdata[local_list$index$base, , drop = FALSE]
-    X <- X[local_list$index$base, , drop = FALSE]
-    w <- w[local_list$index$base]
-    y <- y[local_list$index$base]
-    if (!is.null(size)) {
-      size <- size[local_list$index$base]
-    }
-    # keep the offset aligned with w and y so the get_D() call below can put it back
-    if (!is.null(offset_obdata)) {
-      offset_obdata <- offset_obdata[local_list$index$base]
-    }
+  if (!is.null(iid_variance) && !is.null(object$partition_factor) && NROW(newdata)) {
+    model.frame(object$partition_factor, newdata)
   }
 
-  # Covariance components needed by var_adj (applied later, in
-  # get_conditional_new_from_base_adjust_glm()/get_conditional_vecchia_glm())
-  # -- the analytic adjustment for w's own Laplace-approximate estimation
-  # uncertainty:
-  #  - SigInv: precision of the spatial covariance matrix of w
-  #  - Ptheta: SigInv adjusted for fixed effect estimation uncertainty (the
-  #    usual "residual maker" projection SigInv - SigInv X (X'SigInv X)^-1 X'SigInv)
-  #  - D: GLM working-weight curvature of the response log-likelihood in w
-  #    (see get_D()), i.e. the data's contribution to the Hessian
-  #  - cov_lowchol_mH: Cholesky factor of -(D - Ptheta), the negative Hessian
-  #    of the joint log-likelihood for w -- var_adj uses its inverse (the
-  #    Laplace-approximate posterior covariance of w) to inflate the
-  #    predictive variance analytically instead of by simulating a new w
-  # This factorization is O(n^3) in whichever data it is computed over -- the
-  # (possibly subsampled) base sample for "low-rank", or all observed data for
-  # "vecchia", since var_adj reflects
-  # uncertainty in the single joint Laplace posterior for w, which is not a
-  # spatially-local quantity that vecchia's neighbor truncation can shrink without further investigation
-  # (see get_conditional_vecchia_glm() and conditional()'s Details).
-  cov_lowchol_base <- t(chol(covmatrix(object)))
-  SigInv <- chol2inv(t(cov_lowchol_base))
-  SqrtSigInv_X <- forwardsolve(cov_lowchol_base, X)
-  SigInv_X <- backsolve(t(cov_lowchol_base), SqrtSigInv_X)
-  # solved once and reused for every block's conditional mean below (see
-  # get_conditional_new_from_base_adjust_glm()). SqrtSigInv_X
-  # above can be used for var_adj
-  SqrtSigInv_w <- forwardsolve(cov_lowchol_base, cbind(w))
-  cov_betahat <- vcov(object, var_correct = FALSE)
-  Ptheta <- SigInv - SigInv_X %*% tcrossprod(cov_betahat, SigInv_X)
-  # get_D() differentiates the data model, so unlike every spatial quantity
-  # above it is evaluated at the offset-inclusive linear predictor
-  D <- get_D(
-    object$family, if (is.null(offset_obdata)) w else w + as.vector(offset_obdata),
-    y, size, as.vector(object$coefficients$dispersion)
-  )
-  cov_lowchol_mH <- t(chol(Matrix::forceSymmetric(-1 * (D - Ptheta)))) # this is actually the inverse of covariance matrix of w
-  wts_beta <- tcrossprod(cov_betahat, SigInv_X)
-
-  # w is held fixed at its fitted (Laplace-mode) value rather than simulated:
-  # var_adj (applied in get_conditional_new_from_base_adjust_glm()) already
-  # supplies w's own estimation uncertainty analytically, so simulating a new
-  # draw of w here on top of that would double-count it. residualizing the
-  # (fixed) w against the simulated fixed effect trend plays the same role
-  # as new_resid in conditional.splm()
-  base_val <- w - X %*% new_betahat
-
-  if (local_list$approximation == "vecchia") {
-    # vecchia: every newdata location is simulated sequentially, conditional
-    # on ALL observed data plus every earlier-simulated newdata location, with
-    # var_adj folded in only between pairs of predicted (never observed)
-    # locations (see get_conditional_vecchia_glm())
-    new_val <- get_conditional_vecchia_glm(object, newdata, newdata_model, base_val, local_list, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
+  if (!is.null(iid_variance)) {
+    draws <- get_conditional_iid_glm(object, newdata_model, iid_variance, samples, latent = "latent" %in% output)
+    new_val <- draws$newdata
+    new_betahat <- draws$beta
   } else {
-    if (local_list$method_new != "all") {
-      x0 <- lapply(local_list$index$new, function(x) newdata_model[x, , drop = FALSE])
-      newdata <- lapply(local_list$index$new, function(x) newdata[x, , drop = FALSE])
-    } else {
-      x0 <- list(newdata_model)
-      newdata <- list(newdata)
-    }
-    newdata_list <- mapply(x = x0, y = newdata, FUN = function(x, y) list(x0 = x, newdata = y), SIMPLIFY = FALSE)
-
-    if (local_list$parallel) {
-      cl <- parallel::makeCluster(local_list$ncores)
-      new_val <- parLapply(cl, newdata_list, get_conditional_new_from_base_adjust_glm, object, SqrtSigInv_w, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
-      cl <- parallel::stopCluster(cl)
-    } else {
-      new_val <- lapply(newdata_list, get_conditional_new_from_base_adjust_glm, object, SqrtSigInv_w, SqrtSigInv_X, new_betahat, cov_lowchol_base, samples, SigInv, SigInv_X, wts_beta, cov_lowchol_mH)
-    }
-
-
-    new_val <- do.call("rbind", new_val)
-    if (local_list$method_new != "all") {
-      index_new <- do.call("c", local_list$index$new)
-      new_val <- new_val[order(index_new), , drop = FALSE]
-    }
+    joint <- get_conditional_glm_joint(object)
+    draws <- draw_conditional_glm_joint(joint, samples, residual = TRUE)
+    new_betahat <- draws$beta
+    if (!is.null(object$random)) {
+      effect <- prepare_conditional_random(object, design)
+      prediction <- prepare_conditional_random_prediction(effect, newdata)
+      a <- draw_conditional_random(effect, draws$residual)
+      new_val <- newdata_model %*% new_betahat + draw_conditional_random_prediction(effect, prediction, draws$residual, a)
+      if ("random" %in% output) random_val <- conditional_random_output(a, design)
+    } else new_val <- if (NROW(newdata)) newdata_model %*% new_betahat +
+      draw_conditional_exact_glm(newdata, object, draws$residual, joint$cov_lowchol, samples) else matrix(numeric(), 0, samples)
+    if ("latent" %in% output) draws$latent <- draws$residual + model.matrix(object) %*% new_betahat
+    rm(joint)
   }
 
-  new_val <- newdata_model %*% new_betahat + new_val
+  # The latent output is on the link scale but needs offsets added back.
+  latent_val <- if ("latent" %in% output) draws$latent else NULL
+  if (!is.null(latent_val)) {
+    observed_offset <- model.offset(model.frame(object))
+    if (!is.null(observed_offset)) latent_val <- sweep(latent_val, 1L, observed_offset, "+")
+    rownames(latent_val) <- rownames(model.matrix(object))
+  }
 
   if (!is.null(offset)) {
     new_val <- sweep(new_val, 1, offset, "+")
@@ -482,11 +363,17 @@ conditional.spglm <- function(object, newdata, output = "newdata", type = c("lin
 
   # new_val holds link-scale draws up to this point; back-transform to the
   # response scale, or simulate a genuinely new observation, only if asked
-  if (type != "link") {
-    new_val <- invlink_conditional(new_val, type, dispersion = as.vector(coef(object, type = "dispersion")), family = object$family, newdata_size)
+  if (type != "link" && NROW(new_val)) {
+    chunk_size <- samples
+    for (start in seq.int(1L, samples, by = chunk_size)) {
+      cols <- seq.int(start, min(samples, start + chunk_size - 1L))
+      new_val[, cols] <- invlink_conditional(new_val[, cols, drop = FALSE], type,
+        dispersion = as.vector(coef(object, type = "dispersion")), family = object$family, newdata_size)
+    }
   }
 
-  val <- list(newdata = new_val, beta = new_betahat, object = base_val_w)
+  if ("random" %in% output) random_val <- check_conditional_random_output(random_val)
+  val <- list(newdata = new_val, beta = new_betahat, object = base_val_w, latent = latent_val, random = random_val)
   if (length(output) == 1) {
     return(val[[output]])
   } else {
@@ -580,5 +467,25 @@ invlink_conditional <- function(mu_link, type, dispersion, family, newdata_size)
     val <- sweep(val, 1, newdata_size, "*")
   }
 
+  if (is.null(dim(val))) dim(val) <- c(n_newdata, n_sim)
   val
+}
+
+prepare_conditional_coordinates <- function(object, newdata) {
+  if (inherits(newdata, "sf")) {
+    newdata <- sf_to_df(suppressWarnings(sf::st_centroid(newdata)))
+    names(newdata)[names(newdata) == ".xcoord"] <- object$xcoord
+    names(newdata)[names(newdata) == ".ycoord"] <- object$ycoord
+  }
+  if (!inherits(coef(object, type = "spcov"), c("none", "ie"))) {
+    if (object$dim_coords == 1) {
+      # Keep ignored coordinates available as predictors while using 1-D distances.
+      coordinate_names <- make.unique(c(names(object$obdata), names(newdata), ".conditional_ycoord"))
+      object$ycoord <- coordinate_names[[length(coordinate_names)]]
+      object$obdata[[object$ycoord]] <- rep(0, NROW(object$obdata))
+      newdata[[object$ycoord]] <- rep(0, NROW(newdata))
+    }
+    if (NROW(newdata)) check_newdata_coords(newdata, object$xcoord, object$ycoord)
+  }
+  list(object = object, newdata = newdata)
 }

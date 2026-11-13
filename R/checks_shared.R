@@ -166,8 +166,7 @@ check_newdata_areal <- function(object_newdata, newdata_given, newdata, current_
   } else if (!identical(newdata, object_newdata)) {
     stop(
       "newdata cannot be specified for ", current_fun, "() model objects different from object$newdata, ",
-      "because prediction locations are fixed when the model is fit (they determine the neighbor structure used in fitting). ",
-      "Ignoring newdata and predicting for object$newdata instead.",
+      "because prediction locations are fixed when the model is fit (they determine the neighbor structure used in fitting).",
       call. = FALSE
     )
   }

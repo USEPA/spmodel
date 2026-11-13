@@ -23,7 +23,7 @@ MathJax.Hub.Config({
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.14.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.15.0</span>
       </span>
     </div>
 
@@ -53,7 +53,7 @@ MathJax.Hub.Config({
       <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
-      <a href="../articles/simulation.html">Simulating Spatial Data in spmodel</a>
+      <a href="../articles/simulation.html">Simulating Large Spatial Data in spmodel</a>
     </li>
     <li>
       <a href="../articles/conditional.html">Conditional Simulation in spmodel</a>
@@ -268,8 +268,8 @@ include <code>"grts"</code>, <code>"maxmin"</code>, <code>"middleout"</code>,
 <code>"grts"</code> applies ordering using a spatially balanced GRTS sample via <code><a href="https://usepa.github.io/spsurvey/reference/grts.html" class="external-link">spsurvey::grts()</a></code>.
 <code>"maxmin"</code> applies maximum minimum distance ordering via <code><a href="https://rdrr.io/pkg/GPvecchia/man/order_maxmin_exact.html" class="external-link">GPvecchia::order_maxmin_exact()</a></code>.
 <code>"middleout"</code> applies middle out ordering via <code><a href="https://rdrr.io/pkg/GPvecchia/man/order_middleout.html" class="external-link">GPvecchia::order_middleout()</a></code>.
-<code>"outsidein"</code> applies middle out ordering via <code><a href="https://rdrr.io/pkg/GPvecchia/man/order_outsidein.html" class="external-link">GPvecchia::order_outsidein()</a></code>.
-<code>"coordinate"</code> applies middle out ordering via <code>GPvecchia::order_coordinate(..., coordinate = c(1, 2))</code>,
+<code>"outsidein"</code> applies outside in ordering via <code><a href="https://rdrr.io/pkg/GPvecchia/man/order_outsidein.html" class="external-link">GPvecchia::order_outsidein()</a></code>.
+<code>"coordinate"</code> applies coordinate ordering via <code>GPvecchia::order_coordinate(..., coordinate = c(1, 2))</code>,
 which orders from bottom-left to top-right of the spatial domain.
 <code>"random"</code> applies a completely random ordering.
 <code>"none"</code> applies no random ordering.

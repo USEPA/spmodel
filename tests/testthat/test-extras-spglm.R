@@ -23,6 +23,45 @@ exdata$count <- rpois(n, lambda = 5)
 exdata$cont <- rgamma(n, shape = 1, rate = 1)
 exdata$offset <- 1.2
 
+spglm_prediction_fixture <- function() {
+  set.seed(90210)
+  n <- 30
+  dat <- data.frame(
+    cx = rep(seq_len(6), 5),
+    cy = rep(seq_len(5), each = 6),
+    x = seq(-1, 1, length.out = n),
+    off = 0.2 * sin(seq_len(n)),
+    part = factor(rep(c("a", "b", "c"), length.out = n))
+  )
+  dat$pois <- rpois(n, exp(-0.2 + 0.3 * dat$x + dat$off))
+  pred <- data.frame(
+    cx = c(1.2, 2.4, 3.6, 4.8, 2.1, 5.2),
+    cy = c(1.4, 2.7, 3.3, 4.2, 4.5, 1.8),
+    x = seq(-0.8, 0.8, length.out = 6),
+    off = 0.1 * cos(seq_len(6)),
+    part = factor(c("a", "b", "c", "a", "b", "c"), levels = c("a", "b", "c"))
+  )
+  list(data = dat, pred = pred)
+}
+
+spglm_prediction_reference <- function(object, newdata) {
+  S <- as.matrix(covmatrix(object))
+  C <- as.matrix(covmatrix(object, newdata, cov_type = "pred.obs"))
+  S0 <- as.matrix(covmatrix(object, newdata, cov_type = "pred.pred"))
+  X <- model.matrix(object)
+  X0 <- model.matrix(delete.response(terms(object)), newdata)
+  V <- vcov(object, var_correct = FALSE)
+  Q <- solve(S)
+  B <- V %*% t(X) %*% Q
+  W <- X0 %*% B + C %*% Q %*% (diag(nrow(X)) - X %*% B)
+  G <- X0 - C %*% Q %*% X
+  variance <- S0 - C %*% Q %*% t(C) + G %*% V %*% t(G)
+  P <- Q - Q %*% X %*% B
+  variance <- variance + W %*% solve(P + diag(exp(fitted(object, "link")))) %*% t(W)
+  w <- fitted(object, type = "link") - model.offset(model.frame(object))
+  list(fit = as.vector(newdata$off + W %*% w), variance = variance)
+}
+
 test_that("the model runs for binomial data", {
   spgmod <- spglm(bern ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml")
   expect_s3_class(spgmod, "spglm")
@@ -31,7 +70,7 @@ test_that("the model runs for binomial data", {
   expect_s3_class(spgmod, "spglm")
   expect_vector(AUROC(spgmod))
   expect_error(spglm(bernfac ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml"), NA)
-  spgmod <- suppressWarnings(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml")) # ml boundary warning
+  spgmod <- suppressWarnings(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml"))
   expect_s3_class(spgmod, "spglm")
   expect_error(AUROC(spgmod))
   spgmod <- spglm(y > 0 ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml")
@@ -45,7 +84,7 @@ test_that("the model runs for binomial data", {
   # check when data have an unequal number of local observations
   expect_error(spglm(bern ~ x + offset(offset), family = binomial, data = exdata[-1, , drop = FALSE], xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~group, anisotropy = TRUE, local = TRUE), NA)
   expect_error(suppressWarnings(spglm(bernfac ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml", random = ~group, anisotropy = TRUE, local = TRUE)), NA)
-  expect_error(suppressWarnings(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml", partition_factor = ~group)), NA) # ml boundary warning
+  expect_error(suppressWarnings(spglm(cbind(bin, size) ~ x, family = "binomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "ml", partition_factor = ~group)), NA)
 
   # check glm
   spgmod1 <- spglm(bern ~ x, family = binomial, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none")
@@ -71,14 +110,14 @@ test_that("the model runs for count data", {
   spgmod <- spglm(count ~ x, family = poisson, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "reml")
   expect_s3_class(spgmod, "spglm")
   expect_error(AUROC(spgmod))
-  expect_error(suppressWarnings(spglm(count ~ x, family = "nbinomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml")), NA) # ml boundary warning
+  expect_error(suppressWarnings(spglm(count ~ x, family = "nbinomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml")), NA)
 
   # complicated models
   expect_error(spglm(count ~ x + offset(offset),
     family = poisson, data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "spherical", estmethod = "reml",
     partition_factor = ~group, local = TRUE
   ), NA)
-  expect_error(suppressWarnings(spglm(count ~ x, family = "nbinomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml", random = ~group)), NA) # ml boundary warning
+  expect_error(suppressWarnings(spglm(count ~ x, family = "nbinomial", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml", random = ~group)), NA)
 })
 
 test_that("the model runs for continuous data", {
@@ -133,13 +172,10 @@ test_that("emmeans works missing", {
 test_that("range_constrain works", {
   spcov_type <- "exponential"
   expect_error(spglm(abs(y) ~ x * group, family = "Gamma", exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "reml", range_constrain = TRUE), NA)
-  expect_error(suppressWarnings(spglm(abs(y) ~ x * group, family = "Gamma", exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", range_constrain = TRUE)), NA) # ml boundary warning
+  expect_error(spglm(abs(y) ~ x * group, family = "Gamma", exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = spcov_type, estmethod = "ml", range_constrain = TRUE), NA)
 })
 
-test_that("ml boundary regression: an optimizer that wanders to the floor is reconciled and flagged", {
-  # reproduces the scenario documented in the ml-boundary write-up: data simulated
-  # with genuine spatial structure, whose exponential ml fit still converges to a
-  # tiny ie chasing the boundary artifact
+test_that("estimated ie respects its floor without a boundary warning", {
   set.seed(42)
   n_side <- 12
   coords <- expand.grid(xcoord = seq_len(n_side), ycoord = seq_len(n_side))
@@ -150,19 +186,236 @@ test_that("ml boundary regression: an optimizer that wanders to the floor is rec
 
   expect_warning(
     mod_exp <- spglm(y ~ x, family = "poisson", data = coords, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "ml"),
-    NA # de stays substantial (see the write-up), so this specific fit should not trip the boundary warning
+    NA
   )
   # the optimizer wanders below the floor for ie; the reported value must be reconciled to it
   expect_true(coef(mod_exp, type = "spcov")[["ie"]] >= 1e-4)
 
   expect_warning(
     mod_none <- spglm(y ~ x, family = "poisson", data = coords, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "ml"),
-    "numerical boundary"
+    NA
   )
-  # reml should not show the same AIC preference for "none" over "exponential"
   mod_exp_reml <- spglm(y ~ x, family = "poisson", data = coords, xcoord = xcoord, ycoord = ycoord, spcov_type = "exponential", estmethod = "reml")
   mod_none_reml <- spglm(y ~ x, family = "poisson", data = coords, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "reml")
   expect_true(AIC(mod_exp_reml) < AIC(mod_none_reml))
+})
+
+test_that("anisotropic prediction uncertainty uses raw coordinates", {
+  fixture <- spglm_prediction_fixture()
+  dat <- fixture$data
+  pred <- fixture$pred
+  fit <- spglm(pois ~ x + cx + offset(off), "poisson", dat,
+    xcoord = cx, ycoord = cy, anisotropy = TRUE,
+    spcov_initial = spcov_initial("exponential",
+      de = 0.15, ie = 0.12, range = 4, rotate = 0.6, scale = 0.45,
+      known = "given"
+    )
+  )
+  expected <- spglm_prediction_reference(fit, pred)
+  got <- predict(fit, pred, type = "link", se.fit = TRUE, local = FALSE)
+  expect_equal(unname(got$fit), expected$fit, tolerance = 1e-8)
+  expect_equal(unname(got$se.fit), unname(sqrt(diag(expected$variance))), tolerance = 1e-8)
+})
+
+test_that("partitioned local prediction keeps row-dependent inputs aligned", {
+  fixture <- spglm_prediction_fixture()
+  dat <- fixture$data
+  pred <- fixture$pred
+  fit <- spglm(pois ~ x + offset(off), "poisson", dat,
+    xcoord = cx, ycoord = cy, partition_factor = ~part,
+    spcov_initial = spcov_initial("exponential",
+      de = 0.15, ie = 0.12, range = 4, known = "given"
+    )
+  )
+  exact <- predict(fit, pred, type = "link", se.fit = TRUE, local = FALSE)
+  for (method in c("covariance", "distance")) {
+    for (byrow_threshold in c(0, Inf)) {
+      local <- predict(fit, pred, type = "link", se.fit = TRUE,
+        local = list(
+          method = method, size = nrow(dat), parallel = FALSE,
+          byrow_threshold = byrow_threshold
+        )
+      )
+      expect_equal(local$fit, exact$fit, tolerance = 1e-8)
+      expect_equal(local$se.fit, exact$se.fit, tolerance = 1e-8)
+    }
+  }
+
+  weights <- predict(fit, pred, type = "weight",
+    local = list(method = "covariance", size = 5, parallel = FALSE)
+  )
+  expect_equal(ncol(weights), nrow(dat))
+})
+
+test_that("covariance components retain original observation order", {
+  fixture <- spglm_prediction_fixture()
+  dat <- fixture$data
+  init <- spcov_initial("exponential", de = 0.15, ie = 0.12, range = 4, known = "given")
+  fits <- list(
+    partition = spglm(pois ~ x + offset(off), "poisson", dat,
+      xcoord = cx, ycoord = cy, partition_factor = ~part, spcov_initial = init
+    ),
+    local = spglm(pois ~ x + offset(off), "poisson", dat,
+      xcoord = cx, ycoord = cy, spcov_initial = init,
+      local = list(index = rep(1:3, length.out = nrow(dat)), var_adjust = "theoretical")
+    )
+  )
+
+  for (nm in names(fits)) {
+    fit <- fits[[nm]]
+    r <- fitted(fit, "link") - model.offset(model.frame(fit)) -
+      as.vector(model.matrix(fit) %*% coef(fit))
+    S <- as.matrix(covmatrix(fit))
+    if (nm == "local") {
+      S <- S * outer(fit$local_index, fit$local_index, "==")
+    }
+    nugget <- coef(fit, "spcov")[["ie"]] * as.vector(solve(S, r))
+    expect_equal(unname(fitted(fit, "spcov")$ie), nugget, tolerance = 1e-8)
+    expect_named(fitted(fit, "spcov")$ie, as.character(fit$observed_index))
+  }
+})
+
+test_that("spglm numerical floor is excluded from BLUPs and included in prediction variance", {
+  n_obs <- 18
+  dat <- data.frame(
+    xc = seq(0, 17),
+    yc = rep(c(0, 0.5), 9),
+    x = seq(-1, 1, length.out = n_obs),
+    off = 0.15 * sin(seq_len(n_obs)),
+    y = c(1, 2, 1, 3, 2, 4, 2, 3, 5, 4, 6, 5, 7, 5, 8, 7, 9, 8)
+  )
+  newdata <- data.frame(
+    xc = c(2.5, 8.5, 15.5),
+    yc = c(0.25, 0.75, 0.25),
+    x = c(-0.6, 0.1, 0.8),
+    off = c(0.1, -0.05, 0.2)
+  )
+  de <- 0.4
+  ie <- 0
+  range <- 4
+  fit <- spglm(y ~ x + offset(off), "poisson", dat,
+    xcoord = xc, ycoord = yc,
+    spcov_initial = spcov_initial("exponential",
+      de = de, ie = ie, range = range, known = "given"
+    )
+  )
+
+  dist_obs <- sqrt(
+    outer(dat$xc, dat$xc, "-")^2 + outer(dat$yc, dat$yc, "-")^2
+  )
+  dist_pred <- sqrt(
+    outer(newdata$xc, dat$xc, "-")^2 + outer(newdata$yc, dat$yc, "-")^2
+  )
+  K <- de * exp(-dist_obs / range)
+  C <- de * exp(-dist_pred / range)
+  effective_ie <- max(ie, 1e-4 * de, fit$diagtol)
+  V <- K + diag(effective_ie, n_obs)
+  V_inv <- solve(V)
+  X <- model.matrix(fit)
+  X0 <- model.matrix(delete.response(terms(fit)), newdata)
+  beta <- coef(fit)
+  w <- fitted(fit, "link") - model.offset(model.frame(fit))
+  residual_weight <- V_inv %*% (w - X %*% beta)
+  B <- vcov(fit, var_correct = FALSE)
+
+  expect_equal(coef(fit, "spcov")[["ie"]], ie)
+  expect_equal(
+    unname(fitted(fit, "spcov")$de),
+    as.numeric(K %*% residual_weight),
+    tolerance = 1e-10
+  )
+  expect_equal(unname(fitted(fit, "spcov")$ie), rep(0, n_obs))
+
+  center <- list(eta = fitted(fit, type = "link"), betahat = coef(fit))
+  beta <- center$betahat
+  w <- center$eta - model.offset(model.frame(fit))
+  residual_weight <- V_inv %*% (w - X %*% beta)
+  H <- X0 - C %*% V_inv %*% X
+  fit_reference <- as.numeric(X0 %*% beta + C %*% residual_weight + newdata$off)
+  var_reference <- de + effective_ie - rowSums((C %*% V_inv) * C) +
+    rowSums((H %*% B) * H)
+  full_prediction <- predict(fit, newdata,
+    type = "link", se.fit = TRUE, var_correct = FALSE, local = FALSE
+  )
+  expect_equal(unname(full_prediction$fit), fit_reference, tolerance = 1e-10)
+  expect_equal(unname(full_prediction$se.fit), sqrt(as.numeric(var_reference)), tolerance = 1e-10)
+
+  local_prediction <- predict(fit, newdata,
+    type = "link", se.fit = TRUE, var_correct = FALSE,
+    local = list(method = "distance", size = 8, parallel = FALSE)
+  )
+  local_reference <- lapply(seq_len(nrow(newdata)), function(i) {
+    keep <- order(dist_pred[i, ])[seq_len(8)]
+    V_local <- V[keep, keep, drop = FALSE]
+    C_local <- C[i, keep, drop = FALSE]
+    X_local <- X[keep, , drop = FALSE]
+    w_local <- w[keep]
+    V_local_inv <- solve(V_local)
+    H_local <- X0[i, , drop = FALSE] - C_local %*% V_local_inv %*% X_local
+    list(
+      fit = as.numeric(
+        X0[i, , drop = FALSE] %*% beta +
+          C_local %*% V_local_inv %*% (w_local - X_local %*% beta) + newdata$off[i]
+      ),
+      var = as.numeric(
+        de + effective_ie - C_local %*% V_local_inv %*% t(C_local) +
+          H_local %*% B %*% t(H_local)
+      )
+    )
+  })
+  expect_equal(
+    unname(local_prediction$fit),
+    vapply(local_reference, `[[`, numeric(1), "fit"),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    unname(local_prediction$se.fit),
+    sqrt(vapply(local_reference, `[[`, numeric(1), "var")),
+    tolerance = 1e-10
+  )
+})
+
+test_that("size > 1 binomial spglm fit checks fitted probabilities, not fitted successes", {
+  dat <- data.frame(
+    x = seq(-1, 1, length.out = 30),
+    size = rep(c(10, 20, 30), 10),
+    xcoord = rep(1:6, 5),
+    ycoord = rep(1:5, each = 6),
+    off = 0.3 * sin(1:30)
+  )
+  dat$successes <- round(dat$size * (0.4 + 0.05 * dat$x))
+  dat$failures <- dat$size - dat$successes
+  dat$successes[c(3, 18)] <- NA
+
+  expect_warning(
+    fit <- spglm(cbind(successes, failures) ~ x + offset(off),
+      family = "binomial", data = dat, xcoord = xcoord, ycoord = ycoord,
+      spcov_initial = spcov_initial("exponential", de = 0.1, ie = 0.1, range = 1,
+        known = c("de", "ie", "range")
+      )
+    ),
+    NA
+  )
+
+  counts <- fitted(fit, type = "response")
+  probabilities <- expit(fitted(fit, type = "link"))
+  expect_true(all(counts > 1))
+  expect_true(all(probabilities > 0.2 & probabilities < 0.6))
+  expect_equal(length(probabilities), sum(!is.na(dat$successes)))
+  expect_equal(counts, dat$size[!is.na(dat$successes)] * probabilities)
+})
+
+test_that("the binomial saturation warning retains its probability thresholds", {
+  expect_warning(warn_fitted_saturation(rep(0.4, 100), "binomial"), NA)
+  expect_warning(
+    warn_fitted_saturation(c(rep(0, 49), rep(1, 49), 0.4, 0.6), "binomial"),
+    NA
+  )
+  expect_warning(
+    warn_fitted_saturation(c(rep(1e-7, 50), rep(1 - 1e-7, 49), 0.4), "binomial"),
+    "Perfect separation"
+  )
+  expect_warning(warn_fitted_saturation(rep(8, 100), "poisson"), NA)
 })
 
 test_that("fitted-probability saturation warning fires under spatial separation but not on a sane binomial fit", {
@@ -195,13 +448,13 @@ test_that("fitted-probability saturation warning fires under spatial separation 
   )
 })
 
-test_that("ml boundary warning fires for spcov_type = none but not reml", {
+test_that("none covariance fits do not warn under ML or REML", {
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   exdata$y_pois <- round(abs(exdata$y) * 3)
 
   expect_warning(
     spglm(y_pois ~ x, family = "poisson", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "ml"),
-    "numerical boundary"
+    NA
   )
   expect_warning(
     spglm(y_pois ~ x, family = "poisson", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_type = "none", estmethod = "reml"),
@@ -209,20 +462,20 @@ test_that("ml boundary warning fires for spcov_type = none but not reml", {
   )
 })
 
-test_that("ml boundary warning uses the actual fitted value and does not override a known ie", {
+test_that("known small variances are preserved without a boundary warning", {
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   exdata$y_pois <- round(abs(exdata$y) * 3)
 
   spinit <- spcov_initial("exponential", de = 1e-8, ie = 1e-8, range = 1, known = c("de", "ie", "range"))
   expect_warning(
     spmod <- spglm(y_pois ~ x, family = "poisson", data = exdata, xcoord = xcoord, ycoord = ycoord, spcov_initial = spinit, estmethod = "ml"),
-    "numerical boundary"
+    NA
   )
   # a known (fixed) ie must never be reconciled to the diagtol floor
   expect_equal(coef(spmod, type = "spcov")[["ie"]], 1e-8)
 })
 
-test_that("no ml boundary warning for a well-identified spatial covariance", {
+test_that("a well-identified spatial covariance fits without warnings", {
   load(file = system.file("extdata", "exdata.rda", package = "spmodel"))
   exdata$y_pois <- round(abs(exdata$y) * 3)
 

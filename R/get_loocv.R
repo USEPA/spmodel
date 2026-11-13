@@ -51,23 +51,3 @@ get_loocv <- function(obs, Sig, SigInv, Xmat, y, yX, SigInv_yX, se.fit) {
   # return
   list(pred = as.numeric(new_pred), se.fit = as.numeric(se_fit))
 }
-
-#' Get the exact (non-local) loocv standard error for iid errors
-#'
-#' @param obs An observation to leave out
-#' @param cov_betahat The covariance matrix of the leave-one-out betahat
-#' @param Xmat Model matrix
-#' @param total_var The total (marginal) variance of a single observation
-#'
-#' @return A list with element \code{se.fit}, the loocv standard error
-#'
-#' @noRd
-get_loocv_iid_se <- function(obs, cov_betahat, Xmat, total_var) {
-  # for iid errors there's no spatial covariance to update via partitioned
-  # inverse -- prediction variance is just the total variance plus the
-  # variance of the fitted mean at this observation's covariates
-  newX <- Xmat[obs, , drop = FALSE]
-  var_fit <- newX %*% tcrossprod(cov_betahat, newX)
-  se_fit <- sqrt(total_var + var_fit)
-  list(se.fit = as.numeric(se_fit))
-}

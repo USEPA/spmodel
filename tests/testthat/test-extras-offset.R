@@ -75,11 +75,13 @@ test_that("offsets are handled consistently for splm and spautor", {
       kcv(a, folds_index = fi, cv_predict = TRUE)$cv_predict),
     exdata$delta
   )
-  set.seed(2)
-  ca <- conditional(a, newexdata, samples = 5)
-  set.seed(2)
-  cb <- conditional(b, newexdata, samples = 5)
-  expect_equal(as.numeric(cb - ca), rep(newexdata$delta, times = 5))
+  for (loc in list(FALSE, list())) {
+    set.seed(2)
+    ca <- conditional(a, newexdata, samples = 5)
+    set.seed(2)
+    cb <- conditional(b, newexdata, samples = 5)
+    expect_equal(as.numeric(cb - ca), rep(newexdata$delta, times = 5))
+  }
 
   # spautor: prediction locations are the NA rows of the same data
   load(file = system.file("extdata", "exdata_poly.rda", package = "spmodel"))
@@ -163,6 +165,13 @@ test_that("offsets are handled consistently for spglm", {
     set.seed(1)
     c_none <- conditional(m_none, newexdata, samples = 5)
     expect_equal(c_m, c_none, tolerance = 1e-4)
+    # Check the latent-process variance adjustment on the Vecchia path.
+    vec <- list()
+    set.seed(2)
+    v_m <- conditional(m, newexdata, samples = 5)
+    set.seed(2)
+    v_none <- conditional(m_none, newexdata, samples = 5)
+    expect_equal(v_m, v_none, tolerance = 1e-4)
   }
 
   # local (big data) fitting partitions the data, and the offset has to survive

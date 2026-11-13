@@ -92,7 +92,8 @@
 #'       observations are randomly assigned to \code{index} based on \code{size}.
 #'       If \code{method = "kmeans"}, observations assigned to \code{index}
 #'       based on k-means clustering on the coordinates with \code{groups} clusters. The default
-#'       is \code{"kmeans"}. Note that both methods have a random component, which
+#'       is \code{"kmeans"} when coordinates are supplied, and \code{"random"} otherwise.
+#'       Both methods have a random component, which
 #'       means that you may get different results from separate model fitting calls.
 #'       To ensure consistent results, specify \code{index} or set a seed via
 #'       \code{base::set.seed()}.
@@ -406,6 +407,8 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
   # (not missing()) to see whether the argument was supplied.
   xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
   ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
+  if (!length(xcoord)) xcoord <- NULL
+  if (!length(ycoord)) ycoord <- NULL
 
   # get data object
   data_object <- get_data_object_spglm(
@@ -431,19 +434,14 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
 
   warn_optim_convergence(cov_est_object$optim_output$convergence)
 
-  # de and ie collapsing toward zero together makes the ml Laplace likelihood
-  # unbounded (Sigma approaching singular); warn so the user knows likelihood-based
-  # comparisons may not be trustworthy near this boundary (see warn_spcov_boundary())
-  if (identical(estmethod, "ml")) {
-    warn_spcov_boundary(cov_est_object$spcov_params_val, data_object$diagtol)
-  }
-
   model_stats <- get_model_stats_spglm(cov_est_object, data_object, estmethod)
 
   # spatial structure can make binomial fits separate far more readily than an
   # ordinary (non-spatial) logistic regression, even with well-behaved
   # covariates; warn when this has happened (see warn_fitted_saturation())
-  warn_fitted_saturation(model_stats$fitted$response, family)
+  if (family == "binomial") {
+    warn_fitted_saturation(expit(model_stats$fitted$link), family)
+  }
 
   # parallel cluster if necessary
   if (data_object$parallel) {
@@ -458,13 +456,6 @@ spglm <- function(formula, family, data, spcov_type, xcoord, ycoord, spcov_initi
     local_index <- NULL
   } else {
     local_index <- data_object$local_index
-  }
-
-  # triangular and circular covariances are only valid in one dimension, so
-  # coordinates were collapsed to 1D for estimation; restore/relabel the
-  # stored data object accordingly for downstream use (e.g., prediction)
-  if (inherits(spcov_initial, c("triangular", "circular"))) {
-    data_object <- replace_data_object_dimcoords1(data_object)
   }
 
   output <- list(

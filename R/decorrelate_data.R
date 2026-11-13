@@ -42,6 +42,8 @@ decorrelate_data <- function(formula, data, spcov_params, xcoord, ycoord, randco
   # already-substituted value and must not re-substitute)
   xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
   ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
+  if (!length(xcoord)) xcoord <- NULL
+  if (!length(ycoord)) ycoord <- NULL
 
   # set randcov_initial NULL if necessary. Unlike decorrelate_data_internal()
   # (which always receives an already-resolved `random` from its caller),
@@ -168,12 +170,7 @@ decorrelate_data_internal_part1 <- function(formula, data, spcov_type, xcoord, y
 
   # do ordering here
   if (is.null(ordering)) {
-    any_dup <- any(duplicated(cbind(xcoord_val, ycoord_val)))
-    if (any_dup) {
-      ordering <- "grts"
-    } else {
-      ordering <- "maxmin"
-    }
+    ordering <- default_vecchia_ordering(xcoord_val, ycoord_val)
   }
 
   if (!ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
@@ -267,7 +264,7 @@ decorrelate_data_internal_part2 <- function(spcov_params, randcov_params, decorr
   # no n x n matrix to build or reorder here
 
 
-  total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
+  total_var <- spcov_target_var(spcov_params, data_object$diagtol) + sum(randcov_params)
 
   # get_decorrelated_value() is applied independently to each ordered
   # observation's index; each call only reads the (fixed) earlier rows
@@ -416,16 +413,11 @@ decorrelate_data_internal <- function(formula, data, spcov_params, xcoord, ycoor
 
 
   index <- seq(1, data_object$n)
-  total_var <- sum(spcov_params[["de"]], spcov_params[["ie"]], randcov_params)
+  total_var <- spcov_target_var(spcov_params, data_object$diagtol) + sum(randcov_params)
 
   # do ordering here
   if (is.null(ordering)) {
-    any_dup <- any(duplicated(cbind(xcoord_val, ycoord_val)))
-    if (any_dup) {
-      ordering <- "grts"
-    } else {
-      ordering <- "maxmin"
-    }
+    ordering <- default_vecchia_ordering(xcoord_val, ycoord_val)
   }
 
   if (!ordering %in% c("middleout", "outsidein", "coordinate", "maxmin", "grts", "random", "none")) {
@@ -773,6 +765,10 @@ get_local_list_decorrelate <- function(local) {
 get_decorrelate_order <- function(ordering, xcoord_val, ycoord_val) {
 
   n <- length(xcoord_val)
+  if (n == 0L) return(list(order = integer(), inv_order = integer()))
+  if (ordering == "maxmin" && anyDuplicated(cbind(xcoord_val, ycoord_val))) {
+    stop('ordering = "maxmin" cannot be used with coincident locations (multiple rows share coordinates). Use "grts", "random", or another ordering.', call. = FALSE)
+  }
 
   if (ordering == "none") {
     ord <- seq(1, n)
@@ -826,5 +822,12 @@ get_decorrelate_order <- function(ordering, xcoord_val, ycoord_val) {
     }
   }
 
+  if (!is.numeric(ord) || length(ord) != n || anyNA(ord) || !all(sort(ord) == seq_len(n))) {
+    stop("Ordering did not return a permutation of the row indices.", call. = FALSE)
+  }
   list(order = ord, inv_order = order(ord))
+}
+
+default_vecchia_ordering <- function(xcoord_val, ycoord_val) {
+  if (anyDuplicated(cbind(xcoord_val, ycoord_val))) "grts" else "maxmin"
 }

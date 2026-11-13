@@ -30,7 +30,6 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
   ycoord <- point_ref$ycoord
   dim_coords <- point_ref$dim_coords
   ycoord_orig_name <- point_ref$ycoord_orig_name
-  ycoord_orig_val <- point_ref$ycoord_orig_val
   is_sf <- point_ref$is_sf
   sf_column_name <- point_ref$sf_column_name
   crs <- point_ref$crs
@@ -143,7 +142,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     local, obdata, xcoord, ycoord, n, partition_factor,
     n_threshold = 5000,
     local_message = "Because the sample size exceeds 5,000, we are setting local = TRUE to perform computationally efficient approximations. To override this behavior and compute the exact solution, rerun with local = FALSE. Be aware that setting local = FALSE may result in exceedingly long computational times.",
-    X = X, y = y, offset = offset
+    X = X, y = y, offset = offset, coordinates_supplied = point_ref$coordinates_supplied
   )
   local <- local_setup$local
   obdata_list <- local_setup$obdata_list
@@ -197,7 +196,7 @@ get_data_object_splm <- function(formula, data, spcov_initial, xcoord, ycoord, e
     randcov_list = randcov_list, randcov_names = randcov_names,
     sf_column_name = sf_column_name, terms = terms_val, var_adjust = local$var_adjust,
     X_list = X_list, xcoord = xcoord, xlevels = xlevels, y_list = y_list, ycoord = ycoord,
-    ycoord_orig_name = ycoord_orig_name, ycoord_orig_val = ycoord_orig_val, s2 = s2, diagtol = diagtol,
+    ycoord_orig_name = ycoord_orig_name, s2 = s2, diagtol = diagtol,
     range_constrain = range_constrain, range_constrain_value = range_constrain_value
   )
 }

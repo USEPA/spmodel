@@ -1,3 +1,39 @@
+# spmodel 0.15.0
+
+## Major Updates
+
+* Added support for conditional simulation via `conditional()` for `spautor()` and `spgautor()` model objects, which draws simulated values from the distribution of `newdata` conditional on observed data.
+* Conditional simulation for models with random effects now draws realized effects instead of marginalizing; see `output = "random"`.
+
+## Minor Updates
+
+* `fitted(type = "randcov")` now reports BLUPs by partition factor level rather than averaging over partition factor levels.
+* When `local` is specified, `loocv()` prediction standard errors for `splm()` objects with `spcov_type` equal to `"none"` or `"ie"` now return predictions and standard errors based on the reestimated fixed effects, rather than via the full-data approximations used by other `spcov_type`s.
+* For `splm()` and `spglm()` model objects fit with with `local`, `kcv(object, local, ...)` now reuses the covariance matrix from `object` across folds rather than refitting it for each fold (for computational efficiency).
+* Updated the `conditional()` sampling for `spglm()` model objects to first simulate fixed effects and then the latent means given the fixed effects.
+* Updated the Laplace log-likelihood evaluation to use the determinant of the unprojected Hessian for maximum likelihood estimation. This is a breaking change that affects backwards compatibility.
+* Restored the Laplace log-likelihood constant `n / 2 * log(2 * pi)` so likelihood-based statistics are comparable on the standard scale. This is a breaking change that affects backwards compatibility.
+* Explicit `xcoord` and `ycoord` values of `NULL` now are treated as though they were omitted.
+* Minor vignette updates.
+* Minor error message updates.
+* Minor documentation updates.
+* Minor warning message updates.
+* Minor internal consistency and efficiency updates.
+
+## Bug Fixes
+
+* Fixed parallel nonlocal `loocv()` and `kcv()` for GLMs, which could fail with an incorrect-dimensions error.
+* Fixed response-scale delta-method standard errors for local binomial `loocv()`.
+* Fixed various bugs related to one-dimensional covariance functions (i.e., triangular and cosine).
+* Fixed a bug in `splm()` and `spglm()` that could affect estimation of `ie` when it was the only unknown parameter being optimized.
+* Fixed a bug that could cause `conditional()` to error for `"none"` and `"ie"` spatial covariance types.
+* Fixed a bug that could cause `covmatrix(..., cov_type = "pred.pred")` to error for random effect or partition levels in `newdata` missing from `data`.
+* Fixed a bug with `splm()` and `spglm()` model objects that summed random effect BLUPs over partition factor levels instead of averaging (now superseded by `fitted(type = "randcov"`) returning BLUPs by partition factor level).
+* Fixed a bug that could falsely flag separation warnings in `spglm()` and `spgautor()` for  binomial responses when `size > 1`.
+* Fixed a bug that could transform anisotropic coordinates twice for block prediction and `spglm()` prediction standard errors.
+* Fixed a bug that could cause improper row alignment for local `spglm()` predictions with partition factors.
+* Fixed a bug that could cause a random effect grouping term which crossed or nested more than one variable (e.g., `random = ~ (1 | group1:group2)` or `random = ~ group1 / group2`) to use only the first grouping variable when fitting `splm()` or `spglm()` model objects.
+
 # spmodel 0.14.0
 
 ## Major Updates

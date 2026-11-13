@@ -11,12 +11,12 @@
 #' accompanies this kind of separation far more specifically.
 #'
 #' @noRd
-warn_fitted_saturation <- function(fitted_response, family) {
+warn_fitted_saturation <- function(fitted_probabilities, family) {
   if (family != "binomial") {
     return(invisible())
   }
   tol <- 1e-6
-  saturated <- fitted_response < tol | fitted_response > 1 - tol
+  saturated <- fitted_probabilities < tol | fitted_probabilities > 1 - tol
   if (mean(saturated) >= 0.99) {
     warning(
       "Nearly all fitted probabilities are numerically 0 or 1. Perfect separation detected.",

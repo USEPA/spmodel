@@ -121,21 +121,28 @@ get_prediction_object_spglm <- function(object, newdata, dispersion, newdata_siz
   check_newdata_coords(newdata, xcoord, ycoord)
 
   if (object$anisotropy) { # could just do rotate != 0 || scale != 1
-    # rotate/rescale both observed and new coordinates into the isotropic
-    # space the covariance function was fit in, so distances (and therefore
-    # predictions) are computed consistently with model fitting
+    # User covariance functions expect raw coordinates and apply anisotropy
+    # themselves. Keep those columns unchanged and use private transformed
+    # columns only for the low-level distance/neighbor calculations below.
     obdata_aniscoords <- transform_anis(obdata, xcoord, ycoord,
       rotate = spcov_params_val[["rotate"]],
       scale = spcov_params_val[["scale"]]
     )
-    obdata[[xcoord]] <- obdata_aniscoords$xcoord_val
-    obdata[[ycoord]] <- obdata_aniscoords$ycoord_val
     newdata_aniscoords <- transform_anis(newdata, xcoord, ycoord,
       rotate = spcov_params_val[["rotate"]],
       scale = spcov_params_val[["scale"]]
     )
-    newdata[[xcoord]] <- newdata_aniscoords$xcoord_val
-    newdata[[ycoord]] <- newdata_aniscoords$ycoord_val
+    coord_names <- make.unique(c(
+      names(obdata), names(newdata),
+      "...spmodel_anis_xcoord...", "...spmodel_anis_ycoord..."
+    ))
+    anis_coord_names <- tail(coord_names, 2)
+    obdata[[anis_coord_names[[1]]]] <- obdata_aniscoords$xcoord_val
+    obdata[[anis_coord_names[[2]]]] <- obdata_aniscoords$ycoord_val
+    newdata[[anis_coord_names[[1]]]] <- newdata_aniscoords$xcoord_val
+    newdata[[anis_coord_names[[2]]]] <- newdata_aniscoords$ycoord_val
+    xcoord <- anis_coord_names[[1]]
+    ycoord <- anis_coord_names[[2]]
   }
 
   newdata_model_list <- get_newdata_model_matrix(object, newdata)

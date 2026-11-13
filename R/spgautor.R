@@ -344,10 +344,12 @@ spgautor <- function(formula, family, data, spcov_type, spcov_initial, dispersio
 
   model_stats <- get_model_stats_spgautor(cov_est_object, data_object, estmethod)
 
-  # spatial structure can make binomial fits separate far more readily than an
+ # spatial structure can make binomial fits separate far more readily than an
   # ordinary (non-spatial) logistic regression, even with well-behaved
   # covariates; warn when this has happened (see warn_fitted_saturation())
-  warn_fitted_saturation(model_stats$fitted$response, family)
+  if (family == "binomial") {
+    warn_fitted_saturation(expit(model_stats$fitted$link), family)
+  }
 
   output <- list(
     coefficients = model_stats$coefficients,

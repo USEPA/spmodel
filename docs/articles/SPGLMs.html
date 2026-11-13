@@ -41,7 +41,7 @@ MathJax.Hub.Config({
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.14.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.15.0</span>
       </span>
     </div>
 
@@ -73,7 +73,7 @@ MathJax.Hub.Config({
       <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
-      <a href="../articles/simulation.html">Simulating Spatial Data in spmodel</a>
+      <a href="../articles/simulation.html">Simulating Large Spatial Data in spmodel</a>
     </li>
     <li>
       <a href="../articles/conditional.html">Conditional Simulation in spmodel</a>
@@ -948,9 +948,9 @@ appropriately <span class="citation">(Schabenberger and Gotway
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">bin_mod</span>, <span class="va">bin_spmod</span>, <span class="va">bin_spmod_anis</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;                df      AIC</span></span>
-<span><span class="co">#&gt; bin_mod         0 717.1627</span></span>
-<span><span class="co">#&gt; bin_spmod       3 686.8963</span></span>
-<span><span class="co">#&gt; bin_spmod_anis  5 677.9164</span></span></code></pre>
+<span><span class="co">#&gt; bin_mod         0 316.5055</span></span>
+<span><span class="co">#&gt; bin_spmod       3 286.2391</span></span>
+<span><span class="co">#&gt; bin_spmod_anis  5 277.2592</span></span></code></pre>
 <p>The spatial models (<code>bin_spmod</code>,
 <code>bin_spmod_anis</code>) have a much lower AIC than the non-spatial
 model (<code>bin_mod</code>), which suggests that the models benefit
@@ -1057,7 +1057,7 @@ parameters were assumed unknown and then estimated.</p>
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 10</span></span></span>
 <span><span class="co">#&gt;       n     p  npar value   AIC  AICc   BIC logLik deviance pseudo.r.squared</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>   218     4     5  668.  678.  678.  695.  -<span style="color: #BB0000;">334.</span>     162.            0.112</span></span></code></pre>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>   218     4     5  267.  277.  278.  294.  -<span style="color: #BB0000;">134.</span>     162.            0.112</span></span></code></pre>
 <p><code><a href="../reference/glances.html">glances()</a></code> can be used to glance at multiple models
 simultaneously and sorts models by ascending AICc:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
@@ -1065,9 +1065,9 @@ simultaneously and sorts models by ascending AICc:</p>
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 11</span></span></span>
 <span><span class="co">#&gt;   model              n     p  npar value   AIC  AICc   BIC logLik deviance</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> bin_spmod_anis   218     4     5  668.  678.  678.  695.  -<span style="color: #BB0000;">334.</span>     162.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> bin_spmod        218     4     3  681.  687.  687.  697.  -<span style="color: #BB0000;">340.</span>     162.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> bin_mod          218     4     0  717.  717.  717.  717.  -<span style="color: #BB0000;">359.</span>     294.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> bin_spmod_anis   218     4     5  267.  277.  278.  294.  -<span style="color: #BB0000;">134.</span>     162.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> bin_spmod        218     4     3  280.  286.  286.  296.  -<span style="color: #BB0000;">140.</span>     162.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> bin_mod          218     4     0  317.  317.  317.  317.  -<span style="color: #BB0000;">158.</span>     294.</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: pseudo.r.squared &lt;dbl&gt;</span></span></span></code></pre>
 <p>The <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> function augments the data with model
 diagnostics:</p>
@@ -1121,12 +1121,12 @@ predictions:</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">spmod_anis_preds</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;          fit         lwr       upr</span></span>
-<span><span class="co">#&gt; 1 0.53905987 0.154820294 0.8818848</span></span>
-<span><span class="co">#&gt; 2 0.45413571 0.108339004 0.8506708</span></span>
-<span><span class="co">#&gt; 3 0.09830397 0.011018719 0.5161578</span></span>
-<span><span class="co">#&gt; 4 0.11060780 0.024084354 0.3852598</span></span>
-<span><span class="co">#&gt; 5 0.83716070 0.472051566 0.9672773</span></span>
-<span><span class="co">#&gt; 6 0.03392415 0.004085322 0.2311250</span></span></code></pre>
+<span><span class="co">#&gt; 1 0.53905987 0.115543529 0.9128104</span></span>
+<span><span class="co">#&gt; 2 0.45413571 0.067339896 0.9055387</span></span>
+<span><span class="co">#&gt; 3 0.09830397 0.007445934 0.6130586</span></span>
+<span><span class="co">#&gt; 4 0.11060780 0.011768658 0.5649759</span></span>
+<span><span class="co">#&gt; 5 0.83716070 0.356191232 0.9794964</span></span>
+<span><span class="co">#&gt; 6 0.03392415 0.001941145 0.3880073</span></span></code></pre>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span></span>
 <span>  <span class="va">bin_spmod_anis</span>,</span>
@@ -1143,16 +1143,16 @@ predictions:</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 100 × 6</span></span></span>
 <span><span class="co">#&gt;     elev strat .fitted  .lower .upper           geometry</span></span>
 <span><span class="co">#&gt;  <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;POINT [m]&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>  143. L      0.539  0.155    0.882 (401239.6 1436192)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  324. L      0.454  0.108    0.851 (352640.6 1490695)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>  158. L      0.098<span style="text-decoration: underline;">3</span> 0.011<span style="text-decoration: underline;">0</span>   0.516 (360954.9 1491590)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>  221. M      0.111  0.024<span style="text-decoration: underline;">1</span>   0.385 (291839.8 1466091)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  209. M      0.837  0.472    0.967 (310991.9 1441630)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>  218. L      0.033<span style="text-decoration: underline;">9</span> 0.004<span style="text-decoration: underline;">09</span>  0.231 (304473.8 1512103)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  127. L      0.038<span style="text-decoration: underline;">3</span> 0.005<span style="text-decoration: underline;">23</span>  0.231 (339011.1 1459318)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  122. L      0.074<span style="text-decoration: underline;">5</span> 0.010<span style="text-decoration: underline;">0</span>   0.391 (342827.3 1463452)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  191  L      0.377  0.042<span style="text-decoration: underline;">8</span>   0.891 (284453.8 1502837)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  105. L      0.143  0.020<span style="text-decoration: underline;">3</span>   0.575 (391343.9 1483791)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>  143. L      0.539  0.116    0.913 (401239.6 1436192)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  324. L      0.454  0.067<span style="text-decoration: underline;">3</span>   0.906 (352640.6 1490695)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>  158. L      0.098<span style="text-decoration: underline;">3</span> 0.007<span style="text-decoration: underline;">45</span>  0.613 (360954.9 1491590)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>  221. M      0.111  0.011<span style="text-decoration: underline;">8</span>   0.565 (291839.8 1466091)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  209. M      0.837  0.356    0.979 (310991.9 1441630)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>  218. L      0.033<span style="text-decoration: underline;">9</span> 0.001<span style="text-decoration: underline;">94</span>  0.388 (304473.8 1512103)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  127. L      0.038<span style="text-decoration: underline;">3</span> 0.003<span style="text-decoration: underline;">68</span>  0.300 (339011.1 1459318)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  122. L      0.074<span style="text-decoration: underline;">5</span> 0.007<span style="text-decoration: underline;">19</span>  0.473 (342827.3 1463452)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  191  L      0.377  0.030<span style="text-decoration: underline;">2</span>   0.921 (284453.8 1502837)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  105. L      0.143  0.014<span style="text-decoration: underline;">9</span>   0.649 (391343.9 1483791)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 90 more rows</span></span></span></code></pre>
 <p>Estimated moose presence probability for the <code>moose</code> data
 (obtained via <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code>) and predicted moose presence
@@ -1255,7 +1255,7 @@ running</p>
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 3</span></span></span>
 <span><span class="co">#&gt;    bias  MSPE RMSPE</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 0.287  27.2  5.21</span></span></code></pre>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 0.274  27.0  5.19</span></span></code></pre>
 <p>The negative binomial model has a lower MSPE, which suggests that
 incorporating overdispersion improves model fit here. Tidying this
 fitted model we see that there is some evidence elevation is related to
@@ -1266,9 +1266,9 @@ moose counts and that this effect changes across strata (all <span class="math i
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 5</span></span></span>
 <span><span class="co">#&gt;   term        estimate std.error statistic p.value</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept) -<span style="color: #BB0000;">0.296</span>     1.48       -<span style="color: #BB0000;">0.199</span>  0.842 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> elev         0.005<span style="text-decoration: underline;">91</span>   0.002<span style="text-decoration: underline;">99</span>     1.97   0.048<span style="text-decoration: underline;">3</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> elev:stratM -<span style="color: #BB0000;">0.007</span><span style="color: #BB0000; text-decoration: underline;">11</span>   0.004<span style="text-decoration: underline;">07</span>    -<span style="color: #BB0000;">1.75</span>   0.080<span style="text-decoration: underline;">3</span></span></span></code></pre>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept) -<span style="color: #BB0000;">0.283</span>     1.44       -<span style="color: #BB0000;">0.196</span>  0.845 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> elev         0.005<span style="text-decoration: underline;">76</span>   0.002<span style="text-decoration: underline;">97</span>     1.94   0.052<span style="text-decoration: underline;">7</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> elev:stratM -<span style="color: #BB0000;">0.006</span><span style="color: #BB0000; text-decoration: underline;">90</span>   0.004<span style="text-decoration: underline;">04</span>    -<span style="color: #BB0000;">1.71</span>   0.087<span style="text-decoration: underline;">7</span></span></span></code></pre>
 <p>The <code><a href="../reference/varcomp.html">varcomp()</a></code> function in <code>spmodel</code>
 apportions model variability into fixed and random components:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
@@ -1276,10 +1276,10 @@ apportions model variability into fixed and random components:</p>
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 2</span></span></span>
 <span><span class="co">#&gt;   varcomp            proportion</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Covariates (PR-sq)    0.033<span style="text-decoration: underline;">0</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> de                    0.516  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> ie                    0.001<span style="text-decoration: underline;">77</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 1 | strat             0.449</span></span></code></pre>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Covariates (PR-sq)   0.031<span style="text-decoration: underline;">9</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> de                   0.515   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> ie                   0.000<span style="text-decoration: underline;">260</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 1 | strat            0.453</span></span></code></pre>
 <p>Most model variability is explained by the spatially dependent random
 error (<code>de</code>) and the random effect for strata
 (<code>1 | strat</code>). Running</p>

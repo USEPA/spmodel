@@ -47,12 +47,9 @@ get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenpr
     SIMPLIFY = FALSE
   )
 
-  # cov params no de   (set ie portion to zero because BLUP only uses cov(dependent error))
-  spcov_params_de_only <- spcov_params
-  spcov_params_de_only[["ie"]] <- 0
   spcov_matrix_de_only_list <- lapply(
     dist_matrix_list,
-    function(x) spcov_matrix(spcov_params = spcov_params_de_only, dist_matrix = x)
+    function(x) spcov_matrix_de(spcov_params = spcov_params, dist_matrix = x)
   )
 
 
@@ -67,35 +64,7 @@ get_fitted_spglm <- function(w_list, betahat, spcov_params, data_object, eigenpr
   fitted_ie <- as.numeric(spcov_params[["ie"]] * do.call("rbind", SigInv_r_list))
 
   ## fitted random effects
-  if (is.null(names(randcov_params))) {
-    fitted_randcov <- NULL
-  } else {
-    # same BLUP-averaging pattern as get_fitted_splm(): project onto each
-    # level's indicator column, scale by the variance component, then average
-    # nonzero contributions per level name
-    fitted_randcov <- lapply(names(randcov_params), function(x) {
-      fitted_val <- randcov_params[[x]] * do.call("rbind", mapply(
-        z = data_object$randcov_list,
-        r = SigInv_r_list,
-        function(z, r) {
-          crossprod(z[[x]][["Z"]], r)
-        }
-      ))
-      fitted_val <- tapply(fitted_val, rownames(fitted_val), function(x) {
-        if (any(x != 0)) {
-          val <- mean(x[x != 0])
-        } else {
-          val <- 0
-        }
-      })
-      # all combinations yields values with many zeros -- don't want to include these in the mean
-      names_fitted_val <- rownames(fitted_val)
-      fitted_val <- as.numeric(fitted_val)
-      names(fitted_val) <- names_fitted_val
-      fitted_val
-    })
-    names(fitted_randcov) <- names(randcov_params)
-  }
+  fitted_randcov <- get_fitted_randcov(data_object, randcov_params, SigInv_r_list)
 
   fitted_values <- list(
     response = fitted_response,
@@ -135,10 +104,8 @@ get_fitted_spgautor <- function(w, betahat, spcov_params, data_object, eigenprod
   # latent link-scale vector w plays the role of y in the Gaussian BLUP formula
   SigInv_r <- eigenprods$SigInv %*% w - eigenprods$SigInv_X %*% betahat
 
-  # cov params no de   (set ie portion to zero because BLUP only uses cov(dependent error))
-  spcov_params_de_only <- spcov_params
-  spcov_params_de_only[["ie"]] <- 0
-  spcov_matrix_de_only <- spcov_matrix(spcov_params = spcov_params_de_only, dist_matrix = dist_matrix, M = M)
+  # Build the dependent-error covariance without adding any nugget floor.
+  spcov_matrix_de_only <- spcov_matrix_de(spcov_params = spcov_params, dist_matrix = dist_matrix, M = M)
 
   if (!is.null(data_object$partition_factor)) {
     spcov_matrix_de_only <- spcov_matrix_de_only * data_object$partition_matrix[data_object$observed_index, data_object$observed_index, drop = FALSE]
@@ -152,48 +119,7 @@ get_fitted_spgautor <- function(w, betahat, spcov_params, data_object, eigenprod
   fitted_ie <- spcov_params[["ie"]] * SigInv_r
 
   ## fitted random effects
-  if (is.null(names(randcov_params))) {
-    fitted_randcov <- NULL
-  } else {
-    if (is.null(data_object$partition_factor)) {
-      ob_randcov_Zs <- get_randcov_Zs(data_object$obdata, names(randcov_params), ZZt = FALSE)
-      fitted_randcov <- lapply(names(randcov_params), function(x) {
-        fitted_val <- randcov_params[[x]] * crossprod(ob_randcov_Zs[[x]][["Z"]], SigInv_r)
-        names_fitted_val <- rownames(fitted_val)
-        fitted_val <- as.vector(fitted_val)
-        names(fitted_val) <- names_fitted_val
-        fitted_val
-      })
-      names(fitted_randcov) <- names(randcov_params)
-    } else {
-      index <- unname(model.response(model.frame(reformulate("1", response = labels(terms(data_object$partition_factor))),
-        data = data_object$obdata
-      )))
-      index_val <- unique(index)
-      ob_randcov_Zs <- get_randcov_Zs(data_object$obdata, names(randcov_params), ZZt = FALSE)
-      fitted_randcov <- lapply(names(randcov_params), function(x) {
-        fitted_val <- lapply(index_val, function(y) {
-          row_val <- y == index
-          fitted_vals <- randcov_params[[x]] *
-            crossprod(ob_randcov_Zs[[x]][["Z"]][row_val, , drop = FALSE], SigInv_r[row_val, , drop = FALSE])
-        })
-        fitted_val <- do.call("rbind", fitted_val)
-        fitted_val <- tapply(fitted_val, rownames(fitted_val), function(x) {
-          val <- mean(x[x != 0])
-          if (length(val) == 0) { # replace if all zeros somehow
-            val <- rep(0, length(x))
-            names(val) <- names(x)
-          }
-          val
-        })
-        names_fitted_val <- rownames(fitted_val)
-        fitted_val <- as.vector(fitted_val)
-        names(fitted_val) <- names_fitted_val
-        fitted_val
-      })
-      names(fitted_randcov) <- names(randcov_params)
-    }
-  }
+  fitted_randcov <- get_fitted_randcov(data_object, randcov_params, list(SigInv_r))
 
   fitted_values <- list(
     response = fitted_response,
@@ -233,6 +159,7 @@ invlink <- function(fitted_link, family, size) {
   fitted
 }
 
+
 #' Remove a model offset from a fitted link-scale vector
 #'
 #' @param w A fitted link-scale vector with the offset included, i.e.
@@ -262,4 +189,3 @@ w_offset_free <- function(w, offset) {
     w - as.vector(offset)
   }
 }
-

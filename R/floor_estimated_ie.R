@@ -17,8 +17,7 @@ floor_estimated_ie <- function(spcov_params_val, spcov_is_known, diagtol) {
   if (isTRUE(spcov_is_known[["ie"]])) {
     return(spcov_params_val)
   }
-  de <- if ("de" %in% names(spcov_params_val)) spcov_params_val[["de"]] else 0
   # matches the exact floor spcov_matrix.*() applies when building the covariance matrix
-  spcov_params_val[["ie"]] <- max(spcov_params_val[["ie"]], 1e-4 * de, diagtol)
+  spcov_params_val[["ie"]] <- spcov_ie_stabilized(spcov_params_val, diagtol)
   spcov_params_val
 }

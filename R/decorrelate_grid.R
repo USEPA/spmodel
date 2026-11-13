@@ -26,6 +26,8 @@ decorrelate_grid <- function(formula, data, spcov_type, spcov_params, xcoord, yc
   # already-substituted value and must not re-substitute)
   xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
   ycoord <- if (missing(ycoord)) NULL else as.character(substitute(ycoord))
+  if (!length(xcoord)) xcoord <- NULL
+  if (!length(ycoord)) ycoord <- NULL
 
   if (missing(spcov_params)) spcov_params <- NULL
   if (!is.null(spcov_params)) spcov_type <- class(spcov_params)
@@ -139,14 +141,21 @@ decorrelate_grid_internal <- function(formula, data, spcov_type, spcov_params, x
     ## name ycoord ".ycoord" to be used later
     ycoord <- ".ycoord"
   }
-  # storing max halfdist
-  if (spcov_type %in% c("triangular", "cosine")) {
-    data[[ycoord]] <- 0
+  if (is.null(xcoord) && !spcov_type %in% c("none", "ie")) {
+    stop("The xcoord argument must be specified.", call. = FALSE)
   }
+  if (!is.null(xcoord) && !xcoord %in% names(data)) {
+    stop("The xcoord argument must match the name of a variable in data.", call. = FALSE)
+  }
+  if (!is.null(ycoord) && !ycoord %in% names(data)) {
+    stop("The ycoord argument must match the name of a variable in data.", call. = FALSE)
+  }
+  xcoord_val <- if (is.null(xcoord)) rep(0, NROW(data)) else data[[xcoord]]
+  ycoord_val <- if (is.null(ycoord) || spcov_type %in% c("triangular", "cosine")) rep(0, NROW(data)) else data[[ycoord]]
   # candidate ranges are a shrunk/expanded version of a domain-size-based
   # heuristic starting range (half the domain's diagonal), the same starting
   # range logic splm()/spglm() use for their own optimizers
-  max_halfdist <- get_bounding_box_dist(data[[xcoord]], data[[ycoord]]) / 2
+  max_halfdist <- get_bounding_box_dist(xcoord_val, ycoord_val) / 2
   range <- get_initial_range(spcov_type, max_halfdist) * c(0.5, 1.5)
   ## anisotropy
   if (anisotropy) {

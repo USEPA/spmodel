@@ -1,5 +1,5 @@
 ---
-title: "Simulating Spatial Data in spmodel"
+title: "Simulating Large Spatial Data in spmodel"
 author: "Michael Dumelle, Matt Higham, and Jay M. Ver Hoef"
 bibliography: '`r system.file("references.bib", package="spmodel")`'
 output:
@@ -24,7 +24,7 @@ library(ggplot2)
 # Introduction {#sec:introduction}
 
 `spmodel` is an **R** package used to fit, summarize, and
-predict for a variety of spatial statistical models. This vignette explores `sprnorm()`, which simulates spatially correlated normal (Gaussian) random variables, along with its companions for simulating non-Gaussian spatial data. Before proceeding, we
+predict for a variety of spatial statistical models. This vignette explores `sprnorm()`, which simulates spatially correlated normal (Gaussian) random variables, and the big data approximations available for simulating them efficiently at large sample sizes. Before proceeding, we
 load `spmodel` and `ggplot2` by running
 ```{r, eval = FALSE}
 library(spmodel)

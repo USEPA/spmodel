@@ -273,8 +273,8 @@ so that its size is only \code{size_new}. The default \code{size_new}
 is \code{4000}.
 \item \code{ordering} chooses the \code{size_new} nodes from
 \code{newdata} and takes the same values as the \code{ordering}
-argument of \code{\link{sprnorm}()}/\code{\link{conditional}()} under
-\code{approximation = "vecchia"} (\code{"maxmin"}, \code{"grts"},
+argument of \code{\link{sprnorm}()}/\code{\link{conditional}()} with
+\code{local = TRUE} (\code{"maxmin"}, \code{"grts"},
 \code{"random"}, \code{"none"}, \code{"middleout"},
 \code{"outsidein"}, \code{"coordinate"}). The default is
 \code{"grts"}.

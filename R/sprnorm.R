@@ -51,6 +51,7 @@
 #'   \code{extra} parameter for car and sar models is ignored when all observations have
 #'   neighbors.
 #'
+#'
 #' @return If \code{samples} is 1, a vector of random variables for each row of \code{data}
 #'   is returned. If \code{samples} is greater than one, a matrix of random variables
 #'   is returned, where the rows correspond to each row of \code{data} and the columns
@@ -75,8 +76,10 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
     stop("mean vector must be length n or length 1 (recycled)")
   }
 
-  if (spcov_params[["de"]] == 0 && (missing(randcov_params) || is.null(randcov_params))) {
-    base_val <- replicate(samples, rnorm(n, sd = sqrt(spcov_params[["ie"]])))
+  if (spcov_params[["de"]] == 0) {
+    return(sprnorm.none(spcov_params, mean, samples, data,
+      if (missing(randcov_params)) NULL else randcov_params,
+      if (missing(partition_factor)) NULL else partition_factor))
   } else {
     ## convert sp to data frame (point geometry)
     attr_sp <- attr(class(data), "package")
@@ -98,10 +101,14 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
     # non standard evaluation for the x and y coordinates -- as.character()
     # right at capture normalizes both quoted ("x") and unquoted (x)
     # column-name references into a plain string
-    xcoord <- as.character(substitute(xcoord))
+    xcoord <- if (missing(xcoord)) NULL else as.character(substitute(xcoord))
+    if (!length(xcoord)) {
+      stop("The xcoord argument must be specified.", call. = FALSE)
+    }
     # replace null if necessary -- this missing() check runs before ycoord's
     # own capture below, so it still reflects the original argument correctly
-    if (missing(ycoord)) {
+    ycoord_given <- !missing(ycoord) && !is.null(substitute(ycoord))
+    if (!ycoord_given) {
       # 1-D data: fabricate a constant y-coordinate so the same 2-D distance
       # machinery below can be reused without a separate 1-D code path
       ycoord <- ".ycoord"
@@ -141,72 +148,34 @@ sprnorm.exponential <- function(spcov_params, mean = 0, samples = 1, data, randc
       )
     }
 
-    if (missing(randcov_params)) {
-      randcov_params <- NULL
-    } else {
+    random <- NULL
+    randcov_init <- NULL
+    if (!missing(randcov_params) && !is.null(randcov_params) &&
+        length(randcov_params) > 0L) {
+      random <- get_simulation_random(randcov_params, env = environment())
+      names(randcov_params) <- labels(terms(random))
       randcov_init <- randcov_initial(randcov_params, known = "given")
     }
     if (missing(partition_factor)) {
       partition_factor <- NULL
     }
 
-  # the big data approximation (local) is not supported in this release;
-  # always compute the exact solution
-    local <- FALSE
-    local_list <- get_local_list_simulation(local, n, data)
 
-    if (local_list$approximation == "vecchia") {
-      # vecchia: every location is simulated sequentially, conditional on
-      # every earlier-simulated location so there is no base sample to
-      # subset data down to at all (the object is built on all the data
-      # and splm()'s own local = TRUE keeps that fit itself scalable; the
-      # simulation is separately scalable via neighbor truncation)
-      object <- splm(
-        formula = ...response... ~ 1,
-        data = data,
-        spcov_initial = spcov_init,
-        randcov_initial = randcov_init,
-        partition_factor = partition_factor,
-        xcoord = "...xcoord...",
-        ycoord = "...ycoord...",
-        local = TRUE
-      )
-      base_val <- get_sprnorm_vecchia(object, local_list, samples)
-    } else {
-      if (local_list$method_base != "all") {
-        newdata <- lapply(local_list$index$new, function(x) data[x, , drop = FALSE])
-        data <- data[local_list$index$base, , drop = FALSE]
-        n <- NROW(data)
-      }
-
-      object <- splm(
-        formula = ...response... ~ 1,
-        data = data,
-        spcov_initial = spcov_init,
-        randcov_initial = randcov_init,
-        partition_factor = partition_factor,
-        xcoord = "...xcoord...",
-        ycoord = "...ycoord...",
-        local = TRUE
-      )
-
-      cov_lowchol_base <- t(chol(covmatrix(object)))
-      base_val <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_base %*% rnorm(n)), numeric(n))
-
-      if (local_list$method_base != "all") {
-
-        if (local_list$parallel) {
-          cl <- parallel::makeCluster(local_list$ncores)
-          new_val <- parLapply(cl, newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
-          cl <- parallel::stopCluster(cl)
-        } else {
-          new_val <- lapply(newdata, get_conditional_new_from_base, object, base_val, cov_lowchol_base, samples)
-        }
-        base_val <- rbind(base_val, do.call("rbind", new_val))
-        index <- c(local_list$index$base, do.call("c", local_list$index$new))
-        base_val <- base_val[order(index), , drop = FALSE]
-      }
-    }
+    fit_args <- list(
+      formula = ...response... ~ 1,
+      data = data,
+      spcov_initial = spcov_init,
+      random = random,
+      randcov_initial = randcov_init,
+      partition_factor = partition_factor,
+      xcoord = "...xcoord...",
+      ycoord = "...ycoord...",
+      local = list(var_adjust = "none")
+    )
+    if (!ycoord_given) fit_args$ycoord <- NULL
+    object <- do.call(splm, fit_args)
+    cov_lowchol_base <- t(chol(covmatrix(object)))
+    base_val <- vapply(seq_len(samples), function(x) as.numeric(cov_lowchol_base %*% rnorm(n)), numeric(n))
   }
 
   base_val <- sweep(base_val, 1, mean, "+")
@@ -288,40 +257,21 @@ sprnorm.none <- function(spcov_params, mean = 0, samples = 1, data, randcov_para
     stop("mean vector must be length n or length 1 (recycled)")
   }
 
-  dist_matrix <- diag(n)
-
-  # compute the random effects covariance matrix
-  if (missing(randcov_params)) {
+  if (missing(randcov_params) || is.null(randcov_params) || length(randcov_params) == 0L) {
     randcov_params <- NULL
-    randcov_Zs <- NULL
   } else {
-    names(randcov_params) <- get_randcov_names(reformulate(paste("(", names(randcov_params), ")", sep = "")))
-    randcov_Zs <- get_randcov_Zs(data = data, names(randcov_params))
+    random <- get_simulation_random(randcov_params, env = environment())
+    init <- randcov_initial(randcov_params, known = "given")
+    names(init$initial) <- names(init$is_known) <- labels(terms(random))
+    randcov_params <- validate_randcov_initial(init)$initial
+    get_randcov_groups(random, data)
   }
 
-  # partition matrix
   if (missing(partition_factor)) partition_factor <- NULL
-  partition_matrix_val <- partition_matrix(partition_factor, data)
-
-  # compute the covariance matrix
-  cov_matrix_val <- cov_matrix(
-    spcov_params, dist_matrix,
-    randcov_params, randcov_Zs, partition_matrix_val
-  )
-
-  if (is.null(randcov_params)) {
-    # with no spatial dependence and no random effects, the covariance matrix
-    # is just ie * I, so drawing directly from rnorm() with sd = sqrt(ie) is
-    # equivalent to (and much cheaper than) the general Cholesky route below
-    sprnorm_val <- vapply(seq_len(samples), function(x) mean + rnorm(n, sd = sqrt(spcov_params[["ie"]])), numeric(n))
-  } else {
-    # transpose is lower triangular, needed for normal sim
-    cov_matrix_lowchol <- t(chol(cov_matrix_val))
-    # record sample sizes
-
-    # simulate n random normal vectors
-    sprnorm_val <- vapply(seq_len(samples), function(x) mean + as.numeric(cov_matrix_lowchol %*% rnorm(n)), numeric(n))
-  }
+  sprnorm_val <- matrix(rnorm(n * samples, sd = sqrt(spcov_params[["ie"]])), n, samples)
+  random <- draw_sprnorm_random(data, randcov_params, partition_factor, samples)
+  if (!is.null(random)) sprnorm_val <- sprnorm_val + random
+  sprnorm_val <- sweep(sprnorm_val, 1, mean, "+")
 
   if (samples == 1) {
     sprnorm_val <- as.vector(sprnorm_val)
@@ -392,11 +342,14 @@ sprnorm.car <- function(spcov_params, mean = 0, samples = 1, data, randcov_param
   dist_matrix <- W
 
   # compute the random effects covariance matrix
-  if (missing(randcov_params)) {
+  if (missing(randcov_params) || is.null(randcov_params) || length(randcov_params) == 0L) {
     randcov_params <- NULL
     randcov_Zs <- NULL
   } else {
-    names(randcov_params) <- get_randcov_names(reformulate(paste("(", names(randcov_params), ")", sep = "")))
+    random <- get_simulation_random(randcov_params, env = environment())
+    init <- randcov_initial(randcov_params, known = "given")
+    names(init$initial) <- names(init$is_known) <- labels(terms(random))
+    randcov_params <- validate_randcov_initial(init)$initial
     randcov_Zs <- get_randcov_Zs(data = data, names(randcov_params))
   }
 

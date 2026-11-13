@@ -21,7 +21,7 @@ MathJax.Hub.Config({
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.14.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.15.0</span>
       </span>
     </div>
 
@@ -51,7 +51,7 @@ MathJax.Hub.Config({
       <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
-      <a href="../articles/simulation.html">Simulating Spatial Data in spmodel</a>
+      <a href="../articles/simulation.html">Simulating Large Spatial Data in spmodel</a>
     </li>
     <li>
       <a href="../articles/conditional.html">Conditional Simulation in spmodel</a>
@@ -376,8 +376,8 @@ so that its size is only <code>size_new</code>. The default <code>size_new</code
 is <code>4000</code>.</p></li>
 <li><p><code>ordering</code> chooses the <code>size_new</code> nodes from
 <code>newdata</code> and takes the same values as the <code>ordering</code>
-argument of <code><a href="sprnorm.html">sprnorm()</a></code>/<code><a href="conditional.html">conditional()</a></code> under
-<code>approximation = "vecchia"</code> (<code>"maxmin"</code>, <code>"grts"</code>,
+argument of <code><a href="sprnorm.html">sprnorm()</a></code>/<code><a href="conditional.html">conditional()</a></code> with
+<code>local = TRUE</code> (<code>"maxmin"</code>, <code>"grts"</code>,
 <code>"random"</code>, <code>"none"</code>, <code>"middleout"</code>,
 <code>"outsidein"</code>, <code>"coordinate"</code>). The default is
 <code>"grts"</code>.</p></li>

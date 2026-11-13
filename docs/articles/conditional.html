@@ -41,7 +41,7 @@ MathJax.Hub.Config({
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">spmodel</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.14.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.15.0</span>
       </span>
     </div>
 
@@ -73,7 +73,7 @@ MathJax.Hub.Config({
       <a href="../articles/block.html">Block Prediction (i.e., Block Kriging) in spmodel</a>
     </li>
     <li>
-      <a href="../articles/simulation.html">Simulating Spatial Data in spmodel</a>
+      <a href="../articles/simulation.html">Simulating Large Spatial Data in spmodel</a>
     </li>
     <li>
       <a href="../articles/conditional.html">Conditional Simulation in spmodel</a>
@@ -177,14 +177,16 @@ extreme values, threshold exceedances, etc.). Answering these types of
 questions requires jointly simulating the predicted surface, not just
 each location’s pointwise mean and standard error.
 <code><a href="../reference/conditional.html">conditional()</a></code> provides exactly this: repeated draws from
-the joint distribution of the response (or, for
-<code><a href="../reference/spglm.html">spglm()</a></code>/<code><a href="../reference/spgautor.html">spgautor()</a></code> models, the latent process)
-at a set of new locations, conditional on the observed data. Though
-typically the focus on conditional simulation is on predictions at new
-locations, <code><a href="../reference/conditional.html">conditional()</a></code> also provides simulated values of
-covariance and fixed effect model parameters. For technical details
-regarding conditional simulation, see <span class="citation">Zimmerman
-and Ver Hoef (2024)</span> and the Technical Details vignette.</p>
+the joint distribution of the response (or, for <code><a href="../reference/spglm.html">spglm()</a></code>
+models, the latent process) at a set of new locations, conditional on
+the observed data. Though typically the focus on conditional simulation
+is on predictions at new locations, <code><a href="../reference/conditional.html">conditional()</a></code> also
+provides simulated values of covariance and fixed effect model
+parameters. <code><a href="../reference/conditional.html">conditional()</a></code> supports <code><a href="../reference/splm.html">splm()</a></code>,
+<code><a href="../reference/spautor.html">spautor()</a></code>, <code><a href="../reference/spglm.html">spglm()</a></code>, and
+<code><a href="../reference/spgautor.html">spgautor()</a></code> model objects. For technical details regarding
+conditional simulation, see <span class="citation">Zimmerman and Ver
+Hoef (2024)</span> and the Technical Details vignette.</p>
 <p>The <code>sulfate</code> data is an <code>sf</code> object that
 contains sulfate measurements in the conterminous United States (CONUS).
 We first visualize the distribution of the sulfate data by running</p>
@@ -353,12 +355,12 @@ spatial range parameter:</p>
 <div class="section level2">
 <h2 id="spatial-generalized-linear-models">Spatial Generalized Linear Models<a class="anchor" aria-label="anchor" href="#spatial-generalized-linear-models"></a>
 </h2>
-<p><code><a href="../reference/conditional.html">conditional()</a></code> also works for <code><a href="../reference/spglm.html">spglm()</a></code> and
-<code><a href="../reference/spgautor.html">spgautor()</a></code> model objects. Because these models describe a
-latent process <span class="math inline">\(\mathbf{w}\)</span> on the
-link scale rather than the response directly, the <code>type</code>
-argument controls the scale of the simulated values:
-<code>type = "link"</code> (the default) returns simulations of <span class="math inline">\(\mathbf{w}\)</span>,
+<p><code><a href="../reference/conditional.html">conditional()</a></code> also works for spatial generalized linear
+models, though there are some additional details. Because these models
+describe a latent process <span class="math inline">\(\mathbf{w}\)</span> on the link scale rather than
+the response directly, the <code>type</code> argument controls the scale
+of the simulated values: <code>type = "link"</code> (the default)
+returns simulations of <span class="math inline">\(\mathbf{w}\)</span>,
 <code>type = "response"</code> returns simulations of the mean on the
 response (inverse link) scale, and <code>type = "new"</code>
 additionally simulates a new observation from the response distribution

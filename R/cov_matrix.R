@@ -80,18 +80,16 @@ get_obs_cov_matrix <- function(dist_matrix, obdata, spcov_params, randcov_params
 #' @param randcov_Zs_cross Cross random effect design matrix products
 #' @param partition_matrix_cross Cross partition matrix
 #'
-#' @return A cross-covariance matrix (with the nugget/independent error excluded,
+#' @return A cross-covariance matrix (with the independent error excluded,
 #'   since two distinct observations never share independent error)
 #'
 #' @noRd
 cov_matrix_cross <- function(spcov_params, dist_matrix_cross, randcov_params = NULL, randcov_Zs_cross = NULL, partition_matrix_cross = NULL) {
   # spatial
-  # temporarily zero out the nugget/independent-error variance ("ie") before
-  # building the cross-covariance, since it only contributes when two observations
-  # are the exact same location -- never true across two distinct data sets
-  spcov_params_ie <- spcov_params[["ie"]]
-  spcov_params[["ie"]] <- 0
-  cov_matrix_cross_val <- spcov_matrix(spcov_params, dist_matrix_cross)
+  # Cross-covariance contains only the dependent-error component. Using the
+  # dedicated constructor avoids inserting a numerical ie (nugget) along the
+  # diagonal of rectangular cross-covariance matrices.
+  cov_matrix_cross_val <- spcov_matrix_de(spcov_params, dist_matrix_cross)
 
   # random effects
   if (!is.null(randcov_params)) {

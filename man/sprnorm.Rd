@@ -99,13 +99,13 @@ simulating each observation
 conditional on neighbors selected from previously simulated
 observation. A list can contain:
 \itemize{
-\item \code{method}: The neighbor-selection rule used to build each
-location's conditioning set once it exceeds \code{size}
+\item \code{method}: The method used to build each
+location's local neighborhood set once it exceeds \code{size}
 already-simulated candidates. Values are \code{"all"} (no truncation,
 exact), \code{"distance"} (the \code{size} nearest candidates),
 or \code{"covariance"} (the \code{size} candidates with the
 highest covariance, in absolute value, with the location being
-simulated). Same convention as \code{predict()}'s own
+simulated). This is the same convention as \code{predict()}'s own
 \code{local$method}. The default is \code{"covariance"}.
 \code{method = "all"} is an alias for \code{local = FALSE}.
 \item \code{size}: The number of neighbors used when \code{method}
@@ -113,7 +113,7 @@ is \code{"distance"} or \code{"covariance"}. The default is 30.
 \item \code{ordering}: The order locations are simulated in --
 \code{"maxmin"}, \code{"middleout"}, \code{"outsidein"},
 \code{"coordinate"}, \code{"grts"}, \code{"random"}, or
-\code{"none"} (same options as \code{decorrelate()}'s
+\code{"none"} (these are the same options as \code{decorrelate()}'s
 \code{ordering} argument). The default is \code{"maxmin"} unless
 locations are coincident, in which case it is \code{"grts"}.
 }}

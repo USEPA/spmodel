@@ -1890,6 +1890,22 @@ Recall that the Hessian can be written as \begin{equation*}
 \end{equation*}
 Because $\boldsymbol{\Sigma}$ can be represented blockwise, $\boldsymbol{\Sigma}^{-1}$ can be represented blockwise and thus the inverse and log determinant can be efficiently computed. Because $\mathbf{D}$ is diagonal, $\mathbf{D} - \boldsymbol{\Sigma}^{-1}$ can be represented blockwise and thus the inverse and log determinant can be efficiently computed. Then the SMW formula can be used, taking $\mathbf{A} = \mathbf{D} - \boldsymbol{\Sigma}^{-1}$, $\mathbf{U} = \boldsymbol{\Sigma}^{-1} \mathbf{X}$, $\mathbf{C} = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1}$, and $\mathbf{V} = \mathbf{X}^\top \boldsymbol{\Sigma}^{-1}$.
 
+Additional computational efficiency can be gained by only computing products involving $\mathbf{G}^{-1}$ or $\mathbf{P}$ instead of computing these quantities directly.  For example, 
+\begin{equation*}
+\begin{aligned}
+   \mathbf{P}\mathbf{w} & = \boldsymbol{\Sigma}^{-1}\mathbf{w} - \mathbf{U}\mathbf{C}\mathbf{V}\mathbf{w} \\
+  \mathbf{G}^{-1}\mathbf{g} & = \mathbf{A}^{-1}\mathbf{g} - (\mathbf{A}^{-1}\mathbf{U})\mathbf{M}^{-1}\mathbf{V}(\mathbf{A}^{-1}\mathbf{g}),\qquad
+  \mathbf{M} = \mathbf{C}^{-1} + \mathbf{V}\mathbf{A}^{-1}\mathbf{U} 
+\end{aligned}
+\end{equation*}
+These products can be obtained using blockwise linear solves, typically leveraging Cholesky factors of $\mathbf{A}_j$ and $\boldsymbol \Sigma_j$ (where $j$ represents the $j$th block of the relevant matrix). The log negative Hessian determinants for ML and REML estimation can be obtained via the determinant results above:
+\begin{equation*}
+\begin{aligned}
+\ln|-\mathbf{G}^*| & = \sum_j \ln|-\mathbf{A}_j| \qquad (\text{ML})\\
+  \ln|-\mathbf{G}| & = \ln|-\mathbf{G}^*| + \ln|\mathbf{C}| + \ln|\mathbf{M}| \qquad (\text{REML}).
+\end{aligned}
+\end{equation*}
+
 As previously mentioned, fitting big data spatial generalized linear models requires a doubly-iterative algorithm. This makes it far more computationally expensive than fitting big data spatial linear models.
 
 ## Simulation Functions (`sprpois()`, `sprnbinom()`, `sprbinom()`, `sprbeta()`, `sprgamma()`, `sprinvgauss()`) {#sec:sim-fns}

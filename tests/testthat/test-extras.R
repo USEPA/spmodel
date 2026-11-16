@@ -1761,7 +1761,7 @@ test_that("prediction kriging weights works", {
 
   spgmod1 <- spglm(abs(y) ~ x, family = "Gamma", exdata, "exponential", xcoord, ycoord)
   pred1 <- predict(spgmod1, newexdata, type = "weight") %*% fitted(spgmod1, type = "link")
-  pred2 <- predict(spgmod1, newexdata)
+  pred2 <- predict(spgmod1, newexdata, fit_correct = FALSE)
   expect_equal(as.vector(pred1), as.vector(pred2))
 
   spmod1 <- spautor(y ~ x, exdata_Mpoly, "car")
@@ -1771,7 +1771,7 @@ test_that("prediction kriging weights works", {
 
   spgmod1 <- spgautor(abs(y) ~ x, family = "Gamma", exdata_Mpoly, "car")
   pred1 <- predict(spgmod1, type = "weight") %*% fitted(spgmod1, type = "link")
-  pred2 <- predict(spgmod1)
+  pred2 <- predict(spgmod1, fit_correct = FALSE)
   expect_equal(as.vector(pred1), as.vector(pred2))
 
   # big data

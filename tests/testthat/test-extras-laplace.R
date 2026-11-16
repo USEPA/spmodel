@@ -121,7 +121,8 @@ test_that("Laplace determinants use the right curvature without changing fixed-p
           if (!checked) {
             checked <<- TRUE
             precision <- if (is_areal) call_args$SigInv else Matrix::bdiag(call_args$SigInv_list)
-            expected <- if (method == "ml") logdet(precision - D) else -logdet(result$mHInv)
+            inverse <- if (inherits(result$mHInv, "laplace_mhinv")) mhinv_apply(result$mHInv, diag(n)) else result$mHInv
+            expected <- if (method == "ml") logdet(precision - D) else -logdet(inverse)
             # Preserve the existing block REML ridge convention (deferred separately).
             if (!is_areal && length(call_args$SigInv_list) > 1 && method == "reml") {
               CInv <- call_args$cov_betahat_Inv

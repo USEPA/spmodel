@@ -1898,7 +1898,7 @@ Additional computational efficiency can be gained by only computing products inv
   \mathbf{M} = \mathbf{C}^{-1} + \mathbf{V}\mathbf{A}^{-1}\mathbf{U} 
 \end{aligned}
 \end{equation*}
-These products can be obtained using blockwise linear solves, typically leveraging Cholesky factors of $\mathbf{A}_j$ and $\boldsymbol \Sigma_j$ (where $j$ represents the $j$th block of the relevant matrix). The log negative Hessian determinants for ML and REML estimation can be obtained via the determinant results above:
+These products can be obtained using blockwise linear solves, typically leveraging Cholesky factors of $-\mathbf{A}_j$ and $\boldsymbol \Sigma_j$ (where $j$ represents the $j$th block of the relevant matrix). The log negative Hessian determinants for ML and REML estimation can be obtained via the determinant results above:
 \begin{equation*}
 \begin{aligned}
 \ln|-\mathbf{G}^*| & = \sum_j \ln|-\mathbf{A}_j| \qquad (\text{ML})\\

@@ -141,7 +141,7 @@ test_that("block covariance includes the stabilized ie on every grid path", {
           expect_equal(bq$s0, s0, tolerance = 1e-12)
           expect_equal(bq$c0, unname(c0), tolerance = 1e-12)
           if (method == "subset") {
-            s0 <- s0 + (0.4 + effective_ie) * (1 / G - 1 / length(nodes))
+            s0 <- s0 + effective_ie * (1 / G - 1 / length(nodes))
           }
           H <- x0 - c0 %*% solve(V, X)
           variance <- as.numeric(s0 - c0 %*% solve(V, c0) + H %*% B %*% t(H))
@@ -207,23 +207,22 @@ test_that("check s0 (method_new = 'basis') is accurate", {
   }
 })
 
-test_that("method_new = 'subset' converges to the exact block prediction and variance", {
+test_that("method_new = 'subset' uses the node covariance and full-grid nugget", {
   gd <- bp_grid(6000, lims = c(0.1, 0.4)) # sub-region block
   m <- bp_model(220, de = 0.8, ie = 0.2, range = 0.15, formula = z ~ x)
   ex <- predict(m, gd, block = TRUE, se.fit = TRUE, local = FALSE)
   set.seed(4)
   sm <- predict(m, gd, block = TRUE, se.fit = TRUE, local = list(method = "all", method_new = "subset", size_new = 2000, ordering = "grts"))
   expect_equal(sm$fit, ex$fit, tolerance = 5e-3) # small block-mean error
-  expect_equal(sm$se.fit, ex$se.fit, tolerance = 0.05)
-
-  # the 1/size_new -> 1/G diagonal re-weight targets the exact (diagonal-counted) s0
-  s0_today <- mean(covmatrix(m, newdata = gd, cov_type = "pred.pred"))
-  de_ie <- sum(coef(m, "spcov")[c("de", "ie")])
   set.seed(4)
-  nodes <- get_decorrelate_order("grts", gd$xco, gd$yco)$order[seq_len(2000)]
-  raw <- spmodel:::get_block_quantities(m, gd[nodes, , drop = FALSE], nodes = seq_len(2000))$s0
-  corrected <- raw + de_ie * (1 / nrow(gd) - 1 / 2000)
-  expect_lt(abs(corrected - s0_today), 2e-3)
+  nodes <- gd[get_decorrelate_order("grts", gd$xco, gd$yco)$order[seq_len(2000)], ]
+  c0 <- colMeans(covmatrix(m, nodes, cov_type = "pred.obs"))
+  ie <- spcov_ie_stabilized(coef(m, "spcov"), m$diagtol)
+  s0 <- mean(covmatrix(m, nodes, cov_type = "pred.pred")) + ie * (1 / nrow(gd) - 1 / nrow(nodes))
+  w <- solve(covmatrix(m), c0)
+  h <- colMeans(model.matrix(~x, gd)) - drop(crossprod(model.matrix(m), w))
+  expect_equal(sm$se.fit^2, s0 - sum(w * c0) + drop(crossprod(h, vcov(m) %*% h)),
+    tolerance = 1e-10)
 })
 
 test_that("the unset-local auto-flag fires per side, only for interval none/prediction", {
@@ -341,4 +340,151 @@ test_that("block node ordering uses the anisotropy-transformed coordinates", {
   got <- predict(m, gd_reference, block = TRUE, se.fit = TRUE, local = FALSE)
   expect_equal(got$fit, expected_fit, tolerance = 1e-8)
   expect_equal(got$se.fit, expected_se, tolerance = 1e-8)
+})
+
+test_that("subset block variance remains positive", {
+  d <- data.frame(cx = seq(0, 1, length.out = 40), cy = 0, z = sin(seq_len(40)))
+  fit <- splm(z ~ 1, d, xcoord = cx, ycoord = cy, spcov_initial =
+    spcov_initial("exponential", de = .8, ie = .01, range = 1/3, known = "given"))
+  nd <- d[seq(1, 40, by = 2), ]
+  local <- list(method = "all", method_new = "subset", size_new = 4, ordering = "none")
+  p <- predict(fit, nd, block = TRUE, se.fit = TRUE, local = local)
+  expect_equal(p$se.fit^2, .002723610935126, tolerance = 1e-10)
+  expect_gte(p$se.fit^2, .01 / NROW(nd))
+  local$size_new <- NROW(nd)
+  expect_identical(predict(fit, nd, block = TRUE, se.fit = TRUE, local = local),
+    predict(fit, nd, block = TRUE, se.fit = TRUE, local = FALSE))
+})
+
+block_index_reference <- function(fit, nd, keep, nodes = seq_len(nrow(nd)), method_new = "subset") {
+  cov_new <- covmatrix(fit, nd, cov_type = "pred.pred")
+  cov_cross <- covmatrix(fit, nd, cov_type = "pred.obs")
+  if (method_new == "basis") {
+    c0 <- colMeans(cov_cross[, keep, drop = FALSE])
+    s0 <- mean(cov_new[, nodes, drop = FALSE])
+  } else {
+    c0 <- colMeans(cov_cross[nodes, keep, drop = FALSE])
+    nugget <- spcov_ie_stabilized(coef(fit, "spcov"), fit$diagtol)
+    s0 <- mean(cov_new[nodes, nodes, drop = FALSE]) + nugget * (1/nrow(nd) - 1/length(nodes))
+  }
+  w <- solve(covmatrix(fit)[keep, keep, drop = FALSE], c0)
+  X <- model.matrix(fit)[keep, , drop = FALSE]
+  mat <- get_newdata_model_matrix(fit, nd)
+  x0 <- colMeans(mat$newdata_model)
+  h <- x0 - drop(crossprod(X, w))
+  frame <- model.frame(fit)
+  y <- model.response(frame)
+  if (!is.null(model.offset(frame))) y <- y - model.offset(frame)
+  offset <- if (is.null(mat$offset)) 0 else mean(mat$offset)
+  list(fit = offset + sum(x0 * coef(fit)) + sum(w * (y[keep] - drop(X %*% coef(fit)))),
+    se.fit = sqrt(max(0, s0 - sum(w*c0) + drop(crossprod(h, vcov(fit) %*% h)))))
+}
+
+test_that("block prediction uses the same rows for explicit subsets", {
+  set.seed(73)
+  d <- data.frame(cx = runif(36), cy = runif(36), x = rnorm(36), z = rnorm(36),
+    group = factor(rep(letters[1:3], each = 12)), part = factor(rep(1:2, 18)))
+  nd <- d[1:6, ]
+  keep <- c(1L, 2L, 9L, 13L, 14L)
+  for (structure in c("plain", "random", "partition")) {
+    fit <- splm(z ~ x, d, xcoord = cx, ycoord = cy,
+      random = if (structure == "random") ~group else NULL,
+      randcov_initial = if (structure == "random") randcov_initial(group = .3, known = "given") else NULL,
+      partition_factor = if (structure == "partition") ~part else NULL,
+      spcov_initial = spcov_initial("exponential", de = .8, ie = .2, range = .3, known = "given"))
+    subset_fit <- fit
+    subset_fit$obdata <- fit$obdata[rev(keep), , drop = FALSE]
+    expect_equal(unname(covmatrix(subset_fit)), unname(covmatrix(fit)[rev(keep), rev(keep)]), tolerance = 1e-12)
+    ref <- block_index_reference(fit, nd, keep, c(2L, 5L))
+    for (method in c("all", "covariance", "distance")) {
+      actual <- predict(fit, nd, block = TRUE, se.fit = TRUE, local = list(
+        method = method, size = 1, index = rev(keep), method_new = "subset",
+        index_new = c(5, 2), size_new = Inf, ordering = "none"))
+      expect_equal(actual, ref, tolerance = 1e-12)
+    }
+  }
+})
+
+test_that("block subset positions follow fitted and stored sf rows", {
+  set.seed(74)
+  d <- data.frame(cx = runif(30), cy = runif(30), x = rnorm(30), off = rnorm(30), z = rnorm(30))
+  missing <- c(2L, 12L, 22L)
+  d$z[missing] <- NA
+  sf_data <- sf::st_as_sf(d, coords = c("cx", "cy"))
+  fit <- splm(z ~ x + offset(off), sf_data, local = list(index = rep(c(3, 1, 2), 9)),
+    spcov_initial = spcov_initial("exponential", de = .8, ie = .2, range = .3, known = "given"))
+  nd <- sf_to_df(sf_data[missing, ])
+  keep <- c(2L, 3L, 7L, 11L)
+  expect_identical(rownames(model.frame(fit)), rownames(d)[!is.na(d$z)])
+  ref <- block_index_reference(fit, nd, keep, 2L)
+  local <- list(method = "all", index = keep, method_new = "subset", index_new = 2L)
+  baseline <- predict(fit, block = TRUE, se.fit = TRUE, local = local)
+  expect_equal(baseline, ref, tolerance = 1e-12)
+  local$index <- seq_len(fit$n) %in% keep
+  local$index_new <- c(FALSE, TRUE, FALSE)
+  expect_identical(predict(fit, sf_data[missing, ], block = TRUE, se.fit = TRUE, local = local), baseline)
+  local$index <- rev(keep)
+  expect_identical(predict(fit, block = TRUE, se.fit = TRUE, local = local), baseline)
+  expect_identical(predict(fit, nd, block = TRUE, type = "terms", local = local),
+    predict(fit, nd, block = TRUE, type = "terms"))
+  expect_identical(predict(fit, block = TRUE, interval = "confidence", local = local),
+    predict(fit, block = TRUE, interval = "confidence"))
+})
+
+test_that("explicit grid nodes replace selection with the shipped method defaults", {
+  fit <- bp_model(35, de = .8, ie = .2, range = .3)
+  nd <- bp_grid(20)
+  set.seed(80)
+  nodes <- get_decorrelate_order("grts", nd$xco, nd$yco)$order[1:4]
+  for (method_new in c("basis", "subset")) {
+    set.seed(80)
+    expected <- predict(fit, nd, block = TRUE, se.fit = TRUE,
+      local = list(method_new = method_new, size_new = 4))
+    actual <- predict(fit, nd, block = TRUE, se.fit = TRUE,
+      local = list(method_new = method_new, index_new = nodes, ordering = "none"))
+    expect_equal(actual, expected, tolerance = 1e-10)
+  }
+  expect_identical(predict(fit, nd, block = TRUE, se.fit = TRUE,
+    local = list(method = "all", index_new = rev(seq_len(nrow(nd))), size_new = 1)),
+    predict(fit, nd, block = TRUE, se.fit = TRUE, local = FALSE))
+  for (name in c("index", "index_new")) {
+    for (invalid in list(FALSE, c(1, NA), 0, 100, 1.5, Inf, c(1,1), integer(),
+      "1", factor(1), matrix(1))) {
+      expect_error(predict(fit, nd, block = TRUE, local = setNames(list(invalid), name)),
+        paste0("local\\$", name))
+    }
+  }
+  expect_error(predict(fit, nd, block = TRUE, local = list(index_new = 1, size_new = -1)), "size_new")
+  expect_error(predict(fit, nd, block = TRUE, local = list(index_new = 1, ordering = "bad")), "ordering")
+})
+
+test_that("dense subset prediction retains the independent variance floor", {
+  fit <- bp_model(2000, de = .8, ie = .01, range = .3)
+  nd <- bp_grid(100)
+  p <- predict(fit, nd, block = TRUE, se.fit = TRUE,
+    local = list(method = "all", method_new = "subset", size_new = 25, ordering = "none"))
+  expect_gte(p$se.fit^2, .01 / nrow(nd) * (1 - 1e-8))
+})
+
+test_that("subset covariance preserves anisotropy and the nugget floor", {
+  set.seed(81)
+  d <- data.frame(cx = runif(30), cy = runif(30), z = rnorm(30),
+    group = factor(rep(letters[1:3], each = 10)), part = factor(rep(1:2, 15)))
+  fit <- splm(z ~ 1, d, xcoord = cx, ycoord = cy, anisotropy = TRUE,
+    partition_factor = ~part, random = ~group,
+    randcov_initial = randcov_initial(group = .3, known = "given"),
+    spcov_initial = spcov_initial("exponential", de = .8, ie = 0, range = .3,
+      rotate = pi/6, scale = .4, known = "given"))
+  fit$diagtol <- .012
+  fit_1d <- splm(z ~ 1, d, xcoord = cx,
+    spcov_initial = spcov_initial("exponential", de = .8, ie = .2, range = .3, known = "given"))
+  fit_0d <- splm(z ~ 1, d, spcov_type = "ie")
+  for (model in list(fit, fit_1d, fit_0d)) {
+    for (keep in list(c(18L, 2L, 12L, 4L), 2L)) {
+      selected <- model
+      selected$obdata <- model$obdata[keep, , drop = FALSE]
+      expect_equal(unname(covmatrix(selected)), unname(covmatrix(model)[keep, keep, drop = FALSE]),
+        tolerance = 1e-12)
+    }
+  }
 })

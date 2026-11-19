@@ -280,6 +280,12 @@ argument of \code{\link{sprnorm}()}/\code{\link{conditional}()} with
 \code{"random"}, \code{"none"}, \code{"middleout"},
 \code{"outsidein"}, \code{"coordinate"}). The default is
 \code{"grts"}.
+\item \code{index} specifies the observed rows in \code{object$obdata}
+used for block prediction. When \code{index} is specified,
+\code{size} is ignored.
+\item \code{index_new} specifies the observed rows in \code{newdata}
+used for block prediction. When \code{index_new} is specified,
+\code{size} and \code{ordering} are ignored.
 \item \code{parallel} and \code{ncores} parallelize
 the variance calculation when \code{method_new = "basis"}.
 }

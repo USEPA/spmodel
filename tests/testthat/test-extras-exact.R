@@ -154,7 +154,7 @@ test_that("exact output match", {
   preds <- predict(spmod, newdata = newexdata, se.fit = TRUE, local = local_list, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(-0.3550, 0.0499))
   expect_equal(round(as.vector(preds$fit[1:2]), digits = 4), c(-0.2971, -0.4026))
-  expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.1255, 0.0851))
+  expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.0981, 0.0869))
   expect_equal(round(as.vector(preds$se.fit[1:2]), digits = 4), c(0.2789, 0.3166))
   seed <- seed + n_skip
 
@@ -166,7 +166,7 @@ test_that("exact output match", {
   preds <- predict(spmod, newdata = newexdata, se.fit = TRUE, local = local_list, fit_correct = FALSE)
   expect_equal(round(as.vector(coef(spmod)), digits = 4), c(-0.3349, 0.0437))
   expect_equal(round(as.vector(preds$fit[1:2]), digits = 4), c(-0.3043, -0.3981))
-  expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.0937, 0.0852))
+  expect_equal(round(as.vector(sqrt(diag(vcov(spmod)))), digits = 4), c(0.0918, 0.0853))
   expect_equal(round(as.vector(preds$se.fit[1:2]), digits = 4), c(0.2875, 0.2941))
 })
 

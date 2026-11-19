@@ -8,6 +8,13 @@
 ## Minor Updates
 
 * Added a `fit_correct` argument to `predict()`, `augment()`, `loocv()`, `kcv()`, and `conditional()` for `spglm()` and `spgautor()` models, which applies Laplace mean corrections to predictions and conditional simulations (on both the link and response scale).
+* Added support for `index` and `index_new` elements to the `local` list when `predict(object, newdata, block = TRUE, ...)`. `index` and `index_new` indicate which elements of `object` and `newdata`, respectively, are used for block prediction.
+* Minor efficiency updates.
+
+## Bug Fixes
+
+* Fixed a bug that affected the block prediction standard error when `local$method_new = "subset"`.
+* Fixed a bug that affected `vcov(object, var_correct = TRUE, ...)` when `object` was fit with `spglm(..., local)` and `local$var_adjust` was not equal to `"none"`.
 
 
 # spmodel 0.15.0

@@ -124,7 +124,7 @@ get_model_stats_spglm <- function(cov_est_object, data_object, estmethod) {
   )
 
   cov_betahat <- as.matrix(cov_betahat)
-  wts_beta <- tcrossprod(cov_betahat, SigInv_X)
+  wts_beta <- tcrossprod(cov_betahat_noadjust, SigInv_X)
   # additional variance in betahat induced by w itself being estimated
   # (rather than known), propagated through via the delta method using mHInv
   betawtsvarw <- wts_beta %*% mhinv_apply(w_and_H$mHInv, t(wts_beta))

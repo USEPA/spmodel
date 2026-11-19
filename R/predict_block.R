@@ -193,8 +193,6 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
     # local prediction list
     local <- get_local_list_prediction_block(local)
 
-    Sig <- covmatrix(object)
-
     # c0: each observed site's average covariance with the block (column-mean
     # of the newdata-rows-by-observed-sites covariance matrix), since the
     # block's covariance with an observed site is the average of that site's
@@ -202,9 +200,12 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
     # s0: Var(block average) = the average pairwise covariance among the block
     # points (each point's covariance with itself included).
     G <- NROW(newdata)
-    if (local$size_new >= G) {
-      # local = FALSE, or size_new >= G: every block point is an s0 node, so
-      # c0, x0, and s0 are all exact
+    keep <- get_block_index(local[["index"]], NROW(object$obdata), "index")
+    nodes <- get_block_index(local[["index_new"]], G, "index_new")
+    m <- if (is.null(nodes)) local$size_new else length(nodes)
+    if (m >= G) {
+      # Every row is a node with local = FALSE, size_new >= G, or a full
+      # index_new selection. The grid quantities c0, x0, and s0 are exact.
       bq <- get_block_quantities(object, newdata,
         nodes = seq_len(G),
         parallel = local$parallel, ncores = local$ncores
@@ -212,34 +213,31 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
       c0 <- bq$c0
       s0 <- bq$s0
     } else {
-      # size_new well-spread nodes chosen from newdata via the same
-      # get_decorrelate_order() helper decorrelate()/sprnorm() use;
-      # coordinates here are already anisotropy-transformed. The default is
-      # "grts".
-      if (object$dim_coords == 0) {
-        # no meaningful coordinates ("none"/"ie" covariance)
-        nodes <- seq_len(local$size_new)
-      } else {
-        block_ordering <- local$ordering
-        if (is.null(block_ordering)) {
-          block_ordering <- "grts"
+      # Use index_new if supplied. Otherwise take the first size_new rows in
+      # grid order without coordinates, or in get_decorrelate_order() order
+      # on transformed coordinates (default "grts").
+      if (is.null(nodes)) {
+        if (object$dim_coords == 0) {
+          nodes <- seq_len(m)
+        } else {
+          block_ordering <- local$ordering
+          if (is.null(block_ordering)) {
+            block_ordering <- "grts"
+          }
+          block_ord <- get_decorrelate_order(block_ordering, newdata[[xcoord]], newdata[[ycoord]])$order
+          nodes <- block_ord[seq_len(m)]
         }
-        block_ord <- get_decorrelate_order(block_ordering, newdata[[xcoord]], newdata[[ycoord]])$order
-        nodes <- block_ord[seq_len(local$size_new)]
       }
 
       if (identical(local$method_new, "subset")) {
-        # x0 (computed over the full newdata) stays exact; c0 and s0 are
-        # taken on the size_new nodes only; s0's diagonal lands at weight
-        # 1 / size_new here; re-weight it to the 1 / G it carries in the exact
-        # block variance.
+        # Keep the signal on the nodes and reweight only the independent error.
         bq <- get_block_quantities(object, newdata[nodes, , drop = FALSE],
-          nodes = seq_len(local$size_new),
+          nodes = seq_len(m),
           parallel = local$parallel, ncores = local$ncores
         )
-        de_ie <- spcov_target_var(spcov_params_val, object$diagtol)
+        ie <- spcov_ie_stabilized(spcov_params_val, object$diagtol)
         c0 <- bq$c0
-        s0 <- bq$s0 + de_ie * (1 / G - 1 / local$size_new)
+        s0 <- bq$s0 + ie * (1 / G - 1 / m)
       } else {
         # method_new = "basis": c0 (and x0) exact by parallelized (i.e., chunked) accumulation; s0
         # h(s) averaged exactly over every
@@ -254,7 +252,8 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
     }
     Xmat <- model.matrix(object)
 
-    if (local$method == "all") {
+    if (is.null(keep) && local$method == "all") {
+      Sig <- covmatrix(object)
       cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(Sig)))
     } else {
       # restrict to the local$size observed sites closest (on average) to the
@@ -263,19 +262,23 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
       # get_pred_splm() but ranking against the whole block instead of a
       # single new location
       n <- length(c0)
-      if (local$method == "distance") {
-        dist_vector <- spdist_vectors(newdata, obdata, xcoord, ycoord, object$dim_coords)
-        dist_vector <- colMeans(dist_vector)
-        keep <- order(as.numeric(dist_vector))[seq(from = 1, to = min(n, local$size))]
-      } else if (local$method == "covariance") {
+      if (is.null(keep) && local$method == "distance") {
+        columns <- split(seq_len(n), ceiling(seq_len(n) / 1000L))
+        mean_distances <- unlist(lapply(columns, function(cols) {
+          colMeans(spdist_vectors(newdata, obdata[cols, , drop = FALSE], xcoord, ycoord, object$dim_coords))
+        }), use.names = FALSE)
+        keep <- order(mean_distances)[seq(from = 1, to = min(n, local$size))]
+      } else if (is.null(keep) && local$method == "covariance") {
         # use abs() here for negative covariance types
         keep <- order(abs(as.numeric(c0)))[seq(from = n, to = max(1, n - local$size + 1))]
       }
-      obdata <- obdata[keep, , drop = FALSE]
+      object_keep <- object
+      object_keep$obdata <- object$obdata[keep, , drop = FALSE]
+      Sig_keep <- covmatrix(object_keep)
       c0 <- c0[keep]
       Xmat <- Xmat[keep, , drop = FALSE]
       y <- y[keep] # already offset-free (see above)
-      cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(Sig[keep, keep, drop = FALSE])))
+      cov_lowchol <- t(Matrix::chol(Matrix::forceSymmetric(Sig_keep)))
     }
 
     SqrtSigInv_X <- forwardsolve(cov_lowchol, Xmat)
@@ -345,6 +348,26 @@ predict_block_splm <- function(object, newdata, se.fit, scale, df, interval, lev
   } else {
     stop("Interval must be none, confidence, or prediction")
   }
+}
+
+get_block_index <- function(index, n, name) {
+  if (is.null(index)) return(NULL)
+  label <- paste0("local$", name)
+  if (!is.vector(index, "numeric") && !is.vector(index, "logical")) {
+    stop(label, " must be a logical vector or a vector of whole-number positions.", call. = FALSE)
+  }
+  if (is.logical(index)) {
+    if (length(index) != n || anyNA(index)) {
+      stop(label, " must have one logical value per row and no missing values.", call. = FALSE)
+    }
+    index <- which(index)
+  }
+  if (!length(index)) stop(label, " must select at least one row.", call. = FALSE)
+  if (any(!is.finite(index)) || any(index != floor(index) | index < 1 | index > n)) {
+    stop(label, " must contain whole-number positions between 1 and ", n, ".", call. = FALSE)
+  }
+  if (anyDuplicated(index)) stop(label, " must not contain duplicate positions.", call. = FALSE)
+  sort(as.integer(index))
 }
 
 #' Accumulate the grid-dependent block-prediction covariance quantities

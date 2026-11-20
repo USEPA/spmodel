@@ -498,7 +498,7 @@ where $g_1, \ldots, g_G$ index all $G$ grid points. In words: for each basis nod
 
 Under `method_new = "subset"`, the spatial and random effect covariances in $\hat{\boldsymbol{\Sigma}}_B$ and $\sigma^{2*}_B$ are formed on the selected $m$ nodes. The average independent error variance on the nodes is $\hat{\sigma}^2_{\mathrm{ie}}/m$. We add $\hat{\sigma}^2_{\mathrm{ie}}(1/G-1/m)$ to $\sigma^{2*}_B$ so that the independent errors contribute their full-grid variance $\hat{\sigma}^2_{\mathrm{ie}}/G$. The mean $\mathbf{X}_B\hat{\boldsymbol{\beta}}$ and any offsets are also averaged over the full grid.
 
-`local$index` can be used to select specific rows from `object$obdata` order while `local$index_new` works similarly but for `newdata`. `local$index` and `index_new` can be logical vectors or integers that represent row position. When subsetting `object$obdata`, $\text{Cov}(\hat{\boldsymbol\beta})$ is still taken from the full model fit.
+`local$index` can be used to select rows of `object$obdata`, while `local$index_new` can be used to select rows of `newdata`. `local$index` and `local$index_new` can be logical vectors or integers that represent row position. When subsetting `object$obdata`, $\text{Cov}(\hat{\boldsymbol\beta})$ is still taken from the full model fit.
 
 For an overview of Block Prediction, see @cressie1993statistics. For applications to a finite population (i.e., a region with a finite number of point locations), see @ver2008spatial and @dumelle2022comparison.
 
